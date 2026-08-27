@@ -186,6 +186,7 @@ goal/workload
 | I04 | same artifact/quant/workload descriptive benchmark comparison | verified |
 | I05 | explicit same-cohort market pairing → price/performance | verified |
 | I06 | evidence-linked TCO scenario worksheet | verified |
+| I07 | real Experiment 61 Evidence Packet intake gate | verified |
 
 当前稳定边界：
 
