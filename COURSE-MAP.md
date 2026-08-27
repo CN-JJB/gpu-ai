@@ -190,6 +190,8 @@ goal/workload
 | I08 | NVIDIA/AMD/Apple/Intel documented compatibility coverage | verified |
 | I09 | compatibility coverage matrix with scope/freshness | verified |
 | I10 | freshness / revalidation queue | verified |
+| I11 | explicit GLOBAL-EBAY used MEDIAN_ASK cohort for 3090 / 7900 XTX / A770 | contract-verified |
+| I12 | market sample/method audit + MEDIAN_ASK evidence validator | contract-verified |
 
 当前稳定边界：
 
