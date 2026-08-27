@@ -16,6 +16,8 @@ Phase 4 specs：
 - docs/specs/0009-intelligence-cross-vendor-documented-coverage.md
 - docs/specs/0010-intelligence-compatibility-coverage-matrix.md
 - docs/specs/0011-intelligence-freshness-revalidation-queue.md
+- docs/specs/0012-intelligence-market-cohort-coverage.md
+- docs/specs/0013-intelligence-market-evidence-audit.md
 
 Schema：
 - intelligence/schema/README.md
@@ -134,6 +136,57 @@ FRESH
 
 STALE means revalidate before a current decision; it does not automatically mean false.
 
+## Real market cohort
+
+Current same-contract used-GPU asking observations:
+
+~~~text
+GLOBAL-EBAY
+secondary-aggregated-ebay-active
+used-consumer
+used
+MEDIAN_ASK
+USD
+~~~
+
+Current rows:
+- RTX 3090 24GB;
+- RX 7900 XTX 24GB;
+- Arc A770 16GB.
+
+Query:
+
+~~~bash
+python3 tools/intelligence/market_matrix.py intelligence/catalog   --geography GLOBAL-EBAY   --channel secondary-aggregated-ebay-active   --cohort used-consumer   --condition used   --price-state MEDIAN_ASK   --currency USD   --as-of 2026-08-28
+~~~
+
+These are asking prices, not confirmed sales.
+
+## Market evidence audit
+
+Production MEDIAN_ASK rows preserve:
+- active listing count;
+- middle-half asking range;
+- source methodology;
+- source export timestamp;
+- confirmed_sale=false.
+
+Audit:
+
+~~~bash
+python3 tools/intelligence/market_evidence_audit.py intelligence/catalog   --geography GLOBAL-EBAY   --channel secondary-aggregated-ebay-active   --cohort used-consumer   --condition used   --price-state MEDIAN_ASK   --currency USD   --as-of 2026-08-28
+~~~
+
+Current descriptive sample bands:
+
+~~~text
+RTX 3090      → BROAD-SAMPLE
+RX 7900 XTX   → LIMITED-SAMPLE
+Arc A770 16GB → SMALL-SAMPLE
+~~~
+
+These labels are operational heuristics, not statistical confidence scores.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -187,6 +240,10 @@ Evidence:
 - examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
 - examples/evidence/intelligence-09-compatibility-coverage-matrix.md
 - examples/evidence/intelligence-10-freshness-revalidation.md
+- examples/evidence/intelligence-11-market-cohort-coverage.md
+- examples/evidence/intelligence-12-market-evidence-audit.md
+
+I11–I12 were additionally checked against exact latest-main blobs with contract-equivalent execution. A fresh full Python repository run was not repeated because the local execution path timed out/rate-limited; do not collapse these two verification levels.
 
 ## Current production-data boundary
 
