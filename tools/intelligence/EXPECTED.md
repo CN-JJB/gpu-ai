@@ -26,3 +26,12 @@ SELFTEST: PASS
 The fixture PP/TG values are synthetic and prove only tool behavior.
 
 They are not GPU performance claims.
+## CI
+
+The same checks run in:
+
+~~~text
+.github/workflows/intelligence-selftest.yml
+~~~
+
+CI executes Python compilation before the full self-test.
