@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I13. I01–I10 have a full Python self-test PASS; I11–I12 have exact-main contract verification pending a fresh full Python rerun.
+Phase 4 tooling currently implements I01–I15. I01–I10 have a full Python self-test PASS; I11–I15 have exact-main contract verification pending a fresh full Python rerun.
 
 ## 1. Validate a catalog
 
@@ -168,7 +168,23 @@ confirmed_transaction_price=false
 
 It reports median displayed listing prices, not confirmed transaction medians.
 
-## 13. Comparable benchmark view
+## 13. Cross-market signal comparison
+
+~~~bash
+python3 compare_market_contracts.py ../../intelligence/catalog   --left-geography GLOBAL-EBAY   --left-channel secondary-aggregated-ebay-active   --left-cohort used-consumer   --left-condition used   --left-price-state MEDIAN_ASK   --left-currency USD   --right-geography US   --right-channel offerup-sold-marked-listing   --right-cohort used-consumer   --right-condition used   --right-price-state SOLD_MARKED_LISTING_PRICE   --right-currency USD
+~~~
+
+This reports descriptive cross-contract gaps only. It does not call them transaction discounts.
+
+## 14. China secondary watch
+
+~~~bash
+python3 market_matrix.py ../../intelligence/catalog   --geography CN   --channel secondary-summary   --cohort used-consumer   --condition working-unverified   --price-state SECONDARY_REPORTED   --currency CNY   --as-of 2026-08-28
+~~~
+
+SECONDARY_REPORTED rows must keep direct_listing_capture=false and confirmed_sale=false.
+
+## 15. Comparable benchmark view
 
 ~~~bash
 python3 comparable_benchmarks.py fixtures/catalog \
@@ -186,7 +202,7 @@ Comparison grouping requires the same:
 
 Rows are descriptive system comparisons, not automatically causal A/B claims.
 
-## 14. Explicit price/performance
+## 16. Explicit price/performance
 
 ~~~bash
 python3 price_performance.py fixtures/catalog \
@@ -202,7 +218,7 @@ The tool never auto-selects a “latest price”.
 
 Selected market records must share the same geography/channel/cohort/condition/price-state/currency contract.
 
-## 15. TCO worksheet
+## 17. TCO worksheet
 
 ~~~bash
 python3 tco_worksheet.py fixtures/catalog \
@@ -221,7 +237,7 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 16. Self-test
+## 18. Self-test
 
 From repository root:
 
@@ -245,6 +261,8 @@ See:
 - examples/evidence/intelligence-11-market-cohort-coverage.md
 - examples/evidence/intelligence-12-market-evidence-audit.md
 - examples/evidence/intelligence-13-sold-marked-listings.md
+- examples/evidence/intelligence-14-cross-market-signal.md
+- examples/evidence/intelligence-15-cn-secondary-watch.md
 
 ## Non-goals
 
