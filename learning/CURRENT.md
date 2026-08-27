@@ -516,6 +516,21 @@ Artifacts:
 
 Synthetic ACCEPT/ROLLBACK paths verified. Real gate blocks missing/invalid numeric evidence.
 
+### Slice 41 — Observability / Incident Diagnosis
+
+Client latency/traffic/errors + server saturation + GPU telemetry + logs → shared timeline → hypothesis → controlled confirmation。
+
+Artifacts:
+- research/llm/0023-observability-incident-diagnosis.md
+- reference/llm/observability-incident-diagnosis.md
+- lessons/41-observability/01-symptom-timeline-hypothesis.html
+- labs/experiments/76-incident-diagnosis-cases/
+- labs/experiments/77-real-incident-evidence/
+- examples/evidence/experiment-41-observability-incident-diagnosis.md
+- learning/records/2026-08-27-observability-incident-diagnosis.md
+
+Queue/thermal/high-stable-VRAM synthetic cases verified. Real collector is bounded/read-only/loopback-only.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -572,8 +587,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build observability/incident-diagnosis slice.
-2. Separate symptom metrics from root-cause evidence.
-3. Correlate client TTFT/ITL with queue, GPU utilization/memory, clocks/thermals and server logs on one timeline.
-4. Teach alerting on SLO/resource state rather than one noisy utilization metric.
-5. Add a read-only incident evidence packet and synthetic diagnosis cases.
+1. Build power/energy-efficiency slice.
+2. Separate instantaneous watts from total joules and joules/token.
+3. Compare throughput/watt and energy/request under PP vs TG workloads.
+4. Connect sustained power/temperature/clocks to performance stability.
+5. Extend TCO with electricity cost while avoiding fake board-power measurements.

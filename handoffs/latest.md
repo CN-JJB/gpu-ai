@@ -7,66 +7,89 @@
 
 ## Completed frontier
 
-Slices 01–40 are implemented.
-Experiments 01–75 exist.
+Slices 01–41 are implemented.
+Experiments 01–77 exist.
 
-## Slice 40 core
+## Slice 41 core
 
-Release policy is defined before candidate interpretation.
-
-Synthetic policy result:
+Service views:
 
 ```
-candidate-good:
-TG 1.08×
-PPL ratio 1.01
-TTFT 450 ms
-SLO 99.3%
-→ ACCEPT
-
-candidate-fast-bad:
-TG 1.20×
-PPL ratio 1.04
-TTFT 900 ms
-SLO 92%
-→ ROLLBACK
+latency
+traffic
+errors
+saturation
 ```
 
-Rollback only completes when exact baseline:
+LLM mapping:
 
 ```
-runtime SHA
-model SHA
-config SHA
-manifest SHA
+TTFT/ITL/E2E
+req/s/tok/s
+HTTP/OOM/SLO
+queue/slots/KV/GPU/thermal
 ```
 
-is restored and readiness/smoke pass.
-
-Real Experiment 75 consumes prior Evidence; it does not install services or overwrite artifacts.
-
-## Active next slice — Observability / Incident Diagnosis
-
-Build:
+Synthetic verified:
 
 ```
-user symptom
-→ timeline
-→ client latency/error
-→ queue/server metrics
-→ GPU memory/utilization/clocks/temperature
-→ logs
-→ hypothesis
-→ evidence
-→ action
+queue:
+TTFT 6×
+deferred +9
+ITL ~flat
+clock ~flat
+
+thermal:
+temp +18C
+clock 0.667×
+ITL 1.9×
+
+stable VRAM:
+96.25% peak
+only 0.1 GiB variation
+latency stable
 ```
+
+Diagnoses remain hypotheses until controlled confirmation.
+
+Real collector:
+- loopback only;
+- max 300 s;
+- read-only;
+- server metrics + raw vendor telemetry;
+- no clock/power/driver changes.
+
+## Active next slice — Power / Energy Efficiency
 
 Teach:
-- symptom != cause;
-- 100% GPU can be healthy;
-- low GPU utilization can be queue/CPU/tokenization/I/O or measurement artifact;
-- VRAM full can be expected reservation rather than leak;
-- thermals/clocks matter over time;
-- correlate clocks/queue/TTFT rather than alerting on one metric.
 
-Real lab should be read-only and produce an incident packet without changing power limits/clocks/driver settings.
+```
+power W
+=
+joules / second
+
+energy
+=
+integral of power over time
+
+joules/token
+=
+energy / useful output
+```
+
+Separate:
+- idle board/system power;
+- model load;
+- PP;
+- TG;
+- serving concurrency.
+
+Metrics:
+- tok/s/W;
+- J/output-token;
+- J/request;
+- electricity cost per 1M tokens / per workload day.
+
+Use synthetic integration first.
+
+Real lab should read telemetry only and label GPU-board power vs whole-system wall power separately.

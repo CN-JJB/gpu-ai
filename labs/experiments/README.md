@@ -146,3 +146,9 @@
 
 - 74 synthetic release gate ACCEPT vs fast-but-bad ROLLBACK
 - 75 real evidence-driven release gate / rollback verification
+
+
+### 76–77：Observability / Incident Diagnosis
+
+- 76 synthetic queue / thermal-clock / stable-VRAM diagnosis cases
+- 77 bounded read-only incident metrics/telemetry packet

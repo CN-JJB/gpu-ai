@@ -49,10 +49,11 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 38 | `38-service-exposure/` | bind / auth / TLS / privacy |
 | 39 | `39-operational-reliability/` | readiness / restart / recovery |
 | 40 | `40-safe-upgrade/` | release gates / rollback |
+| 41 | `41-observability/` | timeline / saturation / incident diagnosis |
 
 ## 使用方式
 
-不需要从 01 线性读到 40。
+不需要从 01 线性读到 41。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21

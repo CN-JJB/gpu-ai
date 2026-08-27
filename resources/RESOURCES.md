@@ -1431,3 +1431,14 @@ URL: https://doi.org/10.1287/opre.1110.0940
 URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md
 用途：pinned /health 503-loading vs 200-ready semantics and public endpoint behavior.
 可信度：pinned upstream official repository documentation。
+
+
+### Google SRE four golden signals
+URL: https://sre.google/sre-book/monitoring-distributed-systems/
+用途：latency / traffic / errors / saturation monitoring framework and tail/saturation reasoning.
+可信度：official Google SRE book。
+
+### Google SRE Monitoring workbook
+URL: https://sre.google/workbook/monitoring/
+用途：metrics/logging, monitoring use cases and actionable service-health diagnosis.
+可信度：official Google SRE workbook。
