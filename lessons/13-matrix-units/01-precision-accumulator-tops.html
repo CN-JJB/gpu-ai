@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 13 — Tensor Core/MFMA 与数值格式：为什么 TOPS 不等于 LLM 速度</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:980px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.7}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}
+</style>
+</head>
+<body>
+<h1>Slice 13 — Tensor Core / MFMA 与数值格式：为什么 TOPS 不等于 LLM 速度</h1>
+
+<p><strong>真实问题：</strong>一张卡写着几百甚至上千 TOPS，为什么跑 4-bit LLM 时不一定比另一张卡快那么多？</p>
+
+<h2>1. Matrix Unit 和普通 ALU 不一样</h2>
+<p>普通向量/标量单元更像：</p>
+<pre>一个线程/一个 lane
+→ 一小撮独立 arithmetic</pre>
+<p>矩阵单元更像：</p>
+<pre>A tile × B tile + accumulator tile</pre>
+<p>一条 matrix instruction 代表一整个小矩阵 tile 的大量乘加，因此对规则 GEMM 很高效。</p>
+
+<h2>2. 第一条硬规则：输入类型 ≠ 累加类型</h2>
+<pre>FP16/BF16 input
+→ matrix multiply
+→ FP32 accumulation</pre>
+<p>或者：</p>
+<pre>INT8 input
+→ matrix multiply
+→ INT32 accumulation</pre>
+<p>低精度输入省带宽、提高矩阵吞吐；更宽 accumulator 用来承受许多乘积相加后的范围和误差。</p>
+
+<h2>3. 第二条硬规则：模型存储位宽 ≠ 矩阵指令位宽</h2>
+<p>本地 LLM 最容易混淆：</p>
+<pre>GGUF Q4
+= weights stored around low-bit representation</pre>
+<p>但 runtime 可能执行：</p>
+<pre>load Q4 block
+→ apply scale / dequantize
+→ FP16/BF16 tile
+→ FP16/BF16 matrix instruction
+→ wider accumulator</pre>
+<div class="callout"><strong>所以：</strong>“4-bit 模型”不能自动翻译成“跑满 INT4/FP4 Tensor Core”。</div>
+
+<h2>4. NVIDIA Tensor Core 的代际心智图</h2>
+<table>
+<tr><th>代际</th><th>你该记住什么</th></tr>
+<tr><td>Volta</td><td>Tensor Core 进入 CUDA GPU；FP16 matrix acceleration 成为新路径</td></tr>
+<tr><td>Turing</td><td>整数/更低 bit inference matrix modes 扩展</td></tr>
+<tr><td>Ampere</td><td>BF16、TF32、FP64 Tensor Core；第三代 Tensor Core</td></tr>
+<tr><td>Hopper</td><td>第四代 Tensor Core；FP8 + Transformer Engine</td></tr>
+<tr><td>Blackwell</td><td>第五代 Tensor Core；FP4-class 低精度继续扩展</td></tr>
+</table>
+<p>这里学的是代际方向，不背某张 SKU 的峰值数字。精确型号表放到动态情报。</p>
+
+<h2>5. TF32 最能说明“存储”和“计算精度”不是一回事</h2>
+<p>TF32 是 Tensor Core 的计算精度模式：保持类似 FP32 的范围，但降低输入有效精度，再使用 FP32 accumulator。</p>
+<p>它不是“把模型文件保存成一个 TF32 权重格式”。</p>
+
+<h2>6. FP8 为什么还需要 scaling？</h2>
+<p>8 bit 太少，不可能同时拥有 FP16 那样的范围和精度。实际 FP8 体系会选择不同 exponent/mantissa 分配，并配合 scale。</p>
+<pre>tensor
+→ measure / choose scale
+→ scale into FP8 range
+→ FP8 compute
+→ wider accumulation</pre>
+<p>这说明低精度不是“少几个 bit 就白送 2×”。scale、layout、cast 都会产生成本。</p>
+
+<h2>7. AMD 的对应问题叫 MFMA，不需要硬套 Tensor Core 名字</h2>
+<p>AMD CDNA/ROCm 的矩阵硬件常以 MFMA（Matrix Fused Multiply-Add）来描述。</p>
+<p>同样问：</p>
+<pre>input type?
+accumulator?
+tile shape?
+library/kernel?
+achieved utilization?</pre>
+<p>不同 CDNA/RDNA 代支持的数据类型不同，精确表属于动态情报。</p>
+
+<h2>8. 为什么广告 TOPS 很容易骗人</h2>
+<p>一张 GPU 可以同时有很多“峰值”：</p>
+<ul>
+<li>FP32 scalar/vector</li>
+<li>FP16/BF16 matrix</li>
+<li>TF32</li>
+<li>FP8</li>
+<li>INT8</li>
+<li>FP4 / INT4</li>
+<li>dense / sparse</li>
+</ul>
+<p>如果产品页写“AI TOPS”，一定要找脚注：到底是哪一种 precision、是否使用 structured sparsity、是否按 boost clock。</p>
+
+<h2>9. Peak 只是 Roofline 的计算屋顶</h2>
+<pre>achieved
+≤ compute peak × utilization
+
+achieved
+≤ memory bandwidth × arithmetic intensity</pre>
+<p>最终取更低的那一个。</p>
+
+<h2>10. Prefill 更容易吃到 matrix peak</h2>
+<pre>many tokens × hidden
+→ large GEMM
+→ many tiles
+→ matrix unit utilization high</pre>
+
+<h2>11. Decode 最容易让 TOPS 失效</h2>
+<pre>one/few tokens × huge weights
+→ small M dimension
+→ poor tile utilization
+→ weight bytes dominate</pre>
+<p>这时：</p>
+<pre>memory roof << matrix compute roof</pre>
+<p>再多 Tensor TOPS 也可能用不上。</p>
+
+<h2>12. 那 4-bit 为什么仍然常常让 decode 变快？</h2>
+<p>因为它首先减少的是：</p>
+<pre>weights bytes read per generated token</pre>
+<p>即使 kernel 读 Q4 后解量化成 FP16 再算，显存总线已经少搬了很多数据。</p>
+
+<div class="callout"><strong>重要：</strong>quantization 的 decode speedup 可以主要来自<strong>带宽</strong>，并不证明使用了原生 INT4/FP4 matrix arithmetic。</div>
+
+<h2>13. 最理想的低 bit 路径</h2>
+<pre>low-bit storage
++ native low-bit matrix instruction
++ efficient scale/dequant
++ good tile shape
++ enough parallel work
++ enough memory bandwidth</pre>
+<p>缺一项，都可能离理论 TOPS 很远。</p>
+
+<h2>14. 买卡时怎么读规格</h2>
+<ol>
+<li>先看 VRAM capacity。</li>
+<li>再看 memory bandwidth。</li>
+<li>确认目标 backend 支持。</li>
+<li>确认模型 quant kernel 实际计算路径。</li>
+<li>区分 PP 与 TG。</li>
+<li>最后才拿对应 precision 的 matrix peak 解释 compute-bound 部分。</li>
+</ol>
+
+<h2>15. Apple 留到单独生态章节</h2>
+<p>Apple 的 GPU、Neural Engine、统一内存不能拿一个 TOPS 数字机械映射到 NVIDIA Tensor Core。后续 Apple 专节会单独拆 Metal GPU 路径与 ANE 路径。</p>
+</body>
+</html>
