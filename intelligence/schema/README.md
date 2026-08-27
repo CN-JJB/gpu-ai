@@ -11,7 +11,9 @@ docs/specs/0002-intelligence-stations-data-contract.md
 ~~~text
 intelligence/catalog/hardware.jsonl
 intelligence/catalog/models.jsonl
+intelligence/catalog/runtimes.jsonl
 intelligence/catalog/market.jsonl
+intelligence/catalog/compatibility.jsonl
 intelligence/catalog/benchmarks.jsonl
 ~~~
 
@@ -22,7 +24,7 @@ Each line is one JSON object.
 ~~~json
 {
   "schema_version": 1,
-  "record_type": "hardware|model|market|benchmark",
+  "record_type": "hardware|model|runtime|market|compatibility|benchmark",
   "record_id": "opaque-stable-id",
   "source": {
     "evidence_class": "OFFICIAL|MEASURED|DERIVED|SECONDARY|SELLER|SYNTHETIC",
@@ -64,6 +66,46 @@ Dynamic observations may add:
   "license": "..."
 }
 ~~~
+
+## Runtime
+
+~~~json
+{
+  "runtime_id": "runtime:...",
+  "canonical_name": "llama.cpp",
+  "repository": "ggml-org/llama.cpp"
+}
+~~~
+
+## Compatibility
+
+~~~json
+{
+  "hardware_id": "hw:...",
+  "model_id": "model:...",
+  "runtime_id": "runtime:...",
+  "backend": "CUDA",
+  "status": "DOCUMENTED_SUPPORTED",
+  "observed_at": "2026-08-27",
+  "scope": {
+    "representation": "llama.cpp-compatible GGUF required",
+    "measurement_required": true
+  }
+}
+~~~
+
+Compatibility statuses:
+
+~~~text
+MEASURED_SUPPORTED
+DOCUMENTED_SUPPORTED
+PARTIAL
+EXPERIMENTAL
+DOCUMENTED_UNSUPPORTED
+UNKNOWN
+~~~
+
+See docs/specs/0003-intelligence-compatibility-preflight.md.
 
 ## Market
 
