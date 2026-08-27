@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 20 — 二手 GPU 到手怎么验</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Slice 20 — 二手 GPU 到手怎么验：不是“烤机通过”四个字</h1>
+
+<h2>1. 先把“健康”拆开</h2>
+
+<pre>身份对不对？
+显存容量对不对？
+显存数据完整吗？
+计算稳定吗？
+温度正常吗？
+会降频吗？
+驱动会 reset 吗？
+我的 LLM workload 能稳定跑吗？</pre>
+
+<p>这些问题必须分别取证。</p>
+
+<h2>2. 付款前先让卖家证明“这就是这张卡”</h2>
+
+<p>要求：</p>
+<ul>
+<li>当前时间/订单提示的实拍；</li>
+<li>序列号标签；</li>
+<li>GPU/VRAM 识别；</li>
+<li>当前负载视频；</li>
+<li>负载后的温度；</li>
+<li>维修/改显存/BIOS 情况。</li>
+</ul>
+
+<div class="callout"><strong>“个人自用、非矿、无修”先全部当 seller claim，而不是检测结论。</strong></div>
+
+<h2>3. 到货第一件事不是插电脑</h2>
+
+<p>先留：</p>
+<pre>包裹
+→ 运单
+→ 开箱
+→ 序列号
+→ PCB/接口/散热器外观</pre>
+
+<p>如果外观已经有烧蚀、严重腐蚀、破损电源口，就没有必要冒风险通电。</p>
+
+<h2>4. 第一个上机测试：Identity</h2>
+
+<h3>NVIDIA</h3>
+<pre>nvidia-smi -L
+nvidia-smi -q</pre>
+
+<h3>AMD</h3>
+<pre>amd-smi list
+amd-smi static
+rocminfo</pre>
+
+<h3>Intel</h3>
+<pre>sycl-ls
+llama-bench --list-devices</pre>
+
+<p>确认：</p>
+<ul>
+<li>型号；</li>
+<li>显存；</li>
+<li>device ID；</li>
+<li>BIOS/firmware（需要时）。</li>
+</ul>
+
+<h2>5. “跑游戏没花屏”不能证明显存完整</h2>
+
+<p>显存问题是独立层。</p>
+
+<p>NVIDIA 支持的产品可以使用官方 DCGM memory diagnostics；跨生态还可以把 memtest_vulkan 作为额外证据。</p>
+
+<p>核心逻辑：</p>
+<pre>allocate
+→ write patterns
+→ read back
+→ compare
+→ report errors</pre>
+
+<p>如果一张“正常工作卡”能稳定复现显存错误，已经是很强的拒收信号。</p>
+
+<h2>6. 但显存测试通过，也没结束</h2>
+
+<p>接下来用自己的 workload：</p>
+
+<pre>same model
+→ llama-bench PP
+→ llama-bench TG
+→ repeat
+→ log</pre>
+
+<p>这能同时碰到：</p>
+<ul>
+<li>模型大 allocation；</li>
+<li>矩阵运算；</li>
+<li>backend kernel；</li>
+<li>持续显存带宽；</li>
+<li>温度/功耗。</li>
+</ul>
+
+<h2>7. 为什么 FurMark 不是终局？</h2>
+
+<p>FurMark 可以是一个负载工具，但它回答不了所有问题。</p>
+
+<table>
+<tr><th>测试</th><th>主要回答</th></tr>
+<tr><td>graphics stress</td><td>图形/高功耗负载能否持续</td></tr>
+<tr><td>memory test</td><td>显存数据完整性</td></tr>
+<tr><td>LLM PP</td><td>矩阵/prefill 路径</td></tr>
+<tr><td>LLM TG</td><td>显存带宽/解码稳定</td></tr>
+<tr><td>error counters</td><td>硬件/driver 报错</td></tr>
+</table>
+
+<h2>8. 温度也不是只看 GPU Core</h2>
+
+<p>能读到的话记录：</p>
+<ul>
+<li>core；</li>
+<li>hotspot；</li>
+<li>memory junction；</li>
+<li>fan；</li>
+<li>clock；</li>
+<li>power；</li>
+<li>throttle reason。</li>
+</ul>
+
+<p>3090 这种 GDDR6X 卡尤其不能只盯 core 温度。</p>
+
+<h2>9. 计算卡要多验一层</h2>
+
+<p>P40/P100/V100/A 系列等：</p>
+
+<pre>正常计算
++
+ECC/RAS
++
+散热方案
++
+供电/机箱兼容
++
+无显示输出工作流</pre>
+
+<p>一张本身没坏的 P40，如果你的机箱根本无法正确给被动散热器送风，对你仍然不是“可用卡”。</p>
+
+<h2>10. 魔改卡/板修卡不是自动拒绝</h2>
+
+<p>但必须进入更高风险 cohort。</p>
+
+<p>例如 2080 Ti 22G：</p>
+<ul>
+<li>能识别 22G；</li>
+<li>接近满显存 allocation；</li>
+<li>显存测试；</li>
+<li>目标 LLM；</li>
+<li>驱动重启测试；</li>
+<li>卖家/改卡者 provenance。</li>
+</ul>
+
+<p>价格必须补偿风险。</p>
+
+<h2>11. 正确测试顺序</h2>
+<pre>visual
+→ identity
+→ baseline errors
+→ short memory
+→ short LLM
+→ sustained LLM
+→ optional deeper diagnostics
+→ final log review</pre>
+
+<p>失败得越早，就越不要继续无意义地烤。</p>
+
+<h2>12. 最后输出</h2>
+
+<ul>
+<li><strong>ACCEPT</strong></li>
+<li><strong>ACCEPT WITH DISCLOSED DEFECT</strong></li>
+<li><strong>DISPUTE / RETURN</strong></li>
+</ul>
+
+<p>真正强的二手买家不是“敢赌”，而是：</p>
+<pre>每个关键结论
+都有证据
+</pre>
+</body></html>
