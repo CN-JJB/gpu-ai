@@ -202,6 +202,22 @@ Artifacts:
 
 Current snapshot intentionally does not claim a direct Xianyu sold median because the normalized item-level evidence is insufficient.
 
+### Slice 20 — Used GPU transaction / acceptance verification
+
+Seller evidence → unboxing/serial → identity → baseline errors → memory integrity → LLM workload → thermals → after-test errors → ACCEPT/DISPUTE。
+
+Artifacts:
+- research/hardware/0002-used-gpu-transaction-verification.md
+- reference/hardware/used-gpu-acceptance-checklist.md
+- lessons/20-used-gpu-verification/01-before-pay-after-arrival.html
+- labs/experiments/35-seller-evidence-quality/
+- labs/experiments/36-real-used-gpu-acceptance/
+- examples/evidence/experiment-20-used-gpu-verification.md
+- intelligence/hardware/used-gpu-acceptance-tools-2026-08-27.md
+- learning/records/2026-08-27-used-gpu-verification.md
+
+Default real acceptance collector is read-only/non-destructive. Seller evidence uses C0–C4; no single stress test is treated as complete health proof.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -258,8 +274,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build the pre-payment / post-arrival GPU verification slice.
-2. Create seller-message prompts that request identity, serial, BIOS, memory, sustained-load and temperature evidence without relying on vague "non-mining" claims.
-3. Create safe acceptance/dispute evidence packet templates.
-4. Add datacenter-card specific checks for cooling, power connector, ECC/error counters and no-display operation.
-5. Build a rolling candidate watchlist only after direct normalized market samples are captured.
+1. Build a workload-specific max-buy-price/watchlist model.
+2. Combine Slice 18 candidate dossier with Slice 19 market samples and Slice 20 acceptance confidence.
+3. Add price-alert logic that only triggers when hard gates pass and evidence quality is sufficient.
+4. Keep automated monitoring separate from actual purchase action.
+5. Then return to deployment projects and optimization using selected real hardware.

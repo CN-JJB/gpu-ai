@@ -1260,3 +1260,30 @@ URL: https://www.xing73.com/taobao-xl-AM5AzMh2Y5_ip5Lmo5MqL5.html
 用途：demonstrate why teaser/multi-SKU display prices must be rejected from exact-model samples.
 可信度：secondary aggregation。
 局限：do not use as fair-value data.
+
+
+## Used GPU acceptance testing
+
+### NVIDIA DCGM Diagnostics
+URL: https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/dcgm-diagnostics.html
+Command reference:
+https://docs.nvidia.com/datacenter/dcgm/latest/reference/command-line-reference/dcgmi/dcgmi-diag.html
+用途：official supported GPU diagnostics, memory/PCIe/compute/stress suites.
+可信度：NVIDIA official current docs。
+局限：plugin/suite availability depends on GPU class/product.
+
+### NVIDIA DCGM GPU Memory Plugin
+URL: https://docs.nvidia.com/datacenter/dcgm/latest/reference/diagnostics/plugins/memory.html
+用途：framebuffer write/read pattern integrity test and ECC conditions.
+可信度：NVIDIA official current docs。
+
+### AMD SMI RAS
+URL: https://rocmdocs.amd.com/projects/amdsmi/en/latest/conceptual/ras.html
+用途：ECC/RAS/CPER concepts and error-counter interpretation on supported AMD GPUs.
+可信度：AMD official current docs。
+
+### memtest_vulkan
+URL: https://github.com/GpuZelenograd/memtest_vulkan
+用途：optional cross-vendor Vulkan GPU memory test.
+可信度：open-source project / community tool。
+局限：not vendor certification; exact tested allocation and driver limitations must be recorded.

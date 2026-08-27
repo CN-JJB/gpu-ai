@@ -4,98 +4,86 @@
 
 - Repo: CN-JJB/gpu-ai
 - Branch: main
-- Working URL: https://github.com/CN-JJB/gpu-ai
 
 ## Frozen constraints
 
 Core ability stack:
 **会理解 → 会调查 → 会选择 → 会实践 → 会改造**
 
-Core teaching pattern:
-**真实问题 → 必要原理 → 小实验 → 可玩项目 → 结果分析 → 如何选择 → 如何迁移到其他平台/硬件**
-
 Stable knowledge and dated intelligence remain separate.
-Never fabricate benchmark, transaction or market-price data.
+Never fabricate benchmark, price, transaction or hardware-health results.
 
 ## Completed frontier
 
-Slices 01–19 are implemented.
+Slices 01–20 are implemented.
 
-Recent chain:
-
-```
-14 NVIDIA architecture
-15 AMD architecture
-16 Apple Silicon
-17 Intel Xe/Arc
-18 cross-vendor hardware decision
-19 China secondhand market methodology
-```
-
-## Slice 19 core rule
-
-Never treat a search result as a market price.
-
-Normalize:
+Recent practical chain:
 
 ```
-exact model
-+ exact VRAM
-+ stock/mod/repair cohort
-+ condition
-+ price state
-+ date/source
+18 hardware decision
+→ 19 China secondhand market
+→ 20 transaction / acceptance verification
 ```
 
-Price states:
-- ASK
-- SOLD-CONFIRMED
-- DELISTED-ASSUMED
-- MERCHANT-QUOTE
-- BUYBACK
-- UNKNOWN
+## Slice 20 core
 
-Current dated intelligence:
-`intelligence/market/china-used-gpu-market-2026-08-27.md`
+Never reduce GPU health to one stress test.
 
-It contains only low/medium-confidence secondary consumer-market signals plus direct merchant quotes.
-It intentionally does **not** publish a direct Xianyu sold-price median.
+```
+identity
+→ memory integrity
+→ workload stability
+→ thermals
+→ error state
+```
 
-## Active next slice — GPU transaction / verification
+Seller evidence:
+- C0 unknown
+- C1 claim
+- C2 current functional
+- C3 strong pre-sale packet
+- C4 independent target verification
+
+Real packet:
+`labs/experiments/36-real-used-gpu-acceptance/`
+
+Default baseline collector is read-only.
+
+Current tool intelligence:
+`intelligence/hardware/used-gpu-acceptance-tools-2026-08-27.md`
+
+## Active next slice — price threshold / watchlist
 
 Build:
 
 ```
-listing
-→ seller evidence request
-→ identity/serial
-→ remote proof
-→ payment/inspection path
-→ arrival unboxing evidence
-→ device identity
-→ VRAM/memory test
-→ sustained compute
-→ thermals/power
-→ accept / dispute
+workload
+→ hard gates
+→ candidate capability value
+→ platform/TCO cost
+→ condition/software risk discount
+→ max buy price
+→ current normalized market evidence
+→ alert threshold
 ```
 
-Separate:
-- retail gaming/workstation GPU;
-- datacenter passive/no-display GPU;
-- modified/repaired GPU.
+The watchlist can say:
+- WATCH
+- BUY-CANDIDATE
+- OVERPRICED
+- NEEDS EVIDENCE
 
-Do not give unsafe electrical/board-repair instructions.
-Testing should be read-only/non-destructive by default.
+It must never auto-purchase.
 
-## After verification slice
+## After watchlist
 
-Create a rolling candidate watchlist:
-- exact workload;
-- exact candidate;
-- max buy price;
-- current normalized ASK/SOLD evidence;
-- evidence gaps;
-- alert threshold.
+Return to practical deployment projects:
+- selected hardware;
+- exact runtime;
+- reproducible benchmark;
+- optimization;
+- serving;
+- multi-GPU if relevant.
 
 ## Matt Pocock skills
 
