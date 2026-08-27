@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 21 — 最高买价与观察名单</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style>
+</head><body>
+<h1>Slice 21 — “这卡值多少钱”改成“我最多付多少钱”</h1>
+
+<h2>1. 市场价不是你的买价</h2>
+<p>假设当前某卡市场信号在：</p>
+<pre>¥7,400</pre>
+
+<p>但你的总系统预算扣掉：</p>
+<ul>
+<li>电源；</li>
+<li>散热；</li>
+<li>平台；</li>
+<li>电费；</li>
+<li>维修准备金；</li>
+</ul>
+
+<p>只剩：</p>
+<pre>¥6,600</pre>
+
+<p>那么你的答案就是：</p>
+<pre>WAIT / SKIP</pre>
+
+<p>不是“行情就是 7400，只能认”。</p>
+
+<h2>2. 最高买价从总 TCO 反推</h2>
+
+<pre>max_sticker
+=
+total budget
+- platform
+- PSU/cooling
+- energy
+- repair reserve
+- maintenance reserve
++ resale</pre>
+
+<div class="callout"><strong>这不是 GPU 的客观估值。</strong><br>这是你的 scenario 下可接受的挂牌价格上限。</div>
+
+<h2>3. 便宜也不能绕过硬门槛</h2>
+
+<pre>FIT FAIL
+→ SKIP
+
+SOFTWARE FAIL
+→ SKIP / REVIEW
+
+performance unknown
+→ NEEDS EVIDENCE</pre>
+
+<p>一张“只要 999”的 24G 卡，如果型号是假、驱动不支持、显存报错，999 也不是便宜。</p>
+
+<h2>4. 证据不够，不能触发 BUY</h2>
+
+<p>假设：</p>
+<pre>ask = 6200
+ceiling = 6800</pre>
+
+<p>但：</p>
+<pre>condition = C1
+benchmark = E0</pre>
+
+<p>状态应该：</p>
+<pre>NEEDS EVIDENCE</pre>
+
+<p>而不是 BUY。</p>
+
+<h2>5. 观察名单只需要五种状态</h2>
+<ul>
+<li><strong>SKIP</strong>：硬门槛失败</li>
+<li><strong>NEEDS EVIDENCE</strong>：证据不够</li>
+<li><strong>WATCH</strong>：能用，但价格高</li>
+<li><strong>BUY-CANDIDATE</strong>：条件满足，值得进一步成交</li>
+<li><strong>KEEP</strong>：现有硬件更划算</li>
+</ul>
+
+<h2>6. BUY-CANDIDATE 仍然不是自动购买</h2>
+<p>还要经过 Slice 20：</p>
+<pre>卖家证据
+→ 到手验收
+→ ACCEPT</pre>
+
+<h2>7. 三个价格必须分开</h2>
+
+<pre>市场锚点
+谈价目标
+绝对上限</pre>
+
+<p>例如：</p>
+<pre>市场 ASK 中位数 7400
+希望成交       6500
+绝对不超过     6800</pre>
+
+<p>绝对上限不要因为卖家一句“今天还有三个人问”就变化。</p>
+
+<h2>8. Watchlist 必须有替代项</h2>
+
+<p>不要只盯一张神卡：</p>
+<pre>3090 24G
+A770 16G
+V100 32G
+P40 24G
+大内存 Mac
+双卡方案</pre>
+
+<p>不同候选会因为：</p>
+<ul>
+<li>软件；</li>
+<li>容量；</li>
+<li>带宽；</li>
+<li>平台成本；</li>
+<li>风险；</li>
+</ul>
+<p>在不同价格点变得合理。</p>
+
+<h2>9. 价格会过期</h2>
+
+<p>热门二手 GPU：</p>
+<pre>7 days old observation
+→ stale by default</pre>
+
+<p>真正准备付款前应重新抓一轮。</p>
+
+<h2>10. 最强的一句</h2>
+
+<pre>我不是在找“最便宜的卡”
+
+我是在等
+“满足我的 workload，
+证据够，
+而且落进我的价格上限”
+的那张卡。</pre>
+</body></html>

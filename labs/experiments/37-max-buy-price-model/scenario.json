@@ -1,0 +1,18 @@
+{
+  "budget": {
+    "total": 8000,
+    "platform_extra": 400,
+    "psu_cooling": 350,
+    "energy": 500,
+    "repair_reserve": 500,
+    "maintenance_reserve": 250,
+    "expected_resale": 1200
+  },
+  "watch_band_pct": 10,
+  "candidates": [
+    {"name":"A","ask":6800,"fit":"PASS","software":"PASS","performance":"PASS","evidence_ok":true},
+    {"name":"B","ask":6500,"fit":"PASS","software":"PASS","performance":"PASS","evidence_ok":false},
+    {"name":"C","ask":7600,"fit":"PASS","software":"PASS","performance":"PASS","evidence_ok":true},
+    {"name":"D","ask":4000,"fit":"FAIL","software":"PASS","performance":"PASS","evidence_ok":true}
+  ]
+}
