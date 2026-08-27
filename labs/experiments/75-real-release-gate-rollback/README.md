@@ -49,6 +49,14 @@ for:
 
 Every `REPLACE` must be resolved.
 
+Numeric evidence is also validated. In particular:
+- baseline TG must be > 0;
+- baseline/candidate PPL must be > 0;
+- SLO/error fractions must be in [0,1];
+- policy ranges must be sane.
+
+An unfinished numeric template must be blocked rather than divided by zero or treated as evidence.
+
 ## 4. Candidate gate
 
 ```bash

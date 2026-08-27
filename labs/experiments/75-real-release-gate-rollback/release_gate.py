@@ -45,6 +45,38 @@ def main():
         if ph:
             errs.append(f"rollback placeholders: {', '.join(ph)}")
 
+    # Numeric template/default sanity. Zero may be a valid measured error rate,
+    # but TG/PPL denominators and timing/evaluation identities must be usable.
+    numeric_errors=[]
+    if base["performance"]["tg_tok_s"] <= 0:
+        numeric_errors.append("baseline performance.tg_tok_s must be > 0")
+    if base["quality"]["ppl"] <= 0:
+        numeric_errors.append("baseline quality.ppl must be > 0")
+    if cand["quality"]["ppl"] <= 0:
+        numeric_errors.append("candidate quality.ppl must be > 0")
+    if cand["performance"]["tg_tok_s"] < 0:
+        numeric_errors.append("candidate performance.tg_tok_s must be >= 0")
+    for name,obj in [("baseline",base),("candidate",cand)]:
+        if obj["recovery"]["readiness_ms"] < 0:
+            numeric_errors.append(f"{name} recovery.readiness_ms must be >= 0")
+        if obj["recovery"]["first_inference_ms"] < 0:
+            numeric_errors.append(f"{name} recovery.first_inference_ms must be >= 0")
+        if not 0 <= obj["serving"]["slo_compliance"] <= 1:
+            numeric_errors.append(f"{name} serving.slo_compliance must be in [0,1]")
+        if not 0 <= obj["serving"]["error_rate"] <= 1:
+            numeric_errors.append(f"{name} serving.error_rate must be in [0,1]")
+
+    if pol["max_readiness_ms"] <= 0 or pol["max_first_inference_ms"] <= 0:
+        numeric_errors.append("policy readiness/first-inference limits must be > 0")
+    if pol["min_tg_speedup"] < 0 or pol["max_ppl_ratio"] <= 0:
+        numeric_errors.append("policy speedup/PPL thresholds are invalid")
+    if not 0 <= pol["min_slo_compliance"] <= 1:
+        numeric_errors.append("policy min_slo_compliance must be in [0,1]")
+    if not 0 <= pol["max_error_rate"] <= 1:
+        numeric_errors.append("policy max_error_rate must be in [0,1]")
+
+    errs.extend(numeric_errors)
+
     if errs:
         print("GATE: BLOCKED_MISSING_EVIDENCE")
         for e in errs: print("- "+e)
