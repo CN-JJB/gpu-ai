@@ -1,0 +1,16 @@
+{
+  "packet_schema_version": 1,
+  "file_count": 2,
+  "files": [
+    {
+      "path": "tools/intelligence/fixtures/experiment61/manifest.json",
+      "bytes": 2118,
+      "sha256": "569557d43c7f09aa6b25c308dabcc913714d1a0b751b00d1fe949826018abe30"
+    },
+    {
+      "path": "tools/intelligence/fixtures/experiment61/result.json",
+      "bytes": 173,
+      "sha256": "66c8cc34b23c7ed246270a2594d1ba4fa881ba57f52805a1c75ea09c8e8f7df0"
+    }
+  ]
+}
