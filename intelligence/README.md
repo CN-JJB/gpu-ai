@@ -19,6 +19,8 @@ Phase 4 specs：
 - docs/specs/0012-intelligence-market-cohort-coverage.md
 - docs/specs/0013-intelligence-market-evidence-audit.md
 - docs/specs/0014-intelligence-sold-marked-listing-evidence.md
+- docs/specs/0015-intelligence-cross-market-signal-comparison.md
+- docs/specs/0016-intelligence-cn-secondary-watch-signals.md
 
 Schema：
 - intelligence/schema/README.md
@@ -225,6 +227,53 @@ python3 tools/intelligence/sold_marked_market.py intelligence/catalog
 
 Every record keeps confirmed_transaction_price=false.
 
+## Cross-market signal comparison
+
+Explicit comparison of the two USD contracts currently shows:
+
+~~~text
+RTX 3090      1499 ask vs 950 sold-marked display  → -36.6%
+RX 7900 XTX   1020 ask vs 700 sold-marked display  → -31.4%
+Arc A770 16GB  330 ask vs 200 sold-marked display  → -39.4%
+~~~
+
+Tool:
+
+~~~bash
+python3 tools/intelligence/compare_market_contracts.py intelligence/catalog   --left-geography GLOBAL-EBAY   --left-channel secondary-aggregated-ebay-active   --left-cohort used-consumer   --left-condition used   --left-price-state MEDIAN_ASK   --left-currency USD   --right-geography US   --right-channel offerup-sold-marked-listing   --right-cohort used-consumer   --right-condition used   --right-price-state SOLD_MARKED_LISTING_PRICE   --right-currency USD
+~~~
+
+This is a cross-contract signal gap, not a confirmed transaction discount or fair-value discount.
+
+## China secondary watch
+
+Current CN watch contract:
+
+~~~text
+CN
+secondary-summary
+used-consumer
+working-unverified
+SECONDARY_REPORTED
+CNY
+~~~
+
+Current rows:
+
+~~~text
+RTX 3090 → 7400 CNY
+Arc A770 → 1450 CNY
+~~~
+
+Both preserve:
+
+~~~text
+direct_listing_capture=false
+confirmed_sale=false
+~~~
+
+The A770 record is due for revalidation on 2026-08-28.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -281,8 +330,10 @@ Evidence:
 - examples/evidence/intelligence-11-market-cohort-coverage.md
 - examples/evidence/intelligence-12-market-evidence-audit.md
 - examples/evidence/intelligence-13-sold-marked-listings.md
+- examples/evidence/intelligence-14-cross-market-signal.md
+- examples/evidence/intelligence-15-cn-secondary-watch.md
 
-I11–I13 were additionally checked against exact latest-main blobs with contract-equivalent execution. A fresh full Python repository run was not repeated because the local execution path timed out/rate-limited; do not collapse these two verification levels.
+I11–I15 were additionally checked against exact latest-main blobs with contract-equivalent execution. A fresh full Python repository run was not repeated because the local execution path timed out/rate-limited; do not collapse these two verification levels.
 
 ## Current production-data boundary
 
