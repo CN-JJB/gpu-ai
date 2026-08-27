@@ -131,6 +131,7 @@ See docs/specs/0003-intelligence-compatibility-preflight.md.
 {
   "hardware_id": "hw:...",
   "model_id": "model:...",
+  "runtime_id": "runtime:...",
   "artifact": {
     "sha256": "...",
     "bytes": 123,
