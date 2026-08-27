@@ -307,6 +307,21 @@ Artifacts:
 
 Default L0 model verified: MHA/GQA-8/MQA 32k FP16 KV = 16/4/0.5 GiB.
 
+### Slice 27 — SwiGLU / dense FFN
+
+Gate/up/down three-matrix gated FFN → intermediate_size → dense parameter/storage share → prefill large-GEMM vs decode small-row weight streaming。
+
+Artifacts:
+- research/llm/0010-swiglu-dense-ffn.md
+- reference/llm/swiglu-ffn-weight-traffic.md
+- lessons/27-swiglu-ffn/01-gate-up-down.html
+- labs/experiments/48-dense-swiglu-ffn-model/
+- labs/experiments/49-real-model-ffn-structure-compare/
+- examples/evidence/experiment-27-swiglu-dense-ffn.md
+- learning/records/2026-08-27-swiglu-dense-ffn.md
+
+Default L0 arithmetic verified: FFN/attention projection ratio 2.015625× for d4096/d_ff11008 classic-MHA baseline.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -363,8 +378,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build SwiGLU / dense FFN slice.
-2. Derive gate/up/down matrix parameter and byte costs.
-3. Show why FFN can dominate dense model weights even though attention gets more attention.
-4. Compare prefill large-GEMM and decode small-row weight-streaming behavior through the MLP.
-5. Then build MoE and distinguish total vs active parameters.
+1. Build MoE router/top-k expert slice.
+2. Separate total expert parameters from active expert parameters per token.
+3. Model expert weight traffic under no-cache and reuse/batching assumptions.
+4. Explain routing imbalance, expert capacity and why MoE can be hard on local single-GPU inference.
+5. Connect expert placement to multi-GPU interconnect and serving batches.

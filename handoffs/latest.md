@@ -7,75 +7,75 @@
 
 ## Completed frontier
 
-Slices 01–26 are implemented.
+Slices 01–27 are implemented.
 
 Latest LLM architecture spine:
 
-### Slice 24
-Decoder-only prefill/decode dataflow.
-
-### Slice 25
-RMSNorm / residual / RoPE.
-
-### Slice 26
-MHA / MQA / GQA.
-
-Key Slice 26 result:
-
 ```
-KV bytes/token
-=
-2 × layers × Hkv × head_dim × bytes
+24 decoder-only dataflow
+25 RMSNorm / residual / RoPE
+26 MHA / MQA / GQA
+27 SwiGLU / dense FFN
 ```
 
-Default teaching example:
+## Slice 27 key result
+
+Default dense teaching example:
 
 ```
-32 layers
-32 Q heads
-Dh=128
-FP16
-32k context
+d=4096
+d_ff=11008
 
-MHA Hkv32 → 16 GiB
-GQA Hkv8  → 4 GiB
-MQA Hkv1  → 0.5 GiB
+SwiGLU FFN:
+135,266,304 weights/layer
+
+classic MHA Q/K/V/O:
+67,108,864 weights/layer
+
+ratio:
+2.015625×
 ```
+
+FFN storage proxy:
+- FP16: 258 MiB/layer
+- 4.5 bpw: 72.5625 MiB/layer
 
 Key files:
-- `research/llm/0009-mha-mqa-gqa.md`
-- `reference/llm/mha-mqa-gqa-kv.md`
-- `lessons/26-attention-heads/`
-- `labs/experiments/46-mha-gqa-mqa-kv-model/`
-- `labs/experiments/47-real-model-attention-config-compare/`
+- `research/llm/0010-swiglu-dense-ffn.md`
+- `reference/llm/swiglu-ffn-weight-traffic.md`
+- `lessons/27-swiglu-ffn/`
+- `labs/experiments/48-dense-swiglu-ffn-model/`
+- `labs/experiments/49-real-model-ffn-structure-compare/`
 
-## Active next slice — SwiGLU / FFN
+## Active next slice — Mixture of Experts
 
 Build:
 
 ```
-hidden d
-→ gate projection d→d_ff
-→ up projection d→d_ff
-→ SiLU(gate) × up
-→ down projection d_ff→d
+hidden
+→ router logits
+→ top-k expert choice
+→ selected expert FFNs
+→ weighted combine
 → residual
 ```
 
-Teach:
-- roughly 3 d d_ff dense gated-MLP weights/layer;
-- comparison with attention projection weights;
-- PP vs TG shape differences;
-- weight-streaming implications;
-- why quantization affects FFN traffic heavily.
+Teach these distinctions:
 
-## After
+```
+total parameters
+!= active parameters/token
+!= resident memory
+!= bytes actually moved/token
+```
 
-MoE:
-```
-router
-→ top-k experts
-→ active vs total parameters
-→ expert weight traffic
-→ batching/routing imbalance
-```
+Also cover:
+- expert reuse within prefill/batch;
+- routing imbalance;
+- capacity/load balancing;
+- expert placement across GPUs;
+- interconnect cost;
+- why MoE can have huge total weights but lower active FLOPs;
+- why local decode can still be memory-heavy.
+
+Do not use one vendor/model's MoE implementation as universal.

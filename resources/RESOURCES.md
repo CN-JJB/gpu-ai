@@ -1333,3 +1333,9 @@ URL: https://arxiv.org/abs/1911.02150
 URL: https://arxiv.org/abs/2305.13245
 用途：GQA as intermediate KV-head grouping between MHA and MQA.
 可信度：original research paper。
+
+
+### GLU Variants Improve Transformer
+URL: https://arxiv.org/abs/2002.05202
+用途：GLU/SwiGLU gated feed-forward structure and parameter-budget comparison.
+可信度：original research paper。
