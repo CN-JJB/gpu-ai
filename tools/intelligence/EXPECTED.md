@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Expected and verified through I10 on 2026-08-28:
+Full Python execution was verified through I10 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -53,3 +53,19 @@ The same checks are defined in:
 ~~~
 
 The available GitHub connector did not surface a workflow run for this checkpoint, so do not claim CI success from the workflow file alone.
+
+
+## I11–I12 added assertions
+
+The latest self-test additionally checks:
+- one GLOBAL-EBAY / used / MEDIAN_ASK / USD contract across three GPUs;
+- 1499 / 1020 / 330 USD values;
+- BROAD / LIMITED / SMALL sample bands;
+- ASK-ONLY and NOT-CONFIRMED-SALE semantics;
+- rejection of MEDIAN_ASK when sample metadata is removed.
+
+Exact latest-main contract verification for these checks is recorded in:
+- examples/evidence/intelligence-11-market-cohort-coverage.md
+- examples/evidence/intelligence-12-market-evidence-audit.md
+
+A fresh full Python repository run has not yet been re-recorded after I11–I12 because the local execution path timed out/rate-limited. Do not claim a new full-Python PASS for I11–I12 until that run exists.
