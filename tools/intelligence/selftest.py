@@ -184,6 +184,24 @@ def main():
     assert "Market coverage is not a sale-price claim" in out
 
     out = run([
+        PY, str(HERE / "market_evidence_audit.py"),
+        str(prod),
+        "--geography", "GLOBAL-EBAY",
+        "--channel", "secondary-aggregated-ebay-active",
+        "--cohort", "used-consumer",
+        "--condition", "used",
+        "--price-state", "MEDIAN_ASK",
+        "--currency", "USD",
+        "--as-of", "2026-08-28",
+    ])
+    assert "BROAD-SAMPLE=1" in out
+    assert "LIMITED-SAMPLE=1" in out
+    assert "SMALL-SAMPLE=1" in out
+    assert "ASK-ONLY=3" in out
+    assert "NOT-CONFIRMED-SALE=3" in out
+    assert "ASK-ONLY observations must not be presented as confirmed sale prices." in out
+
+    out = run([
         PY, str(HERE / "compatibility_matrix.py"),
         str(prod),
         "--model-id", "model:qwen:qwen3-8b",
@@ -215,6 +233,39 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
         generated = td / "generated.jsonl"
+
+        market_validation_catalog = td / "market-validation"
+        market_validation_catalog.mkdir()
+        for name in (
+            "hardware.jsonl",
+            "models.jsonl",
+            "runtimes.jsonl",
+            "market.jsonl",
+            "compatibility.jsonl",
+            "benchmarks.jsonl",
+        ):
+            shutil.copy2(prod / name, market_validation_catalog / name)
+
+        market_rows = [
+            json.loads(line)
+            for line in (market_validation_catalog / "market.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        for row in market_rows:
+            if row.get("price_state") == "MEDIAN_ASK":
+                row.pop("sample", None)
+                break
+        (market_validation_catalog / "market.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in market_rows) + "\n",
+            encoding="utf-8",
+        )
+        out = run([
+            PY, str(HERE / "validate_catalog.py"),
+            str(market_validation_catalog),
+            "--as-of", "2026-08-28",
+        ], expect=2)
+        assert "MEDIAN_ASK requires sample object" in out
+        assert "VALIDATION: FAIL" in out
 
         bad_packet = td / "bad-PACKET.json"
         packet_obj = json.loads((exp / "PACKET.json").read_text(encoding="utf-8"))
@@ -353,6 +404,8 @@ def main():
     print("- compatibility coverage matrix reports four production NEEDS-TEST observations without ranking")
     print("- freshness queue surfaces due-soon and stale production observations")
     print("- market matrix preserves one explicit GLOBAL-EBAY used MEDIAN_ASK cohort across three GPUs")
+    print("- market evidence audit exposes ask-only semantics and 47/23/8 listing sample bands")
+    print("- MEDIAN_ASK without sample metadata is rejected")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
