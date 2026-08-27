@@ -48,10 +48,12 @@ Verified foundations:
 - [x] I04 same-artifact/workload comparable benchmark view
 - [x] I05 explicit same-cohort price/performance view
 - [x] I06 evidence-linked TCO scenario worksheet
-- [x] I01–I06 Python compile + end-to-end self-test
+- [x] I07 real benchmark Evidence intake gate
+- [x] I01–I07 Python compile + end-to-end self-test
 
 Next:
-- [ ] ingest the first real Experiment 61 benchmark Evidence Packet;
+- [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
+- [ ] pass it through I07 intake;
 - [ ] derive production MEASURED_SUPPORTED from that exact path;
 - [ ] expand current NVIDIA / AMD / Apple / Intel backend observations;
 - [ ] collect stronger normalized direct-market observations;
