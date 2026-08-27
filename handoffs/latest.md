@@ -7,89 +7,86 @@
 
 ## Completed frontier
 
-Slices 01–46 are implemented.
-Experiments 01–87 exist.
+Slices 01–47 are implemented.
+Experiments 01–89 exist.
 
-## Slice 46 core — Used-GPU Validation / Purchase Acceptance
+## Slice 47 core — PSU / Power Delivery / Platform Integration
 
-Slice 20 remains the transaction/arrival acceptance workflow.
-
-Slice 46 is the advanced hardware-evidence layer:
+Power-delivery decision is split into independent gates:
 
 ```text
-seller claim
-→ PCI/device/subsystem identity
-→ VRAM
-→ runtime recognition
-→ PCIe capability/current state
-→ ECC/RAS/XID/error evidence
-→ sustained Local-LLM workload
-→ thermal/clock stability
-→ ACCEPT / REVIEW / REJECT
+continuous capacity/headroom
++
+connector/cable compatibility
++
+transient/documentation uncertainty
++
+ordinary workload evidence
 ```
 
 Synthetic verified:
 
 ```text
-healthy card
+850W / 550W / compatible cables
 → ACCEPT
 
-idle PCIe x1 current, x16 max, no under-load check
+850W / 820W / 15% synthetic scenario policy
 → REVIEW
 
-claimed 24 GiB, observed 12 GiB
+1000W / 600W / incompatible modular cable
 → REJECT
 ```
 
 Important rules:
 
 ```text
-idle low PCIe state
-!= defective GPU
+total watts enough
+!= power path valid
 
-ECC/RAS unsupported
-!= zero errors
+plug fits
+!= modular cable compatible
 
-short clean test
-!= lifetime reliability proof
+board power
+!= wall power
+
+average power
+!= transient proof
 ```
 
-Real Experiment 87:
-- Linux + Windows read-only inventory;
-- raw NVIDIA/AMD vendor evidence where installed;
-- PCI identity/link evidence;
-- ordinary sustained LLM workload via Experiment 85;
-- separate display/physical inspection;
-- no VBIOS flash, OC/UV, power/fan changes, error injection or destructive VRAM stress.
+Real Experiment 89:
+- exact external PSU identity/manual;
+- cable map;
+- ordinary GPU telemetry;
+- optional consumer wall-meter evidence;
+- no PSU opening/mains probing/protection bypass/intentional overload.
 
-## Active next slice — PSU / Power Delivery / Platform Integration
+## Active next slice — Whole-Machine System Integration Dossier
 
-Build for secondhand/multi-GPU systems:
+Combine the course into one machine-design contract:
 
 ```text
-GPU board power
-+ CPU/platform/load
-→ PSU continuous capacity
-→ headroom
-→ PCIe slot power
-→ auxiliary connector/cable topology
-→ transient behavior
-→ connector temperature/damage risk
-→ multi-GPU aggregate budget
+workload + model dossier
+→ GPU/VRAM fit
+→ runtime/backend support
+→ PCIe/topology
+→ host RAM
+→ storage/startup
+→ PSU/cables
+→ thermal/sustained performance
+→ serving/network/privacy
+→ budget/TCO
+→ hard gates + unknown blockers
+→ ACCEPT / REVISE / BLOCKED
 ```
 
 Need teach:
-- PSU wattage label alone is insufficient;
-- board power/TDP/TGP is not identical to wall draw or transient peak;
-- PCIe slot and auxiliary connectors are separate paths;
-- daisy-chain/pigtail cable suitability depends on PSU/cable/vendor guidance;
-- adapters/connectors require exact specification and inspection;
-- multi-GPU needs rail/cable/connector/airflow planning, not only total watts.
+- no single universal hardware score;
+- hard gate vs optimization preference;
+- UNKNOWN purchase-critical evidence blocks a final design;
+- a system can fit the model but fail PSU/software/thermal constraints;
+- multi-GPU capacity aggregation must include topology/power/cooling;
+- graduation dossier should link raw Evidence rather than copy unverifiable numbers.
 
-Real lab should remain non-invasive:
-- inventory PSU label/model externally;
-- record GPU telemetry under ordinary workload;
-- inspect connectors/cables powered off;
-- do not open PSU chassis;
-- do not probe mains/high-voltage internals;
-- do not intentionally overload connectors/PSU.
+Recommended next labs:
+- 90 synthetic whole-machine feasibility validator;
+- 91 real machine design dossier / Evidence Packet.
