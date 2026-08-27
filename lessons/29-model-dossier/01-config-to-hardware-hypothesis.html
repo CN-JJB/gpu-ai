@@ -1,0 +1,153 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 6：从 config.json 到硬件需求档案</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>LLM 架构 6 — 不看跑分，先从 config.json 做一份 Model Dossier</h1>
+
+<h2>1. 目标不是“算出显存精确值”</h2>
+
+<p>目标是先把已知结构整理出来：</p>
+
+<pre>模型是谁
+→ attention 什么结构
+→ KV 多大
+→ FFN 多宽
+→ 有没有 MoE
+→ 权重规模
+→ 哪些东西还必须实测</pre>
+
+<h2>2. 为什么 8B/14B 远远不够？</h2>
+
+<p>总参数量不知道：</p>
+
+<ul>
+<li>Hq / Hkv；</li>
+<li>head_dim；</li>
+<li>FFN expansion；</li>
+<li>MoE top-k；</li>
+<li>sliding/local attention；</li>
+<li>RoPE/context scheme。</li>
+</ul>
+
+<p>这些都会改变本地部署。</p>
+
+<h2>3. 第一张表：Attention</h2>
+
+<pre>Hq
+Hkv
+Dh
+
+q_width = Hq × Dh
+kv_width = Hkv × Dh</pre>
+
+<p>然后判断：</p>
+
+<pre>MHA-like
+GQA-like
+MQA-like
+architecture-specific</pre>
+
+<h2>4. 第二张表：KV</h2>
+
+<pre>KV
+=
+2 × L × Hkv × Dh × bytes
+× context
+× sequences</pre>
+
+<p>如果 config 有：</p>
+
+<pre>sliding_window
+layer_types
+latent/compressed attention</pre>
+
+<p>立刻标：</p>
+
+<pre>homogeneous baseline incomplete</pre>
+
+<h2>5. 第三张表：Dense FFN</h2>
+
+<pre>3 × d × d_ff</pre>
+
+<p>不是为了背参数量，而是为了看：</p>
+
+<pre>attention weights
+vs
+FFN weights</pre>
+
+<p>谁在 decode 时可能贡献更多 weight traffic。</p>
+
+<h2>6. 第四张表：MoE</h2>
+
+<pre>routed experts
+top-k
+shared experts
+expert d_ff
+MoE layer pattern</pre>
+
+<p>再分开：</p>
+
+<pre>total
+active/token
+resident
+traffic</pre>
+
+<h2>7. 权重大小优先用真实 artifact</h2>
+
+<p>有 GGUF：</p>
+
+<pre>stat
+sha256
+actual file bytes</pre>
+
+<p>没有 exact artifact 才用：</p>
+
+<pre>params × effective bpw / 8</pre>
+
+<p>并且明确写：</p>
+
+<pre>proxy</pre>
+
+<h2>8. 容量只做 lower bound</h2>
+
+<pre>lower_bound
+=
+weights/artifact
++ KV
++ reserve</pre>
+
+<p>如果它都已经大于显存：</p>
+
+<pre>FAIL-WITHOUT-OFFLOAD</pre>
+
+<p>如果小于显存：</p>
+
+<pre>POSSIBLE-NOT-PROVEN</pre>
+
+<div class="callout"><strong>公式只能证明“肯定不够”的一部分情况，不能证明 runtime 一定能 fit。</strong></div>
+
+<h2>9. 为什么不自动给 PP/TG？</h2>
+
+<p>因为 config 只能给 hypothesis：</p>
+
+<pre>large dense weights
+→ TG bandwidth might matter
+
+large prompt
+→ PP matrix/kernel might matter
+
+large Hkv/context
+→ KV might matter
+
+MoE
+→ expert placement/routing might matter</pre>
+
+<p>真正的数字必须进 Experiment 40 实测。</p>
+
+<h2>10. 最终形成一对 dossier</h2>
+
+<pre>Model Dossier
++
+Hardware Candidate Dossier
+↓
+Real Capstone</pre>
+
+<p>到这里，选模型和选显卡终于是同一套 Evidence 系统。</p>
+</body></html>
