@@ -52,13 +52,17 @@ Verified foundations:
 - [x] I08 NVIDIA / AMD / Apple / Intel documented compatibility coverage
 - [x] I09 cross-vendor compatibility coverage matrix
 - [x] I10 freshness / revalidation queue
+- [x] I11 explicit real used-GPU MEDIAN_ASK cohort
+- [x] I12 market sample/method evidence audit + MEDIAN_ASK validator gate
 - [x] I01–I10 Python compile + end-to-end self-test
+- [x] I11–I12 exact-main contract verification
 
 Next:
 - [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
 - [ ] pass it through I07 intake and derive exact MEASURED_SUPPORTED;
-- [ ] collect stronger normalized direct-market observations;
+- [ ] add stronger confirmed-sale or local-market observations without mixing cohorts;
 - [ ] refresh observations when I10 marks them due/stale;
+- [ ] repeat the full Python self-test when a local/CI execution path is available;
 - [ ] recommendation views only after feasibility/support/quality gates and real comparable Evidence.
 
 Dynamic prices, current compatibility, model releases and benchmark observations belong here rather than being written into stable lessons.
