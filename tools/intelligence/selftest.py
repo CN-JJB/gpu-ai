@@ -119,6 +119,21 @@ def main():
     assert "PREFLIGHT: BLOCKED" in out
 
     out = run([
+        PY, str(HERE / "verify_real_intake.py"),
+        str(fixture),
+        "--manifest", str(exp / "manifest.json"),
+        "--result", str(exp / "result.json"),
+        "--packet", str(exp / "PACKET.json"),
+        "--hardware-id", "hw:fixture:24g",
+        "--model-id", "model:fixture:8b",
+        "--runtime-id", "runtime:fixture",
+        "--observed-at", "2026-08-27",
+        "--allow-synthetic",
+    ])
+    assert "INTAKE: READY" in out
+    assert "READY is an evidence-completeness gate" in out
+
+    out = run([
         PY, str(HERE / "compatibility_preflight.py"),
         str(prod),
         "--hardware-id", "hw:nvidia:geforce-rtx-3090:24g",
@@ -132,6 +147,26 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
         generated = td / "generated.jsonl"
+
+        bad_packet = td / "bad-PACKET.json"
+        packet_obj = json.loads((exp / "PACKET.json").read_text(encoding="utf-8"))
+        packet_obj["files"][0]["sha256"] = "0" * 64
+        bad_packet.write_text(json.dumps(packet_obj) + "\n", encoding="utf-8")
+
+        out = run([
+            PY, str(HERE / "verify_real_intake.py"),
+            str(fixture),
+            "--manifest", str(exp / "manifest.json"),
+            "--result", str(exp / "result.json"),
+            "--packet", str(bad_packet),
+            "--hardware-id", "hw:fixture:24g",
+            "--model-id", "model:fixture:8b",
+            "--runtime-id", "runtime:fixture",
+            "--observed-at", "2026-08-27",
+            "--allow-synthetic",
+        ], expect=2)
+        assert "INTAKE: BLOCKED" in out
+        assert "SHA256 not indexed by packet" in out
 
         run([
             PY, str(HERE / "ingest_llama_bench.py"),
@@ -247,6 +282,7 @@ def main():
     print("- evidence-linked TCO fixture reproduces the expected scenario arithmetic")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
+    print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
     print("- exact benchmark Evidence upgrades only the matching path to PASS-MEASURED")
     print("- a different artifact falls back to NEEDS-TEST")
