@@ -1,0 +1,182 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 3：MHA / MQA / GQA</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 3 — MHA / MQA / GQA：为什么 KV Heads 比你想象中重要</h1>
+
+<h2>1. Query heads 和 KV heads 是两个数字</h2>
+
+<p>很多人看到：</p>
+
+<pre>32 attention heads</pre>
+
+<p>就默认 KV 也有 32 heads。</p>
+
+<p>现代模型未必。</p>
+
+<pre>Hq = query heads
+Hkv = key/value heads</pre>
+
+<h2>2. MHA</h2>
+
+<pre>Hq = 32
+Hkv = 32</pre>
+
+<p>每个 query head 有自己的 K/V head。</p>
+
+<h2>3. MQA</h2>
+
+<pre>Hq = 32
+Hkv = 1</pre>
+
+<p>不是“只有一个 attention head”。</p>
+
+<p>是：</p>
+
+<pre>32 Q heads
+share
+1 K head + 1 V head</pre>
+
+<div class="callout"><strong>MQA 仍然可以有很多 Query heads。</strong></div>
+
+<h2>4. GQA</h2>
+
+<p>取中间：</p>
+
+<pre>Hq = 32
+Hkv = 8</pre>
+
+<p>每 4 个 query heads 共用一组 K/V。</p>
+
+<pre>Q0 Q1 Q2 Q3 → KV0
+Q4 Q5 Q6 Q7 → KV1
+...</pre>
+
+<h2>5. 为什么这首先改变 KV Cache？</h2>
+
+<p>缓存 shape 是：</p>
+
+<pre>K [B,Hkv,S,Dh]
+V [B,Hkv,S,Dh]</pre>
+
+<p>所以每 token：</p>
+
+<pre>2 × layers × Hkv × Dh × bytes</pre>
+
+<p>公式里没有 Hq。</p>
+
+<h2>6. 用真实量级算</h2>
+
+<p>假设：</p>
+
+<pre>32 layers
+32 query heads
+head_dim 128
+FP16 KV</pre>
+
+<table>
+<tr><th>类型</th><th>KV heads</th><th>KV/token</th><th>32k context</th></tr>
+<tr><td>MHA</td><td>32</td><td>512 KiB</td><td>16 GiB</td></tr>
+<tr><td>GQA</td><td>8</td><td>128 KiB</td><td>4 GiB</td></tr>
+<tr><td>MQA</td><td>1</td><td>16 KiB</td><td>0.5 GiB</td></tr>
+</table>
+
+<p>同样 32 层、同样 query heads、同样 head_dim，只改 KV heads。</p>
+
+<h2>7. 这对垃圾佬为什么比“8B”更有用？</h2>
+
+<p>两个都写 8B 的模型：</p>
+
+<pre>Model A: Hkv=32
+Model B: Hkv=8</pre>
+
+<p>权重文件可能差不太多，但 32k context 的 KV 可以差 4 倍。</p>
+
+<p>所以：</p>
+
+<pre>same parameter count
+!=
+same context VRAM</pre>
+
+<h2>8. GQA 也改 attention projection weights</h2>
+
+<p>Q projection：</p>
+
+<pre>d → Hq×Dh</pre>
+
+<p>K/V：</p>
+
+<pre>d → Hkv×Dh</pre>
+
+<p>Hkv 变小，Wk/Wv 也变窄。</p>
+
+<p>但 Wq/Wo 仍然大，所以整个模型参数不会按 KV 缩减倍数一起缩。</p>
+
+<h2>9. Decode 为什么更吃这个红利？</h2>
+
+<p>每生成一个 token，都要 attention 到历史 K/V。</p>
+
+<pre>current Q
+→ read historical K/V length S</pre>
+
+<p>K/V 更少：</p>
+<ul>
+<li>cache 更小；</li>
+<li>memory traffic 更少；</li>
+<li>concurrency 更容易；</li>
+<li>长 context 更容易 fit。</li>
+</ul>
+
+<h2>10. 为什么不所有模型都用 MQA？</h2>
+
+<p>因为独立 K/V 表达能力和模型质量也是设计目标。</p>
+
+<p>可以理解为：</p>
+
+<pre>MHA
+more KV capacity
+
+MQA
+maximum sharing
+
+GQA
+middle ground</pre>
+
+<p>GQA 论文就是在做这个质量/效率折中。</p>
+
+<h2>11. 不是 runtime 开关</h2>
+
+<p>不能拿一个训练好的 MHA 模型，在 llama.cpp 里写：</p>
+
+<pre>--gqa 8</pre>
+
+<p>就自动变成正确 GQA。</p>
+
+<p>这些 K/V projection weights 是模型训练出来的结构。</p>
+
+<h2>12. GQA 和 KV 量化可以叠加</h2>
+
+<pre>architecture:
+Hkv 32 → 8
+
+runtime:
+KV FP16 → Q8</pre>
+
+<p>两个维度都会减少 KV bytes。</p>
+
+<p>但是：</p>
+
+<pre>GQA = architecture
+KV quant = representation</pre>
+
+<p>不要混。</p>
+
+<h2>13. 以后选模型先查这几个字段</h2>
+
+<pre>num_hidden_layers
+num_attention_heads
+num_key_value_heads
+head_dim
+KV dtype
+context
+concurrency</pre>
+
+<p>然后你自己就能算，不需要等别人说“这个模型吃显存”。</p>
+</body></html>
