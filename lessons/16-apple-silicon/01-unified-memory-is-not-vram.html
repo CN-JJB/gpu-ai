@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apple Silicon 1：Unified Memory 不是 VRAM</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Apple Silicon 1 — Unified Memory：它不是“共享显存”，也不是“64 GB 免费 VRAM”</h1>
+
+<p><strong>真实问题：</strong>为什么 64 GB Mac 能运行一些 24 GB 独显装不下的模型，但又不能说“它有 64 GB 显存”？</p>
+
+<h2>1. 先画离散 GPU</h2>
+<pre>CPU
+│
+├─ system RAM
+│
+└─ PCIe / interconnect
+        │ copy
+        ▼
+      GPU
+      └─ VRAM</pre>
+
+<p>两个物理内存池意味着：</p>
+<ul>
+<li>模型可能同时在 RAM 和 VRAM 各有一份；</li>
+<li>CPU→GPU 需要 transfer；</li>
+<li>VRAM capacity 是独立硬限制。</li>
+</ul>
+
+<h2>2. Apple Silicon 把内存池放进一个 SoC 系统</h2>
+<pre>CPU ─┐
+GPU ─┼──── unified memory
+ANE ─┤
+I/O ─┘</pre>
+
+<p>M1 官方就把 Unified Memory Architecture 定义成一个高带宽、低延迟的单一内存池，SoC 各单元可以访问同一数据，而不必在多个物理内存池之间复制。</p>
+
+<div class="callout"><strong>优势不是“RAM 变成 VRAM”。</strong><br>优势是：CPU 与 GPU 不再天然被“system RAM vs dedicated VRAM”这堵物理墙隔开。</div>
+
+<h2>3. Metal 真的能看到这一点</h2>
+<p>Metal device 有：</p>
+<pre>hasUnifiedMemory</pre>
+<p>Apple Silicon 上为 true。</p>
+
+<p>普通 Metal resource 默认：</p>
+<pre>MTLStorageMode.shared</pre>
+<p>表示 CPU/GPU 都可以访问这份 system-memory resource。</p>
+
+<h2>4. 但 shared 不等于“什么都不用管”</h2>
+<p>Apple 文档明确要求 CPU/GPU 对共享资源仍要正确同步。</p>
+
+<pre>CPU writes
+→ command/dependency completes
+→ GPU reads</pre>
+
+<p>如果顺序错了：</p>
+<pre>same address
++ wrong timing
+= race / stale data
+</pre>
+
+<h2>5. Framework 仍可能制造其他资源</h2>
+<p>Metal 还支持：</p>
+<ul>
+<li>private GPU resources；</li>
+<li>temporary buffers；</li>
+<li>optimized layouts；</li>
+<li>kernel workspaces。</li>
+</ul>
+
+<p>所以：</p>
+<pre>Unified Memory
+!=
+"every app only has one copy forever"</pre>
+
+<h2>6. 64 GB 机器到底有多少可以给 LLM？</h2>
+<p>统一内存同时要给：</p>
+<ul>
+<li>macOS；</li>
+<li>浏览器/应用；</li>
+<li>CPU；</li>
+<li>GPU；</li>
+<li>KV Cache；</li>
+<li>runtime workspace；</li>
+<li>其他系统服务。</li>
+</ul>
+
+<p>模型预算应该写成：</p>
+<pre>safe model budget
+≈ installed unified memory
+ - OS/apps reserve
+ - runtime buffers
+ - safety headroom</pre>
+
+<h2>7. Metal 给了一个更靠谱的指标</h2>
+<pre>recommendedMaxWorkingSetSize</pre>
+
+<p>Apple 把它定义为：GPU 在不影响运行时性能的前提下，大致可以分配的内存量。</p>
+
+<p>还有：</p>
+<pre>currentAllocatedSize</pre>
+
+<p>所以真实实验应该记录它们，而不是把机器 RAM 数字改名叫“VRAM”。</p>
+
+<h2>8. Unified Memory 没有消灭 bandwidth</h2>
+<p>假设每生成一个 token 都要近似流过 20 GiB 权重：</p>
+<pre>200 GiB/s memory bandwidth
+÷ 20 GiB/token
+≈ 10 token/s theoretical bandwidth roof</pre>
+
+<p>这只是极简上限，但它解释一个现实：</p>
+
+<div class="callout"><strong>Apple 本地 LLM 的 decode，经常首先应该看 memory bandwidth，而不是 GPU 核心数。</strong></div>
+
+<h2>9. CPU/GPU/ANE 还会共享带宽</h2>
+<p>统一内存减少 copy boundary，但同一个内存系统也意味着多个单元的流量共享有限的物理通道。</p>
+
+<pre>GPU demand
++ CPU demand
++ other SoC traffic
+> memory bandwidth
+
+→ someone waits</pre>
+
+<h2>10. 为什么 Pro / Max / Ultra 很关键</h2>
+<p>同样写着“M3”或“M5”，不同 tier 可以有完全不同的：</p>
+<ul>
+<li>内存容量；</li>
+<li>带宽；</li>
+<li>GPU resources；</li>
+<li>package 结构。</li>
+</ul>
+
+<p>所以买 Mac 跑 LLM，必须记录：</p>
+<pre>exact chip tier
++ memory capacity
++ memory bandwidth</pre>
+
+<p>而不是只说：</p>
+<pre>"M4 很新"</pre>
+</body></html>

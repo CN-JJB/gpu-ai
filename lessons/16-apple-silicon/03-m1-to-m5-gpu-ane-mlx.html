@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apple Silicon 3：M1 到 M5、GPU vs ANE vs MLX</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Apple Silicon 3 — M1 → M5：GPU、Neural Engine、MLX 到底谁在跑 LLM？</h1>
+
+<h2>1. M1：先建立 SoC + Unified Memory 世界</h2>
+<p>M1 的真正历史意义：</p>
+<pre>Mac
+→ Apple-designed SoC
+→ CPU + GPU + Neural Engine
+→ one unified memory architecture</pre>
+
+<p>从这一代开始，Mac 本地模型不再天然受一块小离散 VRAM 限制。</p>
+
+<h2>2. M2：主要是 scale-up</h2>
+<p>M2 增加 GPU / memory / media 能力，但没有改变最基本的软件执行抽象。</p>
+<p>所以课程不会为了“每年一章”硬凑一个新架构。</p>
+
+<h2>3. M3：GPU architecture 真正大改一次</h2>
+<p>Apple 把 M3 称为全新的 GPU architecture。</p>
+
+<h3>Dynamic Caching</h3>
+<p>传统资源分配容易出现：</p>
+<pre>reserve for worst case
+→ some local resource unused
+→ lower average utilization</pre>
+
+<p>M3 Dynamic Caching 的方向：</p>
+<pre>hardware dynamically assigns local memory
+based on actual workload demand</pre>
+
+<p>对课程最重要的不是 marketing speedup，而是：</p>
+
+<div class="callout"><strong>GPU local resource allocation 本身可以成为硬件动态调度问题。</strong></div>
+
+<h3>Ray tracing / mesh shading</h3>
+<p>它们是重要 graphics feature，但不要写：</p>
+<pre>ray tracing core
+→ faster llama.cpp</pre>
+
+<h2>4. M4：AI/memory scale 继续提高</h2>
+<p>M4 强化：</p>
+<ul>
+<li>GPU；</li>
+<li>Neural Engine；</li>
+<li>memory bandwidth；</li>
+<li>CPU ML capabilities。</li>
+</ul>
+
+<p>对本地 LLM，仍然需要具体看：</p>
+<pre>capacity
+bandwidth
+backend
+PP/TG</pre>
+
+<h2>5. M5：最容易被搞混的一代</h2>
+<p>M5 给每个 GPU core 加入：</p>
+<pre>Neural Accelerator</pre>
+
+<p>Apple 提供 Metal 4 Tensor APIs 让开发者直接利用这类 GPU neural hardware。</p>
+
+<h2>6. 但是 M5 同时还有独立 Neural Engine</h2>
+<pre>M5 SoC
+├─ GPU
+│  ├─ shader execution
+│  └─ Neural Accelerator per GPU core
+│
+└─ Neural Engine
+   └─ separate accelerator</pre>
+
+<div class="callout"><strong>M5 GPU Neural Accelerator ≠ Apple Neural Engine。</strong></div>
+
+<h2>7. Core ML 可以明确选择执行单元</h2>
+<p>Core ML API 有：</p>
+<pre>cpuOnly
+cpuAndGPU
+cpuAndNeuralEngine
+all</pre>
+
+<p>所以 Apple 自己的 API 都把 GPU 和 Neural Engine 当成不同 compute units。</p>
+
+<h2>8. MLX 又是哪条路？</h2>
+<p>MLX 的 Apple-Silicon 设计重点：</p>
+<pre>one unified-memory array
+→ CPU stream
+or
+→ GPU stream</pre>
+
+<p>当前 MLX 文档的标准 device 类型是 CPU 和 GPU。</p>
+
+<p>因此：</p>
+<pre>MLX GPU
+!= Neural Engine</pre>
+
+<h2>9. llama.cpp Metal 呢？</h2>
+<p>llama.cpp 的 Metal backend 主要是 GPU backend。</p>
+
+<p>即使 M5 硬件新增 GPU tensor acceleration，runtime 也必须：</p>
+<ol>
+<li>正确识别 hardware；</li>
+<li>用正确 Metal language/API 编译；</li>
+<li>正确映射 quant/matmul kernel；</li>
+<li>通过 correctness tests；</li>
+<li>实际 dispatch。</li>
+</ol>
+
+<p>所以：</p>
+<pre>new accelerator exists
+!=
+your current llama.cpp binary uses it</pre>
+
+<h2>10. 本地 LLM 怎么选 Apple 执行路径？</h2>
+
+<table>
+<tr><th>路径</th><th>适合问什么</th></tr>
+<tr><td>llama.cpp Metal</td><td>GGUF、本地推理、Metal GPU PP/TG</td></tr>
+<tr><td>MLX / MLX-LM</td><td>Apple-Silicon-native CPU/GPU unified-memory ML</td></tr>
+<tr><td>Core ML</td><td>Apple framework deployment, possible ANE/GPU/CPU selection</td></tr>
+<tr><td>CPU-only</td><td>baseline / small ops / compatibility</td></tr>
+</table>
+
+<h2>11. Apple 买机优先级</h2>
+<p>跑大型本地 LLM：</p>
+<ol>
+<li><strong>unified-memory capacity</strong>：先保证装得下；</li>
+<li><strong>memory bandwidth</strong>：decode 很关键；</li>
+<li><strong>runtime/backend</strong>：能不能用 GPU/new tensor path；</li>
+<li><strong>GPU compute</strong>：prefill/large GEMM；</li>
+<li><strong>thermal/power</strong>：持续负载；</li>
+<li><strong>价格/不可升级性</strong>：Apple RAM/GPU 后买基本不能升级。</li>
+</ol>
+
+<h2>12. 最后一句</h2>
+<pre>Apple Silicon 的优势不是
+"像独显一样但是显存更大"
+
+而是
+"把 CPU/GPU/accelerators 放进
+同一个高带宽统一内存 SoC，
+让软件重新设计数据和执行边界"</pre>
+</body></html>

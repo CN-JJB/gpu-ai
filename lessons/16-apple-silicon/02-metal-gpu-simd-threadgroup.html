@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apple Silicon 2：Metal GPU Execution</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Apple Silicon 2 — Metal GPU：Threadgroup、SIMD Group 与 Threadgroup Memory</h1>
+
+<p>Apple GPU 不是只能通过 ML 框架当黑箱用。Metal 有完整 compute execution model。</p>
+
+<h2>1. 软件层级</h2>
+<pre>grid
+└─ threadgroups
+   └─ threads</pre>
+
+<p>这和 CUDA/HIP 的 grid/block/thread 可以做概念迁移，但名字和硬件实现不要强行等同。</p>
+
+<h2>2. 实际执行还有 SIMD Group</h2>
+<pre>threadgroup
+├─ SIMD group 0
+├─ SIMD group 1
+└─ ...</pre>
+
+<p>同一个 SIMD group 的线程并行执行同一段代码。</p>
+
+<h2>3. Divergence 还是老问题</h2>
+<pre>lane 0..15 → branch A
+lane 16..31 → branch B</pre>
+
+<p>如果硬件需要执行两个路径：</p>
+<pre>execute A
++ execute B
+→ useful lane utilization falls</pre>
+
+<p>和 warp/wavefront 一样，控制流一致性很重要。</p>
+
+<h2>4. 千万不要背“Apple 一定 32-wide”</h2>
+<p>Metal 正式提供：</p>
+<pre>pipelineState.threadExecutionWidth</pre>
+
+<p>Apple 文档明确说：SIMD-group size 在 GPU 之间可能不同，尤其不同 Mac GPU。</p>
+
+<div class="callout"><strong>课程规则：</strong>运行时 query，不要硬编码 32。</div>
+
+<h2>5. Threadgroup size 也不是固定数字</h2>
+<p>每个 compute pipeline 还会告诉你：</p>
+<pre>maxTotalThreadsPerThreadgroup</pre>
+
+<p>这个值受到 kernel resource 影响。</p>
+
+<p>即使同一张 GPU：</p>
+<pre>kernel A
+register/threadgroup memory small
+→ more/larger active groups
+
+kernel B
+resource-heavy
+→ lower limit / occupancy</pre>
+
+<h2>6. Threadgroup Memory</h2>
+<p>Metal 的 workgroup-local scratchpad：</p>
+<pre>threadgroup memory</pre>
+
+<table>
+<tr><th>生态</th><th>低延迟 cooperative scratchpad</th></tr>
+<tr><td>NVIDIA</td><td>shared memory</td></tr>
+<tr><td>AMD</td><td>LDS</td></tr>
+<tr><td>Apple Metal</td><td>threadgroup memory</td></tr>
+</table>
+
+<p>用途一样可以迁移：</p>
+<ul>
+<li>GEMM tile；</li>
+<li>attention tile；</li>
+<li>reduction；</li>
+<li>softmax；</li>
+<li>数据复用。</li>
+</ul>
+
+<h2>7. FlashAttention 的知识可以直接迁过来</h2>
+<pre>device memory
+→ load tile
+→ threadgroup memory / registers
+→ SIMD-group math
+→ online reduction
+→ write output</pre>
+
+<p>Apple GPU 仍然面对：</p>
+<ul>
+<li>memory latency；</li>
+<li>bandwidth；</li>
+<li>reuse；</li>
+<li>divergence；</li>
+<li>resource pressure。</li>
+</ul>
+
+<p>Unified Memory 没有让 kernel optimization 消失。</p>
+
+<h2>8. 为什么 Apple 不公开“SM 数”也能学？</h2>
+<p>NVIDIA/AMD 给开发者很多 microarchitecture 数字；Apple 更强调 API/runtime properties。</p>
+
+<p>课程不应该编造：</p>
+<pre>Apple GPU core = exactly one SM
+</pre>
+
+<p>而应该用可迁移问题：</p>
+<pre>SIMD width?
+threadgroup limit?
+threadgroup memory?
+register pressure?
+device-memory bandwidth?
+kernel occupancy?
+</pre>
+
+<h2>9. 一个 Metal kernel 的正确实验流程</h2>
+<ol>
+<li>建立 compute pipeline；</li>
+<li>读 <code>threadExecutionWidth</code>；</li>
+<li>读 <code>maxTotalThreadsPerThreadgroup</code>；</li>
+<li>选择 threadgroup size；</li>
+<li>benchmark；</li>
+<li>profile memory/occupancy；</li>
+<li>再改 tile。</li>
+</ol>
+
+<p>这比背“某代 Apple GPU 是多少宽”更能迁移。</p>
+</body></html>
