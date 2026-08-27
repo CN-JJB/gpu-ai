@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Expected and verified on 2026-08-27:
+Expected and verified through I10 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -18,6 +18,9 @@ SELFTEST: PASS
 - explicit same-cohort market rows enable descriptive price/performance
 - evidence-linked TCO fixture reproduces the expected scenario arithmetic
 - documented compatibility returns NEEDS-TEST, not measured PASS
+- NVIDIA/CUDA, AMD/HIP, Apple/Metal and Intel/SYCL production paths all remain NEEDS-TEST
+- compatibility coverage matrix reports four production NEEDS-TEST observations without ranking
+- freshness queue surfaces due-soon and stale production observations
 - explicit UNKNOWN remains valid and returns BLOCKED
 - real benchmark intake accepts an intact packet and rejects a tampered packet
 - Experiment 61 importer reproduces PP/TG
@@ -32,6 +35,9 @@ Detailed evidence:
 
 ~~~text
 examples/evidence/intelligence-i01-i06-selftest-verification.md
+examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
+examples/evidence/intelligence-09-compatibility-coverage-matrix.md
+examples/evidence/intelligence-10-freshness-revalidation.md
 ~~~
 
 Fixture PP/TG/price/TCO values are synthetic and prove only tool behavior.
