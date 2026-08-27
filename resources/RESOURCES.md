@@ -1442,3 +1442,14 @@ URL: https://sre.google/sre-book/monitoring-distributed-systems/
 URL: https://sre.google/workbook/monitoring/
 用途：metrics/logging, monitoring use cases and actionable service-health diagnosis.
 可信度：official Google SRE workbook。
+
+
+### NVIDIA GPU telemetry / power monitoring
+URL: https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/
+用途：NVIDIA management/monitoring capabilities including utilization, clocks, temperature and board power where reported.
+可信度：official NVIDIA CUDA documentation。
+
+### NVIDIA performance monitoring
+URL: https://docs.nvidia.com/vgpu/latest/grid-vgpu-user-guide/performance-monitoring-gpu.html
+用途：current nvidia-smi monitoring examples and GPU state/usage context.
+可信度：official NVIDIA documentation。

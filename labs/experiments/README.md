@@ -152,3 +152,9 @@
 
 - 76 synthetic queue / thermal-clock / stable-VRAM diagnosis cases
 - 77 bounded read-only incident metrics/telemetry packet
+
+
+### 78–79：Power / Energy Efficiency
+
+- 78 synthetic watts → joules → J/token model
+- 79 real NVIDIA board-power trapezoidal energy integration

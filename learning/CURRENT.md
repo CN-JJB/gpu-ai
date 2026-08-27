@@ -531,6 +531,21 @@ Artifacts:
 
 Queue/thermal/high-stable-VRAM synthetic cases verified. Real collector is bounded/read-only/loopback-only.
 
+### Slice 42 — Power / Energy Efficiency
+
+Watts → joules over time → J/token / tokens/J → idle baseline → board vs wall power → electricity/TCO。
+
+Artifacts:
+- research/llm/0024-power-energy-efficiency.md
+- reference/llm/power-energy-efficiency.md
+- lessons/42-power-energy/01-watts-joules-per-token.html
+- labs/experiments/78-power-energy-model/
+- labs/experiments/79-real-nvidia-energy/
+- examples/evidence/experiment-42-power-energy-efficiency.md
+- learning/records/2026-08-27-power-energy-efficiency.md
+
+Synthetic energy arithmetic and trapezoidal-integration sanity case verified. Real NVIDIA path remains read-only.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -587,8 +602,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build power/energy-efficiency slice.
-2. Separate instantaneous watts from total joules and joules/token.
-3. Compare throughput/watt and energy/request under PP vs TG workloads.
-4. Connect sustained power/temperature/clocks to performance stability.
-5. Extend TCO with electricity cost while avoiding fake board-power measurements.
+1. Build storage/model-loading slice.
+2. Separate model artifact bytes, storage read bandwidth, OS page cache and GPU upload/load time.
+3. Compare cold vs warm model startup without claiming disk bandwidth determines steady TG.
+4. Teach mmap/page-fault intuition and why page cache can hide storage differences on repeat runs.
+5. Add a read-only local file-read/model-startup evidence packet.

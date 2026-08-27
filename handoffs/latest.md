@@ -7,89 +7,72 @@
 
 ## Completed frontier
 
-Slices 01–41 are implemented.
-Experiments 01–77 exist.
+Slices 01–42 are implemented.
+Experiments 01–79 exist.
 
-## Slice 41 core
-
-Service views:
+## Slice 42 core
 
 ```
-latency
-traffic
-errors
-saturation
-```
-
-LLM mapping:
-
-```
-TTFT/ITL/E2E
-req/s/tok/s
-HTTP/OOM/SLO
-queue/slots/KV/GPU/thermal
+W = J/s
+E = ∫Pdt
+J/token = energy/tokens
+tokens/J = reciprocal
 ```
 
 Synthetic verified:
 
 ```
-queue:
-TTFT 6×
-deferred +9
-ITL ~flat
-clock ~flat
-
-thermal:
-temp +18C
-clock 0.667×
-ITL 1.9×
-
-stable VRAM:
-96.25% peak
-only 0.1 GiB variation
-latency stable
+300W @ 60 tok/s → 5.0 J/token
+220W @ 50 tok/s → 4.4 J/token
+180W @ 42 tok/s → 4.285714 J/token
 ```
 
-Diagnoses remain hypotheses until controlled confirmation.
+Therefore:
+```
+fastest
+!= most energy-efficient
+```
 
-Real collector:
-- loopback only;
-- max 300 s;
-- read-only;
-- server metrics + raw vendor telemetry;
-- no clock/power/driver changes.
+Integration sanity:
 
-## Active next slice — Power / Energy Efficiency
+```
+100,120,140W at 0,1,2s
+→ 240J total
+→ 120W average
+```
+
+Real NVIDIA lab:
+- reuses read-only incident telemetry;
+- filters participating GPU indices;
+- sums board power;
+- trapezoidal integration;
+- refuses missing samples.
+
+Boundary:
+
+```
+GPU board energy
+!= whole-system wall energy
+```
+
+## Active next slice — Storage / Model Loading
 
 Teach:
 
 ```
-power W
-=
-joules / second
-
-energy
-=
-integral of power over time
-
-joules/token
-=
-energy / useful output
+model file bytes
+→ storage read/page faults
+→ OS page cache
+→ mmap/load mode
+→ host memory
+→ GPU upload/allocation
+→ health ready
 ```
 
-Separate:
-- idle board/system power;
-- model load;
-- PP;
-- TG;
-- serving concurrency.
+Questions:
+- why first cold start can be slow;
+- why second start can look much faster;
+- why SSD speed may affect startup but not steady-state TG after weights are resident;
+- why benchmarking "disk speed" from warm page cache is invalid.
 
-Metrics:
-- tok/s/W;
-- J/output-token;
-- J/request;
-- electricity cost per 1M tokens / per workload day.
-
-Use synthetic integration first.
-
-Real lab should read telemetry only and label GPU-board power vs whole-system wall power separately.
+Real lab should be read-only and avoid destructive cache-dropping commands by default.
