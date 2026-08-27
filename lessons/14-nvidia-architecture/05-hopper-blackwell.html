@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NVIDIA 架构 5：Hopper、Blackwell</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
+</style>
+</head>
+<body>
+
+<h1>NVIDIA 架构 5 — Hopper → Blackwell：Transformer 开始反过来塑造 GPU</h1>
+
+<h2>1. 先纠正产品线直觉</h2>
+<pre>Ampere
+├─ datacenter
+└─ consumer
+
+2022:
+Hopper → mainly datacenter
+Ada    → RTX / workstation / inference products</pre>
+<p>所以不能画成：</p>
+<pre>Ampere → Hopper → Ada</pre>
+<p>它们是部分并行的市场分支。</p>
+
+<h2>2. Hopper：数据搬运本身变成专用硬件</h2>
+<p>Ampere 已经有 async global→shared。</p>
+<p>但线程还需要参与很多 address generation / copy orchestration。</p>
+
+<h3>TMA — Tensor Memory Accelerator</h3>
+<pre>tensor coordinates + descriptor
+→ TMA hardware
+→ large multidimensional global↔shared transfer</pre>
+<p>发起 copy 的线程很少，其他线程可以继续算。</p>
+
+<div class="callout"><strong>最重要的 Hopper 观念：</strong>当 Tensor Core 足够快，<strong>喂数据</strong>本身值得做成 accelerator。</div>
+
+<h2>3. Thread Block Cluster</h2>
+<p>传统 CUDA locality：</p>
+<pre>thread block
+→ scheduled on one SM
+→ shared memory local to that block/SM</pre>
+<p>Hopper 增加 cluster：</p>
+<pre>multiple blocks
+→ co-scheduled nearby SMs
+→ hardware-assisted cooperation</pre>
+
+<h3>Distributed Shared Memory</h3>
+<p>cluster 内 block 可以访问其他 block 的 shared-memory region，建立更大的 cooperative locality。</p>
+
+<h2>4. FP8 + Transformer Engine</h2>
+<p>Hopper 第四代 Tensor Core 支持 FP8，并加入 Transformer Engine 去管理 transformer layer 的 scaling/precision。</p>
+<p>这代表 AI accelerator 从：</p>
+<pre>"support low precision"
+</pre>
+<p>进一步变成：</p>
+<pre>"manage when/how to use low precision"
+</pre>
+
+<h2>5. 为什么这些设计和 FlashAttention / modern GEMM 很像？</h2>
+<p>因为软件和硬件在向同一个方向收敛：</p>
+<pre>producer warp
+→ move tile
+
+consumer warp
+→ MMA
+
+async barriers
+→ overlap stages
+
+larger cooperative scope
+→ reuse across more work</pre>
+
+<h2>6. Blackwell：先分 datacenter 和 RTX</h2>
+<p>Blackwell 是一个 architecture family，不是一个固定 package。</p>
+
+<h3>Datacenter Blackwell</h3>
+<p>重点在：</p>
+<ul>
+<li>large-scale transformer；</li>
+<li>HBM / scale-up interconnect；</li>
+<li>第二代 Transformer Engine；</li>
+<li>更低 precision；</li>
+<li>部分旗舰产品采用 multi-die/package 设计。</li>
+</ul>
+
+<h3>RTX Blackwell</h3>
+<p>NVIDIA RTX Blackwell whitepaper显示：</p>
+<ul>
+<li>5th Generation Tensor Cores；</li>
+<li>FP4 support；</li>
+<li>128 KB L1 Data Cache / Shared Memory in documented SM；</li>
+<li>GDDR7 generation；</li>
+<li>4th Generation RT Core。</li>
+</ul>
+
+<p>RTX Blackwell 不能因为名字相同就被当成 B200/GB200 的小号：</p>
+<pre>same architecture lineage
+!= same die topology
+!= same memory system
+!= same interconnect
+</pre>
+
+<h2>7. FP4 对 LLM 是什么机会？</h2>
+<p>理论上：</p>
+<pre>FP16 → FP4
+can reduce:
+- storage
+- memory traffic
+and increase:
+- native matrix throughput</pre>
+
+<p>但是 Slice 13 的四层模型仍然成立：</p>
+<pre>model file quant
+→ packed representation
+→ runtime kernel
+→ matrix instruction
+→ accumulator</pre>
+
+<div class="callout"><strong>千万别写：</strong>“RTX 50 支持 FP4，所以任何 Q4_K_M GGUF 都自动跑 FP4 Tensor Core。”这在格式和 kernel 层面没有逻辑必然性。</div>
+
+<h2>8. 从 Tesla 到 Blackwell，主线其实只有三条</h2>
+
+<h3>Execution</h3>
+<pre>unified shader
+→ wider SM
+→ partitioned SM
+→ specialized FP/INT
+→ matrix units
+→ warp specialization / cluster</pre>
+
+<h3>Memory/data movement</h3>
+<pre>explicit DRAM/shared
+→ L1/L2
+→ larger caches
+→ async copy
+→ TMA / cluster locality</pre>
+
+<h3>Numerics</h3>
+<pre>FP32/FP64
+→ FP16/INT8
+→ Tensor FP16
+→ INT8/INT4
+→ BF16/TF32
+→ FP8
+→ FP4</pre>
+
+<h2>9. 最终买卡公式</h2>
+<pre>architecture capability
+× exact SKU implementation
+× software support
+× workload bottleneck
+× price / power / risk
+= real value</pre>
+<p>少任何一项，都不能从 architecture 名字直接推导“垃圾佬神卡”。</p>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NVIDIA 架构 1：Tesla、Fermi、Kepler</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
+</style>
+</head>
+<body>
+
+<h1>NVIDIA 架构 1 — Tesla / G80 → Fermi → Kepler</h1>
+<p><strong>这一节不是古董考古。</strong>今天 CUDA kernel 里最基本的 thread、warp、SM、shared memory、latency hiding，都从这一阶段长出来。</p>
+
+<h2>1. Tesla/G80：真正的起点是“统一”</h2>
+<p>更早的 GPU 为不同图形阶段准备不同执行资源。问题是：像素很多时，vertex 单元不能自动变成 pixel 单元。</p>
+<pre>old:
+vertex hardware | pixel hardware | other fixed stages
+
+Tesla/G80:
+one programmable processor pool
+→ graphics shader work
+→ compute work</pre>
+<p>这就是 <strong>unified architecture</strong> 的关键。</p>
+
+<div class="callout"><strong>第一次重要抽象：</strong>GPU 不再只是一条固定图形流水线，而是一台由大量轻量线程驱动的 throughput computer。</div>
+
+<h3>CUDA 带来的编程模型</h3>
+<pre>grid
+  └─ thread block
+      └─ threads
+
+hardware:
+GPU
+  └─ SM
+      └─ warps</pre>
+<p>shared memory 和 barrier 让同一个 block 的线程能做低延迟协作。这套基本结构一直延续到今天。</p>
+
+<h2>2. 为什么光有“很多线程”还不够？</h2>
+<p>第一代 CUDA GPU 很擅长规则、高并行工作，但科学计算很快暴露问题：</p>
+<ul>
+<li>不规则 global-memory access 很贵；</li>
+<li>缺少成熟 cache hierarchy；</li>
+<li>FP64 / IEEE 行为要更强；</li>
+<li>HPC 需要 ECC；</li>
+<li>多个 kernel/transfer 要更好重叠。</li>
+</ul>
+
+<h2>3. Fermi：把 GPU 当作 compute processor 重新设计</h2>
+<h3>Cache hierarchy</h3>
+<pre>SM
+├─ shared memory
+├─ L1
+└─ ...
+      ↓
+shared L2
+      ↓
+DRAM</pre>
+<p>Fermi 加入真正面向 general-purpose compute 的 L1/L2 hierarchy。L1 和 shared memory 共用一块可配置 on-chip storage，而 L2 服务整个 GPU。</p>
+
+<h3>为什么 cache 对 GPGPU 重要？</h3>
+<p>shared memory 要程序员自己安排；cache 可以接住程序无法完全显式管理的：</p>
+<ul>
+<li>irregular reuse；</li>
+<li>register spill；</li>
+<li>跨 SM 数据复用；</li>
+<li>复杂指针访问。</li>
+</ul>
+
+<h3>HPC 语义也变强</h3>
+<p>Fermi 带来更成熟的 FP64/FMA、64-bit addressing、ECC、concurrent kernels 等。</p>
+
+<div class="callout"><strong>第二次重要抽象：</strong>GPU compute 从“你必须手动照顾所有数据”走向“显式 shared memory + 硬件 cache”共同工作。</div>
+
+<h2>4. Kepler：更宽的 SMX 需要更多“可调度的独立工作”</h2>
+<p>Kepler SMX 堆进更多 execution resources。硬件更宽以后，新问题出现：</p>
+<pre>更多执行槽
+≠ 自动更多性能
+
+如果没有 enough:
+- active warps
+- independent instructions
+- thread blocks
+
+execution slots still idle</pre>
+
+<h3>TLP + ILP</h3>
+<p>Kepler tuning guide 特别强调两种并行：</p>
+<ul>
+<li><strong>TLP</strong>：更多 warp/thread；</li>
+<li><strong>ILP</strong>：同一线程/warp 中更多独立 instruction。</li>
+</ul>
+<p>这就是为什么“occupancy 100%”也不是唯一答案：有些 kernel 可以用更强 ILP 补偿 warp 数。</p>
+
+<h3>Warp Shuffle</h3>
+<p>Kepler 引入 warp shuffle，lane 之间可以直接交换 register value：</p>
+<pre>old reduction:
+register → shared → sync → shared → register
+
+shuffle:
+register lane A ↔ register lane B</pre>
+<p>它减少了某些 warp-local 算法对 shared memory 的依赖，是现代 reduction / softmax kernel 的祖先之一。</p>
+
+<h3>Hyper-Q</h3>
+<p>在 GK110 上，Hyper-Q 增加独立工作队列，减少多个 CUDA stream / process 被一个窄 host queue 人为串行化的问题。</p>
+
+<h3>Dynamic Parallelism</h3>
+<p>GK110 允许 GPU kernel 再 launch kernel。</p>
+<pre>CPU launch parent
+        ↓
+GPU parent kernel
+        ↓
+GPU launches child grid</pre>
+<p>它提高表达能力，但不是“GPU 自己 launch 就一定快”。launch overhead、work granularity 仍需测。</p>
+
+<h2>5. 不要把 Kepler 当成一张芯片</h2>
+<p>GK104 与 GK110 的目标/功能并不一样。Hyper-Q、Dynamic Parallelism 等关键 feature 需要具体到相应 variant。</p>
+
+<h2>6. 三代真正留下来的东西</h2>
+<table>
+<tr><th>代</th><th>留下来的核心观念</th></tr>
+<tr><td>Tesla</td><td>unified programmable GPU + SIMT</td></tr>
+<tr><td>Fermi</td><td>compute cache hierarchy + reliability + concurrency</td></tr>
+<tr><td>Kepler</td><td>wide SM needs TLP/ILP; warp-level communication; more work queues</td></tr>
+</table>
+
+<h2>7. 和今天 LLM kernel 的连接</h2>
+<pre>warp shuffle
+→ reduction / softmax
+
+shared memory
+→ GEMM tile / attention tile
+
+many active warps
+→ latency hiding
+
+cache hierarchy
+→ irregular metadata / KV / weight reuse</pre>
+<p>你学的不是古董型号，而是现代 kernel 设计语言的来源。</p>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NVIDIA 架构 3：Volta、Turing</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
+</style>
+</head>
+<body>
+
+<h1>NVIDIA 架构 3 — Volta → Turing：AI 硬件正式进入 SM</h1>
+
+<h2>1. Volta 的历史转折：Tensor Core</h2>
+<p>在 Volta 之前，低精度 AI 主要利用普通 CUDA execution datapath / packed primitives。</p>
+<p>Volta 把 matrix multiply-accumulate 变成专门硬件：</p>
+<pre>warp
+→ matrix fragments
+→ Tensor Core MMA
+→ accumulator</pre>
+<p>这不是“CUDA core 更快”，而是增加新的 execution unit 类型。</p>
+
+<h2>2. 为什么 matrix unit 有意义？</h2>
+<p>神经网络最重的工作有大量规则 GEMM：</p>
+<pre>[M×K] × [K×N]</pre>
+<p>如果硬件直接针对 tile MMA 设计，就能：</p>
+<ul>
+<li>提高每条 instruction 表达的 MAC 数；</li>
+<li>复用 operands；</li>
+<li>减少 scheduler/control overhead；</li>
+<li>高效使用低精度。</li>
+</ul>
+
+<h2>3. 但 Volta 更深的变化是 Independent Thread Scheduling</h2>
+<p>旧 CUDA 程序常写出这种隐含假设：</p>
+<pre>"反正一个 warp 是 lockstep，
+所以 lane 之间不用显式 sync"</pre>
+<p>Volta 以后这个假设不安全。</p>
+
+<h3>新的规则</h3>
+<ul>
+<li>warp intrinsics 使用带 mask 的 <code>*_sync</code> 版本；</li>
+<li>需要 memory exchange 时显式 <code>__syncwarp()</code>；</li>
+<li>不要把 warp-synchronous behavior 当隐式 barrier。</li>
+</ul>
+
+<div class="callout"><strong>第四次重要抽象：</strong>warp 仍是 scheduler 的核心单位，但<strong>线程同步语义</strong>不等于“永远严格锁步”。</div>
+
+<h2>4. Volta 的 unified on-chip data cache</h2>
+<p>GV100 将 L1、texture、shared backing 组织成大的 unified data-cache structure，并允许 shared-memory carveout。</p>
+<p>这让 on-chip memory tuning 更灵活，也降低某些 direct-global/load spill 的成本。</p>
+
+<h2>5. Turing：把 Volta 的现代 compute 思想带进 RTX</h2>
+<p>Turing 不是“Volta + RT Core”这么简单。</p>
+
+<h3>Dedicated FP32 + INT32</h3>
+<pre>FP pipe: math
+INT pipe: address/pointer/integer math
+→ can make progress concurrently</pre>
+<p>现代 kernel 中 address generation 很多。如果整数地址计算总阻塞 FP pipeline，会浪费吞吐。</p>
+
+<h3>Independent Thread Scheduling</h3>
+<p>Turing 继承 Volta 的现代 warp synchronization model，这使新 CUDA semantics 进入 mainstream RTX。</p>
+
+<h3>Second-generation Tensor Core / inference types</h3>
+<p>Turing MMA 支持扩展到：</p>
+<ul>
+<li>FP16；</li>
+<li>INT8；</li>
+<li>INT4；</li>
+<li>更低位 binary path。</li>
+</ul>
+<p>这使 Turing 成为 inference-oriented AI hardware 的重要节点。</p>
+
+<h2>6. RT Core 为什么只轻讲？</h2>
+<p>RT Core 是 Turing 的标志，但本课程不做完整图形学。</p>
+<p>我们只抽取一个长期趋势：</p>
+<pre>GPU
+= programmable SM
++ workload-specific accelerators</pre>
+<p>后面 Tensor Core、TMA、AI control hardware 都属于这类“专用单元越来越多”的方向。</p>
+
+<h2>7. Turing unified L1/shared</h2>
+<p>Turing 的 compute workload 可在统一 96 KB L1/shared 资源中选择 carveout。</p>
+<p>这延续 Volta 的统一 on-chip memory 方向。</p>
+
+<h2>8. 为什么 Turing 对本地 AI 特别重要？</h2>
+<p>从架构层面，它同时具备：</p>
+<ul>
+<li>modern CUDA synchronization；</li>
+<li>Tensor Core inference formats；</li>
+<li>独立 FP/INT datapath；</li>
+<li>较现代 cache/shared hierarchy。</li>
+</ul>
+<p>从 2026 软件层面，它又刚好处在“当前 CUDA 支持线”的老端；这个结论会放在 dynamic intelligence，而不是历史 Lesson。</p>
+
+</body>
+</html>

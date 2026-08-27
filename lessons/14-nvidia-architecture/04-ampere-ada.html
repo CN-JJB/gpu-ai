@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NVIDIA 架构 4：Ampere、Ada</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
+</style>
+</head>
+<body>
+
+<h1>NVIDIA 架构 4 — Ampere → Ada：现代 LLM kernel 的直接祖先</h1>
+
+<h2>1. Ampere 先解决的是“怎么让数据及时到 Tensor Core”</h2>
+<p>矩阵算力越来越高以后，新问题变成：</p>
+<pre>Tensor Core can consume data very fast
+but
+global memory is far away</pre>
+<p>所以 kernel 需要 pipeline：</p>
+<pre>tile 0 compute
+while
+tile 1 load
+while
+tile 2 address/schedule</pre>
+
+<h2>2. Async global → shared copy</h2>
+<p>Ampere 加入硬件支持，让数据从 global memory 异步搬到 shared memory，并减少普通 register staging。</p>
+<pre>old:
+global → register → shared
+
+Ampere async path:
+global ───────────→ shared
+          while compute continues</pre>
+<p>这正是现代 CUTLASS / fused GEMM / attention pipeline 的核心原语之一。</p>
+
+<h2>3. Split arrive/wait barrier</h2>
+<p>生产者和消费者不必每一步都做一个全 block 的粗 barrier。</p>
+<p>可以表达：</p>
+<pre>producer: tile ready
+consumer: wait tile
+→ compute
+producer: prepare next tile</pre>
+
+<h2>4. Third-generation Tensor Core：precision 成为架构设计中心</h2>
+<ul>
+<li>FP16；</li>
+<li>BF16；</li>
+<li>TF32；</li>
+<li>INT8/INT4；</li>
+<li>相关 structured sparsity path；</li>
+<li>FP64 Tensor Core（特定 compute products）。</li>
+</ul>
+
+<h3>TF32 再提醒一次</h3>
+<pre>FP32 storage
+→ Tensor Core converts multiply input precision
+→ FP32 accumulation</pre>
+<p>它不是一种“把模型保存成 TF32”的文件格式。</p>
+
+<h2>5. Ampere 不是一个统一 SM</h2>
+<p>GA100（cc 8.0）和 GA10x（cc 8.6）有明显差异。</p>
+<p>官方 tuning guide 特别指出 8.6 每 SM 每周期 FP32 operation capacity 与 8.0 不同。</p>
+<div class="callout"><strong>第五次重要抽象：</strong>从 Pascal 开始，必须把“架构 family”和“compute capability / die variant”同时看。</div>
+
+<h2>6. A100 的大 L2 / residency control</h2>
+<p>GA100 把 L2 capacity 大幅提高，并允许 programmer 提示 persistence。</p>
+<p>核心思想：</p>
+<pre>if data reuse can hit L2
+→ less HBM traffic
+→ higher effective arithmetic intensity</pre>
+
+<h2>7. Ada：把重点转向 cache、效率和 RTX AI</h2>
+
+<h3>Fourth-generation Tensor Cores</h3>
+<p>Ada 进入 FP8-era 的 RTX inference 路径。</p>
+
+<h3>AD102 的 96 MB L2</h3>
+<p>NVIDIA whitepaper 给出的 full AD102 L2 为 96 MB，相比 GA102 6 MB 是巨大跃升。</p>
+
+<p>为什么消费者 GPU 要这么大 L2？</p>
+<pre>GDDR traffic expensive
++
+graphics / ray tracing / compute working sets
+benefit from locality
+→ larger last-level cache</pre>
+
+<p>对本地 LLM：</p>
+<ul>
+<li>权重 streaming 通常仍大于 cache；</li>
+<li>但 metadata、小 tensor、重复访问仍可能受益；</li>
+<li>不能把 96 MB L2 当成“额外 VRAM”。</li>
+</ul>
+
+<h3>SER</h3>
+<p>Shader Execution Reordering 是 Ada 的重要 graphics feature，但不要硬说它会提升 llama.cpp token/s。</p>
+<p>可迁移的概念只有：</p>
+<pre>irregular/divergent work
+can sometimes be regrouped
+to restore execution coherence</pre>
+
+<h3>AV1</h3>
+<p>Ada 的 NVENC 增加 AV1 encode。对于 multimodal/creator workstation 很实用，但不是 LLM core compute。</p>
+
+<h2>8. Ampere/Ada 对本地 LLM 的真正判断</h2>
+<table>
+<tr><th>feature</th><th>LLM relevance</th></tr>
+<tr><td>Tensor precision</td><td>高：backend/kernel 能否映射低精度 GEMM</td></tr>
+<tr><td>memory bandwidth</td><td>高：decode weight streaming</td></tr>
+<tr><td>VRAM</td><td>高：模型/KV capacity</td></tr>
+<tr><td>async copy/shared pipeline</td><td>高：现代 fused kernel</td></tr>
+<tr><td>large L2</td><td>中：取决于 reuse pattern</td></tr>
+<tr><td>SER/RT</td><td>对纯 LLM 低</td></tr>
+<tr><td>AV1</td><td>多媒体/多模态系统有用</td></tr>
+</table>
+
+</body>
+</html>

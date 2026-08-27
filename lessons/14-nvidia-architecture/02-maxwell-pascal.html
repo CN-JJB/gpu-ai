@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NVIDIA 架构 2：Maxwell、Pascal</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
+</style>
+</head>
+<body>
+
+<h1>NVIDIA 架构 2 — Maxwell → Pascal</h1>
+<p>这两代最重要的课不是“工艺进步”，而是：<strong>更聪明的 SM partition</strong>，以及<strong>同一 architecture family 可以出现完全不同的产品路线</strong>。</p>
+
+<h2>1. Maxwell：Kepler 的问题不是算力不够，而是太难喂</h2>
+<p>Kepler SMX 很宽。Maxwell 的设计目标转向执行效率。</p>
+
+<h3>SMM 的四个 partition</h3>
+<p>Maxwell 仍有四个 warp scheduler，但和 Kepler 不同的是，每个 scheduler 的功能单元更明确地属于自己的 partition。</p>
+<pre>SMM
+├─ scheduler 0 → dedicated CUDA-core group / units
+├─ scheduler 1 → dedicated CUDA-core group / units
+├─ scheduler 2 → dedicated CUDA-core group / units
+└─ scheduler 3 → dedicated CUDA-core group / units</pre>
+<p>这种 power-of-two、warp-width-friendly 的映射简化 scheduling，减少 stall。</p>
+
+<div class="callout"><strong>重要：</strong>Maxwell 每 SM CUDA core 数比 Kepler 少，不代表倒退。它在用<strong>更高 execution efficiency</strong>换更好的 perf/area/perf/W。</div>
+
+<h2>2. Maxwell 的 memory hierarchy 也重新整理</h2>
+<p>Fermi/Kepler：</p>
+<pre>one on-chip pool
+→ choose L1/shared split</pre>
+<p>Maxwell：</p>
+<pre>dedicated shared memory
++
+unified L1/texture function</pre>
+<p>这样 shared-memory-heavy kernel 不再和 L1 用同样方式争那块物理容量。</p>
+
+<h3>更多 resident blocks</h3>
+<p>每 SM 最大 active blocks 从 16 提到 32，对小 thread-block kernel 特别有帮助。</p>
+
+<h3>Native shared atomics</h3>
+<p>histogram/local accumulation 这类 shared-memory contention workload 得到更直接的硬件支持。</p>
+
+<h2>3. Pascal：第一次必须认真区分“GP100”和“GP10x”</h2>
+<p>如果只写：</p>
+<pre>Pascal = HBM2 + NVLink + fast FP16</pre>
+<p>这节课就是错的。</p>
+
+<h2>4. GP100：HPC / training 分支</h2>
+<h3>更小的 compute-oriented SM</h3>
+<p>GP100 SM 有 64 FP32 cores，继续 Maxwell 的“不要盲目做超宽 SM”方向。</p>
+
+<h3>HBM2</h3>
+<p>GP100 通过超宽 HBM2 interface 提高 capacity/bandwidth efficiency。</p>
+
+<h3>NVLink</h3>
+<p>支持平台可以使用 NVLink 提高 GPU↔GPU / GPU↔CPU 互联能力。</p>
+<p>这正是 Slice 11 的历史来源之一。</p>
+
+<h3>FP16</h3>
+<p>GP100 的 FP16 <code>half2</code> 路径专门面向 training/low-precision compute，FP16 throughput 可以高于 FP32。</p>
+
+<h2>5. GP104/GP10x：另一个 Pascal</h2>
+<p>消费/graphics-oriented Pascal 的 FP16 路径和 GP100 完全不同。官方文档甚至明确给出：GP104 的 FP16 arithmetic throughput 远低于 GP100。</p>
+
+<p>但 GP104 等变体加入了 DP4A 这类 INT8 dot-product 指令：</p>
+<pre>4 × int8 products
+→ accumulate int32</pre>
+<p>这对 inference 很有意义。</p>
+
+<div class="callout"><strong>第三次重要抽象：</strong>“architecture name”已经不足以预测 AI 能力。必须看 exact die / product variant。</div>
+
+<h2>6. Pascal Unified Memory：从“托管分配”走向 page fault</h2>
+<p>Pascal 增加 GPU page fault 和更大的 unified virtual addressing 能力。</p>
+<pre>GPU touches non-resident managed page
+→ page fault
+→ runtime migrates/maps page
+→ execution continues</pre>
+<p>这使 heterogeneous memory 更灵活，但 page migration 仍有成本。它不是“CPU RAM 和 VRAM 自动一样快”。</p>
+
+<h2>7. 对垃圾佬最重要的 Pascal 教训</h2>
+<table>
+<tr><th>看到 Pascal</th><th>你还必须问</th></tr>
+<tr><td>FP16?</td><td>GP100 还是 GP10x？</td></tr>
+<tr><td>HBM2?</td><td>具体卡是不是 GP100/HBM 产品？</td></tr>
+<tr><td>NVLink?</td><td>具体 SKU/board 是否有？</td></tr>
+<tr><td>INT8?</td><td>具体 die / backend 是否使用 DP4A？</td></tr>
+<tr><td>今天还能不能跑？</td><td>看当前 driver/CUDA/backend support intelligence</td></tr>
+</table>
+
+<h2>8. LLM 迁移</h2>
+<p>Pascal 没有 Tensor Core，但这不等于“完全不能推理”。对于 memory-bound quantized decode，VRAM bandwidth、capacity 和 backend kernel 仍可能比 Tensor TOPS 更直接。</p>
+<p>但今天买旧 Pascal 的软件寿命问题，必须和架构能力一起算 TCO。</p>
+
+</body>
+</html>
