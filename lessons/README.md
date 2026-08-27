@@ -55,16 +55,17 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 44 | `44-host-memory/` | available RAM / swap / OOM domains |
 | 45 | `45-thermal-sustained/` | thermal soak / clocks / sustained TG |
 | 46 | `46-used-gpu-validation/` | identity / PCIe / errors / acceptance |
+| 47 | `47-psu-power-delivery/` | capacity / headroom / cables / connectors |
 
 ## 使用方式
 
-不需要从 01 线性读到 46。
+不需要从 01 线性读到 47。
 
 推荐：
-- 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21 → 45 → 46
+- 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21 → 45 → 46 → 47
 - 想部署：05 → 06 → 07 → 08/09/10 → 22
 - 想优化 kernel：02 → 03 → 04 → 12 → 13 → 22
-- 想玩多卡：04 → 05 → 07 → 11 → 22
+- 想玩多卡：04 → 05 → 07 → 11 → 42/45/47 → 22
 
 
 推荐模型结构线：
