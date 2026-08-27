@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Overload / Admission Control</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style>
+</head><body>
+<h1>Overload / Admission Control — 一个都不拒绝，为什么反而可能更差？</h1>
+
+<h2>1. 先看最基本不等式</h2>
+
+<pre>
+incoming work
+>
+server can finish
+</pre>
+
+<p>如果持续这样，queue 一定增长。</p>
+
+<p>你不能靠：</p>
+
+<pre>
+“先都收下来”
+</pre>
+
+<p>凭空创造 GPU 算力。</p>
+
+<h2>2. 无界队列的假象</h2>
+
+<p>表面：</p>
+
+<pre>
+HTTP 200
+没有 reject
+</pre>
+
+<p>实际上：</p>
+
+<pre>
+TTFT
+2s
+4s
+8s
+...
+</pre>
+
+<div class="callout"><strong>没有立即失败，不等于服务健康。</strong></div>
+
+<h2>3. Bounded Queue</h2>
+
+<p>比如：</p>
+
+<pre>
+1 active
++
+最多 2 waiting
+</pre>
+
+<p>第四个再来：</p>
+
+<pre>
+REJECT
+</pre>
+
+<p>这牺牲了一部分请求成功率，但保护 queue 不无限增长。</p>
+
+<h2>4. Toy workload</h2>
+
+<pre>
+10 requests
+每 0.5 s 来一个
+
+server:
+1 request / second
+</pre>
+
+<p>短时间 offered load 约：</p>
+
+<pre>
+2 req/s
+</pre>
+
+<p>处理能力：</p>
+
+<pre>
+1 req/s
+</pre>
+
+<p>明显 overload。</p>
+
+<h2>5. 无界 queue</h2>
+
+<pre>
+10 attempts
+10 completed
+0 rejected
+
+mean wait = 2.25 s
+p95 wait  = 4.5 s
+</pre>
+
+<p>看起来“全部成功”。</p>
+
+<p>但交互式用户已经很难受。</p>
+
+<h2>6. Queue limit = 2，不重试</h2>
+
+<pre>
+10 attempts
+7 completed
+3 rejected
+
+p95 wait
+=
+2.0 s
+</pre>
+
+<p>它在做一个明确 tradeoff：</p>
+
+<pre>
+availability ↓
+tail waiting ↓
+</pre>
+
+<h2>7. 最危险的是立即重试</h2>
+
+<p>被 reject 就：</p>
+
+<pre>
+100 ms 后再试
+100 ms 后再试
+100 ms 后再试
+</pre>
+
+<p>结果：</p>
+
+<pre>
+10 original requests
+→ 19 HTTP attempts
+
+但还是：
+7 completed
+3 dropped
+</pre>
+
+<div class="callout"><strong>请求量扩大 1.9×，成功数完全没提高。</strong></div>
+
+<h2>8. 这就是 retry amplification</h2>
+
+<pre>
+overload
+→ reject
+→ immediate retry
+→ more offered load
+→ more reject
+→ more retry
+</pre>
+
+<p>客户端本来想“更可靠”，结果自己给服务器补刀。</p>
+
+<h2>9. Backoff</h2>
+
+<p>改成：</p>
+
+<pre>
+0.5 s
+1 s
+2 s
+</pre>
+
+<p>这组 toy：</p>
+
+<pre>
+18 attempts
+10 completed
+</pre>
+
+<p>最终都活下来了。</p>
+
+<p>但是：</p>
+
+<pre>
+p95 wait = 5.5 s
+</pre>
+
+<p>所以：</p>
+
+<pre>
+eventual success
+!= good UX
+</pre>
+
+<h2>10. Timeout 也不是免费取消</h2>
+
+<p>用户浏览器超时：</p>
+
+<pre>
+client stopped waiting
+</pre>
+
+<p>不能自动推导：</p>
+
+<pre>
+GPU stopped generation
+</pre>
+
+<p>必须确认 cancellation 是否真的传到 scheduler/model。</p>
+
+<h2>11. Admission 不应该只看请求个数</h2>
+
+<p>这两个请求：</p>
+
+<pre>
+128 prompt + 32 output
+</pre>
+
+<p>和：</p>
+
+<pre>
+64k prompt + 4k output
+</pre>
+
+<p>资源成本完全不一样。</p>
+
+<p>更好的 admission 可以考虑：</p>
+
+<pre>
+slots
+KV headroom
+prompt tokens
+output budget
+priority
+SLO
+</pre>
+
+<h2>12. 对本地 LLM 很现实</h2>
+
+<p>24 GiB 卡可能：</p>
+
+<pre>
+模型 weights fit
+</pre>
+
+<p>但：</p>
+
+<pre>
+4 个长 context
+→ KV 快满了
+</pre>
+
+<p>第五个请求不是“多一个 HTTP 请求”那么简单。</p>
+
+<h2>13. 最终目标</h2>
+
+<pre>
+保护 TTFT/ITL SLO
++
+限制 backlog
++
+有限重试
++
+足够吞吐
+</pre>
+
+<p>而不是：</p>
+
+<pre>
+永不 reject
+</pre>
+</body></html>
