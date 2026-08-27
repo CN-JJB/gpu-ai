@@ -10,85 +10,108 @@
 Core ability stack:
 **会理解 → 会调查 → 会选择 → 会实践 → 会改造**
 
-Never fabricate benchmark, market, transaction or health data.
+Never fabricate benchmark, market, transaction or hardware-health data.
 
 ## Completed frontier
 
-Slices 01–21 are implemented.
+Slices 01–22 are implemented.
 
-The hardware-acquisition chain is now complete:
+Current end-to-end chain:
 
 ```
-architecture
-→ workload sizing
-→ cross-vendor decision
-→ China secondhand market methodology
-→ transaction/acceptance verification
+GPU fundamentals
+→ LLM memory/quant/runtime
+→ serving/cache/speculation/multi-GPU
+→ NVIDIA/AMD/Apple/Intel architecture
+→ cross-vendor purchase decision
+→ China secondhand market
+→ used-GPU acceptance
 → max-buy-price/watchlist
+→ controlled real optimization capstone
 ```
 
-## Slice 21
+## Slice 22 — Capstone
 
 Key files:
-- `research/market/0002-max-buy-price-watchlist.md`
-- `reference/market/max-buy-price-watchlist-card.md`
-- `lessons/21-watchlist/01-max-buy-price.html`
-- `labs/experiments/37-max-buy-price-model/`
-- `labs/experiments/38-real-candidate-watchlist/`
+- `research/system/0001-capstone-measure-diagnose-optimize.md`
+- `reference/system/capstone-bottleneck-decision-tree.md`
+- `lessons/22-capstone/01-measure-diagnose-one-variable.html`
+- `labs/experiments/39-capstone-bottleneck-diagnosis/`
+- `labs/experiments/40-real-llm-capstone/`
 
-Core rule:
-
-```
-ask <= ceiling
-```
-
-is not enough.
-
-BUY-CANDIDATE also requires:
-- hard gates pass;
-- performance sufficiently known;
-- market evidence sufficient;
-- condition evidence sufficient.
-
-No auto-purchase.
-
-## Active next slice — capstone deployment/optimization loop
-
-Build a reusable project:
+Core loop:
 
 ```
-hardware profile
-→ runtime identity
-→ model identity/SHA
-→ baseline configuration
-→ PP/TG/VRAM/power/thermal Evidence
-→ bottleneck diagnosis
-→ choose ONE optimization
-→ rerun same workload
+profile
+→ baseline
+→ diagnose
+→ ONE semantic variable
+→ validate A/B
 → compare
-→ explain transfer to other hardware
+→ explain
 ```
 
-Possible optimization branches:
-- quant/backend;
-- context/KV;
-- FlashAttention;
-- server slots/batching;
-- prefix cache;
-- speculative decoding;
-- multi-GPU split.
+The real manifest validator checks frozen identity and rejects multi-variable experiments.
 
-Do not change multiple independent variables in one A/B test.
+A build-time bug where command strings were counted as a second variable was fixed by separating:
+- semantic `config`;
+- audit-only `command_record`.
 
-## Vendor paths
+No real benchmark results are prefilled.
 
-Use the same capstone structure for:
-- NVIDIA CUDA;
-- AMD ROCm/HIP;
-- Apple Metal/MLX;
-- Intel SYCL/XPU.
+## Active next slice — vendor capstone runbooks
 
-Do not force identical commands across ecosystems.
+Create four practical paths:
+
+### NVIDIA
+```
+nvidia-smi / compute capability
+→ CUDA llama.cpp
+→ PP/TG
+→ memory/power telemetry
+→ evidence-selected optimization
+```
+
+### AMD
+```
+gfx target / ROCm
+→ HIP llama.cpp
+→ PP/TG
+→ amd-smi/RAS
+→ evidence-selected optimization
+```
+
+### Apple
+```
+unified-memory working set
+→ Metal/MLX identity
+→ PP/TG
+→ capacity/bandwidth interpretation
+→ evidence-selected optimization
+```
+
+### Intel
+```
+Level Zero/SYCL/XPU
+→ llama.cpp SYCL
+→ PP/TG
+→ dedicated/shared memory distinction
+→ evidence-selected optimization
+```
+
+Reuse Experiment 40. Do not create vendor-specific fake benchmark numbers.
+
+## Repository maintenance after runbooks
+
+Audit:
+- COURSE-MAP.md
+- lessons/README.md
+- labs/experiments/README.md
+- resources/RESOURCES.md
+- learning/CURRENT.md
+- handoffs/latest.md
+
+so recent slices are easy to navigate.
 
 ## Matt Pocock skills
 

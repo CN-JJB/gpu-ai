@@ -233,6 +233,21 @@ Artifacts:
 
 Watchlist never auto-purchases. Cheap candidates remain blocked by hard gates/evidence gates.
 
+### Slice 22 — Capstone controlled optimization
+
+Hardware profile → runtime/model identity → baseline PP/TG/telemetry → bottleneck hypothesis → ONE semantic variable → validated A/B → interpretation。
+
+Artifacts:
+- research/system/0001-capstone-measure-diagnose-optimize.md
+- reference/system/capstone-bottleneck-decision-tree.md
+- lessons/22-capstone/01-measure-diagnose-one-variable.html
+- labs/experiments/39-capstone-bottleneck-diagnosis/
+- labs/experiments/40-real-llm-capstone/
+- examples/evidence/experiment-22-capstone-controlled-ab.md
+- learning/records/2026-08-27-capstone-controlled-ab.md
+
+L0 bottleneck diagnosis verified 7/7. Real manifest validator freezes identity and requires one semantic config difference. No real PP/TG values are fabricated.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -289,8 +304,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build a capstone hardware-profile → deployment → benchmark → diagnosis → optimization loop.
-2. Reuse the first reproducible llama.cpp path but add a formal hardware profile and telemetry packet.
-3. Select optimization from measured bottleneck: context/KV, quant/backend, FlashAttention, batching, speculative decoding or multi-GPU.
-4. Require before/after Evidence with unchanged workload identity.
-5. Add separate sample paths for NVIDIA, AMD/ROCm, Apple/Metal and Intel/SYCL without fabricating benchmark numbers.
+1. Build vendor-specific capstone runbooks for NVIDIA CUDA, AMD ROCm/HIP, Apple Metal/MLX and Intel SYCL/XPU.
+2. Keep one shared scientific structure while using each ecosystem's own device/memory terminology.
+3. Give each runbook one safe first optimization branch chosen from measured evidence.
+4. Reuse Experiment 40 manifests/validator rather than duplicating benchmark methodology.
+5. After vendor runbooks, audit COURSE-MAP / lesson/lab indexes so Slices 14–22 are discoverable from the repository root.
