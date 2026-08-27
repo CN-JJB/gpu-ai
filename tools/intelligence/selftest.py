@@ -137,10 +137,17 @@ def main():
         generated_record = json.loads(generated.read_text(encoding="utf-8"))
         assert generated_record["metrics"]["pp_tok_s"] == 1000.0
         assert generated_record["metrics"]["tg_tok_s"] == 50.0
+        assert generated_record["runtime_id"] == "runtime:fixture"
 
         generated_catalog = td / "catalog"
         generated_catalog.mkdir()
-        for name in ("hardware.jsonl", "models.jsonl", "runtimes.jsonl", "market.jsonl", "compatibility.jsonl"):
+        for name in (
+            "hardware.jsonl",
+            "models.jsonl",
+            "runtimes.jsonl",
+            "market.jsonl",
+            "compatibility.jsonl",
+        ):
             shutil.copy2(fixture / name, generated_catalog / name)
         shutil.copy2(generated, generated_catalog / "benchmarks.jsonl")
 
@@ -225,7 +232,10 @@ def main():
     print("- same artifact/workload observations form one descriptive comparison group")
     print("- explicit same-cohort market rows enable descriptive price/performance")
     print("- evidence-linked TCO fixture reproduces the expected scenario arithmetic")
-    print("- documented compatibility returns NEEDS-TEST, not measured PASS")\n    print("- Experiment 61 importer reproduces PP/TG")
+    print("- documented compatibility returns NEEDS-TEST, not measured PASS")
+    print("- Experiment 61 importer reproduces PP/TG")
+    print("- exact benchmark Evidence upgrades only the matching path to PASS-MEASURED")
+    print("- a different artifact falls back to NEEDS-TEST")
     print("- broken canonical hardware reference is rejected")
 
 
