@@ -1,0 +1,265 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Storage / Model Loading</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style></head><body>
+<h1>Storage / Model Loading — 为什么第二次启动突然快很多？</h1>
+
+<h2>1. GGUF 从磁盘到可推理，中间不止 SSD</h2>
+
+<pre>
+GGUF
+→ filesystem
+→ page cache
+→ mmap/read
+→ host memory
+→ GPU upload
+→ backend init
+→ health ready
+→ first inference
+</pre>
+
+<div class="callout"><strong>“模型加载时间”不是一个单独的磁盘带宽数字。</strong></div>
+
+<h2>2. 最粗糙的读盘模型</h2>
+
+<pre>
+T_read
+≈
+model bytes / effective source bandwidth
+</pre>
+
+<p>20 GiB 模型，如果真的完整从：</p>
+
+<pre>
+0.2 GiB/s HDD
+</pre>
+
+<p>读出来，光读就约：</p>
+
+<pre>
+100s
+</pre>
+
+<h2>3. 换 3 GiB/s NVMe</h2>
+
+<pre>
+20 / 3
+≈ 6.67s
+</pre>
+
+<p>启动当然可能快很多。</p>
+
+<p>但这仍然没包含：</p>
+
+<pre>
+parse
+alloc
+GPU upload
+backend init
+</pre>
+
+<h2>4. 第二次为什么可能更快？</h2>
+
+<p>Linux 普通文件读和 file-backed mmap 会经过 page cache。</p>
+
+<p>第一次访问以后：</p>
+
+<pre>
+SSD/HDD
+→ RAM page cache
+</pre>
+
+<p>第二次可能：</p>
+
+<pre>
+RAM page cache
+→ process
+</pre>
+
+<p>而不是重新等磁盘。</p>
+
+<h2>5. 所以第二次测出来 15 GiB/s？</h2>
+
+<p>不要马上说：</p>
+
+<pre>
+我的 SSD = 15 GiB/s
+</pre>
+
+<p>你可能测到的是：</p>
+
+<pre>
+RAM + page cache
+</pre>
+
+<h2>6. 更危险：第一次也不一定冷</h2>
+
+<p>你今天早上已经跑过模型。</p>
+
+<p>或者：</p>
+
+<pre>
+indexer
+backup
+另一个进程
+</pre>
+
+<p>读过它。</p>
+
+<p>所以：</p>
+
+<pre>
+run1 = cold
+</pre>
+
+<p>没有证据就不能这么写。</p>
+
+<h2>7. mmap 也经常被误解</h2>
+
+<pre>
+mmap(file)
+</pre>
+
+<p>首先是把文件建立到虚拟地址空间的映射。</p>
+
+<p>它不等于：</p>
+
+<pre>
+return 之前已经把全部 20 GiB
+从 SSD copy 到 RAM
+</pre>
+
+<p>页面可以在之后访问时 fault 进来。</p>
+
+<h2>8. Linux 怎么看一个文件有多少页在 cache？</h2>
+
+<p>如果系统有 util-linux 的：</p>
+
+<pre>
+fincore
+</pre>
+
+<p>它可以提供 file-page residency evidence。</p>
+
+<p>但它仍然不能告诉你：</p>
+
+<pre>
+SSD controller cache
+GPU upload bottleneck
+backend init bottleneck
+</pre>
+
+<h2>9. 为什么课程不让你 sudo drop_caches？</h2>
+
+<p>因为它会影响整个主机的 page cache，不只是你的模型。</p>
+
+<p>默认实验宁可写：</p>
+
+<pre>
+initial cache state = UNKNOWN
+</pre>
+
+<p>也不为了造一个“漂亮 cold benchmark”去扰动整台机器。</p>
+
+<h2>10. 读文件本身会改变实验</h2>
+
+<p>你先：</p>
+
+<pre>
+sha256sum 20GB.gguf
+</pre>
+
+<p>然后再测“cold startup”。</p>
+
+<p>SHA 已经把文件读了一遍，可能把大量页面放进 cache。</p>
+
+<div class="callout"><strong>测量动作自己也可能改变 cache state。</strong></div>
+
+<h2>11. GPU upload 是另一个阶段</h2>
+
+<p>离散 GPU 全 offload 时，weights 还要进入 device memory。</p>
+
+<p>粗略：</p>
+
+<pre>
+T_ready
+≈
+T_read/page-fault
++
+T_host
++
+T_device_upload
++
+T_backend
+</pre>
+
+<p>这些阶段实际可能有 overlap/lazy behavior，所以只是 mental model。</p>
+
+<h2>12. SSD bandwidth 和 VRAM bandwidth 完全不是一个东西</h2>
+
+<p>Startup：</p>
+
+<pre>
+storage → host → GPU
+</pre>
+
+<p>steady decode：</p>
+
+<pre>
+weights resident in VRAM
+→ VRAM bandwidth / kernels
+</pre>
+
+<p>因此：</p>
+
+<pre>
+慢硬盘
+≠
+steady TG 永远慢
+</pre>
+
+<h2>13. Synthetic 20 GiB</h2>
+
+<table>
+<tr><th>source</th><th>BW</th><th>simple ready</th><th>steady TG</th></tr>
+<tr><td>HDD-like</td><td>0.2 GiB/s</td><td>102.67s</td><td>50 tok/s</td></tr>
+<tr><td>SATA-like</td><td>0.5 GiB/s</td><td>42.67s</td><td>50 tok/s</td></tr>
+<tr><td>NVMe-like</td><td>3 GiB/s</td><td>9.33s</td><td>50 tok/s</td></tr>
+<tr><td>page-cache-like</td><td>20 GiB/s</td><td>3.67s</td><td>50 tok/s</td></tr>
+</table>
+
+<p>这些全是教学数字。</p>
+
+<h2>14. 真正实验怎么写结论？</h2>
+
+<pre>
+pass1:
+initial cache UNKNOWN
+read prefix 512 MiB
+2.1 GiB/s
+
+pass2:
+after same-file access
+8.7 GiB/s
+</pre>
+
+<p>正确：</p>
+
+<pre>
+second pass was faster after same-file read
+</pre>
+
+<p>错误：</p>
+
+<pre>
+SSD speed = 8.7 GiB/s
+</pre>
+
+<h2>15. 最后分开测四件事</h2>
+
+<pre>
+file/read behavior
+startup readiness
+first inference
+steady PP/TG
+</pre>
+
+<p>这样你才知道升级 SSD 到底是在优化哪一段。</p>
+</body></html>

@@ -1,0 +1,5 @@
+name,model_gib,source_bw_gib_s,host_backend_s,upload_gib,upload_bw_gib_s,steady_tg_tok_s
+hdd-like-cold-source,20,0.2,1.0,20,12,50
+sata-like-cold-source,20,0.5,1.0,20,12,50
+nvme-like-cold-source,20,3.0,1.0,20,12,50
+page-cache-like-source,20,20.0,1.0,20,12,50
