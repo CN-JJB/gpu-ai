@@ -337,6 +337,21 @@ Artifacts:
 
 Default L0 expert accounting and balanced/skewed routing examples verified.
 
+### Slice 29 — Model Architecture Dossier
+
+Real config/artifact → attention/KV/FFN/MoE structure → weight/artifact planning value → asymmetric lower-bound capacity verdict → PP/TG hypotheses → real benchmark handoff。
+
+Artifacts:
+- research/llm/0012-model-architecture-dossier.md
+- reference/llm/model-architecture-dossier-card.md
+- lessons/29-model-dossier/01-config-to-hardware-hypothesis.html
+- labs/experiments/52-model-architecture-dossier-model/
+- labs/experiments/53-real-model-architecture-dossier/
+- examples/evidence/experiment-29-model-architecture-dossier.md
+- learning/records/2026-08-27-model-architecture-dossier.md
+
+Synthetic dense/MoE lower-bound cases checked. Formula fit is never upgraded to confirmed runtime fit.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -393,8 +408,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build a real-model architecture dossier that combines Slices 24–28.
-2. Parse one or more config.json files into attention/KV/FFN/MoE structural summaries.
-3. Produce context/concurrency KV budgets and dense/MoE resident-weight proxies without pretending they are measured VRAM.
-4. Generate PP/TG bottleneck hypotheses from architecture, explicitly marked as hypotheses until benchmarked.
-5. Use the dossier as the bridge from model selection to hardware selection.
+1. Build sliding-window / hybrid-attention / compressed-KV architecture slice.
+2. Explain why not every layer necessarily caches the full context.
+3. Distinguish local-window memory scaling from full-attention/global layers.
+4. Introduce latent/compressed KV as an architecture family concept without forcing one formula onto all MLA variants.
+5. Update the dossier to mark/handle architecture-specific KV formulas rather than silently using homogeneous full attention.

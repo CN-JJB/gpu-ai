@@ -66,6 +66,21 @@
 - 40 real controlled local-LLM A/B capstone
 - 41 vendor capstone preflight
 
+### 42–53：LLM 模型架构
+
+- 42 decoder Transformer shape flow
+- 43 real model config anatomy
+- 44 RMSNorm scale model
+- 45 RoPE relative-position model
+- 46 MHA/GQA/MQA KV cost model
+- 47 real attention-config comparison
+- 48 dense SwiGLU FFN model
+- 49 real FFN structure comparison
+- 50 MoE active/weight-reuse model
+- 51 real MoE config inspector
+- 52 model architecture dossier consistency model
+- 53 real model architecture dossier
+
 ## 实验原则
 
 - L0 synthetic 数据必须显式标记 synthetic。

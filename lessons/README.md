@@ -32,13 +32,33 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 21 | `21-watchlist/` | max buy price |
 | 22 | `22-capstone/` | controlled optimization |
 | 23 | `23-vendor-capstone/` | CUDA/HIP/Metal/SYCL runbooks |
+| 24 | `24-transformer-anatomy/` | decoder-only prefill/decode |
+| 25 | `25-rmsnorm-rope/` | RMSNorm / residual / RoPE |
+| 26 | `26-attention-heads/` | MHA / MQA / GQA |
+| 27 | `27-swiglu-ffn/` | dense SwiGLU FFN |
+| 28 | `28-moe/` | MoE active/resident/traffic |
+| 29 | `29-model-dossier/` | config → hardware hypothesis |
 
 ## 使用方式
 
-不需要从 01 线性读到 23。
+不需要从 01 线性读到 29。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21
 - 想部署：05 → 06 → 07 → 08/09/10 → 22
 - 想优化 kernel：02 → 03 → 04 → 12 → 13 → 22
 - 想玩多卡：04 → 05 → 07 → 11 → 22
+
+
+推荐模型结构线：
+```
+24 → 25 → 26 → 27 → 28 → 29
+```
+
+推荐“选模型再选硬件”：
+```
+24–29
+→ 05/06
+→ 18
+→ 22
+```

@@ -7,69 +7,68 @@
 
 ## Completed frontier
 
-Slices 01–28 are implemented.
+Slices 01–29 are implemented.
+Experiments 01–53 are indexed.
 
-Current LLM architecture spine:
+## Model architecture spine
 
 ```
-24 decoder-only prefill/decode dataflow
+24 Decoder-only dataflow
 25 RMSNorm / residual / RoPE
 26 MHA / MQA / GQA
 27 SwiGLU / dense FFN
-28 Mixture of Experts
+28 MoE
+29 Model Architecture Dossier
 ```
 
-## Slice 28 core rule
+## Slice 29 core rule
 
-Never merge:
-
-```
-total params
-active params/token
-resident weight memory
-actual weight bytes moved
-```
-
-Default synthetic expert model verified:
+Architecture inspection produces three evidence classes:
 
 ```
-d=4096
-expert_ffn=14336
-8 experts
-top-2
-32 MoE layers
-4.5 bpw
-
-one expert        94.5 MiB
-all experts/layer 756 MiB
-top-2/layer       189 MiB
-all expert storage across layers 23.625 GiB
+KNOWN
+DERIVED
+MUST MEASURE
 ```
 
-Balanced routing can improve expert-parallel utilization while touching more unique weights.
-Skewed routing can improve idealized reuse while creating severe device imbalance.
-
-## Active next slice — Model Architecture Dossier
-
-Build one integration project:
+Capacity lower-bound verdict:
 
 ```
-real config.json
-→ model identity
-→ decoder dimensions
-→ Hq/Hkv/Dh
-→ KV bytes/token/context/concurrency
-→ dense FFN structure
-→ MoE structure if present
-→ weight-storage proxies
-→ architecture-specific caveats
-→ PP/TG bottleneck hypotheses
-→ hardware questions
+lower bound > usable memory
+→ FAIL-WITHOUT-OFFLOAD
+
+lower bound <= usable memory
+→ POSSIBLE-NOT-PROVEN
 ```
 
-Critical language:
-- estimates/proxies are not measured VRAM;
-- hypotheses are not benchmarks;
-- model-specific fields override generic formulas.
+Never call the second case PASS without real runtime evidence.
 
-This should become the model-side counterpart to Slice 18 hardware candidate dossier.
+## Active next slice
+
+Modern attention/context architectures:
+
+```
+full attention
+vs
+sliding/local attention
+vs
+hybrid layer patterns
+vs
+compressed/latent KV families
+```
+
+Teach why:
+
+```
+2 × L × Hkv × Dh × bytes × context
+```
+
+is a homogeneous full-attention baseline, not a universal exact KV formula.
+
+Need:
+- local window formula;
+- mixed full/local layer formula;
+- architecture caveats;
+- real config inspector extension.
+
+Do not generalize DeepSeek MLA implementation to all compressed-KV architectures.

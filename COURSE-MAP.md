@@ -119,22 +119,32 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 22 | Measure → diagnose → one-variable A/B |
 | 23 | NVIDIA / AMD / Apple / Intel vendor capstone runbooks |
 
-### 当前缺口 / 下一主线
+### F. LLM 模型架构主线
 
-GPU 与部署侧已经形成完整闭环。
+| Slice | 主题 |
+|---:|---|
+| 24 | Decoder-only Transformer：Prefill vs Decode tensor dataflow |
+| 25 | RMSNorm / residual / RoPE |
+| 26 | MHA / MQA / GQA 与 KV cost |
+| 27 | SwiGLU / dense FFN weight traffic |
+| 28 | MoE：total / active / resident / traffic |
+| 29 | Model Architecture Dossier：config → hardware hypothesis |
 
-下一阶段补齐 LLM 模型结构主线：
+### 当前下一主线
+
+继续补现代 attention / context 结构：
 
 ```
-Transformer dataflow
-→ decoder-only inference
-→ embedding / residual / norm
-→ RoPE
-→ MHA / MQA / GQA
-→ SwiGLU / FFN
-→ MoE
-→ logits / sampling boundary
-→ how architecture changes VRAM / bandwidth / kernels
+sliding/local attention
+→ hybrid attention layers
+→ compressed/latent KV ideas
+→ why old homogeneous KV formula can overestimate/under-model modern architectures
 ```
 
-这条线将与现有 Slice 05 / 09 / 12 / 13 / 22 汇合。
+然后回到真实模型选择：
+```
+model dossier
++
+hardware dossier
+→ deployment capstone
+```
