@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements and verifies I01–I10.
+Phase 4 tooling currently implements I01–I12. I01–I10 have a full Python self-test PASS; I11–I12 have exact-main contract verification pending a fresh full Python rerun.
 
 ## 1. Validate a catalog
 
@@ -131,7 +131,30 @@ Use --show-unscheduled to list records without revalidate_after.
 
 STALE means revalidate before a current decision; it does not automatically mean false.
 
-## 10. Comparable benchmark view
+## 10. Market cohort matrix
+
+~~~bash
+python3 market_matrix.py ../../intelligence/catalog   --geography GLOBAL-EBAY   --channel secondary-aggregated-ebay-active   --cohort used-consumer   --condition used   --price-state MEDIAN_ASK   --currency USD   --as-of 2026-08-28
+~~~
+
+The matrix groups by the complete market contract. It does not call asking prices confirmed sales.
+
+## 11. Market evidence audit
+
+~~~bash
+python3 market_evidence_audit.py ../../intelligence/catalog   --geography GLOBAL-EBAY   --channel secondary-aggregated-ebay-active   --cohort used-consumer   --condition used   --price-state MEDIAN_ASK   --currency USD   --as-of 2026-08-28
+~~~
+
+The audit surfaces:
+- active sample size;
+- middle-half range;
+- ask-only semantics;
+- freshness;
+- descriptive sample bands.
+
+MEDIAN_ASK rows without sample/method evidence fail catalog validation.
+
+## 12. Comparable benchmark view
 
 ~~~bash
 python3 comparable_benchmarks.py fixtures/catalog \
@@ -149,7 +172,7 @@ Comparison grouping requires the same:
 
 Rows are descriptive system comparisons, not automatically causal A/B claims.
 
-## 11. Explicit price/performance
+## 13. Explicit price/performance
 
 ~~~bash
 python3 price_performance.py fixtures/catalog \
@@ -165,7 +188,7 @@ The tool never auto-selects a “latest price”.
 
 Selected market records must share the same geography/channel/cohort/condition/price-state/currency contract.
 
-## 12. TCO worksheet
+## 14. TCO worksheet
 
 ~~~bash
 python3 tco_worksheet.py fixtures/catalog \
@@ -184,7 +207,7 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 13. Self-test
+## 15. Self-test
 
 From repository root:
 
@@ -205,6 +228,8 @@ See:
 - examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
 - examples/evidence/intelligence-09-compatibility-coverage-matrix.md
 - examples/evidence/intelligence-10-freshness-revalidation.md
+- examples/evidence/intelligence-11-market-cohort-coverage.md
+- examples/evidence/intelligence-12-market-evidence-audit.md
 
 ## Non-goals
 
