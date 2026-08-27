@@ -171,6 +171,21 @@ Artifacts:
 
 L0 terminology checker verified 10/10. Real experiment checks SYCL/Level Zero, torch.xpu and llama.cpp visibility separately.
 
+### Slice 18 — Cross-vendor used-hardware decision framework
+
+Workload → Fit Gate → Software Gate → PP/TG/interconnect roofs → comparable Evidence → TCO → secondhand risk → action.
+
+Artifacts:
+- research/hardware/0001-cross-vendor-used-hardware-decision-framework.md
+- reference/hardware/cross-vendor-decision-card.md
+- lessons/18-hardware-decision/01-fit-support-roofs-tco.html
+- labs/experiments/31-scenario-hardware-decision-model/
+- labs/experiments/32-real-used-hardware-candidate-dossier/
+- examples/evidence/experiment-18-cross-vendor-decision.md
+- learning/records/2026-08-27-cross-vendor-hardware-decision.md
+
+No universal score is used. Capacity/software are hard gates; ranking is scenario-specific.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -227,8 +242,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build the cross-vendor used-hardware decision framework.
-2. Convert architecture knowledge into a reproducible buy/keep/skip scorecard.
-3. Separate capacity, bandwidth, PP compute, TG bandwidth, software support and TCO.
-4. Add a no-hardware L0 decision simulation and a real evidence card for any candidate used GPU/Mac.
-5. Start the China secondhand-market intelligence workflow only after the stable decision model exists.
+1. Build the China secondhand-market research methodology before publishing any dated price table.
+2. Separate asking price, observed sold price, seller claim and verified transaction evidence.
+3. Create normalization rules for exact SKU, VRAM modification, board repair, mining/datacenter history and missing accessories.
+4. Add a pre-payment verification checklist and a candidate price-threshold worksheet.
+5. Produce dated market snapshots only with explicit sample provenance and confidence.

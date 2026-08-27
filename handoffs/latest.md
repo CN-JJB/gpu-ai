@@ -16,89 +16,79 @@ Core teaching pattern:
 
 NVIDIA primary, AMD systematic secondary, Apple special section, Intel lighter.
 No CPU architecture course.
-Stable knowledge and dynamic support/market intelligence remain separate.
-Never fabricate real benchmark results.
+Stable knowledge and dynamic intelligence remain separate.
+Never fabricate benchmark or market-price data.
 
 ## Completed frontier
 
-Slices 01–16 are implemented.
+Slices 01–18 are implemented.
 
-Recent architecture spine:
+Architecture coverage:
+- Slice 14 NVIDIA
+- Slice 15 AMD
+- Slice 16 Apple Silicon
+- Slice 17 Intel Xe/Arc
 
-### NVIDIA — Slice 14
-```
-Tesla/G80 → Fermi → Kepler → Maxwell → Pascal
-→ Volta → Turing → Ampere → Ada/Hopper → Blackwell
-```
+Decision layer:
+- Slice 18 cross-vendor used-hardware decision framework
 
-### AMD — Slice 15
-```
-GCN/Vega → RDNA/CDNA split
-→ RDNA2/CDNA2 → RDNA3/CDNA3
-→ RDNA4/CDNA4 → current CDNA5 frontier
-```
+Key Slice 18 files:
+- `research/hardware/0001-cross-vendor-used-hardware-decision-framework.md`
+- `reference/hardware/cross-vendor-decision-card.md`
+- `lessons/18-hardware-decision/01-fit-support-roofs-tco.html`
+- `labs/experiments/31-scenario-hardware-decision-model/`
+- `labs/experiments/32-real-used-hardware-candidate-dossier/`
+- `examples/evidence/experiment-18-cross-vendor-decision.md`
 
-### Apple — Slice 16
-```
-M1 unified-memory SoC
-→ Metal GPU SIMD/threadgroup
-→ M3 Dynamic Caching
-→ M5 GPU Neural Accelerators / Metal 4 Tensor API
-+ separate Neural Engine
-+ MLX CPU/GPU unified-memory execution
-```
-
-Key Apple files:
-- `research/gpu/0010-apple-silicon-unified-memory-metal-ane.md`
-- `reference/gpu/apple-silicon-unified-memory-metal.md`
-- `lessons/16-apple-silicon/`
-- `labs/experiments/27-apple-unified-memory-budget-model/`
-- `labs/experiments/28-real-apple-metal-mlx-inventory/`
-- `intelligence/gpu/apple-silicon-metal-mlx-2026-08-27.md`
-
-## Active next slice — Intel lighter coverage
-
-Build:
+Core decision sequence:
 
 ```
-Gen graphics / EU
-→ Xe-LP
-→ Xe-HPG / Arc Alchemist
-→ XMX matrix engines
-→ Xe2 / Battlemage
-→ oneAPI / Level Zero / SYCL
-→ local LLM backend reality
+workload
+→ FIT hard gate
+→ SOFTWARE hard gate
+→ PP/TG/interconnect roof
+→ comparable Evidence
+→ TCO
+→ secondhand risk
+→ BUY / BUY IF PRICE≤X / KEEP / SKIP / NEEDS EVIDENCE
 ```
 
-Keep Intel shorter than NVIDIA/AMD.
+Do not create a universal hardware score.
 
-Focus on transferable questions:
-- execution grouping;
-- memory/cache;
-- XMX matrix path;
-- discrete VRAM/bandwidth;
-- driver/API/runtime support;
-- current llama.cpp/PyTorch/oneAPI availability.
+## Active next slice — China secondhand market
 
-Production loop:
-**Research → Reference → 1–2 Lessons → L0 terminology trap → real inventory probe → Evidence → intelligence → learning update**
+Build stable methodology first:
 
-## After Intel
+```
+search/listing capture
+→ exact-SKU normalization
+→ condition/risk normalization
+→ asking vs sold-price separation
+→ outlier handling
+→ confidence
+→ pre-payment testing
+→ price threshold
+```
 
-Converge all ecosystems into:
-**cross-vendor used-GPU / local-LLM hardware decision framework**
+Then create dated intelligence snapshots.
 
-Decision axes:
-- capacity;
-- bandwidth;
-- compute datatype path;
-- interconnect;
-- software support;
-- power/cooling;
-- used-market risk;
-- repairability;
-- TCO;
-- PP/TG Evidence.
+Important:
+- asking price is not transaction price;
+- seller text is not verified condition;
+- modified VRAM/repaired PCB/ES/OEM/datacenter cards must be separate cohorts;
+- do not mix 8GB/12GB/16GB/24GB variants;
+- do not invent Xianyu sold prices if inaccessible;
+- snapshot must record date, source, sample size and limitations.
+
+## Market research target
+
+Primary learner context is China secondhand hardware.
+
+Use:
+- Chinese marketplace observations where accessible;
+- manufacturer/runtime official sources for identity/support;
+- reputable technical/community sources for failure modes;
+- exact candidate Evidence Card for purchase decisions.
 
 ## Matt Pocock skills
 
@@ -106,4 +96,4 @@ High-frequency:
 - `teach`
 - `research`
 
-Use verifiable exercises. Do not reopen frozen scope.
+Use verifiable exercises and explicit provenance.
