@@ -6,241 +6,216 @@
 - Branch: main
 - Stable course and dynamic intelligence are separate layers.
 
-## Historical archive
-
-Stable-course history through Slice 45 is preserved at:
-
-~~~text
-learning/archive/CURRENT-through-slice45-2026-08-27.md
-~~~
-
-Detailed records:
-- learning/records/
-- examples/evidence/
-
 ## Stable course frontier
 
-~~~text
+```text
 Slices 01–49 implemented
 Experiments 01–93 exist
 Stable v1 mainline complete
-~~~
+```
 
-The stable course ends in:
-- whole-machine feasibility;
-- Graduation Machine Design Capstone;
-- ACCEPT / REVISE / BLOCKED evidence semantics;
-- packet completeness independent from machine feasibility.
+The stable course ends with whole-machine feasibility and the Graduation Machine Design Capstone.
 
-Do not extend the stable mainline just to add volatile current data.
+Do not extend stable Lessons merely to store volatile prices, compatibility or benchmark data.
 
 ## Active frontier — Phase 4 Intelligence Stations
 
-Verified implementation:
+Verified:
 
-~~~text
+```text
 I01 catalog + benchmark bridge
 I02 compatibility preflight
 I03 exact measured compatibility ingestion
 I04 comparable benchmark view
 I05 explicit price/performance
-I06 evidence-linked TCO worksheet
+I06 evidence-linked TCO
 I07 real benchmark intake gate
-~~~
+I08 four-ecosystem documented compatibility
+I09 compatibility coverage matrix
+I10 freshness / revalidation queue
+```
 
-### I01 — Catalog foundation
+These are dynamic Intelligence Stations, not Slice 50–59.
 
-Machine-readable entities/observations:
+## Current data model
 
-~~~text
-hardware
-model
-runtime
-market
-compatibility
-benchmark
-~~~
-
-Production files live under:
-
-~~~text
-intelligence/catalog/
-~~~
+```text
+hardware entity
+model entity
+runtime entity
+market observation
+compatibility observation
+benchmark observation
+```
 
 Core rule:
 
-~~~text
-ENTITY
+```text
+stable-ish identity
 +
-dated/source-bound OBSERVATION
-~~~
+dated/source-bound observation
+```
 
-Do not put volatile price/support/performance into stable hardware identity.
+Production files live under `intelligence/catalog/`.
 
-### I02 — Compatibility preflight
+## Compatibility semantics
 
-Statuses:
-
-~~~text
-MEASURED_SUPPORTED
-DOCUMENTED_SUPPORTED
-PARTIAL
-EXPERIMENTAL
-DOCUMENTED_UNSUPPORTED
-UNKNOWN
-~~~
-
-Decision semantics:
-
-~~~text
-MEASURED_SUPPORTED → PASS-MEASURED
-DOCUMENTED_SUPPORTED → NEEDS-TEST
+```text
+MEASURED_SUPPORTED     → PASS-MEASURED
+DOCUMENTED_SUPPORTED   → NEEDS-TEST
 PARTIAL / EXPERIMENTAL → REVIEW
 DOCUMENTED_UNSUPPORTED → FAIL
-UNKNOWN / no match → BLOCKED
-stale → STALE-REVALIDATE
-~~~
+UNKNOWN / no match     → BLOCKED
+stale                  → STALE-REVALIDATE
+```
 
-Explicit UNKNOWN is a valid state.
+Explicit UNKNOWN is valid.
 
-### I03 — Exact measured compatibility
+Documentation does not become measured PASS.
 
-Preferred chain:
+## Four-ecosystem production coverage
 
-~~~text
-Experiment 61
-→ benchmark observation
-→ measured compatibility observation
-~~~
+For Qwen3-8B + llama.cpp, current dated production observations cover:
 
-One successful exact path does not prove family-wide compatibility.
+```text
+NVIDIA GeForce RTX 3090 24GB → CUDA  → NEEDS-TEST
+AMD Radeon RX 7900 XTX 24GB  → HIP   → NEEDS-TEST
+Apple M4 Max 40-core / 64GB  → Metal → NEEDS-TEST
+Intel Arc A770 16GB           → SYCL  → NEEDS-TEST
+```
 
-Exact artifact/build/device scope remains attached to the observation.
+No production PP/TG has been attached to these rows.
 
-### I04 — Comparable benchmarks
+## Real benchmark admission
 
-Comparison requires:
+Required chain:
 
-~~~text
+```text
+Experiment 61 manifest
++ raw llama-bench result
++ PACKET.json
++ canonical hardware/model/runtime IDs
+→ I07 INTAKE: READY
+→ ingest benchmark
+→ validate catalog
+→ derive exact MEASURED_SUPPORTED
+→ validate again
+```
+
+Repository search found no existing real Experiment 61-compatible bundle.
+
+Therefore:
+
+```text
+intelligence/catalog/benchmarks.jsonl
+= intentionally empty
+```
+
+Missing real Evidence remains missing.
+
+## Comparable benchmark / price / TCO rules
+
+Benchmark comparison requires:
+
+```text
 same model_id
 + same artifact SHA
 + same quant
 + same workload
-~~~
+```
 
-Rows inside one group are descriptive system comparisons.
+Price/performance additionally requires explicitly selected market observations with the same geography/channel/cohort/condition/price-state/currency contract.
 
-No cross-workload leaderboard.
+TCO is an explicit scenario:
 
-### I05 — Price/performance
-
-Requires:
-- one comparable benchmark group;
-- explicitly selected market records;
-- same geography/channel/cohort/condition/price-state/currency.
-
-No automatic latest-price join.
-
-### I06 — TCO
-
-Scenario:
-
-~~~text
+```text
 purchase
 + platform delta
 + electricity
 + risk reserve
 - resale estimate
 → TCO
-~~~
+```
 
-Every material assumption requires an evidence/source note.
+Neither price/performance nor TCO can rescue a failed feasibility/support/safety/quality gate.
 
-TCO is not a feasibility gate and cannot override a hard failure.
+## Freshness
 
-### I07 — Real benchmark intake gate
+I10 operationalizes `revalidate_after`:
 
-Before production ingestion:
+```text
+STALE
+DUE-TODAY
+DUE-SOON
+FRESH
+```
 
-~~~text
-manifest
-+ raw result
-+ PACKET.json
-+ canonical hardware/model/runtime IDs
-→ intake verification
-~~~
+Verified examples:
+- 2026-08-28 with a 1-day window → the RTX 3090 secondary market observation is DUE-SOON;
+- 2026-09-29 → 6 current dynamic records are STALE.
 
-The gate checks:
-- required manifest identity;
-- positive PP/TG raw metrics;
-- packet SHA256 and byte counts;
-- canonical IDs.
+```text
+STALE != FALSE
+```
 
-~~~text
-INTAKE: READY
-~~~
+It means revalidate before using the record as current decision evidence.
 
-means the bundle is internally complete enough to ingest.
+## Verification
 
-It does not prove benchmark truth or purchase suitability.
+Latest exact-content verification on 2026-08-28:
 
-Repository search found no existing real Experiment 61-compatible packet/result bundle, so production benchmark data remains empty.
-
-## Verification status
-
-On 2026-08-27 the latest I01–I07 scripts and catalog/fixture files were reconstructed into a local test tree and checked against main by Git blob SHA.
-
-Executed:
-
-~~~bash
+```bash
 python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
-~~~
+```
 
 Result:
 
-~~~text
+```text
 SELFTEST: PASS
-~~~
+```
 
-Verification caught and fixed:
-- literal \n written into Python source;
-- missing runtime-index initialization;
-- legal UNKNOWN status incorrectly treated as a placeholder.
+The self-test covers:
+- production/synthetic catalog validation;
+- benchmark bridge;
+- comparable benchmark grouping;
+- price/performance;
+- TCO;
+- documented vs measured compatibility;
+- UNKNOWN → BLOCKED;
+- four-ecosystem NEEDS-TEST coverage;
+- compatibility coverage matrix;
+- freshness queue;
+- intact/tampered Evidence Packet intake;
+- exact measured compatibility upgrade;
+- broken-reference rejection.
 
 Evidence:
+- examples/evidence/intelligence-i01-i06-selftest-verification.md
+- examples/evidence/intelligence-07-real-benchmark-intake.md
+- examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
+- examples/evidence/intelligence-09-compatibility-coverage-matrix.md
+- examples/evidence/intelligence-10-freshness-revalidation.md
 
-~~~text
-examples/evidence/intelligence-i01-i06-selftest-verification.md
-~~~
+A GitHub Actions workflow exists, but the available connector has not surfaced a run; do not claim CI success from the workflow file alone.
 
-A GitHub Actions self-test workflow exists, but the available connector did not surface a workflow run for this checkpoint. Do not claim CI success merely because the workflow file exists.
+## Current production catalog
 
-## Production-data status
+Current intentional seed:
 
-Current production catalog contains:
-- one hardware seed;
-- one model seed;
-- one runtime seed;
-- one dated secondary market observation;
-- one documented compatibility observation;
-- zero real benchmark observations.
-
-The empty production benchmark file is intentional.
-
-~~~text
-no real Experiment 61 Evidence
-→ no production benchmark row
-~~~
+```text
+hardware entities:      4
+model entities:         1
+runtime entities:       1
+market observations:    1
+compatibility rows:     4
+real benchmark rows:    0
+```
 
 ## Next actions
 
-1. Acquire or receive a real Experiment 61 benchmark Evidence Packet.
-2. Require I07 INTAKE: READY before production ingestion.
-3. When real benchmark Evidence exists:
-   - ingest benchmark;
-   - validate;
-   - derive exact MEASURED_SUPPORTED;
-   - re-run self-test/production validation.
-4. Expand current vendor/backend observations only from dated auditable sources.
-5. Build recommendation views only after feasibility, support and quality/SLO gates.
+1. Add stronger normalized real market observations with explicit evidence cohorts.
+2. Acquire/receive the first real Experiment 61 Evidence Packet and require I07 READY before ingestion.
+3. Use I10 to refresh due/stale dynamic observations.
+4. Derive exact measured compatibility only from real Evidence.
+5. Build recommendation views only after real comparable benchmark + quality/SLO + feasibility evidence exists.
