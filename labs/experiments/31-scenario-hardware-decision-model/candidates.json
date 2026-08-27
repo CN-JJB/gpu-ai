@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Candidate-A-small-new",
+    "usable_memory_gib": 16,
+    "bandwidth_gib_s": 700,
+    "pp_index": 180,
+    "support": "official-current",
+    "tco": 2600,
+    "risk": 0.15,
+    "evidence": 0.95
+  },
+  {
+    "name": "Candidate-B-large-old",
+    "usable_memory_gib": 24,
+    "bandwidth_gib_s": 620,
+    "pp_index": 110,
+    "support": "official-pinned",
+    "tco": 2100,
+    "risk": 0.45,
+    "evidence": 0.85
+  },
+  {
+    "name": "Candidate-C-large-integrated",
+    "usable_memory_gib": 28,
+    "bandwidth_gib_s": 360,
+    "pp_index": 130,
+    "support": "official-current",
+    "tco": 5200,
+    "risk": 0.08,
+    "evidence": 0.95
+  },
+  {
+    "name": "Candidate-D-large-alt",
+    "usable_memory_gib": 24,
+    "bandwidth_gib_s": 780,
+    "pp_index": 150,
+    "support": "community-enabled",
+    "tco": 2300,
+    "risk": 0.30,
+    "evidence": 0.70
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "candidate": {
+    "listing_id_or_url": null,
+    "exact_model": null,
+    "ecosystem": null,
+    "architecture": null,
+    "memory_gib_usable": null,
+    "memory_bandwidth_gib_s": null,
+    "asking_price": null
+  },
+  "workload": {
+    "model": null,
+    "quant": null,
+    "runtime_footprint_gib": null,
+    "context": null,
+    "concurrency": null,
+    "runtime": null,
+    "goal": null
+  },
+  "software": {
+    "support_state": null,
+    "driver": null,
+    "backend": null,
+    "backend_version_or_commit": null
+  },
+  "benchmarks": {
+    "pp_tps": null,
+    "tg_tps": null,
+    "power_w": null,
+    "source_quality": "E0"
+  },
+  "tco": {
+    "platform_extra": 0,
+    "psu_cooling_extra": 0,
+    "energy_estimate": 0,
+    "repair_reserve": 0,
+    "expected_resale": 0
+  },
+  "risk": {
+    "board_condition": null,
+    "bios_stock": null,
+    "memory_test": null,
+    "repair_history": null,
+    "seller_testable": null,
+    "return_policy": null
+  },
+  "evidence": {
+    "identity": "E0",
+    "memory": "E0",
+    "software": "E0",
+    "condition": "E0",
+    "benchmark": "E0"
+  }
+}
