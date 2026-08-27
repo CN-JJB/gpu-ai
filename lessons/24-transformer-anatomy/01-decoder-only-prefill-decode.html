@@ -1,0 +1,198 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 1：Decoder-only Transformer 的一次前向</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 1 — 一个 token 到底怎么穿过 Decoder-only Transformer？</h1>
+
+<p>前面我们已经一直在说 PP、TG、KV、FlashAttention，但如果模型内部数据流没真正画出来，这些词还是散的。</p>
+
+<h2>1. Token ID 先变成 hidden vector</h2>
+
+<pre>tokenizer
+→ token ids [B,T]
+→ embedding lookup
+→ X [B,T,d]</pre>
+
+<p><code>d</code> 是 hidden size。模型内部不是在传汉字/单词，而是在传 d 维向量。</p>
+
+<h2>2. 一个现代 decoder block</h2>
+
+<pre>x
+├─ Norm → Attention → + residual → h
+└─ Norm → Gated MLP → + residual → y</pre>
+
+<p>可以写成：</p>
+
+<pre>h = x + Attention(Norm(x))
+y = h + MLP(Norm(h))</pre>
+
+<div class="callout"><strong>注意：</strong>这是 Llama 风格的简化 pre-norm 心智模型，不是所有 Transformer 的唯一结构。</div>
+
+<h2>3. Q/K/V 到底是什么形状？</h2>
+
+<p>定义：</p>
+<ul>
+<li>B：batch/序列数</li>
+<li>T：这次 forward 的新 token 数</li>
+<li>d：hidden size</li>
+<li>Hq：query heads</li>
+<li>Hkv：KV heads</li>
+<li>Dh：head dimension</li>
+</ul>
+
+<pre>X [B,T,d]
+
+Q [B,Hq,T,Dh]
+K [B,Hkv,T,Dh]
+V [B,Hkv,T,Dh]</pre>
+
+<p>如果 Hkv 小于 Hq，KV cache 会跟着变小。下一节会专门讲 MHA/MQA/GQA。</p>
+
+<h2>4. Prefill：整段 prompt 一次进来</h2>
+
+<p>假设 prompt 有 2048 token：</p>
+
+<pre>X [B,2048,d]
+Q [B,Hq,2048,Dh]
+K/V [B,Hkv,2048,Dh]</pre>
+
+<p>attention 概念上需要：</p>
+
+<pre>[2048 queries] × [2048 keys]</pre>
+
+<p>所以能形成大矩阵工作，GPU matrix units 更容易吃饱。</p>
+
+<p>这就是 PP 常常非常高的原因之一。</p>
+
+<h2>5. 但是别以为一定要在显存写一个完整 2048×2048</h2>
+
+<p>数学上有：</p>
+
+<pre>scores = QKᵀ</pre>
+
+<p>但 FlashAttention 通过 tiling / online softmax 避免把完整 score matrix 反复写到高成本显存。</p>
+
+<p>所以：</p>
+
+<pre>数学中存在
+!=
+runtime 必须 materialize</pre>
+
+<h2>6. Prefill 同时建立 KV Cache</h2>
+
+<p>每层把 prompt 的 K/V 留下来：</p>
+
+<pre>K cache [B,Hkv,S,Dh]
+V cache [B,Hkv,S,Dh]</pre>
+
+<p>于是每 token 的 KV bytes：</p>
+
+<pre>2 × layers × Hkv × Dh × bytes</pre>
+
+<p>为什么有 2？</p>
+
+<p><strong>因为只有 K 和 V 两份缓存，不是 Q/K/V 三份。</strong></p>
+
+<h2>7. Decode：突然变成另一种 shape</h2>
+
+<p>Prompt 已经 cached。现在生成下一个 token。</p>
+
+<pre>X_new [B,1,d]
+Q_new [B,Hq,1,Dh]
+K_new [B,Hkv,1,Dh]
+V_new [B,Hkv,1,Dh]</pre>
+
+<p>但它要读取之前的：</p>
+
+<pre>K/V cache [B,Hkv,S,Dh]</pre>
+
+<p>attention score 概念形状：</p>
+
+<pre>[B,Hq,1,S]</pre>
+
+<p>只产生一个 query，却要看整个历史。</p>
+
+<h2>8. 为什么 TG 经常看显存带宽？</h2>
+
+<p>Decoder block 里的大 weight matrix 还是那些。</p>
+
+<p>但输入从：</p>
+
+<pre>T=2048 rows</pre>
+
+<p>变成：</p>
+
+<pre>T=1 row</pre>
+
+<p>同一份权重被用于很少的 token 工作：</p>
+
+<pre>低 arithmetic intensity
+→ weight streaming 相对更重
+→ bandwidth roof 更容易出现</pre>
+
+<h2>9. 为什么生成不能像 prompt 一样全并行？</h2>
+
+<pre>logits₀
+→ sample token₁
+→ forward token₁
+→ logits₁
+→ sample token₂
+→ ...</pre>
+
+<p>后一个 token 的输入依赖前一个 token 的输出。</p>
+
+<p>这就是 autoregressive serial dependency。</p>
+
+<h2>10. Attention 不是模型全部</h2>
+
+<p>每层还有很大的 MLP。</p>
+
+<p>常见 gated MLP：</p>
+
+<pre>gate = W_gate x
+up   = W_up x
+z    = activation(gate) ⊙ up
+out  = W_down z</pre>
+
+<p>如果 hidden size 是 d、FFN size 是 d_ff，三个大矩阵大约有：</p>
+
+<pre>3 × d × d_ff</pre>
+
+<p>参数。</p>
+
+<div class="callout"><strong>所以只把 FlashAttention 优化到极致，也不等于整个 LLM 没别的瓶颈。</strong></div>
+
+<h2>11. 最后是 LM Head，不是“直接吐字”</h2>
+
+<pre>hidden
+→ final norm
+→ LM head
+→ logits [vocab]
+→ sampler
+→ next token id
+→ tokenizer decode
+→ text</pre>
+
+<p>temperature/top-p 等采样参数在 logits 之后。</p>
+
+<h2>12. 一张图总结 Prefill vs Decode</h2>
+
+<table>
+<tr><th></th><th>Prefill</th><th>Decode</th></tr>
+<tr><td>新 token 数</td><td>很多</td><td>通常 1</td></tr>
+<tr><td>矩阵 shape</td><td>大 batch/token 维</td><td>小 token 维</td></tr>
+<tr><td>KV</td><td>大量创建</td><td>读历史 + 追加 1 token</td></tr>
+<tr><td>并行性</td><td>高</td><td>单序列时间轴串行</td></tr>
+<tr><td>常见 roof</td><td>compute/kernel</td><td>memory bandwidth</td></tr>
+<tr><td>课程指标</td><td>PP</td><td>TG</td></tr>
+</table>
+
+<h2>13. 现在前面的知识终于连起来了</h2>
+
+<pre>Transformer tensor shape
+→ KV formula
+→ PP/TG difference
+→ Roofline
+→ Tensor Core/MFMA/XMX
+→ FlashAttention
+→ Speculative Decoding</pre>
+
+<p>接下来才有资格详细拆 RoPE、RMSNorm、GQA。</p>
+</body></html>
