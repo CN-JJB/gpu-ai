@@ -1,0 +1,20 @@
+{
+  "runs": [
+    {
+      "name": "cold-start",
+      "spawn_ms": 0,
+      "first_http_ms": 400,
+      "ready_ms": 5000,
+      "first_inference_done_ms": 5800,
+      "warm_request_ms": 150
+    },
+    {
+      "name": "restart",
+      "spawn_ms": 10000,
+      "first_http_ms": 10450,
+      "ready_ms": 15100,
+      "first_inference_done_ms": 16300,
+      "warm_request_ms": 160
+    }
+  ]
+}

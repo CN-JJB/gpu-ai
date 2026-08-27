@@ -1,0 +1,210 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Operational Reliability / Recovery</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Operational Reliability — 进程活着，为什么还不能接请求？</h1>
+
+<h2>1. 启动不是一个瞬间</h2>
+
+<pre>
+process spawn
+→ socket 能连
+→ health 返回
+→ model loaded
+→ first inference
+→ warm steady state
+</pre>
+
+<div class="callout"><strong>这些时间点不能统称一个“启动时间”。</strong></div>
+
+<h2>2. Liveness</h2>
+
+<p>进程存在：</p>
+
+<pre>
+PID alive
+</pre>
+
+<p>只能说明它还没退出。</p>
+
+<p>它可能正在：</p>
+
+<pre>
+加载模型
+分配显存
+初始化 backend
+</pre>
+
+<h2>3. Readiness</h2>
+
+<p>当前 pinned llama-server：</p>
+
+<pre>
+/health = 503
+Loading model
+</pre>
+
+<p>表示还在加载。</p>
+
+<p>等到：</p>
+
+<pre>
+/health = 200
+status=ok
+</pre>
+
+<p>才是它定义的 model-ready。</p>
+
+<h2>4. Port open 也不够</h2>
+
+<p>如果：</p>
+
+<pre>
+HTTP 已经能收到 503
+</pre>
+
+<p>那端口显然已经可达。</p>
+
+<p>但模型仍没 ready。</p>
+
+<pre>
+listener available
+!= model ready
+</pre>
+
+<h2>5. Health 200 仍不等于你的 workload 可用</h2>
+
+<p>还可能有：</p>
+
+<pre>
+错误 chat template
+context 不够
+grammar/tool 路径错误
+第一请求冷启动
+</pre>
+
+<p>所以部署完成最好再做：</p>
+
+<pre>
+tiny smoke inference
+</pre>
+
+<h2>6. 我们测四个时间</h2>
+
+<pre>
+t_spawn
+t_first_http
+t_health_200
+t_first_inference_done
+</pre>
+
+<p>得到：</p>
+
+<pre>
+listener recovery
+readiness recovery
+usable smoke recovery
+</pre>
+
+<h2>7. Restart 会发生什么？</h2>
+
+<p>进程里的：</p>
+
+<pre>
+KV
+prefix cache
+一些 runtime warm state
+</pre>
+
+<p>通常应该先按“丢了”处理，除非你有明确 save/restore 证据。</p>
+
+<h2>8. 所以健康恢复后也可能更慢</h2>
+
+<pre>
+health 200
+→ first request cold
+→ later requests warm
+</pre>
+
+<p>服务是 healthy，但还没达到 steady-state latency。</p>
+
+<h2>9. Restart 还会偷偷换身份</h2>
+
+<p>例如原来：</p>
+
+<pre>
+Q4 model
+CUDA build
+ctx 32k
+</pre>
+
+<p>重启脚本不小心变成：</p>
+
+<pre>
+Q5 model
+different commit
+ctx 8k
+</pre>
+
+<p>端口还是 8080，不代表系统一样。</p>
+
+<h2>10. Graceful drain 和 kill 也不是一个东西</h2>
+
+<p>理想 drain：</p>
+
+<pre>
+停止接新请求
+→ 等现有请求完成
+→ stop
+</pre>
+
+<p>直接 process terminate：</p>
+
+<pre>
+可能打断 active request
+</pre>
+
+<p>即使操作系统给了进程清理机会，也不能自动叫“drain”。</p>
+
+<h2>11. 不要 sleep 10 然后祈祷</h2>
+
+<p>正确 poll：</p>
+
+<pre>
+connection refused?
+503 loading?
+200 ready?
+process exited?
+timeout?
+</pre>
+
+<p>这些状态本身就是诊断证据。</p>
+
+<h2>12. 真实实验只碰自己启动的子进程</h2>
+
+<p>课程脚本强制：</p>
+
+<pre>
+127.0.0.1
+</pre>
+
+<p>并且只 terminate 它自己 spawn 的 PID。</p>
+
+<p>不安装：</p>
+
+<pre>
+systemd
+launchd
+Windows service
+开机启动
+</pre>
+
+<h2>13. 最终目标</h2>
+
+<pre>
+restart
+→ identity unchanged
+→ health ready
+→ smoke inference
+→ warm performance
+</pre>
+
+<p>这才是“服务恢复了”的完整说法。</p>
+</body></html>
