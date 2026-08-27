@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "comparison_id": "REPLACE",
+  "label": "baseline",
+  "intentional_variable": "variant.execution.flash_attention",
+  "fixed": {
+    "protocol": {
+      "pp_tokens": 512,
+      "tg_tokens": 128,
+      "repetitions": 5,
+      "warmup_runs": 1
+    },
+    "quality_eval": {
+      "tokenizer_identity": "REPLACE",
+      "corpus_sha256": "REPLACE",
+      "fixture_revision": "REPLACE",
+      "evaluation_args": "REPLACE"
+    }
+  },
+  "variant": {
+    "hardware": {
+      "device_identity": "REPLACE",
+      "profile_sha256": "REPLACE"
+    },
+    "runtime": {
+      "runtime_identity": "REPLACE",
+      "backend": "REPLACE",
+      "build_identity": "REPLACE"
+    },
+    "model": {
+      "artifact_sha256": "REPLACE",
+      "artifact_bytes": 0,
+      "quant": "REPLACE",
+      "source_revision": "REPLACE"
+    },
+    "execution": {
+      "context": 32768,
+      "sequences": 1,
+      "gpu_layers": "REPLACE",
+      "flash_attention": false,
+      "kv_k": "REPLACE",
+      "kv_v": "REPLACE",
+      "split_mode": "REPLACE",
+      "tensor_split": "REPLACE",
+      "threads": "REPLACE"
+    },
+    "prompt": {
+      "messages_sha256": "REPLACE",
+      "chat_template_sha256": "REPLACE",
+      "rendered_sha256": "REPLACE",
+      "token_ids_sha256": "REPLACE",
+      "token_count": 0
+    },
+    "sampler": {
+      "mode": "not-applicable-model-eval",
+      "temperature": null,
+      "top_k": null,
+      "top_p": null,
+      "min_p": null,
+      "seed": null,
+      "chain": []
+    }
+  },
+  "audit": {
+    "command_record": "REPLACE",
+    "raw_result": "REPLACE",
+    "telemetry": "REPLACE",
+    "quality_log": "REPLACE",
+    "notes": ""
+  }
+}

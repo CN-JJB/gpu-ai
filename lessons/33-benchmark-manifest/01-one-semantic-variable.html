@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Benchmark Manifest：给每个跑分一张身份证</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style>
+</head><body>
+<h1>Benchmark Manifest — 给每个跑分一张身份证</h1>
+
+<h2>1. “30 tok/s”几乎什么都没告诉你</h2>
+
+<p>至少还缺：</p>
+
+<pre>
+哪张 GPU？
+哪个 runtime commit？
+哪份 GGUF？
+什么 quant？
+多少 PP/TG？
+什么 context？
+哪个 prompt token 序列？
+什么 sampler？
+质量有没有退化？
+</pre>
+
+<p>所以我们把这些合成一个 machine-readable manifest。</p>
+
+<h2>2. Manifest 分三层</h2>
+
+<pre>
+fixed
+variant
+audit
+</pre>
+
+<p><strong>fixed</strong>：这轮 A/B 绝对不能偷偷变的实验协议。</p>
+
+<p><strong>variant</strong>：真正允许被比较的语义块。</p>
+
+<p><strong>audit</strong>：命令、raw 文件路径、时间戳等审计记录。</p>
+
+<h2>3. 为什么不能简单规定 model SHA 一样？</h2>
+
+<p>如果实验是：</p>
+
+<pre>
+Q8_0
+→
+Q4_K_M
+</pre>
+
+<p>GGUF 本来就不同：</p>
+
+<pre>
+SHA different
+bytes different
+quant different
+</pre>
+
+<p>但这三项其实是一个语义干预：</p>
+
+<pre>
+variant.model
+</pre>
+
+<div class="callout"><strong>“一次只改一个变量”应该理解为一个实验语义变量，而不是永远只能改 JSON 的一个叶子。</strong></div>
+
+<h2>4. FlashAttention 又可以更严格</h2>
+
+<pre>
+intentional_variable
+=
+variant.execution.flash_attention
+</pre>
+
+<p>这时 validator 只允许这个 leaf 改。</p>
+
+<h2>5. Quant A/B</h2>
+
+<pre>
+intentional_variable
+=
+variant.model
+</pre>
+
+<p>允许：</p>
+
+<pre>
+artifact_sha256
+artifact_bytes
+quant
+</pre>
+
+<p>一起改变。</p>
+
+<p>但如果 Prompt token hash 也变：</p>
+
+<pre>
+FAIL
+</pre>
+
+<h2>6. 为什么 Prompt 必须进身份证？</h2>
+
+<p>Slice 31 已经证明：</p>
+
+<pre>
+same visible text
+!=
+same token IDs
+</pre>
+
+<p>所以真正冻结：</p>
+
+<pre>
+token_ids_sha256
+token_count
+</pre>
+
+<p>最好再保存 messages/template/rendered hashes。</p>
+
+<h2>7. Quality corpus 也必须冻结</h2>
+
+<p>如果 candidate 偷换成更简单的 corpus：</p>
+
+<pre>
+candidate PPL 看起来更好
+</pre>
+
+<p>这种质量 A/B 完全无效。</p>
+
+<p>所以：</p>
+
+<pre>
+fixed.quality_eval
+</pre>
+
+<p>不允许随 candidate 改。</p>
+
+<h2>8. Hardware A/B 怎么办？</h2>
+
+<pre>
+intentional_variable
+=
+variant.hardware
+</pre>
+
+<p>理想情况下其余全部相同。</p>
+
+<p>但跨 NVIDIA / AMD 时 backend 也必须变怎么办？</p>
+
+<p>那就诚实叫：</p>
+
+<pre>
+system comparison
+</pre>
+
+<p>不要硬冒充 one-variable causal A/B。</p>
+
+<h2>9. Validator 能证明什么？</h2>
+
+<p>它能证明 manifest 层面：</p>
+
+<pre>
+只有声明的语义变量变了
+</pre>
+
+<p>它不能证明：</p>
+
+<pre>
+温度一样
+后台进程一样
+数据没造假
+benchmark 没 bug
+</pre>
+
+<p>所以它是实验纪律工具，不是真相机器。</p>
+
+<h2>10. Evidence Packet</h2>
+
+<p>最后把：</p>
+
+<pre>
+manifest
+profile
+prompt manifest
+raw PP/TG
+telemetry
+quality log
+comparison
+</pre>
+
+<p>全部做 SHA256 索引。</p>
+
+<p>以后哪怕半年后，你还能知道这组结论到底来自哪批原始文件。</p>
+
+<h2>11. 从现在开始的课程实验标准</h2>
+
+<pre>
+结果
++
+身份
++
+原始证据
++
+质量门
+=
+可复现结论
+</pre>
+</body></html>

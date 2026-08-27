@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "comparison_id": "synthetic-quant-ab-001",
+  "label": "candidate",
+  "intentional_variable": "variant.model",
+  "fixed": {
+    "protocol": {
+      "pp_tokens": 512,
+      "tg_tokens": 128,
+      "repetitions": 5,
+      "warmup_runs": 1
+    },
+    "quality_eval": {
+      "tokenizer_identity": "synthetic-tokenizer-rev-a",
+      "corpus_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "fixture_revision": "fixture-v1",
+      "evaluation_args": "same synthetic quality protocol"
+    }
+  },
+  "variant": {
+    "hardware": {
+      "device_identity": "synthetic-gpu-24g",
+      "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "runtime": {
+      "runtime_identity": "llama.cpp-synthetic-commit-a",
+      "backend": "CUDA"
+    },
+    "model": {
+      "artifact_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "artifact_bytes": 4831838208,
+      "quant": "Q4_K_M",
+      "source_revision": "source-a"
+    },
+    "execution": {
+      "context": 32768,
+      "sequences": 1,
+      "gpu_layers": 99,
+      "flash_attention": true,
+      "kv_k": "f16",
+      "kv_v": "f16"
+    },
+    "prompt": {
+      "token_ids_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "token_count": 512,
+      "rendered_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "sampler": {
+      "mode": "greedy",
+      "temperature": 0,
+      "top_k": 0,
+      "top_p": 1,
+      "seed": 42
+    }
+  },
+  "audit": {
+    "command_record": "synthetic candidate command",
+    "raw_result": "candidate.json",
+    "quality_log": "candidate-ppl.txt"
+  }
+}
