@@ -1,0 +1,233 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Thermal / Cooling / Sustained Performance</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Thermal / Cooling — 为什么冷机 55 tok/s，十分钟后只剩 43？</h1>
+
+<h2>1. 短跑和长跑不是一个硬件状态</h2>
+
+<pre>
+workload starts
+→ cooler still cool
+→ clocks boost
+→ heat accumulates
+→ equilibrium
+</pre>
+
+<div class="callout"><strong>30 秒冷机跑分不能自动代表 30 分钟 sustained TG。</strong></div>
+
+<h2>2. Temperature 不是唯一答案</h2>
+
+<p>温度由很多东西共同决定：</p>
+
+<pre>
+board power
+ambient
+heatsink
+fan
+case airflow
+neighbor GPU
+dust
+form factor
+</pre>
+
+<h2>3. 不要背一个万能 80°C</h2>
+
+<p>不同 GPU 有：</p>
+
+<pre>
+edge/core
+hotspot/junction
+memory temperature
+different target/max
+</pre>
+
+<p>所以：</p>
+
+<pre>
+80°C = throttle
+</pre>
+
+<p>不是通用规则。</p>
+
+<h2>4. Clock 掉了也不一定是散热</h2>
+
+<p>NVIDIA 当前 clock-event reason 里就区分：</p>
+
+<pre>
+power cap
+thermal slowdown
+power brake
+other limits
+</pre>
+
+<p>所以：</p>
+
+<pre>
+clock ↓
+</pre>
+
+<p>只能先说“发生了降频/状态变化”。</p>
+
+<h2>5. Synthetic thermal drift</h2>
+
+<pre>
+time:   0 → 240s
+temp:  55 → 86°C
+clock:1900 →1450 MHz
+TG:    55 → 42 tok/s
+</pre>
+
+<p>TG：</p>
+
+<pre>
+42 / 55
+≈ 0.764
+</pre>
+
+<p>也就是约：</p>
+
+<pre>
+-23.6%
+</pre>
+
+<p>温升 + clock 下降 + TG 下降，thermal/power management 变得很可疑。</p>
+
+<h2>6. 但还不能直接判 exact cause</h2>
+
+<p>最好再看：</p>
+
+<pre>
+thermal event reason?
+power cap?
+power brake?
+hotspot/memory temp?
+</pre>
+
+<h2>7. Hot-but-stable case</h2>
+
+<pre>
+temp 80 → 84°C
+clock 1800 → 1790
+TG 50 → 49.8
+</pre>
+
+<p>性能基本没掉。</p>
+
+<p>所以：</p>
+
+<pre>
+温度高
+!=
+正在 throttle
+</pre>
+
+<h2>8. Ambient 很重要</h2>
+
+<pre>
+20°C room
+vs
+32°C room
+</pre>
+
+<p>同一张二手卡都可能完全不同。</p>
+
+<p>买卡/换散热器对比要记 ambient。</p>
+
+<h2>9. Open bench 也会骗人</h2>
+
+<p>桌面裸奔：</p>
+
+<pre>
+fresh air everywhere
+</pre>
+
+<p>塞进机箱双卡：</p>
+
+<pre>
+GPU0 exhaust
+→ GPU1 intake
+→ recirculation
+</pre>
+
+<p>垃圾佬多卡尤其明显。</p>
+
+<h2>10. Fan / noise 是另一个目标</h2>
+
+<p>最低温度不一定是最好系统。</p>
+
+<pre>
+more fan
+→ lower temp
+→ more noise
+</pre>
+
+<p>真实目标可能是：</p>
+
+<pre>
+sustained tok/s
+subject to
+temperature + noise
+</pre>
+
+<h2>11. llama-bench 为什么适合看 sustained drift？</h2>
+
+<p>当前 pinned 版本：</p>
+
+<pre>
+-r repetitions
+-o jsonl
+samples_ts[]
+samples_ns[]
+</pre>
+
+<p>同一次模型加载里有每次 repetition 的 TG。</p>
+
+<p>所以可以比较：</p>
+
+<pre>
+first quartile
+vs
+last quartile
+</pre>
+
+<h2>12. Warmup 也要写进 manifest</h2>
+
+<pre>
+default warmup
+vs
+--no-warmup
+</pre>
+
+<p>会影响前几个样本。</p>
+
+<h2>13. 实验默认不调功耗墙</h2>
+
+<p>先只读测：</p>
+
+<pre>
+TG
+temperature
+clock
+power
+event reasons
+</pre>
+
+<p>不默认做：</p>
+
+<pre>
+overclock
+undervolt
+power-limit change
+fan curve change
+</pre>
+
+<h2>14. 你最终要回答</h2>
+
+<pre>
+这张卡：
+峰值有多快？
+热起来以后多快？
+功率多少？
+温度多少？
+有没有 limiter evidence？
+噪音/机箱是否可接受？
+</pre>
+</body></html>
