@@ -122,3 +122,9 @@
 
 - 66 synthetic bounded-queue/retry-amplification model
 - 67 controlled real overload observation on owned/authorized server
+
+
+### 68–69：Multi-Tenant Fairness
+
+- 68 synthetic FIFO / strict quota / fair-borrow scheduler
+- 69 real per-tenant serving report

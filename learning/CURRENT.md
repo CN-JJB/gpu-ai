@@ -456,6 +456,21 @@ Artifacts:
 
 Synthetic queue/retry scenarios verified. Real lab is bounded and restricted to owned/authorized systems.
 
+### Slice 37 — Multi-Tenant Fairness
+
+Request count → token/resource cost → per-tenant concurrency/quota → fairness under contention → work-conserving borrowing → per-tenant latency/resource report。
+
+Artifacts:
+- research/llm/0019-multitenant-fairness-quotas.md
+- reference/llm/multitenant-fairness-quotas.md
+- lessons/37-multitenant-fairness/01-slots-quotas-borrowing.html
+- labs/experiments/68-multitenant-fairness-model/
+- labs/experiments/69-real-tenant-serving-report/
+- examples/evidence/experiment-37-multitenant-fairness.md
+- learning/records/2026-08-27-multitenant-fairness.md
+
+Synthetic FIFO/strict-cap/fair-borrowing scheduler values verified.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -512,8 +527,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build multi-tenant fairness/quota slice.
-2. Compare request-count fairness with token/resource fairness.
-3. Model one long-context/long-output tenant consuming slots/KV while short users queue.
-4. Teach per-tenant concurrency, prompt/output/context budgets and weighted scheduling.
-5. Add a real serving fairness worksheet without assuming one scheduler implementation.
+1. Build service exposure/privacy/authentication slice.
+2. Separate localhost, LAN and public-network threat surfaces.
+3. Treat prompts, logs, metrics and slot/cache endpoints as potentially sensitive.
+4. Teach authentication/TLS/reverse-proxy boundary without coupling to one product.
+5. Add a safe local exposure audit that changes no firewall/router settings.

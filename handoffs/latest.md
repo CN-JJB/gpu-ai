@@ -7,69 +7,81 @@
 
 ## Completed frontier
 
-Slices 01–36 are implemented.
-Experiments 01–67 exist.
+Slices 01–37 are implemented.
+Experiments 01–69 exist.
 
-## Slice 36 core
+## Slice 37 core
 
-Synthetic overload:
+Synthetic shared server:
 
 ```
-10 originals
-arrival 0.5 s apart
-service 1 req/s
+2 slots
+A: 2 × 100-token jobs
+B: 4 × 10-token jobs
+```
+
+Request share:
+```
+A 33%
+B 67%
+```
+
+Output-work share:
+```
+A 83%
+B 17%
 ```
 
 Results:
 
 ```
-unbounded:
-10 attempts → 10 complete
-p95 wait 4.5 s
+FIFO:
+B mean wait 10.5 s
+util 100%
 
-bounded no retry:
-10 → 7 complete
-p95 wait 2.0 s
+strict one-active/tenant:
+B mean wait 1.5 s
+util 60%
 
-immediate retry:
-19 attempts → still 7 complete
-1.9× attempt amplification
-
-backoff:
-18 attempts → 10 complete
-p95 wait 5.5 s
+work-conserving borrowing:
+B mean wait 1.5 s
+util 85.714%
 ```
 
-Key distinction:
-
+Lesson:
 ```
-eventual success
-!= latency SLO
-```
-
-Admission can protect tail latency/resource stability by rejecting some work early.
-
-Real lab is bounded, local/authorized only, and observes actual server behavior rather than assuming rejection.
-
-## Active next slice — Multi-Tenant Fairness / Quotas
-
-Build:
-
-```
-tenant A long requests
-tenant B short requests
-shared slots/KV
-→ fairness policy
-→ latency/throughput allocation
+fair under contention
++
+borrow idle capacity
 ```
 
-Teach:
-- equal requests != equal tokens/resource cost;
-- per-user concurrency limits;
-- output/context budgets;
-- token-weighted or cost-aware accounting;
-- fairness vs utilization;
-- starvation risk under shortest-job-first-like policies;
-- priority needs explicit policy.
+can preserve fairness without rigidly wasting GPU.
 
-Do not assume llama-server itself implements all quota/scheduling features; separate application/gateway policy from inference runtime.
+## Active next slice — Service Exposure / Privacy / Auth
+
+Teach safe deployment boundaries:
+
+```
+localhost
+vs
+LAN bind
+vs
+public exposure
+```
+
+Inventory:
+- listen address/port;
+- authentication;
+- TLS termination;
+- reverse-proxy/app gateway;
+- server metrics endpoint;
+- slots/cache endpoints;
+- prompt/request logs;
+- model files/licenses.
+
+Real lab must be read-only:
+- inspect listening sockets/process args/config;
+- do not modify firewall/router/NAT;
+- do not expose a service publicly as part of the course.
+
+Focus on least exposure and evidence.
