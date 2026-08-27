@@ -46,10 +46,11 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 35 | `35-serving-capacity/` | Little's Law / slots / KV |
 | 36 | `36-overload-admission/` | queue / reject / retry / backoff |
 | 37 | `37-multitenant-fairness/` | quotas / borrowing / fairness |
+| 38 | `38-service-exposure/` | bind / auth / TLS / privacy |
 
 ## 使用方式
 
-不需要从 01 线性读到 37。
+不需要从 01 线性读到 38。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21

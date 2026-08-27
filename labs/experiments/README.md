@@ -128,3 +128,9 @@
 
 - 68 synthetic FIFO / strict quota / fair-borrow scheduler
 - 69 real per-tenant serving report
+
+
+### 70–71：Service Exposure / Privacy
+
+- 70 synthetic listener/auth/TLS/endpoint configuration linter
+- 71 read-only loopback/local service exposure audit

@@ -7,81 +7,75 @@
 
 ## Completed frontier
 
-Slices 01–37 are implemented.
-Experiments 01–69 exist.
+Slices 01–38 are implemented.
+Experiments 01–71 exist.
 
-## Slice 37 core
+## Slice 38 core
 
-Synthetic shared server:
-
-```
-2 slots
-A: 2 × 100-token jobs
-B: 4 × 10-token jobs
-```
-
-Request share:
-```
-A 33%
-B 67%
-```
-
-Output-work share:
-```
-A 83%
-B 17%
-```
-
-Results:
+Current pinned llama-server defaults/evidence:
 
 ```
-FIFO:
-B mean wait 10.5 s
-util 100%
-
-strict one-active/tenant:
-B mean wait 1.5 s
-util 60%
-
-work-conserving borrowing:
-B mean wait 1.5 s
-util 85.714%
+host 127.0.0.1
+port 8080
+api key none
+metrics disabled
+slots enabled
+Web UI enabled
 ```
 
-Lesson:
-```
-fair under contention
-+
-borrow idle capacity
-```
-
-can preserve fairness without rigidly wasting GPU.
-
-## Active next slice — Service Exposure / Privacy / Auth
-
-Teach safe deployment boundaries:
+Trust-boundary model:
 
 ```
-localhost
-vs
-LAN bind
-vs
-public exposure
+loopback
+→ broader interface
+→ authentication
+→ TLS path
+→ endpoint exposure
+→ logs/privacy
+→ host-action tools
 ```
 
-Inventory:
-- listen address/port;
-- authentication;
-- TLS termination;
-- reverse-proxy/app gateway;
-- server metrics endpoint;
-- slots/cache endpoints;
-- prompt/request logs;
-- model files/licenses.
+Key distinctions:
 
-Real lab must be read-only:
-- inspect listening sockets/process args/config;
-- do not modify firewall/router/NAT;
-- do not expose a service publicly as part of the course.
+```
+auth != TLS != CORS != firewall
+```
 
-Focus on least exposure and evidence.
+The real lab:
+- inventories listener sockets read-only;
+- probes only localhost/loopback;
+- never modifies firewall/NAT/router;
+- never prints an API key or endpoint body.
+
+## Active next slice — Operational Reliability / Recovery
+
+Build:
+
+```
+process start
+→ port/listener
+→ health
+→ model loaded
+→ ready
+→ warm request
+→ serving
+```
+
+Then failure/recovery:
+
+```
+intentional local stop
+→ request failure/drain behavior
+→ restart
+→ readiness recovery time
+→ first-request cold/warm latency
+```
+
+Teach:
+- liveness != readiness;
+- listening port != model ready;
+- crash/restart can lose warm caches;
+- configuration/model SHA must survive restart;
+- graceful drain is different from abrupt kill.
+
+Real lab must only manipulate the user's own local test process and must not install system services or alter boot configuration.

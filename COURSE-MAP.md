@@ -137,6 +137,7 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 35 | Serving Capacity：Little's Law / slots / KV pressure |
 | 36 | Overload / Admission Control：bounded queue / retry / backoff |
 | 37 | Multi-Tenant Fairness：quotas / work-conserving borrowing / per-tenant SLO |
+| 38 | Service Exposure / Privacy / Auth：bind scope / TLS / endpoints / logs |
 
 ### 当前下一主线
 

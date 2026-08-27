@@ -471,6 +471,21 @@ Artifacts:
 
 Synthetic FIFO/strict-cap/fair-borrowing scheduler values verified.
 
+### Slice 38 — Service Exposure / Privacy / Auth
+
+Loopback/LAN/wildcard scope → auth vs TLS vs CORS → endpoint/log privacy → host-action tool boundary → model-license separation。
+
+Artifacts:
+- research/llm/0020-service-exposure-privacy-auth.md
+- reference/llm/service-exposure-privacy-auth.md
+- lessons/38-service-exposure/01-bind-auth-tls-privacy.html
+- labs/experiments/70-service-exposure-config-linter/
+- labs/experiments/71-real-service-exposure-audit/
+- examples/evidence/experiment-38-service-exposure-privacy-auth.md
+- learning/records/2026-08-27-service-exposure-privacy-auth.md
+
+Synthetic exposure findings verified. Real audit remains loopback-only/read-only and stores no secrets.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -527,8 +542,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build service exposure/privacy/authentication slice.
-2. Separate localhost, LAN and public-network threat surfaces.
-3. Treat prompts, logs, metrics and slot/cache endpoints as potentially sensitive.
-4. Teach authentication/TLS/reverse-proxy boundary without coupling to one product.
-5. Add a safe local exposure audit that changes no firewall/router settings.
+1. Build process lifecycle/readiness/recovery slice.
+2. Separate process alive, port listening, health response and model ready-for-inference.
+3. Measure cold-start/model-load/warmup recovery time after an intentional local restart.
+4. Teach graceful drain vs abrupt kill and in-flight request consequences.
+5. Add configuration/artifact identity checks so restart does not silently load a different model/runtime.
