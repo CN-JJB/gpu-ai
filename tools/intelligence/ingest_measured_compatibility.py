@@ -18,7 +18,6 @@ def load_one(path):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--benchmark-record", type=Path, required=True)
-    p.add_argument("--runtime-id", required=True)
     p.add_argument("--record-id", required=True)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--revalidate-after")
@@ -30,6 +29,8 @@ def main():
 
     if b.get("record_type") != "benchmark":
         raise SystemExit("input is not a benchmark record")
+    if not b.get("runtime_id"):
+        raise SystemExit("benchmark record missing canonical runtime_id")
 
     src_class = str((b.get("source") or {}).get("evidence_class", "")).upper()
     if a.synthetic:
@@ -73,7 +74,7 @@ def main():
         "record_id": a.record_id,
         "hardware_id": b["hardware_id"],
         "model_id": b["model_id"],
-        "runtime_id": a.runtime_id,
+        "runtime_id": b["runtime_id"],
         "backend": runtime["backend"],
         "status": "MEASURED_SUPPORTED",
         "observed_at": b["observed_at"],
