@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intel Xe 2：Arc、oneAPI、Level Zero 与 LLM</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Intel Xe 2 — Arc + oneAPI + Level Zero：硬件有 XMX 以后软件怎么真正用上？</h1>
+
+<h2>1. Intel 软件栈先分层</h2>
+<pre>LLM runtime / PyTorch
+        ↓
+SYCL / torch.xpu / oneDNN / oneMKL
+        ↓
+Unified Runtime / Level Zero
+        ↓
+Intel GPU driver
+        ↓
+Xe hardware</pre>
+
+<h2>2. SYCL 是什么？</h2>
+<p>SYCL 是基于现代 C++ 的异构编程模型。</p>
+
+<p>它解决：</p>
+<pre>how to express kernels / queues / devices
+</pre>
+
+<p>不是：</p>
+<pre>one magical performance API
+</pre>
+
+<p>代码能编译到多种硬件，不意味着不同硬件自动获得同等优化。</p>
+
+<h2>3. oneAPI 是什么？</h2>
+<p>oneAPI 是更大的 Intel development ecosystem：</p>
+<ul>
+<li>DPC++/C++ compiler；</li>
+<li>oneDNN；</li>
+<li>oneMKL/oneMath；</li>
+<li>debug/profile tooling；</li>
+<li>runtime。</li>
+</ul>
+
+<h2>4. Level Zero 是什么？</h2>
+<p>Level Zero 是 Intel GPU 的低层 device interface。</p>
+
+<p>它更接近：</p>
+<pre>device discovery
+memory allocation
+command submission
+synchronization
+multi-tile/device control</pre>
+
+<div class="callout"><strong>不要混：</strong>Level Zero 是软件 API，不是 Xe2 架构，不是 XMX。</div>
+
+<h2>5. PyTorch 的 Intel GPU 路径</h2>
+<p>当前 PyTorch 已有：</p>
+<pre>torch.xpu</pre>
+
+<p>这使 Arc A/B 系列和 Intel integrated Arc 有正式框架路径。</p>
+
+<p>但必须保存：</p>
+<ul>
+<li>PyTorch build；</li>
+<li>driver；</li>
+<li>XPU availability；</li>
+<li>exact GPU；</li>
+<li>dtype/kernel。</li>
+</ul>
+
+<h2>6. llama.cpp 的 Intel 路径</h2>
+<p>当前 llama.cpp 有 SYCL backend，主要为 Intel GPU 设计。</p>
+
+<p>当前实现已经有：</p>
+<ul>
+<li>Level Zero device path；</li>
+<li>oneDNN / oneMKL；</li>
+<li>quantized matmul kernels；</li>
+<li>FlashAttention；</li>
+<li>Arc A/B 系列验证；</li>
+<li>multi-GPU layer/tensor modes。</li>
+</ul>
+
+<h2>7. XMX 怎么进入 LLM？</h2>
+<p>真正路径：</p>
+<pre>GGUF Q4
+→ SYCL backend
+→ packed/reordered weights
+→ GEMM/GEMV kernel
+→ oneDNN/oneMKL/custom path
+→ XMX or vector engine</pre>
+
+<p>所以：</p>
+<pre>GPU has XMX
+</pre>
+<p>只说明硬件能力。</p>
+
+<p>要证明 LLM 用了它，还需要 kernel/backend Evidence。</p>
+
+<h2>8. dGPU 和 iGPU 完全不同</h2>
+
+<h3>Arc A/B dGPU</h3>
+<pre>CPU RAM
+↔ PCIe
+↔ discrete GDDR VRAM</pre>
+
+<h3>Intel iGPU</h3>
+<pre>CPU
+GPU
+→ shared system memory</pre>
+
+<p>不要把 Arc B580 的 12 GB GDDR 和 Core Ultra integrated Arc 的共享 RAM 放进同一个“显存”公式。</p>
+
+<h2>9. 为什么 Arc 对垃圾佬有趣？</h2>
+<p>Arc 的卖点可以来自：</p>
+<ul>
+<li>比较大的 dGPU VRAM；</li>
+<li>现代 XMX；</li>
+<li>AV1/media；</li>
+<li>当前 oneAPI/PyTorch/llama.cpp 路径；</li>
+<li>二手价格。</li>
+</ul>
+
+<p>风险来自：</p>
+<ul>
+<li>driver/backend maturity；</li>
+<li>kernel 优化不一定和 CUDA 同步；</li>
+<li>特定 quant/attention 路径差异；</li>
+<li>社区资料少于 NVIDIA。</li>
+</ul>
+
+<h2>10. 最终判断</h2>
+<pre>Xe generation
++ VRAM / bandwidth
++ XMX
++ current driver
++ oneAPI / backend
++ model quant
++ PP/TG Evidence
++ used price
+= practical Arc value</pre>
+</body></html>

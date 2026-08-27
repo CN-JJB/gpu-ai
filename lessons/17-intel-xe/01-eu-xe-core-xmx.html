@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intel Xe 1：EU、Xe-Core、XMX</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Intel Xe 1 — EU → Xe-Core → XMX：别拿“核心数”跨生态硬比</h1>
+
+<h2>1. Intel 老 GPU 常见术语：EU</h2>
+<p>Intel Gen Graphics / Xe-LP 时代最常见：</p>
+<pre>EU = Execution Unit</pre>
+
+<p>EU 是多线程 SIMD execution building block。</p>
+
+<div class="callout"><strong>第一条规则：</strong><code>1 EU ≠ 1 CUDA core</code>。它们不是相同粒度的硬件单位。</div>
+
+<h2>2. Xe 架构开始换一套更清楚的层级</h2>
+<p>Intel 当前 Xe 文档使用：</p>
+<pre>GPU
+→ Xe Stack
+→ Xe-Core
+→ Vector Engine
+→ hardware threads
+→ SIMD lanes</pre>
+
+<h2>3. Vector Engine</h2>
+<p>Intel 当前定义它为 Xe GPU 最小的 thread-level building block。</p>
+
+<p>一个 Vector Engine：</p>
+<ul>
+<li>有多个 hardware thread；</li>
+<li>每个 thread 有 GRF；</li>
+<li>执行 SIMD 16/32 等向量指令；</li>
+<li>支持 FP/INT 多种 datatype。</li>
+</ul>
+
+<h2>4. Xe-Core</h2>
+<p>一个 Xe-Core 里可以有：</p>
+<pre>Vector Engines
++ XMX Matrix Engines
++ shared L1
++ SLM</pre>
+
+<p>这比只看“EU 数”更接近现代 Intel GPU 的资源组织。</p>
+
+<h2>5. SLM</h2>
+<p>Intel 的低延迟 cooperative scratchpad：</p>
+<pre>SLM = Shared Local Memory</pre>
+
+<table>
+<tr><th>生态</th><th>workgroup-local scratchpad</th></tr>
+<tr><td>NVIDIA</td><td>shared memory</td></tr>
+<tr><td>AMD</td><td>LDS</td></tr>
+<tr><td>Apple</td><td>threadgroup memory</td></tr>
+<tr><td>Intel</td><td>SLM</td></tr>
+</table>
+
+<p>同样适合：</p>
+<ul>
+<li>GEMM tile；</li>
+<li>attention tile；</li>
+<li>reduction；</li>
+<li>softmax。</li>
+</ul>
+
+<h2>6. XMX：Intel 的 matrix engine</h2>
+<pre>XMX
+= Xe Matrix Extensions</pre>
+
+<p>它面向 systolic / DPAS-style matrix/dot-product 工作。</p>
+
+<p>正确比较方式：</p>
+<pre>NVIDIA Tensor Core
+AMD MFMA
+Intel XMX
+
+→ all accelerate matrix workloads
+→ but instruction/data/layout differ</pre>
+
+<p>错误：</p>
+<pre>160 XMX
+÷
+320 Tensor Core
+= half performance</pre>
+
+<h2>7. Xe-LP 与 Xe-HPG 不要混</h2>
+<p>集成 Iris Xe / Xe-LP 的 EU 结构和 Arc Alchemist 的 Xe-Core/XMX 结构不是同一件事。</p>
+
+<p>所以：</p>
+<pre>"Intel Xe"
+</pre>
+<p>仍然不够具体。</p>
+
+<h2>8. Alchemist / Xe-HPG</h2>
+<p>Arc A 系列把：</p>
+<ul>
+<li>Xe-Core；</li>
+<li>XMX；</li>
+<li>独立 GDDR VRAM；</li>
+<li>现代 media/RT block；</li>
+</ul>
+<p>带进 Intel 消费 dGPU。</p>
+
+<h2>9. Battlemage / Xe2</h2>
+<p>Arc B 系列进入 Xe2：</p>
+<ul>
+<li>第二代 Xe-Core；</li>
+<li>更新 Vector Engine；</li>
+<li>更新 XMX；</li>
+<li>cache/execution 继续调整。</li>
+</ul>
+
+<p>不要把 Battlemage 理解成：</p>
+<pre>A-series
++ more cores
+</pre>
+
+<p>它是新的 Xe2 generation。</p>
+
+<h2>10. Subgroup width 也不是固定 32</h2>
+<p>Intel current architecture tables 对不同家族列出：</p>
+<pre>8 / 16 / 32
+or
+16 / 32</pre>
+
+<p>所以跨生态统一结论应该是：</p>
+<pre>query / compile for actual subgroup model
+</pre>
+<p>而不是背一个数字。</p>
+</body></html>
