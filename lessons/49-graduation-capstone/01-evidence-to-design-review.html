@@ -1,0 +1,142 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Graduation Machine Design Capstone</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>毕业 Machine Design Capstone — 你的结论能经得住追问吗？</h1>
+
+<h2>1. 最后不是交一张配置单</h2>
+<pre>“RTX xxxx + 64GB RAM + 2TB SSD”</pre>
+<p>这只能说明你列了零件。</p>
+<p>毕业交付物要回答：</p>
+<pre>为什么这个 workload
+需要这些约束
+→ 每个关键结论由什么 Evidence 支撑
+→ 如果失败，怎么改
+→ 什么证据出现后才升级</pre>
+
+<h2>2. 先继承 Slice 48</h2>
+<pre>known FAIL → REVISE
+critical UNKNOWN → BLOCKED
+all required PASS → ACCEPT</pre>
+<div class="callout"><strong>毕业项目不要求一定 ACCEPT。</strong>能证明“现在不该买”也是合格工程结论。</div>
+
+<h2>3. Experiment 91 是底座，不是毕业报告本身</h2>
+<p>Experiment 91 已经检查：</p>
+<pre>Gate
++ PASS / FAIL / UNKNOWN
++ source</pre>
+<p>毕业层还要问：</p>
+<pre>这个 source 真的足够证明这个 claim 吗？</pre>
+
+<h2>4. Claim 和 Evidence 一一对齐</h2>
+<p>例如：</p>
+<pre>Claim:
+目标 backend 能稳定跑这个模型
+
+Evidence:
+exact runtime version
+exact model hash
+actual run log
+benchmark manifest</pre>
+<p>只有“PCIe 里看见 GPU”并不够。</p>
+
+<h2>5. 不同证据能证明不同东西</h2>
+<pre>官方文档
+→ 厂商发布规格/支持声明
+
+runtime log
+→ 这次真实环境识别/执行
+
+benchmark trace
+→ 这套 workload 下的测量结果
+
+seller listing
+→ 卖家声称了什么</pre>
+<p>卖家说 24 GiB，不等于你已经测到 24 GiB。</p>
+
+<h2>6. 毕业报告必须写 Non-claims</h2>
+<p>例如你得到：</p>
+<pre>10 分钟 sustained benchmark PASS</pre>
+<p>它并不能自动证明：</p>
+<pre>一年 24/7 不会坏</pre>
+<p>所以报告要主动写：</p>
+<pre>What this evidence does NOT prove</pre>
+
+<h2>7. Revision 不是“换更好的”</h2>
+<p>如果 30 GiB 目标装不进 24 GiB：</p>
+<pre>Revision A: smaller quant/model
+Revision B: lower context/concurrency
+Revision C: different GPU
+Revision D: multi-GPU</pre>
+<p>每个 Revision 都必须回答：</p>
+<pre>修哪个失败？
+改哪个变量？
+需要补什么新 Evidence？
+带来什么新成本/风险？</pre>
+
+<h2>8. Upgrade roadmap 不是购物车</h2>
+<p>差的路线图：</p>
+<pre>以后换更强显卡
+以后加内存</pre>
+<p>好的路线图：</p>
+<pre>当 VRAM headroom &lt; target
+→ 再评估模型/量化/多卡
+
+当 serving TTFT p95 超过 SLO
+→ 先测 queue/KV/compute
+→ 再决定升级哪一层</pre>
+
+<h2>9. 把“现在、下一步、以后”分开</h2>
+<pre>NOW
+当前目标必须完成的修改/证据
+
+NEXT
+有明确触发条件的下一能力
+
+LATER
+只有测到对应瓶颈才做的优化</pre>
+
+<h2>10. 三种毕业案例都可能正确</h2>
+<h3>ACCEPT</h3>
+<pre>all required gates PASS
+all material claims traceable
+→ ACCEPT</pre>
+
+<h3>REVISE</h3>
+<pre>known VRAM hard fail
+no blocking unknown
+revision directly addresses it
+→ REVISE</pre>
+
+<h3>BLOCKED</h3>
+<pre>modular PSU cable compatibility unknown
+→ BLOCKED
+→ do not buy yet</pre>
+
+<h2>11. Rubric 不允许“平均掉致命错误”</h2>
+<p>写作再漂亮，也不能补救：</p>
+<pre>fatal gate FAIL
+evidence missing
+decision inconsistent</pre>
+
+<h2>12. 最终结构</h2>
+<pre>goal/workload
+→ model dossier
+→ machine architecture
+→ hard-gate matrix
+→ Evidence index
+→ benchmark/quality/SLO
+→ TCO/risk
+→ revisions
+→ upgrade roadmap
+→ non-claims
+→ ACCEPT / REVISE / BLOCKED</pre>
+
+<h2>13. 你真正毕业的标志</h2>
+<p>不是记住最多型号，而是遇到一台没见过的机器时，你仍然能：</p>
+<pre>定义目标
+→ 找证据
+→ 识别硬门槛
+→ 测量
+→ 拒绝猜测
+→ 修改设计
+→ 解释边界</pre>
+<div class="callout"><strong>这就是 transfer。</strong></div>
+</body></html>
