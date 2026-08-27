@@ -55,6 +55,20 @@ def main():
     assert "NOTE: no cross-workload ranking" in out
 
     out = run([
+        PY, str(HERE / "comparable_benchmarks.py"),
+        str(fixture),
+        "--model-id", "model:fixture:8b",
+        "--runtime-id", "runtime:fixture",
+        "--include-synthetic",
+        "--sort-metric", "tg_tok_s",
+    ])
+    assert "observations=2" in out
+    assert "TG=50.000" in out
+    assert "TG=40.000" in out
+    assert "comparison_status=DESCRIPTIVE_ONLY" in out
+    assert "No cross-group ranking is performed." in out
+
+    out = run([
         PY, str(HERE / "compatibility_preflight.py"),
         str(fixture),
         "--hardware-id", "hw:fixture:24g",
@@ -183,6 +197,7 @@ def main():
     print("- production catalog validates")
     print("- synthetic catalog validates only with explicit allowance")
     print("- Hardware ↔ Model ↔ Benchmark bridge returns the fixture observation")
+    print("- same artifact/workload observations form one descriptive comparison group")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")\n    print("- Experiment 61 importer reproduces PP/TG")
     print("- broken canonical hardware reference is rejected")
 
