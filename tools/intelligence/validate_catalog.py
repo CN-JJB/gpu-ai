@@ -182,6 +182,31 @@ def main():
                 if not positive_number(price.get("value")):
                     errors.append(f"{loc}: price.value must be > 0")
 
+            if str(r.get("price_state", "")).upper() == "MEDIAN_ASK":
+                sample = r.get("sample")
+                if not isinstance(sample, dict):
+                    errors.append(f"{loc}: MEDIAN_ASK requires sample object")
+                else:
+                    if not positive_number(sample.get("active_listings")):
+                        errors.append(f"{loc}: sample.active_listings must be > 0")
+                    if not present(sample.get("range_kind")):
+                        errors.append(f"{loc}: sample.range_kind missing")
+                    if not present(sample.get("methodology")):
+                        errors.append(f"{loc}: sample.methodology missing")
+                    if sample.get("confirmed_sale") is not False:
+                        errors.append(f"{loc}: MEDIAN_ASK sample.confirmed_sale must be false")
+                    low = sample.get("range_low")
+                    high = sample.get("range_high")
+                    value = (price or {}).get("value")
+                    if not positive_number(low) or not positive_number(high):
+                        errors.append(f"{loc}: sample range_low/range_high must be > 0")
+                    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+                        if not (low <= value <= high):
+                            errors.append(f"{loc}: MEDIAN_ASK price must fall within sample range")
+                src = r.get("source") or {}
+                if not present(src.get("data_exported_at")):
+                    errors.append(f"{loc}: MEDIAN_ASK source.data_exported_at missing")
+
         elif t == "compatibility":
             for f in ("hardware_id", "model_id", "runtime_id", "backend", "observed_at"):
                 req(r, f, errors)
