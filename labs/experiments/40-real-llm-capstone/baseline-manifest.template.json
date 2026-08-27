@@ -1,0 +1,24 @@
+{
+  "label": "baseline",
+  "intentional_variable": "config.flash_attention",
+  "identity": {
+    "model_sha256": "REPLACE",
+    "runtime_version": "REPLACE",
+    "device_identity": "REPLACE",
+    "pp_tokens": 512,
+    "tg_tokens": 128,
+    "repetitions": 5
+  },
+  "config": {
+    "gpu_layers": "REPLACE",
+    "flash_attention": false,
+    "kv_k": "REPLACE",
+    "kv_v": "REPLACE",
+    "context_or_depth": "REPLACE",
+    "split_mode": "REPLACE",
+    "tensor_split": "REPLACE",
+    "threads": "REPLACE",
+    "extra_args": "REPLACE"
+  },
+  "raw_result": "baseline.json"
+}

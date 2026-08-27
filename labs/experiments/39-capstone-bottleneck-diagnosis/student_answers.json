@@ -1,0 +1,9 @@
+{
+  "A":{"bottleneck":"TG_BANDWIDTH","next":"weight_bytes_or_backend"},
+  "B":{"bottleneck":"PP_KERNEL","next":"flash_attention_or_backend"},
+  "C":{"bottleneck":"KV_CONTEXT","next":"kv_type_or_context"},
+  "D":{"bottleneck":"SERVING_QUEUE","next":"slots_or_batching"},
+  "E":{"bottleneck":"INTERCONNECT","next":"split_mode_or_device_topology"},
+  "F":{"bottleneck":"PREFIX_REUSE","next":"prefix_cache"},
+  "G":{"bottleneck":"SPECULATIVE_OPPORTUNITY","next":"speculative_decoding"}
+}

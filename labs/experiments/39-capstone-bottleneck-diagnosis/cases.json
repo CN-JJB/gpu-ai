@@ -1,0 +1,9 @@
+[
+  {"id":"A","expected_bottleneck":"TG_BANDWIDTH","expected_next":"weight_bytes_or_backend"},
+  {"id":"B","expected_bottleneck":"PP_KERNEL","expected_next":"flash_attention_or_backend"},
+  {"id":"C","expected_bottleneck":"KV_CONTEXT","expected_next":"kv_type_or_context"},
+  {"id":"D","expected_bottleneck":"SERVING_QUEUE","expected_next":"slots_or_batching"},
+  {"id":"E","expected_bottleneck":"INTERCONNECT","expected_next":"split_mode_or_device_topology"},
+  {"id":"F","expected_bottleneck":"PREFIX_REUSE","expected_next":"prefix_cache"},
+  {"id":"G","expected_bottleneck":"SPECULATIVE_OPPORTUNITY","expected_next":"speculative_decoding"}
+]
