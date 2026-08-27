@@ -1500,3 +1500,29 @@ URL: https://www.kernel.org/doc/html/v6.0/mm/oom.html
 URL: https://cdn.kernel.org/doc/html/latest/admin-guide/sysctl/vm.html
 用途：OOM/paging policy context; course uses as reference only, not a tuning recipe.
 可信度：official Linux kernel documentation。
+
+
+### NVIDIA nvidia-smi clock event reasons
+URL: https://docs.nvidia.com/deploy/nvidia-smi/index.html
+用途：current temperature/power/performance-state/clock-event monitoring semantics.
+可信度：official NVIDIA deployment documentation。
+
+### NVIDIA NVML clock event reasons
+URL: https://docs.nvidia.com/deploy/nvml-api/group__nvmlClocksEventReasons.html
+用途：distinguish thermal, power-cap, power-brake and other clock-limiting reason families.
+可信度：official NVIDIA NVML documentation。
+
+### AMD SMI CLI monitoring
+URL: https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html
+用途：current AMD power/temperature/GFX/memory/activity/VRAM monitor and watch-mode evidence.
+可信度：official AMD ROCm documentation。
+
+### AMD SMI GPU monitoring API
+URL: https://rocm.docs.amd.com/projects/amdsmi/en/latest/doxygen/docBin/html/group__tagGPUMonitor.html
+用途：temperature, activity, power, clock and VRAM monitoring capability definitions.
+可信度：official AMD SMI documentation。
+
+### llama.cpp pinned llama-bench
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/llama-bench/README.md
+用途：pinned repetitions, JSONL, samples_ts/samples_ns and warmup behavior.
+可信度：pinned upstream repository documentation。

@@ -53,10 +53,11 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 42 | `42-power-energy/` | watts / joules / J-token / TCO |
 | 43 | `43-storage-loading/` | page cache / mmap / startup |
 | 44 | `44-host-memory/` | available RAM / swap / OOM domains |
+| 45 | `45-thermal-sustained/` | thermal soak / clocks / sustained TG |
 
 ## 使用方式
 
-不需要从 01 线性读到 44。
+不需要从 01 线性读到 45。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21

@@ -170,3 +170,9 @@
 
 - 82 synthetic free/cache/anonymous reclaim intuition model
 - 83 read-only Linux/Windows memory-pressure evidence packet
+
+
+### 84–85：Thermal / Sustained Performance
+
+- 84 synthetic thermal-drift / hot-stable / other-limiter cases
+- 85 real repeated llama-bench TG + read-only thermal telemetry

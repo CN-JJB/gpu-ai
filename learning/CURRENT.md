@@ -577,6 +577,22 @@ Artifacts:
 
 Synthetic reclaim cases verified. Real Linux collector was executed in a read-only window with no stress allocation/system changes.
 
+### Slice 45 — Thermal / Cooling / Sustained Performance
+
+Thermal soak → temperature/power/clocks → repeated TG samples → sustained drift → vendor limiter/event evidence。
+
+Artifacts:
+- research/gpu/0006-thermal-cooling-sustained-performance.md
+- intelligence/gpu/thermal-telemetry-2026-08-27.md
+- reference/gpu/thermal-sustained-performance.md
+- lessons/45-thermal-sustained/01-temperature-clocks-drift.html
+- labs/experiments/84-thermal-sustained-model/
+- labs/experiments/85-real-sustained-thermal/
+- examples/evidence/experiment-45-thermal-sustained-performance.md
+- learning/records/2026-08-27-thermal-sustained-performance.md
+
+Synthetic thermal/stable/non-thermal-limit cases verified. Real repeated-TG wrapper self-checked with controlled identity.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -633,8 +649,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build thermal/cooling/sustained-performance slice.
-2. Separate temperature, clocks, power and performance drift on one time axis.
-3. Teach why a short cold benchmark can overestimate sustained TG.
-4. Compare cooling/airflow/noise as system constraints without unsafe overclock/power tuning.
-5. Add a read-only sustained telemetry + repeated-TG evidence packet.
+1. Build used-GPU validation / purchase-acceptance slice.
+2. Separate marketed identity from observed PCI/device/VRAM/runtime identity.
+3. Add read-only PCIe link, VRAM/ECC/error and sustained-load evidence.
+4. Teach seller-test limitations and acceptance thresholds without destructive stress/firmware flashing.
+5. Build a used-card evidence packet that ends in ACCEPT / REVIEW / REJECT.

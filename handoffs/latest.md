@@ -7,76 +7,78 @@
 
 ## Completed frontier
 
-Slices 01–44 are implemented.
-Experiments 01–83 exist.
+Slices 01–45 are implemented.
+Experiments 01–85 exist.
 
-## Slice 44 core
+## Slice 45 core
 
-Linux:
-
-```
-MemFree
-!=
-MemAvailable
-```
-
-File-backed cache and anonymous memory have different reclaim behavior.
-
-Synthetic verified:
-
-```
-cache-heavy:
-free 2 GiB
-available proxy 16.4 GiB
-→ 8 GiB request fits after toy reclaim
-
-anonymous-heavy:
-free 2 GiB
-available proxy 4.4 GiB
-→ 3.6 GiB shortfall
-```
-
-The proxy is explicitly NOT the Linux MemAvailable formula.
-
-Real Linux collector:
-- /proc/meminfo;
-- /proc/vmstat deltas;
-- optional /proc/PID status/smaps;
-- optional NVIDIA VRAM snapshot;
-- no stress allocation;
-- no swap/cache/sysctl changes.
-
-Memory domains:
-
-```
-host RAM OOM
-!= discrete GPU VRAM OOM
-```
-
-Apple silicon is handled as unified-memory special architecture.
-
-## Active next slice — Thermal / Cooling / Sustained Performance
-
-Teach:
+Sustained timeline:
 
 ```
 workload duration
 → power
 → temperature
-→ clock behavior
-→ sustained tok/s
+→ clock/limiter
+→ sustained TG
 ```
 
-Need to distinguish:
-- short cold burst;
-- warm steady-state benchmark;
-- temperature vs vendor hotspot/junction fields;
-- clock drop correlated with TG/ITL drift;
-- airflow/case/fan/noise constraints.
+Synthetic verified:
 
-Real lab:
-- read-only vendor telemetry;
-- fixed repeated TG workload;
-- no overclock;
-- no power-limit changes;
-- no fan-control changes by default.
+```
+thermal-like:
+55→86C
+1900→1450 MHz
+55→42 tok/s
+→ compatible thermal/clock/perf drift
+
+hot-stable:
+80→84C
+clock stable
+50→49.8 tok/s
+→ sustained stable
+
+clock/perf drift with only +6C:
+→ investigate power/other limiter
+```
+
+Lesson:
+
+```
+high temperature
+!= throttling
+clock drop
+!= automatically thermal cause
+```
+
+Real Experiment 85:
+- pinned llama-bench repetitions / samples_ts;
+- fixed local model;
+- warmup recorded;
+- read-only telemetry;
+- no OC/UV/power/fan changes.
+
+## Active next slice — Used-GPU Validation / Purchase Acceptance
+
+Build for garbage-hardware buyers:
+
+```
+seller/model claim
+→ PCI identity
+→ VRAM identity
+→ driver/runtime recognition
+→ PCIe link
+→ telemetry/error state
+→ controlled sustained TG
+→ thermal stability
+→ acceptance decision
+```
+
+Need distinguish:
+- cosmetic/model-name claim vs hardware IDs;
+- idle PCIe link downshift vs under-load link capability;
+- ECC-capable vs non-ECC consumer cards;
+- error-free short test vs reliable card;
+- display-port issue vs compute issue;
+- BIOS/firmware flashing as OUT OF DEFAULT LAB.
+
+Real lab should remain read-only plus ordinary inference workload; no firmware flash, overclock or destructive VRAM stress by default.

@@ -144,6 +144,7 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 42 | Power / Energy Efficiency：watts / joules / J-token / electricity |
 | 43 | Storage / Model Loading：page cache / mmap / startup vs steady inference |
 | 44 | Host Memory Pressure / Swap / OOM：available RAM / paging / host-vs-VRAM OOM |
+| 45 | Thermal / Cooling / Sustained Performance：thermal soak / clocks / TG drift |
 
 ### 当前下一主线
 
