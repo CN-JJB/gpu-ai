@@ -7,86 +7,73 @@
 
 ## Completed frontier
 
-Slices 01–47 are implemented.
-Experiments 01–89 exist.
+Slices 01–48 are implemented.
+Experiments 01–91 exist.
 
-## Slice 47 core — PSU / Power Delivery / Platform Integration
+## Learning state
 
-Power-delivery decision is split into independent gates:
+The previous long CURRENT state through Slice 45 is archived byte-for-byte at:
 
 ```text
-continuous capacity/headroom
-+
-connector/cable compatibility
-+
-transient/documentation uncertainty
-+
-ordinary workload evidence
+learning/archive/CURRENT-through-slice45-2026-08-27.md
+```
+
+`learning/CURRENT.md` is now intentionally concise and tracks the active frontier.
+
+## Slice 48 core — Whole-Machine System Integration Dossier
+
+Feasibility order:
+
+```text
+workload/model
+→ hard gates
+→ blocking unknowns
+→ measured performance/quality/SLO
+→ preferences/TCO
+→ decision
+```
+
+Decision semantics:
+
+```text
+known hard FAIL → REVISE
+critical UNKNOWN → BLOCKED
+all required gates PASS → ACCEPT
 ```
 
 Synthetic verified:
 
 ```text
-850W / 550W / compatible cables
-→ ACCEPT
-
-850W / 820W / 15% synthetic scenario policy
-→ REVIEW
-
-1000W / 600W / incompatible modular cable
-→ REJECT
+balanced machine → ACCEPT
+30 GiB required vs 24 GiB available → REVISE
+unknown modular PSU cable compatibility → BLOCKED
 ```
 
-Important rules:
+No weighted score is allowed to average away a hard failure.
+
+Real Experiment 91 requires source evidence for every required gate and links prior course packets rather than copying unverified numbers.
+
+## Active next slice — Graduation Machine Design Capstone
+
+Build the final learner deliverable:
 
 ```text
-total watts enough
-!= power path valid
-
-plug fits
-!= modular cable compatible
-
-board power
-!= wall power
-
-average power
-!= transient proof
+goal/workload
+→ model dossier
+→ machine architecture
+→ hard-gate matrix
+→ measured benchmark/SLO/quality
+→ TCO/energy
+→ risks/unknowns
+→ revision alternatives
+→ upgrade roadmap
+→ final ACCEPT / REVISE / BLOCKED
 ```
 
-Real Experiment 89:
-- exact external PSU identity/manual;
-- cable map;
-- ordinary GPU telemetry;
-- optional consumer wall-meter evidence;
-- no PSU opening/mains probing/protection bypass/intentional overload.
-
-## Active next slice — Whole-Machine System Integration Dossier
-
-Combine the course into one machine-design contract:
-
-```text
-workload + model dossier
-→ GPU/VRAM fit
-→ runtime/backend support
-→ PCIe/topology
-→ host RAM
-→ storage/startup
-→ PSU/cables
-→ thermal/sustained performance
-→ serving/network/privacy
-→ budget/TCO
-→ hard gates + unknown blockers
-→ ACCEPT / REVISE / BLOCKED
-```
-
-Need teach:
-- no single universal hardware score;
-- hard gate vs optimization preference;
-- UNKNOWN purchase-critical evidence blocks a final design;
-- a system can fit the model but fail PSU/software/thermal constraints;
-- multi-GPU capacity aggregation must include topology/power/cooling;
-- graduation dossier should link raw Evidence rather than copy unverifiable numbers.
-
-Recommended next labs:
-- 90 synthetic whole-machine feasibility validator;
-- 91 real machine design dossier / Evidence Packet.
+Need:
+- final report rubric;
+- evidence completeness validator;
+- two or three synthetic design-review cases;
+- real report skeleton linked to Experiment 91;
+- no auto-purchasing or hardware modification;
+- explicit statement of what the final evidence does NOT prove.
