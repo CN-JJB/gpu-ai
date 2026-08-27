@@ -679,3 +679,73 @@ URL: https://nvidia.github.io/TensorRT-LLM/1.3.0rc20/features/speculative-decodi
 可信度：NVIDIA official TensorRT-LLM docs。  
 适用：cross-backend system validation。  
 局限：versioned implementation details evolve rapidly.
+
+
+## Multi-GPU / interconnect
+
+### NVIDIA NCCL — GPU troubleshooting / P2P
+
+URL: https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/troubleshooting/gpu_troubleshooting.html
+
+用途：
+- current GPU Direct / P2P sanity model
+- `nvidia-smi topo -p2p p` PCIe P2P capability
+- `nvidia-smi topo -p2p n` NVLink P2P capability
+- topology/configuration failure modes
+
+可信度：NVIDIA official NCCL docs。
+适用：dynamic NVIDIA multi-GPU investigation。
+局限：P2P status is not measured bandwidth.
+
+### NVIDIA NCCL — Performance and tuning
+
+URL: https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/troubleshooting/performance_and_tuning.html
+
+用途：
+- `nvidia-smi topo -m`
+- `nvbandwidth`
+- pairwise GPU↔GPU bandwidth validation
+
+可信度：NVIDIA official。
+适用：topology + peer-bandwidth Evidence。
+局限：collective/application performance still needs workload benchmark.
+
+### AMD HIP — Multi-device management
+
+URL: https://rocm.docs.amd.com/projects/HIP/en/develop/how-to/hip_runtime_api/multi_device.html
+
+用途：
+- GPU P2P direct peer memory access
+- host staging fallback without activated P2P
+- cross-vendor validation of communication-path cost
+
+可信度：AMD ROCm official。
+适用：stable P2P reasoning + current HIP behavior。
+局限：exact platform support still hardware/runtime dependent.
+
+### AMD TransferBench — presets
+
+URL: https://rocm.docs.amd.com/projects/TransferBench/en/docs-1.66.02/reference/presets.html
+
+用途：
+- current `p2p` preset
+- GPU↔GPU uni/bidirectional bandwidth
+- CPU NUMA ↔ GPU transfer matrix
+
+可信度：AMD ROCm official。
+适用：real AMD peer-bandwidth Evidence。
+局限：tool versions/options evolve.
+
+### llama.cpp — llama-bench
+
+URL: https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md
+
+用途：
+- current split modes
+- device/tensor split controls
+- PP vs TG benchmark
+- JSON raw output
+
+可信度：canonical upstream。
+适用：real local-LLM multi-GPU A/B。
+局限：flags, separators and experimental modes are dynamic; pin exact build.

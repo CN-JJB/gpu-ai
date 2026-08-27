@@ -89,13 +89,19 @@ Real-run paths ready:
 
 Experiment 16 has a low-dependency n-gram path plus an optional compatible two-model draft path and current speculative metric counters. No real target/draft performance data is fabricated.
 
-## Active Slice 11 — Single-node multi-GPU / interconnect
+## Slice 11 — Single-node multi-GPU / interconnect — completed
 
-Research + reference 已完成：
+Completed artifacts:
 - research/gpu/0005-multi-gpu-interconnect-scaling.md
 - reference/gpu/multi-gpu-split-interconnect.md
+- lessons/11-multi-gpu/01-capacity-split-interconnect.html
+- labs/experiments/17-multi-gpu-interconnect-roof-model/
+- labs/experiments/18-real-multi-gpu-scaling/
+- examples/evidence/experiment-11-multi-gpu-interconnect.md
+- intelligence/gpu/multi-gpu-topology-2026-08-27.md
+- learning/records/2026-08-27-multi-gpu-interconnect-slice.md
 
-当前继续完成 Lesson / Experiments / Evidence / Intelligence。
+Stable lesson complete; real two-GPU benchmark path is ready but contains no fabricated hardware results.
 
 主线：
 
@@ -115,9 +121,8 @@ Research + reference 已完成：
 
 ## Next actions
 
-1. Write the stable HTML Lesson for capacity aggregation, layer split, tensor split, P2P and interconnect roof.
-2. Build L0 experiment 17: compute + communication + sync → scaling efficiency crossover.
-3. Build real experiment 18: exact topology/P2P Evidence → one-GPU PP/TG baseline → two-GPU split PP/TG.
-4. Add experiment-11 Evidence template and current topology/tool intelligence.
-5. Update learning record after the slice is complete.
-6. Keep current card prices/model compatibility in intelligence, not stable Lesson.
+1. Enter the attention-kernel bridge: naive attention IO → tiled/online softmax → FlashAttention-style IO awareness.
+2. Keep the first experiment L0 so no discrete GPU is required.
+3. Add optional real GPU attention benchmark only when results can be captured reproducibly.
+4. Connect the new slice back to registers/shared memory, arithmetic intensity, prefill and long-context behavior.
+5. Keep backend-specific FlashAttention flags/support matrices in intelligence rather than stable Lesson.
