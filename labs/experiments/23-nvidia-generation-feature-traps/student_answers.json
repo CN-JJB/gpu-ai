@@ -1,0 +1,12 @@
+{
+  "first_tensor_core": "Volta",
+  "first_independent_thread_scheduling": "Volta",
+  "first_async_global_to_shared_copy": "Ampere",
+  "first_tma_and_thread_block_cluster": "Hopper",
+  "all_pascal_has_hbm2": false,
+  "all_pascal_has_gp100_fast_fp16": false,
+  "all_ampere_has_identical_fp32_sm": false,
+  "hopper_is_geforce_successor_to_ampere": false,
+  "all_blackwell_is_dual_die": false,
+  "q4_gguf_on_blackwell_guarantees_native_fp4": false
+}
