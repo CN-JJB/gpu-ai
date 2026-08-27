@@ -7,75 +7,69 @@
 
 ## Completed frontier
 
-Slices 01–27 are implemented.
+Slices 01–28 are implemented.
 
-Latest LLM architecture spine:
+Current LLM architecture spine:
 
 ```
-24 decoder-only dataflow
+24 decoder-only prefill/decode dataflow
 25 RMSNorm / residual / RoPE
 26 MHA / MQA / GQA
 27 SwiGLU / dense FFN
+28 Mixture of Experts
 ```
 
-## Slice 27 key result
+## Slice 28 core rule
 
-Default dense teaching example:
+Never merge:
+
+```
+total params
+active params/token
+resident weight memory
+actual weight bytes moved
+```
+
+Default synthetic expert model verified:
 
 ```
 d=4096
-d_ff=11008
+expert_ffn=14336
+8 experts
+top-2
+32 MoE layers
+4.5 bpw
 
-SwiGLU FFN:
-135,266,304 weights/layer
-
-classic MHA Q/K/V/O:
-67,108,864 weights/layer
-
-ratio:
-2.015625×
+one expert        94.5 MiB
+all experts/layer 756 MiB
+top-2/layer       189 MiB
+all expert storage across layers 23.625 GiB
 ```
 
-FFN storage proxy:
-- FP16: 258 MiB/layer
-- 4.5 bpw: 72.5625 MiB/layer
+Balanced routing can improve expert-parallel utilization while touching more unique weights.
+Skewed routing can improve idealized reuse while creating severe device imbalance.
 
-Key files:
-- `research/llm/0010-swiglu-dense-ffn.md`
-- `reference/llm/swiglu-ffn-weight-traffic.md`
-- `lessons/27-swiglu-ffn/`
-- `labs/experiments/48-dense-swiglu-ffn-model/`
-- `labs/experiments/49-real-model-ffn-structure-compare/`
+## Active next slice — Model Architecture Dossier
 
-## Active next slice — Mixture of Experts
-
-Build:
+Build one integration project:
 
 ```
-hidden
-→ router logits
-→ top-k expert choice
-→ selected expert FFNs
-→ weighted combine
-→ residual
+real config.json
+→ model identity
+→ decoder dimensions
+→ Hq/Hkv/Dh
+→ KV bytes/token/context/concurrency
+→ dense FFN structure
+→ MoE structure if present
+→ weight-storage proxies
+→ architecture-specific caveats
+→ PP/TG bottleneck hypotheses
+→ hardware questions
 ```
 
-Teach these distinctions:
+Critical language:
+- estimates/proxies are not measured VRAM;
+- hypotheses are not benchmarks;
+- model-specific fields override generic formulas.
 
-```
-total parameters
-!= active parameters/token
-!= resident memory
-!= bytes actually moved/token
-```
-
-Also cover:
-- expert reuse within prefill/batch;
-- routing imbalance;
-- capacity/load balancing;
-- expert placement across GPUs;
-- interconnect cost;
-- why MoE can have huge total weights but lower active FLOPs;
-- why local decode can still be memory-heavy.
-
-Do not use one vendor/model's MoE implementation as universal.
+This should become the model-side counterpart to Slice 18 hardware candidate dossier.

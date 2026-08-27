@@ -1339,3 +1339,24 @@ URL: https://arxiv.org/abs/2305.13245
 URL: https://arxiv.org/abs/2002.05202
 用途：GLU/SwiGLU gated feed-forward structure and parameter-budget comparison.
 可信度：original research paper。
+
+
+### Switch Transformers
+URL: https://arxiv.org/abs/2101.03961
+用途：sparse expert routing, top-1 Switch routing, load balancing and communication concerns.
+可信度：original research paper。
+
+### Mixtral of Experts
+URL: https://arxiv.org/abs/2401.04088
+用途：decoder-only 8-expert/top-2 MoE example and active-vs-total parameter distinction.
+可信度：primary model paper。
+
+### DeepSeekMoE
+URL: https://arxiv.org/abs/2401.06066
+用途：fine-grained routed experts and shared-expert architecture.
+可信度：primary research/model paper。
+
+### DeepSeek-V3 Technical Report
+URL: https://arxiv.org/abs/2412.19437
+用途：modern large-MoE example; 671B total / 37B activated parameter accounting context.
+可信度：primary technical report。

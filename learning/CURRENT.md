@@ -322,6 +322,21 @@ Artifacts:
 
 Default L0 arithmetic verified: FFN/attention projection ratio 2.015625× for d4096/d_ff11008 classic-MHA baseline.
 
+### Slice 28 — Mixture of Experts
+
+Router → top-k experts → active expert compute → total expert residence → batching/reuse → routing imbalance → expert-parallel interconnect。
+
+Artifacts:
+- research/llm/0011-mixture-of-experts-local-inference.md
+- reference/llm/moe-total-active-resident-traffic.md
+- lessons/28-moe/01-router-active-resident-traffic.html
+- labs/experiments/50-moe-active-weight-reuse-model/
+- labs/experiments/51-real-moe-config-inspector/
+- examples/evidence/experiment-28-moe-local-inference.md
+- learning/records/2026-08-27-moe-local-inference.md
+
+Default L0 expert accounting and balanced/skewed routing examples verified.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -378,8 +393,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build MoE router/top-k expert slice.
-2. Separate total expert parameters from active expert parameters per token.
-3. Model expert weight traffic under no-cache and reuse/batching assumptions.
-4. Explain routing imbalance, expert capacity and why MoE can be hard on local single-GPU inference.
-5. Connect expert placement to multi-GPU interconnect and serving batches.
+1. Build a real-model architecture dossier that combines Slices 24–28.
+2. Parse one or more config.json files into attention/KV/FFN/MoE structural summaries.
+3. Produce context/concurrency KV budgets and dense/MoE resident-weight proxies without pretending they are measured VRAM.
+4. Generate PP/TG bottleneck hypotheses from architecture, explicitly marked as hypotheses until benchmarked.
+5. Use the dossier as the bridge from model selection to hardware selection.
