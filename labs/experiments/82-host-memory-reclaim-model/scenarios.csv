@@ -1,0 +1,4 @@
+name,ram_gib,anonymous_gib,file_cache_gib,kernel_other_gib,reclaimable_cache_fraction,new_request_gib
+cache-heavy-low-free,32,10,18,2,0.8,8
+anonymous-heavy,32,25,3,2,0.8,8
+moderate-cache,32,18,8,2,0.75,5

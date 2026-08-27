@@ -1,0 +1,252 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Host Memory Pressure / Swap / OOM</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style></head><body>
+<h1>Host Memory Pressure — 32GB RAM 只剩 2GB free，要慌吗？</h1>
+
+<h2>1. 先别只看 Free</h2>
+
+<p>Linux：</p>
+
+<pre>
+MemFree
+</pre>
+
+<p>只是当前完全没被用的物理页。</p>
+
+<p>更有意义的是：</p>
+
+<pre>
+MemAvailable
+</pre>
+
+<p>它估计“不发生 swap 的情况下，还能给新应用多少”。</p>
+
+<div class="callout"><strong>低 MemFree 本身不是 OOM 证据。</strong></div>
+
+<h2>2. 为什么 Free 会故意很低？</h2>
+
+<p>因为 RAM 空着没价值。</p>
+
+<p>OS 会把读过的模型/文件留在：</p>
+
+<pre>
+page cache
+</pre>
+
+<p>下次可以少等 SSD。</p>
+
+<h2>3. File cache 和 anonymous memory 不一样</h2>
+
+<p>干净 file-backed cache：</p>
+
+<pre>
+需要时可以 reclaim
+以后再从文件读回来
+</pre>
+
+<p>Anonymous：</p>
+
+<pre>
+heap
+runtime buffers
+stack
+</pre>
+
+<p>不能简单丢掉重读。</p>
+
+<h2>4. 一个 toy</h2>
+
+<pre>
+RAM 32 GiB
+anon 10
+file cache 18
+kernel/other 2
+
+free = 2 GiB
+</pre>
+
+<p>如果教学假设：</p>
+
+<pre>
+cache 的 80% 可 reclaim
+</pre>
+
+<p>那么：</p>
+
+<pre>
+available_proxy
+= 2 + 18×0.8
+= 16.4 GiB
+</pre>
+
+<p>所以新申请 8 GiB 在这个 toy 里还能靠 reclaim 顶住。</p>
+
+<h2>5. 另一个 toy</h2>
+
+<pre>
+RAM 32
+anon 25
+cache 3
+other 2
+free 2
+</pre>
+
+<p>同样假设 80% cache 可 reclaim：</p>
+
+<pre>
+available_proxy
+= 4.4 GiB
+</pre>
+
+<p>要再申请 8 GiB：</p>
+
+<pre>
+shortfall = 3.6 GiB
+</pre>
+
+<p>这明显更危险。</p>
+
+<h2>6. 注意：这不是 Linux MemAvailable 公式</h2>
+
+<p>课程 toy 只是帮助理解：</p>
+
+<pre>
+free
++
+部分可回收 cache
+</pre>
+
+<p>这个方向。</p>
+
+<p>真正：</p>
+
+<pre>
+/proc/meminfo MemAvailable
+</pre>
+
+<p>让内核自己估。</p>
+
+<h2>7. SwapUsed 不为 0，也不能直接喊 thrashing</h2>
+
+<p>曾经被 swap 出去的页可以继续留在 swap。</p>
+
+<p>当前有没有激烈交换，看窗口内：</p>
+
+<pre>
+Δpswpin
+Δpswpout
+</pre>
+
+<h2>8. Major fault</h2>
+
+<p>如果：</p>
+
+<pre>
+Δpgmajfault ↑
+MemAvailable ↓
+TTFT ↑
+</pre>
+
+<p>paging/refault pressure 是一个合理 hypothesis。</p>
+
+<h2>9. mmap 模型也可能被 reclaim</h2>
+
+<p>File-backed clean pages：</p>
+
+<pre>
+RAM pressure
+→ reclaim
+→ 以后访问
+→ page fault
+→ 再读
+</pre>
+
+<p>所以：</p>
+
+<pre>
+mmap 成功
+!=
+20GB 模型永远 resident
+</pre>
+
+<h2>10. mlock 呢？</h2>
+
+<p>它想让页别被 swap/reclaim。</p>
+
+<p>但代价：</p>
+
+<pre>
+这些 RAM 更不能给别人用
+</pre>
+
+<p>可能把压力转移到整个系统。</p>
+
+<h2>11. Host OOM 和 GPU OOM 分开</h2>
+
+<p>离散 NVIDIA/AMD：</p>
+
+<pre>
+host RAM
+!=
+GPU VRAM
+</pre>
+
+<p>你可以：</p>
+
+<pre>
+MemAvailable 20GB
+但 CUDA allocation OOM
+</pre>
+
+<p>因为 VRAM 满了。</p>
+
+<p>也可以反过来。</p>
+
+<h2>12. Apple 是特殊情况</h2>
+
+<p>Apple silicon 是 unified memory。</p>
+
+<p>不能硬画成：</p>
+
+<pre>
+32GB system RAM
++
+独立 16GB VRAM
+</pre>
+
+<p>CPU/GPU 共享统一内存架构，OS memory pressure/compression 更重要。</p>
+
+<h2>13. 一个更像 host pressure 的时间线</h2>
+
+<pre>
+MemAvailable ↓
+pswpout delta ↑
+major faults ↑
+server latency ↑
+</pre>
+
+<p>再结合 process VmSwap/RSS 和 logs。</p>
+
+<h2>14. 一个可能健康的时间线</h2>
+
+<pre>
+MemFree 低
+MemAvailable 稳
+Cached 高
+pswpout delta 0
+latency 稳
+</pre>
+
+<p>这很可能只是 OS 在有效利用 RAM。</p>
+
+<h2>15. 实验不故意把机器撑爆</h2>
+
+<p>真实 lab 只读：</p>
+
+<pre>
+/proc/meminfo
+/proc/vmstat
+/proc/PID/status
+GPU telemetry
+</pre>
+
+<p>不默认分配几十 GB 去诱发 OOM。</p>
+</body></html>
