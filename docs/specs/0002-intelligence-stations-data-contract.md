@@ -188,7 +188,8 @@ Do not average them silently.
 
 Required join keys:
 - hardware_id;
-- model_id.
+- model_id;
+- runtime_id.
 
 Required identity:
 - exact model artifact SHA/bytes/quant;
