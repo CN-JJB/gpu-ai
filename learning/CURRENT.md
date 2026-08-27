@@ -45,6 +45,7 @@ I03 exact measured compatibility ingestion
 I04 comparable benchmark view
 I05 explicit price/performance
 I06 evidence-linked TCO worksheet
+I07 real benchmark intake gate
 ~~~
 
 ### I01 — Catalog foundation
@@ -157,9 +158,37 @@ Every material assumption requires an evidence/source note.
 
 TCO is not a feasibility gate and cannot override a hard failure.
 
+### I07 — Real benchmark intake gate
+
+Before production ingestion:
+
+~~~text
+manifest
++ raw result
++ PACKET.json
++ canonical hardware/model/runtime IDs
+→ intake verification
+~~~
+
+The gate checks:
+- required manifest identity;
+- positive PP/TG raw metrics;
+- packet SHA256 and byte counts;
+- canonical IDs.
+
+~~~text
+INTAKE: READY
+~~~
+
+means the bundle is internally complete enough to ingest.
+
+It does not prove benchmark truth or purchase suitability.
+
+Repository search found no existing real Experiment 61-compatible packet/result bundle, so production benchmark data remains empty.
+
 ## Verification status
 
-On 2026-08-27 the latest I01–I06 scripts and catalog/fixture files were reconstructed into a local test tree and checked against main by Git blob SHA.
+On 2026-08-27 the latest I01–I07 scripts and catalog/fixture files were reconstructed into a local test tree and checked against main by Git blob SHA.
 
 Executed:
 
@@ -206,8 +235,8 @@ no real Experiment 61 Evidence
 
 ## Next actions
 
-1. Search the repository for an existing real Experiment 61 / benchmark Evidence Packet that can be safely ingested.
-2. If none exists, prepare the exact real-ingestion contract and leave production benchmark data empty.
+1. Acquire or receive a real Experiment 61 benchmark Evidence Packet.
+2. Require I07 INTAKE: READY before production ingestion.
 3. When real benchmark Evidence exists:
    - ingest benchmark;
    - validate;
