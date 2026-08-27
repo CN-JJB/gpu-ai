@@ -116,3 +116,9 @@
 
 - 64 synthetic Little's-Law system/active/queue trace
 - 65 real request-trace serving-capacity worksheet
+
+
+### 66–67：Overload / Admission
+
+- 66 synthetic bounded-queue/retry-amplification model
+- 67 controlled real overload observation on owned/authorized server

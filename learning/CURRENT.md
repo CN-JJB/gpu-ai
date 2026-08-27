@@ -441,6 +441,21 @@ Artifacts:
 
 Synthetic system/active/queue Little's-Law identities and peak values verified.
 
+### Slice 36 — Overload / Admission Control
+
+Offered load > capacity → queue growth → bounded admission/rejection → retry amplification → backoff → SLO/resource-aware admission。
+
+Artifacts:
+- research/llm/0018-overload-admission-retry.md
+- reference/llm/overload-admission-control.md
+- lessons/36-overload-admission/01-queue-reject-retry.html
+- labs/experiments/66-overload-retry-model/
+- labs/experiments/67-real-overload-observation/
+- examples/evidence/experiment-36-overload-admission-retry.md
+- learning/records/2026-08-27-overload-admission-retry.md
+
+Synthetic queue/retry scenarios verified. Real lab is bounded and restricted to owned/authorized systems.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -497,8 +512,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build overload/admission-control slice.
-2. Compare unbounded queue, bounded queue and rejection under offered load above service capacity.
-3. Show retry amplification when clients retry immediately.
-4. Teach timeout/backoff/jitter as workload-shaping mechanisms.
-5. Tie admission policy to TTFT SLO and finite VRAM/slot capacity.
+1. Build multi-tenant fairness/quota slice.
+2. Compare request-count fairness with token/resource fairness.
+3. Model one long-context/long-output tenant consuming slots/KV while short users queue.
+4. Teach per-tenant concurrency, prompt/output/context budgets and weighted scheduling.
+5. Add a real serving fairness worksheet without assuming one scheduler implementation.
