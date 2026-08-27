@@ -1,0 +1,34 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — NVIDIA CUDA</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Vendor Capstone 1 — NVIDIA CUDA</h1>
+<p>目标不是“CUDA 最快”，而是把 NVIDIA 的成熟软件栈变成一份可审计 baseline。</p>
+
+<h2>1. 先证明是哪张卡</h2>
+<pre>nvidia-smi -L
+nvidia-smi --query-gpu=name,compute_cap,driver_version,memory.total,pci.bus_id --format=csv</pre>
+
+<p>旧卡尤其要同时检查当前 CUDA/driver 生命周期。能被驱动看到，不代表最新工具链仍支持。</p>
+
+<h2>2. 当前 llama.cpp CUDA 构建</h2>
+<pre>cmake -B build -DGGML_CUDA=ON
+cmake --build build --config Release</pre>
+
+<p>然后：</p>
+<pre>./build/bin/llama-bench --version
+./build/bin/llama-bench --list-devices</pre>
+
+<div class="callout"><strong>backend 证据来自实际 build/device log，不来自“我装了 CUDA”。</strong></div>
+
+<h2>3. Baseline</h2>
+<p>进入 Experiment 40，固定 model SHA、PP/TG、offload、KV、FA、threads。</p>
+
+<h2>4. 看到什么再优化什么</h2>
+<ul>
+<li>TG 接近 bandwidth roof → 优先研究 weight bytes / quant / memory behavior。</li>
+<li>PP 弱、TG 正常 → 看 FA / matrix kernel。</li>
+<li>显存边缘化 → 看 KV/context/quant。</li>
+<li>双卡缩放差 → 回 Slice 11 看 P2P/topology/split。</li>
+</ul>
+
+<h2>5. CUDA 成熟也不能跳过实验</h2>
+<p>同一 NVIDIA 卡在不同 llama.cpp commit、quant、FA、context 下仍可能完全不同。</p>
+</body></html>

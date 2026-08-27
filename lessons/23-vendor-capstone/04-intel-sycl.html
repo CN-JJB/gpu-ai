@@ -1,0 +1,41 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — Intel SYCL</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Vendor Capstone 4 — Intel SYCL / Level Zero / XPU</h1>
+
+<h2>1. 先证明 oneAPI 看到了 GPU</h2>
+<pre>source /opt/intel/oneapi/setvars.sh
+sycl-ls</pre>
+
+<p>目标 Intel GPU 通常应以 Level Zero GPU 设备出现。</p>
+
+<h2>2. 当前 llama.cpp SYCL 构建</h2>
+<pre>cmake -B build \
+  -DGGML_SYCL=ON \
+  -DCMAKE_C_COMPILER=icx \
+  -DCMAKE_CXX_COMPILER=icpx \
+  -DGGML_SYCL_F16=ON
+
+cmake --build build --config Release -j</pre>
+
+<p>当前 upstream 还提供：</p>
+<pre>./examples/sycl/build.sh</pre>
+
+<h2>3. llama.cpp 自己也要看到设备</h2>
+<pre>./build/bin/llama-ls-sycl-device
+./build/bin/llama-bench --list-devices</pre>
+
+<h2>4. dGPU / iGPU 不同</h2>
+<pre>Arc dGPU → dedicated GDDR
+Intel iGPU → shared system memory</pre>
+
+<p>不能把两者的“global memory”数字当同一种 VRAM。</p>
+
+<h2>5. 第一轮优化</h2>
+<ul>
+<li>PP 弱 → FA / oneDNN/backend path；</li>
+<li>TG 弱 → quant/reorder/memory behavior；</li>
+<li>FP16 vs FP32 build → 可以作为单变量 runtime-build A/B；</li>
+<li>iGPU/dGPU 同时出现 → 先固定 device selection。</li>
+</ul>
+
+<div class="callout"><strong>XMX 是硬件能力，不是“任何 Q4 都自动加速”的证据。</strong></div>
+</body></html>

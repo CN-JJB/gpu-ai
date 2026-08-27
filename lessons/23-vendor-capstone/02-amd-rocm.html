@@ -1,0 +1,35 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — AMD ROCm/HIP</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Vendor Capstone 2 — AMD ROCm/HIP</h1>
+
+<h2>1. AMD 第一身份不是“RX 7000”，是 exact gfx target</h2>
+<pre>amd-smi list
+rocminfo
+hipconfig --full</pre>
+
+<p>记录 exact GPU + <code>gfx*</code> + ROCm/HIP version。</p>
+
+<h2>2. 当前 llama.cpp HIP 构建</h2>
+<pre>HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
+cmake -S . -B build \
+  -DGGML_HIP=ON \
+  -DGPU_TARGETS=&lt;exact-gfx-target&gt; \
+  -DCMAKE_BUILD_TYPE=Release
+
+cmake --build build --config Release -j</pre>
+
+<p>upstream 当前说明 <code>GPU_TARGETS</code> 可省略；课程显式写它是为了让 Evidence 更清楚。</p>
+
+<h2>3. 不要把 workaround 悄悄当官方支持</h2>
+<p>如果必须使用 gfx override、社区 patch、特殊 build：</p>
+<pre>support_state = community-enabled</pre>
+
+<p>这会进入 TCO/维护成本。</p>
+
+<h2>4. 第一轮优化仍由证据选</h2>
+<ul>
+<li>PP 弱 → FA/backend；</li>
+<li>TG 接近 bandwidth roof → quant/memory traffic；</li>
+<li>长 context 内存紧 → KV/context；</li>
+<li>设备根本不在当前官方支持矩阵 → 先解决 support gate。</li>
+</ul>
+</body></html>

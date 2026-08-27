@@ -1,0 +1,37 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — Apple Metal</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Vendor Capstone 3 — Apple Metal / Unified Memory</h1>
+
+<h2>1. Mac 的 baseline 先看内存模型</h2>
+<pre>system_profiler SPHardwareDataType SPDisplaysDataType</pre>
+
+<p>再复用 Experiment 28 读取：</p>
+<ul>
+<li>hasUnifiedMemory；</li>
+<li>recommendedMaxWorkingSetSize；</li>
+<li>currentAllocatedSize；</li>
+<li>Metal execution width。</li>
+</ul>
+
+<h2>2. 当前 llama.cpp macOS 构建默认启用 Metal</h2>
+<pre>cmake -B build
+cmake --build build --config Release</pre>
+
+<p>仍要用：</p>
+<pre>./build/bin/llama-bench --list-devices</pre>
+<p>证明实际设备路径。</p>
+
+<h2>3. 不要写“64GB 显存”</h2>
+<pre>installed unified memory
+!= safe GPU working set
+!= runtime footprint</pre>
+
+<h2>4. Mac 的典型诊断</h2>
+<ul>
+<li>能装大模型但 TG 不高 → capacity 与 bandwidth 是不同 roof。</li>
+<li>PP 弱 → 看 Metal kernel/FA/tensor path。</li>
+<li>长 context 开始挤压系统 → KV/working-set pressure。</li>
+</ul>
+
+<h2>5. Neural Engine 边界</h2>
+<p>Metal GPU benchmark 不自动代表 ANE。M5 GPU Neural Accelerator 也必须有 runtime/kernel Evidence。</p>
+</body></html>
