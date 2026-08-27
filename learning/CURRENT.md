@@ -117,6 +117,25 @@ Artifacts:
 
 L0 lineage assertions verified 10/10. Real NVIDIA inventory path is ready. Current CUDA/driver lifespan stays in dynamic intelligence.
 
+### Slice 15 — AMD architecture generation spine
+
+GCN/Vega → RDNA/CDNA split → RDNA2/CDNA2 → RDNA3/CDNA3 → RDNA4/CDNA4 → current CDNA5 frontier。
+
+Artifacts:
+- research/gpu/0009-amd-architecture-generation-spine.md
+- reference/gpu/amd-generation-spine.md
+- lessons/15-amd-architecture/01-gcn-vega.html
+- lessons/15-amd-architecture/02-rdna-rdna2.html
+- lessons/15-amd-architecture/03-cdna-cdna2-cdna3.html
+- lessons/15-amd-architecture/04-rdna3-rdna4-cdna4-cdna5.html
+- labs/experiments/25-amd-generation-terminology-traps/
+- labs/experiments/26-real-amd-rocm-inventory/
+- examples/evidence/experiment-15-amd-generation-spine.md
+- intelligence/gpu/amd-rocm-generation-support-2026-08-27.md
+- learning/records/2026-08-27-amd-architecture-spine.md
+
+L0 terminology/lineage assertions verified 12/12. Real gfx-target/ROCm inventory path ready. ROCm support is kept dynamic and exact-SKU specific.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -173,8 +192,9 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build the systematic AMD architecture spine using the same causal questions, not NVIDIA terminology.
-2. Separate GCN/RDNA consumer lineage from CDNA datacenter/AI lineage.
-3. Explain wavefront, CU/WGP, LDS, Infinity Cache/HBM and MFMA/matrix units.
-4. Add current ROCm consumer/datacenter support as dynamic intelligence.
-5. After AMD, build the Apple Silicon special section: unified memory, Metal GPU and ANE boundaries with local-LLM implications.
+1. Build the Apple Silicon special architecture section.
+2. Explain unified memory without calling it "shared VRAM".
+3. Separate Metal GPU execution from Neural Engine and CPU/AMX-like matrix paths.
+4. Map Apple GPU SIMD-group/threadgroup memory concepts to the transferable execution/memory model.
+5. Add current MLX / llama.cpp Metal support as dynamic intelligence.
+6. Build L0 unified-memory bandwidth/capacity reasoning before any Mac-specific real benchmark.

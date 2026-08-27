@@ -65,13 +65,15 @@ Key files:
 Current 2026 support boundary is dynamic intelligence:
 Maxwell/Pascal/Volta are pinned to CUDA 12.x-era support; Turing+ remains on the current line at the snapshot date.
 
-## Active next slice — AMD architecture spine
+## Current completed frontier
 
-Build a systematic AMD-native lineage:
+Slices 01–15 are implemented.
+
+Most recent completed slice:
+**15 — AMD architecture generation spine**
 
 ```
-GCN
-→ Vega
+GCN / Vega
 → RDNA / CDNA split
 → RDNA2 / CDNA2
 → RDNA3 / CDNA3
@@ -79,26 +81,20 @@ GCN
 → current CDNA5 frontier
 ```
 
-Use AMD-native concepts:
-- wavefront / Wave64 / Wave32;
-- CU / WGP;
-- SGPR / VGPR;
-- LDS;
-- cache hierarchy / Infinity Cache / HBM;
-- MFMA / WMMA / matrix cores;
-- Infinity Fabric / xGMI;
-- HIP / ROCm gfx target;
-- Radeon vs Instinct product-line split.
+Key files:
+- `research/gpu/0009-amd-architecture-generation-spine.md`
+- `reference/gpu/amd-generation-spine.md`
+- `lessons/15-amd-architecture/`
+- `labs/experiments/25-amd-generation-terminology-traps/`
+- `labs/experiments/26-real-amd-rocm-inventory/`
+- `intelligence/gpu/amd-rocm-generation-support-2026-08-27.md`
 
-Do **not** translate AMD into fake NVIDIA terminology.
+Next production loop:
+**Apple Silicon special architecture → L0 unified-memory model → real Metal/MLX inventory probe → Evidence → Learning update**
 
-Production loop:
+## Active next slice — Apple Silicon special section
 
-**Research → Reference → detailed Lessons → L0 lineage experiment → real ROCm/HIP inventory probe → Evidence → dynamic support intelligence → learning update**
 
-## After AMD
-
-Apple Silicon special section:
 - unified memory;
 - Metal GPU execution;
 - GPU vs Neural Engine;

@@ -990,3 +990,94 @@ URL: https://docs.nvidia.com/datacenter/tesla/drivers/cuda-toolkit-driver-and-ar
 URL: https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/
 用途：current architecture deprecation/removal status, including CUDA 13 Maxwell/Pascal/Volta cutoff.
 可信度：NVIDIA official。
+
+
+## AMD architecture generations
+
+### AMD ROCm GPU architecture documentation
+URL: https://rocm.docs.amd.com/en/latest/reference/gpu-arch/index.html
+用途：canonical index for CDNA1-4, RDNA1-4, Vega/GCN architecture documents.
+可信度：AMD ROCm official。
+
+### HIP hardware implementation
+URL: https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html
+用途：wavefront, CU/WGP, LDS, VALU, MFMA Matrix Core, cache hierarchy.
+可信度：AMD ROCm official。
+
+### AMD GPUOpen — GCN occupancy/resource article
+URL: https://gpuopen.com/learn/optimizing-gpu-occupancy-resource-usage-large-thread-groups/
+用途：classic GCN CU, Wave64, SIMD, SGPR/VGPR, LDS, occupancy.
+可信度：AMD GPUOpen official。
+
+### AMD GPUOpen — GCN cross-lane operations
+URL: https://gpuopen.com/learn/amd-gcn-assembly-cross-lane-operations/
+用途：Wave64, SIMD16 row execution, lane communication, LDS/DPP.
+可信度：AMD GPUOpen official。
+
+### AMD RDNA architecture / ISA
+URL: https://gpuopen.com/rdna/
+URL: https://docs.amd.com/v/u/en-US/rdna-shader-instruction-set-architecture
+用途：Wave32/Wave64, WGP, RDNA execution changes.
+可信度：AMD official/GPUOpen。
+
+### AMD RDNA family page
+URL: https://www.amd.com/en/technologies/rdna.html
+用途：RDNA1-4 generation features, Infinity Cache, AI accelerator generations.
+可信度：AMD official。
+局限：marketing performance claims are not course benchmarks.
+
+### AMD RDNA3 ISA
+URL: https://docs.amd.com/v/u/en-US/rdna3-shader-instruction-set-architecture-feb-2023_0
+用途：VOPD dual issue and constraints.
+可信度：AMD official ISA。
+
+### AMD RDNA4 ISA
+URL: https://docs.amd.com/v/u/en-US/rdna4-instruction-set-architecture
+用途：Wave32/Wave64, current instruction behavior.
+可信度：AMD official ISA。
+
+### AMD Vega launch / architecture features
+URL: https://ir.amd.com/news-events/press-releases/detail/782/amd-redefines-the-enthusiast-gaming-experience-with-radeon-rx-vega-and-radeon-packs
+用途：Rapid Packed Math, HBM2, High Bandwidth Cache Controller.
+可信度：AMD official historical material。
+
+### AMD CDNA whitepaper
+URL: https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/white-papers/amd-cdna-white-paper.pdf
+用途：MI100, Matrix Core, HBM2, Infinity Fabric, dedicated compute branch.
+可信度：AMD official whitepaper。
+
+### AMD CDNA2 whitepaper
+URL: https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/white-papers/amd-cdna2-white-paper.pdf
+用途：matrix FP64, BF16/FP16, multi-die, HBM2e, Infinity Fabric.
+可信度：AMD official whitepaper。
+
+### AMD CDNA3 whitepaper
+URL: https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/white-papers/amd-cdna-3-white-paper.pdf
+用途：XCD/IOD, HBM3, FP8, Infinity Cache, MI300A/MI300X.
+可信度：AMD official whitepaper。
+
+### AMD CDNA current architecture page
+URL: https://www.amd.com/en/technologies/cdna.html
+用途：CDNA1-5 current family, MI350/CDNA4 and MI400/CDNA5 frontier.
+可信度：AMD official。
+局限：current product/software details must be separated from stable architecture.
+
+### ROCm 7.14 release notes / hardware support
+URL: https://rocm.docs.amd.com/en/latest/about/release-notes.html
+用途：current supported gfx targets/SKUs, known issues including current LLM inference issues.
+可信度：AMD ROCm official current docs。
+
+### ROCm 7.14 compatibility matrix
+URL: https://rocm.docs.amd.com/en/latest/compatibility/compatibility-matrix.html
+用途：exact architecture/gfx target/OS support.
+可信度：AMD ROCm official current docs。
+
+### AMD GPU specifications
+URL: https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html
+用途：current VRAM/CU/wavefront/LDS/cache/gfx-target inventory.
+可信度：AMD ROCm official current docs。
+
+### AMD SMI CLI
+URL: https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html
+用途：current amd-smi version/list/static/topology/xgmi interfaces.
+可信度：AMD ROCm official current docs。
