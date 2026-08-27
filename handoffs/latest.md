@@ -1,20 +1,10 @@
 # Handoff — GPU × Local LLM Course
 
-## Next session focus
-
-Continue building the course from the validated first vertical slice. The next bounded slice is:
-
-**thread → warp/wavefront → SM/CU → scheduler → latency hiding**
-
-The goal is to keep the same production loop:
-
-**Research → Reference → Lesson → Experiment → Evidence → Learning update**
-
 ## Repository
 
-- Repo: CN-JJB/llm-course
-- Branch: course-v1
-- Working branch URL: https://github.com/CN-JJB/llm-course/tree/course-v1
+- Repo: CN-JJB/gpu-ai
+- Branch: main
+- Working URL: https://github.com/CN-JJB/gpu-ai
 
 ## Read first
 
@@ -26,16 +16,6 @@ The goal is to keep the same production loop:
 6. `skills/WORKFLOWS.md`
 7. `learning/PROFILE.md`
 8. `learning/CURRENT.md`
-
-Then inspect the first completed vertical slice:
-
-- `docs/specs/0001-gpu-evolution-opening-slice.md`
-- `research/gpu/0001-fixed-function-to-ai-compute.md`
-- `reference/gpu/evolution-fixed-to-ai.md`
-- `lessons/01-gpu-evolution/01-fixed-function-to-unified-compute.html`
-- `labs/experiments/01-unified-shader-load-balancing/`
-- `examples/evidence/experiment-01-unified-shader.md`
-- `learning/records/2026-08-26-first-vertical-slice.md`
 
 ## Requirements already frozen
 
@@ -49,53 +29,67 @@ Core teaching pattern:
 
 **真实问题 → 必要原理 → 小实验 → 可玩项目 → 结果分析 → 如何选择 → 如何迁移到其他平台/硬件**
 
-Other important constraints:
+Important constraints:
 - Self-study first.
 - No discrete GPU required to begin.
 - Linux is the main practical platform.
 - GPU architecture evolution opens the course.
 - NVIDIA primary, AMD systematic secondary, Apple special section, Intel lighter.
-- Consumer + professional/data-center/OEM/special cards are in scope.
 - LLM is the primary AI workload.
 - Stable knowledge is separated from dynamic intelligence.
-- Important experiments use Experiment Card and reproducible conditions.
+- Important experiments use reproducible Evidence.
 - Mainline milestones + Challenge Labs.
 - China secondhand market primary, global technical/community intelligence secondary.
-- Research is used when writing real content, not for endless architecture discussion.
-- Prefer reusing open-source implementations before building tools from scratch.
+- Prefer first-party/official evidence for real course claims.
+- Reuse open-source implementations before building tools from scratch.
+
+## Completed main slices
+
+01. GPU evolution
+02. GPU execution model / latency hiding
+03. On-chip memory / tiling / reuse
+04. Bandwidth / arithmetic intensity / Roofline
+05. Local LLM VRAM capacity
+06. Quantization / format / backend
+07. First reproducible local LLM deployment
+08. Server concurrency / continuous batching
+09. Prefix / paged KV cache
+10. Speculative decoding
+
+## Active slice — 11 single-node multi-GPU / interconnect
+
+Research and reference are already present:
+
+- `research/gpu/0005-multi-gpu-interconnect-scaling.md`
+- `reference/gpu/multi-gpu-split-interconnect.md`
+
+Key established model:
+
+**partition → per-GPU compute → cross-GPU movement → synchronization → scaling efficiency**
+
+Do not reduce multi-GPU to “2× VRAM = one larger GPU” or “2 GPUs = 2× speed”.
+
+The next production loop is:
+
+**Lesson → L0 Experiment → real two-GPU probe → Evidence → Learning update**
+
+Recommended remaining artifacts:
+
+- `lessons/11-multi-gpu/01-capacity-split-interconnect.html`
+- `labs/experiments/17-multi-gpu-interconnect-roof-model/`
+- `labs/experiments/18-real-multi-gpu-scaling/`
+- `examples/evidence/experiment-11-multi-gpu-interconnect.md`
+- `intelligence/gpu/multi-gpu-topology-2026-08-26.md`
+- a new learning/build record
+
+Real multi-GPU work must record topology/P2P first, then one-GPU PP/TG baseline, then multi-GPU PP/TG. Do not fabricate hardware benchmark results.
 
 ## Matt Pocock skills
 
-Use the repository's skill routing, not every skill mechanically.
+Use the repository's routing rather than applying every skill mechanically.
 
-Likely skills for the next slice:
+High-frequency:
 - `teach`
 - `research`
-- `domain-modeling` only if terminology changes
-- `wait-what` when a learner explanation needs repair
-- `handoff` when switching sessions
 
-For larger tooling work later:
-`prototype → to-spec → to-tickets → implement → tdd/diagnosing-bugs → code-review`.
-
-## Current state
-
-The repository architecture and first vertical slice are already implemented and validated. Do not restart from a blank outline.
-
-## Next bounded action
-
-Research authoritative NVIDIA CUDA and AMD ROCm/HIP primary docs for:
-- thread hierarchy
-- warp / wavefront
-- SM / CU
-- schedulers
-- latency hiding
-- occupancy
-- relation to registers/shared memory/LDS
-
-Then design:
-1. one L0 conceptual experiment,
-2. one optional L2 real-GPU experiment,
-3. a short HTML lesson connecting the execution model to later LLM kernels and performance bottlenecks.
-
-Update `learning/CURRENT.md` and add a learning/build record when the slice is complete.
+Use scaffold/problem-solution ideas for verifiable exercises where useful. Use domain-modeling only when domain language changes. Scope is frozen, so do not restart discovery/spec grilling.
