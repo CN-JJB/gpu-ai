@@ -1,0 +1,42 @@
+{
+  "case_id": "graduation-blocked",
+  "gates": {
+    "model_vram": {"required": true, "status": "PASS", "source": "evidence/model-capacity.json#sha256-demo"},
+    "runtime": {"required": true, "status": "PASS", "source": "evidence/runtime-log.txt#sha256-demo"},
+    "psu_cables": {"required": true, "status": "UNKNOWN", "source": "seller-photo-only"}
+  },
+  "claims": [
+    {
+      "id": "C1",
+      "material": true,
+      "claim": "target runtime path executes",
+      "evidence": "evidence/runtime-log.txt#sha256-demo",
+      "scope": "exact runtime/model identity"
+    },
+    {
+      "id": "C2",
+      "material": true,
+      "claim": "exact modular PSU cable compatibility is unresolved",
+      "evidence": "seller-photo-only",
+      "scope": "seller photo cannot establish PSU-side pinout compatibility"
+    }
+  ],
+  "revisions": [],
+  "upgrade_roadmap": {
+    "now": [
+      {"action": "obtain exact PSU/cable identity evidence; do not purchase or power the design yet"}
+    ],
+    "next": [
+      {"trigger": "cable compatibility is proven", "action": "resume whole-machine validation"}
+    ],
+    "later": [
+      {"trigger": "measured power or thermal headroom becomes insufficient", "action": "re-open PSU/cooling design"}
+    ]
+  },
+  "non_claims": [
+    "BLOCKED does not mean the cable is known incompatible",
+    "a matching connector shape does not prove modular cable pinout compatibility",
+    "the other passing gates do not make the unresolved power path safe"
+  ],
+  "declared_decision": "BLOCKED"
+}
