@@ -1,0 +1,202 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 4：SwiGLU / FFN</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 4 — SwiGLU / FFN：Attention 之外的另一块“大肉”</h1>
+
+<p>很多 LLM 性能讨论只盯 Attention，但 dense decoder 每层还有一个很大的 FFN。</p>
+
+<h2>1. 先看老式两层 FFN</h2>
+
+<pre>x [M,d]
+→ W1 [d,d_ff]
+→ activation
+→ W2 [d_ff,d]</pre>
+
+<p>忽略 bias：</p>
+
+<pre>参数 ≈ 2 × d × d_ff</pre>
+
+<h2>2. SwiGLU 为什么变成三块大矩阵？</h2>
+
+<pre>gate = x W_gate
+up   = x W_up
+
+z = SiLU(gate) ⊙ up
+
+out = z W_down</pre>
+
+<p>于是：</p>
+
+<pre>W_gate [d,d_ff]
+W_up   [d,d_ff]
+W_down [d_ff,d]</pre>
+
+<p>参数约：</p>
+
+<pre>3 × d × d_ff</pre>
+
+<div class="callout"><strong>这里的 gate 不是 MoE router。</strong>它是 dense vector gating；gate/up 两个大 projection 都要算。</div>
+
+<h2>3. SiLU 是什么？</h2>
+
+<pre>SiLU(x)
+=
+x × sigmoid(x)</pre>
+
+<p>然后它和另一条 up projection 做逐元素乘法：</p>
+
+<pre>SiLU(gate) ⊙ up</pre>
+
+<p>这给 FFN 加了乘法门控，而不是单纯 ReLU/GELU 一条支路。</p>
+
+<h2>4. 为什么 LLaMA 不是直接用 4d 的 SwiGLU？</h2>
+
+<p>经典 FFN 如果：</p>
+
+<pre>d_ff = 4d</pre>
+
+<p>两矩阵参数：</p>
+
+<pre>2d × 4d = 8d²</pre>
+
+<p>如果 SwiGLU 还保持 4d：</p>
+
+<pre>3d × 4d = 12d²</pre>
+
+<p>会明显膨胀。</p>
+
+<p>LLaMA 论文描述采用大约：</p>
+
+<pre>(2/3) × 4d = 8d/3</pre>
+
+<p>这样三矩阵的粗参数预算重新回到：</p>
+
+<pre>3d × 8d/3
+≈ 8d²</pre>
+
+<p>但真实模型一定以 config 的 <code>intermediate_size</code> 为准。</p>
+
+<h2>5. 一个 4096 hidden 的实际量级</h2>
+
+<p>用：</p>
+
+<pre>d = 4096
+d_ff = 11008</pre>
+
+<p>SwiGLU FFN 每层：</p>
+
+<pre>3 × 4096 × 11008
+=
+135,266,304 weights</pre>
+
+<p>而一个 4096-wide 的传统 MHA Q/K/V/O：</p>
+
+<pre>4 × 4096 × 4096
+=
+67,108,864 weights</pre>
+
+<p>FFN 是：</p>
+
+<pre>≈ 2.016×</pre>
+
+<p>attention projections。</p>
+
+<h2>6. 这和显存带宽有什么关系？</h2>
+
+<p>仅这层 FFN，如果 FP16：</p>
+
+<pre>135,266,304 × 2 bytes
+≈ 258 MiB</pre>
+
+<p>如果 effective 4.5 bpw：</p>
+
+<pre>≈ 72.56 MiB</pre>
+
+<p>这是一层，不是整个模型。</p>
+
+<p>Decode 每生成一个 token，又要使用这些 weight matrices。</p>
+
+<div class="callout"><strong>所以 TG 的 weight streaming 不只是 Attention weights，FFN 往往是更大的那一块。</strong></div>
+
+<h2>7. Prefill 为什么更容易吃满 GPU？</h2>
+
+<p>假设 prompt 512 token：</p>
+
+<pre>[512,4096] × [4096,11008]
+→ [512,11008]</pre>
+
+<p>同一份 weight matrix 为 512 行 token 做工作。</p>
+
+<p>矩阵很大，weight reuse / arithmetic intensity 高。</p>
+
+<h2>8. Decode 突然只剩一行</h2>
+
+<pre>[1,4096] × [4096,11008]
+→ [1,11008]</pre>
+
+<p>权重还是那么大，但有效 token rows 变成 1。</p>
+
+<p>所以：</p>
+
+<pre>compute per weight byte ↓
+memory-bandwidth importance ↑</pre>
+
+<h2>9. 一个只看 weight 的 Roofline 直觉</h2>
+
+<p>三块矩阵大约有：</p>
+
+<pre>6 M d d_ff FLOPs</pre>
+
+<p>权重存储：</p>
+
+<pre>3 d d_ff × bits/8 bytes</pre>
+
+<p>所以：</p>
+
+<pre>AI_weight ≈ 16M / bits</pre>
+
+<p>FP16 时：</p>
+
+<pre>M=1   → ~1 FLOP/byte
+M=512 → ~512 FLOP/byte</pre>
+
+<p>真实 kernel 还要算 activation、dequant、cache，所以这不是 benchmark；它只是解释 PP/TG 为什么进入不同 Roofline 区域。</p>
+
+<h2>10. FlashAttention 为什么可能 PP 大涨、TG 小涨？</h2>
+
+<p>因为 FlashAttention 优化的是 attention I/O。</p>
+
+<p>模型后面仍有：</p>
+
+<pre>Q/K/V/O
++ FFN gate/up/down
++ norm/residual
++ LM head</pre>
+
+<p>如果 TG 的最大字节来源是 FFN/其他 weight streaming，那么 Attention 加速不会让整模型同比例加速。</p>
+
+<h2>11. Quant 为什么对 FFN 很关键？</h2>
+
+<p>FFN 是大权重块。</p>
+
+<pre>16-bit
+→ 8-bit
+→ 4.x bpw</pre>
+
+<p>可以大幅减少 storage / memory traffic。</p>
+
+<p>但是课程前面那条规则不变：</p>
+
+<pre>Q4 storage
+!= native INT4/FP4 matrix compute</pre>
+
+<p>backend/kernel 仍决定真正执行路径。</p>
+
+<h2>12. 以后看 config，别漏 intermediate_size</h2>
+
+<pre>hidden_size
+intermediate_size
+hidden_act</pre>
+
+<p>这几个字段会告诉你 FFN 到底有多宽。</p>
+
+<p>两个都叫“8B”的模型，FFN/attention 比例也可能不同。</p>
+</body></html>
