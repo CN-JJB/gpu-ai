@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/mattpocock/skills",
+  "license": "MIT",
+  "upstream_commit_checked": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
+  "checked_date": "2026-08-26",
+  "stable_skill_count": 29,
+  "excluded_scope": ["skills/in-progress"]
+}
