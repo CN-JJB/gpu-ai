@@ -218,6 +218,21 @@ Artifacts:
 
 Default real acceptance collector is read-only/non-destructive. Seller evidence uses C0–C4; no single stress test is treated as complete health proof.
 
+### Slice 21 — Max-buy-price / candidate watchlist
+
+Hard gates → total ownership budget → non-GPU TCO/reserves → personal sticker ceiling → market/condition evidence → SKIP / NEEDS EVIDENCE / WATCH / BUY-CANDIDATE / KEEP。
+
+Artifacts:
+- research/market/0002-max-buy-price-watchlist.md
+- reference/market/max-buy-price-watchlist-card.md
+- lessons/21-watchlist/01-max-buy-price.html
+- labs/experiments/37-max-buy-price-model/
+- labs/experiments/38-real-candidate-watchlist/
+- examples/evidence/experiment-21-max-buy-price-watchlist.md
+- learning/records/2026-08-27-max-buy-price-watchlist.md
+
+Watchlist never auto-purchases. Cheap candidates remain blocked by hard gates/evidence gates.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -274,8 +289,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build a workload-specific max-buy-price/watchlist model.
-2. Combine Slice 18 candidate dossier with Slice 19 market samples and Slice 20 acceptance confidence.
-3. Add price-alert logic that only triggers when hard gates pass and evidence quality is sufficient.
-4. Keep automated monitoring separate from actual purchase action.
-5. Then return to deployment projects and optimization using selected real hardware.
+1. Build a capstone hardware-profile → deployment → benchmark → diagnosis → optimization loop.
+2. Reuse the first reproducible llama.cpp path but add a formal hardware profile and telemetry packet.
+3. Select optimization from measured bottleneck: context/KV, quant/backend, FlashAttention, batching, speculative decoding or multi-GPU.
+4. Require before/after Evidence with unchanged workload identity.
+5. Add separate sample paths for NVIDIA, AMD/ROCm, Apple/Metal and Intel/SYCL without fabricating benchmark numbers.

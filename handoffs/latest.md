@@ -10,80 +10,85 @@
 Core ability stack:
 **会理解 → 会调查 → 会选择 → 会实践 → 会改造**
 
-Stable knowledge and dated intelligence remain separate.
-Never fabricate benchmark, price, transaction or hardware-health results.
+Never fabricate benchmark, market, transaction or health data.
 
 ## Completed frontier
 
-Slices 01–20 are implemented.
+Slices 01–21 are implemented.
 
-Recent practical chain:
-
-```
-18 hardware decision
-→ 19 China secondhand market
-→ 20 transaction / acceptance verification
-```
-
-## Slice 20 core
-
-Never reduce GPU health to one stress test.
+The hardware-acquisition chain is now complete:
 
 ```
-identity
-→ memory integrity
-→ workload stability
-→ thermals
-→ error state
+architecture
+→ workload sizing
+→ cross-vendor decision
+→ China secondhand market methodology
+→ transaction/acceptance verification
+→ max-buy-price/watchlist
 ```
 
-Seller evidence:
-- C0 unknown
-- C1 claim
-- C2 current functional
-- C3 strong pre-sale packet
-- C4 independent target verification
+## Slice 21
 
-Real packet:
-`labs/experiments/36-real-used-gpu-acceptance/`
+Key files:
+- `research/market/0002-max-buy-price-watchlist.md`
+- `reference/market/max-buy-price-watchlist-card.md`
+- `lessons/21-watchlist/01-max-buy-price.html`
+- `labs/experiments/37-max-buy-price-model/`
+- `labs/experiments/38-real-candidate-watchlist/`
 
-Default baseline collector is read-only.
-
-Current tool intelligence:
-`intelligence/hardware/used-gpu-acceptance-tools-2026-08-27.md`
-
-## Active next slice — price threshold / watchlist
-
-Build:
+Core rule:
 
 ```
-workload
-→ hard gates
-→ candidate capability value
-→ platform/TCO cost
-→ condition/software risk discount
-→ max buy price
-→ current normalized market evidence
-→ alert threshold
+ask <= ceiling
 ```
 
-The watchlist can say:
-- WATCH
-- BUY-CANDIDATE
-- OVERPRICED
-- NEEDS EVIDENCE
+is not enough.
 
-It must never auto-purchase.
+BUY-CANDIDATE also requires:
+- hard gates pass;
+- performance sufficiently known;
+- market evidence sufficient;
+- condition evidence sufficient.
 
-## After watchlist
+No auto-purchase.
 
-Return to practical deployment projects:
-- selected hardware;
-- exact runtime;
-- reproducible benchmark;
-- optimization;
-- serving;
-- multi-GPU if relevant.
+## Active next slice — capstone deployment/optimization loop
+
+Build a reusable project:
+
+```
+hardware profile
+→ runtime identity
+→ model identity/SHA
+→ baseline configuration
+→ PP/TG/VRAM/power/thermal Evidence
+→ bottleneck diagnosis
+→ choose ONE optimization
+→ rerun same workload
+→ compare
+→ explain transfer to other hardware
+```
+
+Possible optimization branches:
+- quant/backend;
+- context/KV;
+- FlashAttention;
+- server slots/batching;
+- prefix cache;
+- speculative decoding;
+- multi-GPU split.
+
+Do not change multiple independent variables in one A/B test.
+
+## Vendor paths
+
+Use the same capstone structure for:
+- NVIDIA CUDA;
+- AMD ROCm/HIP;
+- Apple Metal/MLX;
+- Intel SYCL/XPU.
+
+Do not force identical commands across ecosystems.
 
 ## Matt Pocock skills
 
