@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMD 架构 3：CDNA、CDNA2、CDNA3</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>AMD 架构 3 — CDNA → CDNA2 → CDNA3：Instinct 的 AI/HPC 路线</h1>
+
+<h2>1. CDNA 为什么要从 graphics 架构分出去？</h2>
+<p>游戏 GPU 要：</p>
+<ul><li>低延迟；</li><li>高频；</li><li>图形固定功能；</li><li>GDDR/cache 性价比。</li></ul>
+
+<p>HPC/AI accelerator 更在乎：</p>
+<ul><li>HBM bandwidth/capacity；</li><li>matrix throughput；</li><li>FP64；</li><li>GPU↔GPU fabric；</li><li>大规模多卡。</li></ul>
+
+<p>因此 CDNA 是专用 compute architecture。</p>
+
+<h2>2. MI100 / CDNA：Matrix Core 正式成为中心</h2>
+<p>AMD 当前 HIP 术语：</p>
+<pre>MFMA
+= Matrix Fused Multiply-Add</pre>
+
+<p>普通 VALU：</p>
+<pre>lane-wise vector arithmetic</pre>
+
+<p>MFMA：</p>
+<pre>whole matrix tile
+→ one wave-wide matrix instruction
+→ accumulator tile</pre>
+
+<p>它和 NVIDIA Tensor Core 解决类似问题，但硬件/ISA 不一样。</p>
+
+<div class="callout"><strong>正确迁移：</strong>比较“支持什么 datatype、tile、accumulator、library”。<br><strong>错误迁移：</strong>拿“Matrix Core 个数 ÷ Tensor Core 个数”算性能。</div>
+
+<h2>3. CDNA + HBM + Infinity Fabric 是一个系统</h2>
+<pre>Matrix Core
+needs
+HBM bandwidth
++
+Infinity Fabric / xGMI
++
+ROCm libraries
+</pre>
+
+<p>没有足够数据供给和 library kernel，Matrix Core 峰值用不上。</p>
+
+<h2>4. CDNA2：不只 AI，还把 FP64 做进 matrix path</h2>
+<p>MI200/CDNA2 加强：</p>
+<ul>
+<li>matrix FP64；</li>
+<li>BF16/FP16；</li>
+<li>HBM2e；</li>
+<li>multi-die；</li>
+<li>Infinity Fabric scale-up。</li>
+</ul>
+
+<p>这说明 CDNA 是：</p>
+<pre>AI + scientific HPC
+</pre>
+<p>而不是“没有图形单元的 gaming GPU”。</p>
+
+<h2>5. 多 die 后，互联又成为 Roofline</h2>
+<p>MI250-class 不是简单把 CU 复制两份。</p>
+<pre>die A compute
+↔ fabric
+↔ die B compute</pre>
+
+<p>只要工作跨 die，Slice 11 的：</p>
+<ul><li>communication bytes；</li><li>bandwidth；</li><li>sync；</li><li>imbalance；</li></ul>
+<p>全部重新出现。</p>
+
+<h2>6. CDNA3：XCD + I/O Die + HBM3</h2>
+<p>MI300 引入 Accelerated Compute Die：</p>
+<pre>XCD
+→ CU + lower cache
+
+IOD
+→ memory / package fabric / higher shared resources
+
+HBM3
+→ high-bandwidth capacity</pre>
+
+<h2>7. MI300A 与 MI300X 必须分开</h2>
+
+<h3>MI300A</h3>
+<pre>Zen 4 CPU chiplets
++ CDNA3 XCD
++ shared HBM
++ coherent package</pre>
+
+<h3>MI300X</h3>
+<pre>GPU-focused XCD composition
++ very large HBM capacity</pre>
+
+<p>同样“CDNA3”，系统结构已经不同。</p>
+
+<h2>8. FP8 / TF32 / sparsity</h2>
+<p>CDNA3 Matrix Core 加入现代 AI precision：</p>
+<ul>
+<li>FP8；</li>
+<li>TF32；</li>
+<li>sparse data paths；</li>
+<li>延续 FP16/BF16/INT8/FP32/FP64。</li>
+</ul>
+
+<p>但仍遵守 Slice 13：</p>
+<pre>model storage quant
+!= native matrix datatype
+</pre>
+</body></html>

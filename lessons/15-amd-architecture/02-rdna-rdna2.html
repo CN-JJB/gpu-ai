@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMD 架构 2：RDNA 与 RDNA2</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>AMD 架构 2 — RDNA → RDNA2：Wave32、WGP、Infinity Cache</h1>
+
+<h2>1. GCN 的 Wave64 为什么要改？</h2>
+<p>游戏/低延迟 workload 经常出现：</p>
+<ul>
+<li>短 shader；</li>
+<li>分支；</li>
+<li>barrier；</li>
+<li>部分 lane 无效；</li>
+<li>需要快速把新 work 填进 execution units。</li>
+</ul>
+
+<p>Wave64 的生命周期和资源粒度可能太粗。</p>
+
+<h2>2. RDNA 的大变化：Wave32</h2>
+<pre>GCN:
+wave64 primary
+
+RDNA:
+wave32 primary
+wave64 compatibility</pre>
+
+<p>Wave32 的优势包括：</p>
+<ul>
+<li>更短 wave lifetime；</li>
+<li>barrier 后更快重新填满；</li>
+<li>部分填充时浪费更少；</li>
+<li>适合更低延迟调度。</li>
+</ul>
+
+<div class="callout"><strong>但别写：</strong>“AMD 改成和 NVIDIA 一样的 warp32”。Wave size 一样，不代表 scheduler、register file、cache、issue 方式一样。</div>
+
+<h2>3. 32-wide SIMD：一拍吃下 Wave32</h2>
+<p>经典 GCN 要 16-wide SIMD × 4 cycles 处理 wave64。</p>
+<p>RDNA 的主路径让 Wave32 与 32-wide vector issue 更直接匹配。</p>
+
+<pre>Wave32
+→ 32-wide SIMD
+→ one vector instruction issue pass</pre>
+
+<h2>4. WGP — Work Group Processor</h2>
+<p>RDNA 把两个紧密关联的 CU 组织成 WGP。</p>
+<pre>WGP
+├─ CU0
+├─ CU1
+├─ shared scheduling/cache resources
+└─ workgroup-level resource organization</pre>
+
+<p>WGP 让更多计算和带宽资源可以围绕一个 workgroup 配置。</p>
+
+<h2>5. Cache hierarchy 也跟着改</h2>
+<p>官方 HIP 文档的 RDNA 心智图：</p>
+<pre>per-CU L0
+→ WGP-shared L1
+→ global L2</pre>
+
+<p>比起 GCN，增加了更明确的 WGP-shared cache 层。</p>
+
+<h2>6. RDNA2：Infinity Cache</h2>
+<p>RDNA2 把大型 on-die cache 变成 Radeon memory hierarchy 的重要组成。</p>
+
+<pre>compute
+→ L0/L1/L2
+→ Infinity Cache
+→ GDDR</pre>
+
+<p>目的：</p>
+<pre>reuse hits cache
+→ fewer external GDDR transactions
+→ effective bandwidth rises</pre>
+
+<h2>7. Infinity Cache 不是额外显存</h2>
+<p>例如一个几十 GB 的 LLM 权重远大于 Infinity Cache。</p>
+<p>它不能让 12 GB 卡“变成 12 GB + cache”。</p>
+
+<p>对 LLM 的价值取决于：</p>
+<ul>
+<li>访问是否重复；</li>
+<li>working set 是否局部；</li>
+<li>kernel layout；</li>
+<li>metadata / smaller tensors 是否能命中。</li>
+</ul>
+
+<h2>8. Radeon 架构现代 ≠ ROCm 一定支持</h2>
+<p>这对垃圾佬非常重要。</p>
+<pre>hardware architecture
+and
+official compute software support
+are separate products</pre>
+
+<p>一张 RDNA2 卡的 CU/Wave32 没问题，但如果当前 ROCm prebuilt libraries 不支持 exact SKU/gfx target，实际 AI 体验仍会很差。</p>
+
+<h2>9. 买 AMD 消费卡时的第一条规则</h2>
+<p>不要只查：</p>
+<pre>"RDNA2 / RDNA3 / RDNA4?"
+</pre>
+<p>还要查：</p>
+<pre>exact gfx target
++ current ROCm support matrix
++ target backend
+</pre>
+</body></html>

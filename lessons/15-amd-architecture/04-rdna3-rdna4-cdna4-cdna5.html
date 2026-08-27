@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMD 架构 4：RDNA3、RDNA4、CDNA4、CDNA5</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>AMD 架构 4 — RDNA3 / RDNA4 + CDNA4 / CDNA5：AI 时代两条线都在加速</h1>
+
+<h2>1. RDNA3：消费 GPU 也进入 chiplet</h2>
+<pre>GCD
+→ compute / core GPU logic
+
+MCD
+→ memory controller + Infinity Cache</pre>
+
+<p>这不是把两个完整 GPU 拼起来，而是把功能拆到不同 chiplet。</p>
+
+<h2>2. Dual-Issue VALU — 不是免费 2×</h2>
+<p>RDNA3 ISA 的 VOPD 可以在一个编码里打包两条 independent VALU operation，并行执行。</p>
+
+<p>必须满足：</p>
+<ul>
+<li>Wave32；</li>
+<li>两条 instruction independent；</li>
+<li>register bank constraints；</li>
+<li>operand restrictions；</li>
+<li>compiler 成功配对。</li>
+</ul>
+
+<pre>peak dual issue
+!=
+every shader 2x throughput</pre>
+
+<h2>3. RDNA3 第一次明确加入 AI Accelerator</h2>
+<p>消费 Radeon 开始有专门 AI acceleration。</p>
+<p>但：</p>
+<pre>RDNA3 AI accelerator
+!=
+CDNA3 Matrix Core ecosystem</pre>
+
+<p>一个面向 graphics/desktop，另一个面向 Instinct AI/HPC。</p>
+
+<h2>4. RDNA4：FP8 / INT4 更靠近消费 GPU</h2>
+<p>当前 AMD RDNA4 页面明确写：</p>
+<ul>
+<li>第二代 AI accelerators；</li>
+<li>FP8 / INT4；</li>
+<li>第三代 Infinity Cache；</li>
+<li>改进 on-chip scheduling。</li>
+</ul>
+
+<p>AMD 还公开说明 FSR4 使用 RDNA4 的 FP8 WMMA 路径。</p>
+
+<div class="callout"><strong>对本地 LLM 的正确结论：</strong>硬件已经有低精度 AI 能力。<br><strong>不能推出：</strong>llama.cpp / PyTorch 的某个 Q4 一定已经映射到这些单元。</div>
+
+<h2>5. RDNA4 仍支持 Wave32 / Wave64</h2>
+<p>当前 ISA 同时支持两种 wave size。</p>
+
+<p>Wave64 的部分 vector/memory instruction 在硬件上会分低 32 lane / 高 32 lane 两次处理。</p>
+<p>所以 wave size 不是纯语法选项，它影响：</p>
+<ul>
+<li>issue；</li>
+<li>divergence；</li>
+<li>register/resource；</li>
+<li>latency。</li>
+</ul>
+
+<h2>6. CDNA4：MI350 继续拉高低精度 + HBM</h2>
+<p>当前 AMD CDNA 页面记录：</p>
+<ul>
+<li>HBM3E；</li>
+<li>Matrix Core；</li>
+<li>MXFP4/MXFP6/MXFP8；</li>
+<li>sparse low-precision paths；</li>
+<li>gfx950 当前 ROCm 支持。</li>
+</ul>
+
+<h2>7. 2026 最新：CDNA5 / MI400</h2>
+<p>截至 2026-08-27，AMD 已公布/推出 CDNA5 路线。</p>
+
+<p>最值得注意的不是数字，而是架构方向：</p>
+<pre>new WGP
++ Wave32
++ AI math engine
++ MXFP4/6/8
++ HBM4
++ rackscale fabric</pre>
+
+<p>这很有意思：</p>
+<pre>Wave32 / WGP
+曾经是 RDNA 的代表性变化
+
+现在
+CDNA5 compute branch
+也使用新的 WGP / Wave32 方向</pre>
+
+<p>说明两条线虽然用途不同，但执行组织会互相吸收有效思想。</p>
+
+<h2>8. 但当前 ROCm 支持要单独看</h2>
+<p>硬件页面已经有 CDNA5；当前 ROCm 7.14 标准支持矩阵主要列到 CDNA4。</p>
+
+<pre>new hardware exists
+!=
+your chosen stable ROCm package already supports it</pre>
+
+<h2>9. AMD 垃圾佬的最终检查顺序</h2>
+<ol>
+<li>exact Radeon/Instinct model；</li>
+<li>architecture；</li>
+<li>gfx target；</li>
+<li>official ROCm support；</li>
+<li>VRAM/HBM/GDDR capacity；</li>
+<li>memory bandwidth / Infinity Cache；</li>
+<li>matrix/AI data types；</li>
+<li>llama.cpp / PyTorch current backend；</li>
+<li>PP/TG benchmark；</li>
+<li>电源/散热/二手风险。</li>
+</ol>
+</body></html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMD 架构 1：GCN 与 Vega</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>AMD 架构 1 — GCN → Vega：Wave64、CU、SGPR/VGPR、LDS</h1>
+
+<p>如果你只学过 NVIDIA，最容易犯的错误就是把 AMD 术语硬翻译成“AMD 的 warp / SM / CUDA Core”。这一节先用 AMD 自己的语言。</p>
+
+<h2>1. GCN 的最基本执行单位：Wave64</h2>
+<p>经典 GCN 把 64 个 work-item 组成一个 wavefront。</p>
+<pre>work-item × 64
+→ one wave64</pre>
+
+<p>经典 GCN CU 的 SIMD 只有 16 lane 宽，因此一条 wave64 vector instruction 要分四拍执行：</p>
+<pre>lanes  0..15  → cycle 0
+lanes 16..31  → cycle 1
+lanes 32..47  → cycle 2
+lanes 48..63  → cycle 3</pre>
+
+<div class="callout"><strong>关键：</strong>“wave64”描述的是逻辑执行组，不代表硬件一定有 64 个并排 ALU 一拍吃完。</div>
+
+<h2>2. CU — Compute Unit</h2>
+<pre>GCN CU
+├─ scalar path
+├─ SIMD0
+├─ SIMD1
+├─ SIMD2
+├─ SIMD3
+├─ register files
+└─ LDS</pre>
+
+<p>多个 wave 可以同时 resident。当一个 wave 在等 global memory 时，scheduler 可以切到别的 ready wave。</p>
+<p>这和前面的 latency hiding 模型完全一致。</p>
+
+<h2>3. AMD 很重要的一组寄存器：SGPR vs VGPR</h2>
+
+<h3>VGPR</h3>
+<pre>one value per lane</pre>
+
+<p>例如每个线程自己的：</p>
+<ul>
+<li>坐标；</li>
+<li>activation；</li>
+<li>指针偏移；</li>
+<li>partial result。</li>
+</ul>
+
+<h3>SGPR</h3>
+<pre>one scalar value shared across the whole wave</pre>
+
+<p>例如整个 wave 都一样的：</p>
+<ul>
+<li>base pointer；</li>
+<li>uniform loop bound；</li>
+<li>constant；</li>
+<li>wave-uniform condition。</li>
+</ul>
+
+<p>如果一个值所有 lane 都相同，却塞进 VGPR，就是在浪费 vector register capacity。</p>
+
+<h2>4. LDS — Local Data Share</h2>
+<p>LDS 是 workgroup 内的低延迟共享 scratchpad。</p>
+<pre>global memory
+→ LDS tile
+→ many waves reuse
+→ output</pre>
+
+<p>它就是你把 Slice 03 的：</p>
+<ul>
+<li>tiling；</li>
+<li>bank conflict；</li>
+<li>reuse；</li>
+<li>occupancy/resource pressure；</li>
+</ul>
+<p>迁移到 AMD 时最重要的落点。</p>
+
+<h2>5. GCN occupancy 为什么也会被寄存器卡住？</h2>
+<pre>more VGPR per thread
+→ fewer waves fit
+→ less latency hiding</pre>
+
+<p>SGPR、VGPR、LDS 都是有限的。</p>
+<p>所以 AMD kernel tuning 不是“wave 越多越好”，而是和 NVIDIA 一样要平衡：</p>
+<pre>resource per wave
+× active waves
+× useful ILP
+× memory behavior</pre>
+
+<h2>6. Vega：GCN 路线开始认真拥抱低精度和 HBM</h2>
+
+<h3>Rapid Packed Math</h3>
+<p>如果算法允许较低精度，就可以把较小数据打包进同一个 datapath，提高吞吐。</p>
+<pre>32-bit datapath slot
+→ two lower-precision values
+→ more ops per clock</pre>
+
+<p>这是现代 FP16/INT8/FP8 AI 路线之前的重要阶段。</p>
+
+<h3>HBM2 与 High Bandwidth Cache</h3>
+<p>Vega 高端产品把 HBM2 带进消费/compute 产品。</p>
+<p>真正的长期趋势：</p>
+<pre>GPU compute gets faster
+→ memory bandwidth becomes more important
+→ package/memory architecture becomes a first-class design axis</pre>
+
+<h2>7. 为什么 Vega 是分叉点</h2>
+<p>从这里以后，AMD 不再让一个架构同时承担所有目标：</p>
+<pre>GCN / Vega ancestry
+      ├─ RDNA → graphics / low-latency
+      └─ CDNA → HPC / AI / throughput</pre>
+
+<p>所以后面千万不要说：</p>
+<pre>RDNA2 → RDNA3 → CDNA3</pre>
+
+<p>这是两条不同产品/架构路线。</p>
+</body></html>
