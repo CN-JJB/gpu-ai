@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I12. I01–I10 have a full Python self-test PASS; I11–I12 have exact-main contract verification pending a fresh full Python rerun.
+Phase 4 tooling currently implements I01–I13. I01–I10 have a full Python self-test PASS; I11–I12 have exact-main contract verification pending a fresh full Python rerun.
 
 ## 1. Validate a catalog
 
@@ -154,7 +154,21 @@ The audit surfaces:
 
 MEDIAN_ASK rows without sample/method evidence fail catalog validation.
 
-## 12. Comparable benchmark view
+## 12. Sold-marked listing market
+
+~~~bash
+python3 sold_marked_market.py ../../intelligence/catalog
+~~~
+
+This view summarizes pages marked SOLD while preserving:
+
+~~~text
+confirmed_transaction_price=false
+~~~
+
+It reports median displayed listing prices, not confirmed transaction medians.
+
+## 13. Comparable benchmark view
 
 ~~~bash
 python3 comparable_benchmarks.py fixtures/catalog \
@@ -172,7 +186,7 @@ Comparison grouping requires the same:
 
 Rows are descriptive system comparisons, not automatically causal A/B claims.
 
-## 13. Explicit price/performance
+## 14. Explicit price/performance
 
 ~~~bash
 python3 price_performance.py fixtures/catalog \
@@ -188,7 +202,7 @@ The tool never auto-selects a “latest price”.
 
 Selected market records must share the same geography/channel/cohort/condition/price-state/currency contract.
 
-## 14. TCO worksheet
+## 15. TCO worksheet
 
 ~~~bash
 python3 tco_worksheet.py fixtures/catalog \
@@ -207,7 +221,7 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 15. Self-test
+## 16. Self-test
 
 From repository root:
 
@@ -230,6 +244,7 @@ See:
 - examples/evidence/intelligence-10-freshness-revalidation.md
 - examples/evidence/intelligence-11-market-cohort-coverage.md
 - examples/evidence/intelligence-12-market-evidence-audit.md
+- examples/evidence/intelligence-13-sold-marked-listings.md
 
 ## Non-goals
 
