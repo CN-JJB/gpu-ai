@@ -65,3 +65,76 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 - L4：高风险硬核实验
 
 每个 Lesson/Lab 必须声明门槛和可替代路径。
+
+
+## v1 已实现内容索引
+
+这部分记录仓库中已经落地的 Slice；上面的能力图仍然是长期课程地图。
+
+### A. GPU / LLM 推理基础
+
+| Slice | 主题 |
+|---:|---|
+| 01 | Fixed-function → unified programmable GPU |
+| 02 | Thread / warp-wave / SM-CU / scheduler / latency hiding |
+| 03 | Registers / shared-LDS / tiling / reuse |
+| 04 | Bandwidth / arithmetic intensity / Roofline |
+| 05 | LLM weights / KV / VRAM capacity |
+| 06 | Quantization / datatype / container / backend |
+
+### B. 本地运行与 Serving
+
+| Slice | 主题 |
+|---:|---|
+| 07 | 第一次可复现 llama.cpp 本地 LLM |
+| 08 | Slots / continuous batching / TTFT |
+| 09 | Prefix Cache / paged-KV concepts |
+| 10 | Speculative Decoding |
+| 11 | Single-node multi-GPU / interconnect |
+| 12 | Attention I/O / FlashAttention |
+| 13 | Tensor Core / MFMA / matrix precision / TOPS traps |
+
+### C. 四生态 GPU 架构
+
+| Slice | 主题 |
+|---:|---|
+| 14 | NVIDIA Tesla/G80 → Blackwell |
+| 15 | AMD GCN/Vega → RDNA/CDNA → current frontier |
+| 16 | Apple Silicon Unified Memory / Metal / ANE / MLX |
+| 17 | Intel EU → Xe-Core/XMX → Arc / oneAPI / SYCL |
+
+### D. 垃圾佬采购与二手市场
+
+| Slice | 主题 |
+|---:|---|
+| 18 | Cross-vendor fit/support/roof/TCO decision framework |
+| 19 | 中国二手 GPU 市场采样与价格归一化 |
+| 20 | 二手 GPU 付款前/到手验收 |
+| 21 | Max-buy-price / watchlist |
+
+### E. Capstone
+
+| Slice | 主题 |
+|---:|---|
+| 22 | Measure → diagnose → one-variable A/B |
+| 23 | NVIDIA / AMD / Apple / Intel vendor capstone runbooks |
+
+### 当前缺口 / 下一主线
+
+GPU 与部署侧已经形成完整闭环。
+
+下一阶段补齐 LLM 模型结构主线：
+
+```
+Transformer dataflow
+→ decoder-only inference
+→ embedding / residual / norm
+→ RoPE
+→ MHA / MQA / GQA
+→ SwiGLU / FFN
+→ MoE
+→ logits / sampling boundary
+→ how architecture changes VRAM / bandwidth / kernels
+```
+
+这条线将与现有 Slice 05 / 09 / 12 / 13 / 22 汇合。

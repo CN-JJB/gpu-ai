@@ -248,6 +248,20 @@ Artifacts:
 
 L0 bottleneck diagnosis verified 7/7. Real manifest validator freezes identity and requires one semantic config difference. No real PP/TG values are fabricated.
 
+### Slice 23 — Four-vendor capstone runbooks
+
+NVIDIA CUDA / AMD ROCm-HIP / Apple Metal / Intel SYCL 使用同一 controlled-A/B 方法，但保留各自 device/memory/support 语义。
+
+Artifacts:
+- research/system/0002-vendor-capstone-runbooks.md
+- reference/system/vendor-capstone-runbooks.md
+- lessons/23-vendor-capstone/
+- labs/experiments/41-vendor-capstone-preflight/
+- examples/evidence/experiment-23-vendor-capstone-runbooks.md
+- learning/records/2026-08-27-vendor-capstone-runbooks.md
+
+Current llama.cpp build/device entry points were verified against pinned upstream before writing. All vendor paths reuse Experiment 40.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -304,8 +318,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build vendor-specific capstone runbooks for NVIDIA CUDA, AMD ROCm/HIP, Apple Metal/MLX and Intel SYCL/XPU.
-2. Keep one shared scientific structure while using each ecosystem's own device/memory terminology.
-3. Give each runbook one safe first optimization branch chosen from measured evidence.
-4. Reuse Experiment 40 manifests/validator rather than duplicating benchmark methodology.
-5. After vendor runbooks, audit COURSE-MAP / lesson/lab indexes so Slices 14–22 are discoverable from the repository root.
+1. Start the LLM architecture spine with decoder-only Transformer execution anatomy.
+2. Teach one-token decode and multi-token prefill as two dataflows through the same block.
+3. Add RMSNorm/residual, RoPE, MHA/MQA/GQA and SwiGLU with tensor-shape/memory consequences.
+4. Then add MoE routing/expert activation and explain why total parameters != active parameters != weight traffic.
+5. Tie every model-architecture lesson back to KV size, PP/TG, quantization and kernel behavior.
