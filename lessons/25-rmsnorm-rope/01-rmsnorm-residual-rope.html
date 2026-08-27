@@ -1,0 +1,195 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 2：RMSNorm、Residual、RoPE</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 2 — RMSNorm、Residual、RoPE：尺度、信息和位置</h1>
+
+<p>这三个组件参数都不算模型里的“大块头”，但少一个都可能让整个模型函数变掉。</p>
+
+<h2>1. RMSNorm：它不是把均值变成 0</h2>
+
+<p>对 hidden vector：</p>
+
+<pre>x = [x₁, x₂, ... x_d]</pre>
+
+<p>先算：</p>
+
+<pre>RMS(x) = sqrt(mean(x²) + eps)</pre>
+
+<p>然后：</p>
+
+<pre>y = g ⊙ x / RMS(x)</pre>
+
+<p><code>g</code> 是训练出来的 scale。</p>
+
+<div class="callout"><strong>和 LayerNorm 最直观的区别：</strong>RMSNorm 不显式减掉 mean。</div>
+
+<h2>2. 为什么放大输入后，RMSNorm 输出不跟着放大？</h2>
+
+<p>忽略 epsilon：</p>
+
+<pre>RMS(3x) = 3 RMS(x)</pre>
+
+<p>所以：</p>
+
+<pre>3x / RMS(3x)
+=
+x / RMS(x)</pre>
+
+<p>这就是 re-scaling invariance 的直觉。</p>
+
+<h2>3. 参数很少，不等于免费</h2>
+
+<p>RMSNorm 的 learned weight 只有大约：</p>
+
+<pre>d</pre>
+
+<p>而一个大 linear 可能是：</p>
+
+<pre>d × d</pre>
+
+<p>但 inference 仍要做：</p>
+
+<pre>read
+→ square
+→ reduce
+→ rsqrt
+→ multiply</pre>
+
+<p>尤其 decode 的大矩阵利用率较低时，这类小 kernel/fusion 也会变得更显眼。</p>
+
+<h2>4. Residual：不要让每个 sublayer 都“从零重写” hidden state</h2>
+
+<pre>h = x + Attention(RMSNorm(x))
+y = h + MLP(RMSNorm(h))</pre>
+
+<p>心智模型：</p>
+
+<pre>已有表示
++
+新学到的 update
+=
+下一层表示</pre>
+
+<p>Residual 本身没有几十亿参数，但它是 block 数据依赖的骨架。</p>
+
+<h2>5. 位置问题来了</h2>
+
+<p>Attention 如果不知道顺序，下面两句的 token 集合很像：</p>
+
+<pre>dog bites man
+man bites dog</pre>
+
+<p>但意思完全不同。</p>
+
+<p>RoPE 不直接给 embedding 加一个 position vector，而是对 <strong>Q 和 K</strong> 的维度对做旋转。</p>
+
+<h2>6. 先看二维旋转</h2>
+
+<pre>[x₀']   [ cosφ  -sinφ ] [x₀]
+[x₁'] = [ sinφ   cosφ ] [x₁]</pre>
+
+<p>旋转有个很重要的性质：</p>
+
+<pre>||x'|| = ||x||</pre>
+
+<p>它改变方向，不改变这个二维向量的长度。</p>
+
+<h2>7. RoPE：不同 position 转不同角度</h2>
+
+<p>第 i 对维度有自己的频率：</p>
+
+<pre>φᵢ(p) = p × ωᵢ</pre>
+
+<p>position 越不同，旋转关系越不同。</p>
+
+<h2>8. 为什么说它把“相对距离”放进 attention？</h2>
+
+<pre>q'_p = R(p)q
+k'_s = R(s)k</pre>
+
+<p>点积：</p>
+
+<pre>(q'_p)ᵀ k'_s
+≈
+qᵀ R(s-p) k</pre>
+
+<p>关键在：</p>
+
+<pre>s - p</pre>
+
+<p>所以如果把两个位置一起 +10，它们的相对 offset 没变，基础 RoPE 的这部分点积关系也不变。</p>
+
+<h2>9. 这和 KV Cache 有什么关系？</h2>
+
+<p>Prompt prefill 时，每个 historical K 对应自己的 position。</p>
+
+<pre>token at position 0 → K₀
+token at position 1 → K₁
+...
+token at position S-1 → Kₛ₋₁</pre>
+
+<p>Decode 的新 Q 在当前 position S。</p>
+
+<pre>Q_S
+→ compare with
+K_0 ... K_{S-1}</pre>
+
+<div class="callout"><strong>所以 KV cache 不只是“token 内容缓存”。Position/RoPE state 也是它逻辑身份的一部分。</strong></div>
+
+<h2>10. 为什么 Prefix Cache 不能只看字符串一样？</h2>
+
+<p>真正需要一致的是：</p>
+
+<pre>tokenization
++ model
++ context state
++ position
++ RoPE configuration</pre>
+
+<p>同样文本如果处在不同需要重映射的位置状态，不能无脑把 K/V 当完全同一个 cache object。</p>
+
+<h2>11. RoPE 不会让 KV 变宽</h2>
+
+<p>旋转前：</p>
+
+<pre>K [B,Hkv,S,Dh]</pre>
+
+<p>旋转后逻辑 shape 仍是：</p>
+
+<pre>K [B,Hkv,S,Dh]</pre>
+
+<p>所以 KV 主公式仍然是：</p>
+
+<pre>2 × layers × Hkv × Dh × bytes × tokens</pre>
+
+<h2>12. rope_theta 与 rope_scaling</h2>
+
+<p>真实 model config 经常有：</p>
+
+<pre>rope_theta
+rope_scaling</pre>
+
+<p>它们改变频率/位置映射。</p>
+
+<p>最危险的误区：</p>
+
+<pre>我显存够 128k KV
+→ 模型就一定能高质量跑 128k</pre>
+
+<p>错误。</p>
+
+<p>要分开：</p>
+
+<pre>memory capacity
+vs
+position extrapolation quality</pre>
+
+<h2>13. 三个组件各自解决什么？</h2>
+
+<table>
+<tr><th>组件</th><th>主要作用</th><th>大参数矩阵？</th></tr>
+<tr><td>RMSNorm</td><td>控制 hidden scale</td><td>否</td></tr>
+<tr><td>Residual</td><td>保留/累加表示</td><td>否</td></tr>
+<tr><td>RoPE</td><td>把 position 放进 Q/K geometry</td><td>否</td></tr>
+</table>
+
+<p>但任何一个错了，都不是“性能差一点”，而可能是模型函数错了。</p>
+</body></html>
