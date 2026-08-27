@@ -12,6 +12,7 @@ Phase 4 specs：
 - docs/specs/0005-intelligence-comparable-benchmark-view.md
 - docs/specs/0006-intelligence-explicit-price-performance.md
 - docs/specs/0007-intelligence-tco-worksheet.md
+- docs/specs/0008-intelligence-real-benchmark-intake.md
 
 Schema：
 - intelligence/schema/README.md
@@ -67,6 +68,8 @@ Preferred path:
 
 ~~~text
 Experiment 61
+→ tools/intelligence/verify_real_intake.py
+→ INTAKE: READY
 → tools/intelligence/ingest_llama_bench.py
 → benchmark observation
 → tools/intelligence/ingest_measured_compatibility.py
