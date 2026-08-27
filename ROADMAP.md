@@ -37,21 +37,25 @@ Next validation step: complete Experiment 93 against a real learner-owned target
 ## Phase 4 — Intelligence Stations
 Status: active
 
-Completed foundations:
+Verified foundations:
 - [x] I01 canonical Hardware / Model catalog + Market / Benchmark observations
 - [x] I01 Experiment 61 → llama-bench benchmark ingester
 - [x] I01 Hardware ↔ Model ↔ Benchmark query bridge
 - [x] I01 provenance/freshness/synthetic validation
 - [x] I02 Runtime entities + compatibility observations
 - [x] I02 DOCUMENTED vs MEASURED support preflight
+- [x] I03 exact measured compatibility ingestion
+- [x] I04 same-artifact/workload comparable benchmark view
+- [x] I05 explicit same-cohort price/performance view
+- [x] I06 evidence-linked TCO scenario worksheet
+- [x] I01–I06 Python compile + end-to-end self-test
 
 Next:
-- [ ] measured compatibility ingestion;
-- [ ] expand current vendor/backend observations;
-- [ ] comparable-workload benchmark views;
-- [ ] normalized direct-market ingestion;
-- [ ] explicit price/performance and TCO queries;
-- [ ] recommendation views only after feasibility/support gates.
+- [ ] ingest the first real Experiment 61 benchmark Evidence Packet;
+- [ ] derive production MEASURED_SUPPORTED from that exact path;
+- [ ] expand current NVIDIA / AMD / Apple / Intel backend observations;
+- [ ] collect stronger normalized direct-market observations;
+- [ ] recommendation views only after feasibility/support/quality gates.
 
 Dynamic prices, current compatibility, model releases and benchmark observations belong here rather than being written into stable lessons.
 
