@@ -203,10 +203,13 @@ def main():
         elif t == "benchmark":
             req(r, "hardware_id", errors)
             req(r, "model_id", errors)
+            req(r, "runtime_id", errors)
             if r.get("hardware_id") not in hardware:
                 errors.append(f"{loc}: unknown hardware_id {r.get('hardware_id')!r}")
             if r.get("model_id") not in models:
                 errors.append(f"{loc}: unknown model_id {r.get('model_id')!r}")
+            if r.get("runtime_id") not in runtimes:
+                errors.append(f"{loc}: unknown runtime_id {r.get('runtime_id')!r}")
 
             artifact = r.get("artifact")
             if not isinstance(artifact, dict):
