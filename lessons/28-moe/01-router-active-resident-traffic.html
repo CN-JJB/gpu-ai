@@ -1,0 +1,263 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 5：Mixture of Experts</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 5 — MoE：总参数很大，为什么每个 token 只算一部分？</h1>
+
+<h2>1. 先把一句营销话拆成四个数字</h2>
+
+<p>看到：</p>
+
+<pre>671B total
+37B active</pre>
+
+<p>绝对不能直接理解成：</p>
+
+<pre>只需要装 37B 权重</pre>
+
+<p>你必须分开：</p>
+
+<pre>总参数
+每 token 激活参数
+常驻显存
+实际搬运字节</pre>
+
+<div class="callout"><strong>这四个数可以差非常大。</strong></div>
+
+<h2>2. MoE 本质上先复制很多 FFN Expert</h2>
+
+<p>一个 expert 可以先理解成上一节的 SwiGLU：</p>
+
+<pre>gate
+up
+SiLU ×
+down</pre>
+
+<p>如果一个 expert：</p>
+
+<pre>P_expert ≈ 3 d d_e</pre>
+
+<p>8 个 expert：</p>
+
+<pre>8 × P_expert</pre>
+
+<p>全部都属于模型权重。</p>
+
+<h2>3. Router 决定当前 token 去哪里</h2>
+
+<pre>x
+→ router
+→ scores for expert 0..N-1
+→ top-k
+→ selected experts</pre>
+
+<p>例如：</p>
+
+<pre>N = 8
+k = 2</pre>
+
+<p>一个 token 可能选：</p>
+
+<pre>expert 2
+expert 6</pre>
+
+<p>下一 token 完全可能选：</p>
+
+<pre>expert 0
+expert 7</pre>
+
+<h2>4. Top-2 不是“模型只有两个 expert”</h2>
+
+<p>它只是说：</p>
+
+<pre>这个 token
+在这个 MoE layer
+执行两个 routed experts</pre>
+
+<p>另外 6 个 expert 仍然存在，而且下一 token 可能用到。</p>
+
+<h2>5. 所以 active params 为什么小？</h2>
+
+<p>如果每个 expert 相同：</p>
+
+<pre>total expert params/layer
+≈ N × P_expert</pre>
+
+<p>而当前 token：</p>
+
+<pre>active routed params/layer
+≈ k × P_expert</pre>
+
+<p>N=8、k=2 时，expert 部分的 active/total 只是：</p>
+
+<pre>2 / 8 = 25%</pre>
+
+<p>但这不代表 VRAM 只装 25%。</p>
+
+<h2>6. 如果所有 expert 都在同一张卡</h2>
+
+<pre>VRAM
+必须容纳
+8 个 expert</pre>
+
+<p>因为 router 下一步可以突然选任何一个。</p>
+
+<div class="callout"><strong>Active parameters 是计算选择，不是自动的显存卸载机制。</strong></div>
+
+<h2>7. 一个 Mixtral-like 量级</h2>
+
+<p>用教学配置：</p>
+
+<pre>d = 4096
+d_e = 14336
+8 experts
+top-2
+32 MoE layers
+4.5 bpw</pre>
+
+<p>一个 expert：</p>
+
+<pre>176,160,768 weights
+≈ 94.5 MiB</pre>
+
+<p>一层全部 8 个：</p>
+
+<pre>≈ 756 MiB</pre>
+
+<p>一层这个 token 选中的两个：</p>
+
+<pre>≈ 189 MiB</pre>
+
+<p>32 层全部 expert 的权重存储代理：</p>
+
+<pre>≈ 23.625 GiB</pre>
+
+<p>而 top-2 无复用字节代理：</p>
+
+<pre>≈ 5.906 GiB / token</pre>
+
+<p>注意：这只是 experts，不是完整模型，也不是实测显存带宽。</p>
+
+<h2>8. 为什么 Prefill 会比单 token Decode 好很多？</h2>
+
+<p>16 个 token 一起进一个 MoE layer。</p>
+
+<p>它们可能这样路由：</p>
+
+<pre>expert 0 ← 4 tokens
+expert 1 ← 4 tokens
+...
+expert 7 ← 4 tokens</pre>
+
+<p>runtime 可以把同一 expert 的 token 收到一起：</p>
+
+<pre>[4,d]
+×
+expert weights</pre>
+
+<p>而不是把同一套 weight 为四个 token 独立搬四遍。</p>
+
+<p>于是 expert weight 可以在 batch 内摊销。</p>
+
+<h2>9. Decode 为什么难？</h2>
+
+<p>一个序列每步通常只有一个新 token：</p>
+
+<pre>token
+→ top-2
+→ two expert FFNs</pre>
+
+<p>下一 token 路由又可能变。</p>
+
+<p>所以：</p>
+
+<ul>
+<li>expert batch 很小；</li>
+<li>weight reuse 差；</li>
+<li>动态 offload 很难隐藏；</li>
+<li>TG 可能很吃 bandwidth。</li>
+</ul>
+
+<h2>10. Routing 越集中越好吗？</h2>
+
+<p>不一定。</p>
+
+<p>16 token、top-2，一共 32 次 expert assignment。</p>
+
+<p>完全均衡：</p>
+
+<pre>[4,4,4,4,4,4,4,4]</pre>
+
+<p>如果全挤 expert 0/1：</p>
+
+<pre>[16,16,0,0,0,0,0,0]</pre>
+
+<p>后者只碰两套权重，看起来复用很好。</p>
+
+<p>但如果 experts 分布在 4 张 GPU：</p>
+
+<pre>GPU0 爆满
+GPU1/2/3 闲着</pre>
+
+<p>最终延迟可能反而更差。</p>
+
+<h2>11. MoE 多卡和 Tensor Parallel 不一样</h2>
+
+<p>Expert Parallel 常见过程：</p>
+
+<pre>router
+→ 把 token hidden state 发给 expert owner
+→ expert compute
+→ 把结果送回来
+→ combine</pre>
+
+<p>这是 token dispatch / gather。</p>
+
+<p>所以 PCIe/NVLink/xGMI 再次变成 Roofline。</p>
+
+<h2>12. Shared Experts 又是什么？</h2>
+
+<p>有些 MoE（例如 DeepSeekMoE 路线）还会有 always-on shared expert。</p>
+
+<pre>output
+=
+shared expert
++
+routed top-k experts</pre>
+
+<p>这意味着 active expert work 不能只算 top-k routed experts。</p>
+
+<h2>13. 为什么 MoE 对垃圾佬特别容易误判？</h2>
+
+<p>你看到：</p>
+
+<pre>active 13B</pre>
+
+<p>以为：</p>
+
+<pre>13B dense 的显存需求</pre>
+
+<p>结果下载文件几十 B 参数，显存根本放不下，只能 CPU offload。</p>
+
+<p>然后：</p>
+
+<pre>router 每 token 改 expert
+→ PCIe 搬权重
+→ TG 崩掉</pre>
+
+<p>这就是：</p>
+
+<pre>active compute small
+!= local deployment easy</pre>
+
+<h2>14. MoE 正确评估链</h2>
+
+<pre>total params
+→ expert count
+→ top-k + shared
+→ expert size
+→ resident placement
+→ routing distribution
+→ expert batching
+→ interconnect/offload
+→ PP/TG</pre>
+
+<p>到这一步，你已经能解释“为什么 MoE 参数巨大但 FLOPs 不同比例增长”，也能解释“为什么它仍然可能非常吃显存”。</p>
+</body></html>
