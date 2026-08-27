@@ -145,24 +145,22 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 43 | Storage / Model Loading：page cache / mmap / startup vs steady inference |
 | 44 | Host Memory Pressure / Swap / OOM：available RAM / paging / host-vs-VRAM OOM |
 | 45 | Thermal / Cooling / Sustained Performance：thermal soak / clocks / TG drift |
+| 46 | Used-GPU Validation / Purchase Acceptance：identity / PCIe / errors / sustained LLM |
 
 ### 当前下一主线
 
-模型结构与单机实验身份已经形成第一轮闭环。下一阶段转入 Serving workload / SLO：把 TTFT、ITL、吞吐、并发、请求长度分布和尾延迟统一起来。
+二手交易基础验收已在 Slice 20 建立；Slice 46 将其升级为更严格的硬件身份、PCIe、错误状态与 sustained Local-LLM Evidence 路径。
 
-随后再继续补现代 attention / context 与系统专题：
+下一阶段补整机供电与平台约束：
 
 ```
-sliding/local attention
-→ hybrid attention layers
-→ compressed/latent KV ideas
-→ why old homogeneous KV formula can overestimate/under-model modern architectures
+GPU board power
+→ PSU continuous capacity
+→ connector/cable topology
+→ slot power / auxiliary power
+→ transient/headroom
+→ multi-GPU platform budget
+→ safe acceptance
 ```
 
-然后回到真实模型选择：
-```
-model dossier
-+
-hardware dossier
-→ deployment capstone
-```
+然后把 PSU、PCIe、RAM、SSD、散热和多 GPU 汇总到整机毕业设计。
