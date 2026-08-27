@@ -367,6 +367,21 @@ Artifacts:
 
 Default L0 full/local/hybrid KV arithmetic verified at 32k and 128k.
 
+### Slice 31 — Tokenizer / chat template / sampling
+
+Messages → model-specific Jinja/chat serialization → special-token policy → exact token IDs → logits → ordered sampler chain → output token/text。
+
+Artifacts:
+- research/llm/0014-tokenizer-chat-template-sampling.md
+- reference/llm/prompt-tokenizer-sampling-identity.md
+- lessons/31-tokenizer-sampling/01-template-token-logit-sampler.html
+- labs/experiments/56-chat-template-special-token-model/
+- labs/experiments/57-real-prompt-token-identity/
+- examples/evidence/experiment-31-tokenizer-chat-template-sampling.md
+- learning/records/2026-08-27-tokenizer-chat-template-sampling.md
+
+Toy template/token-count and duplicate-BOS behavior verified. Real prompt path hashes messages/template/rendered/token IDs.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -423,8 +438,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build tokenizer / chat-template / special-token slice.
-2. Show that same user text can serialize to different token sequences under different templates.
-3. Connect token count directly to context budget, KV usage and PP.
-4. Separate model logits from sampling policy and text decoding.
-5. Add reproducible prompt-artifact hashing so benchmark prompts are part of workload identity.
+1. Build a quality gate: next-token probability, cross-entropy and perplexity for beginners.
+2. Explain why faster tokens/s is invalid optimization evidence if model quality/correctness regresses.
+3. Add deterministic prompt/task checks for backend/quant A/B.
+4. Separate perplexity from chat helpfulness and benchmark-task quality.
+5. Extend Capstone success criteria to include an explicit quality check when numerical/model representation changes.

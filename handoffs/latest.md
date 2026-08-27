@@ -7,81 +7,69 @@
 
 ## Completed frontier
 
-Slices 01–30 are implemented.
+Slices 01–31 are implemented.
 
-Latest model architecture chain:
+Latest model/system chain:
 
 ```
 24 decoder-only dataflow
-25 RMSNorm / residual / RoPE
-26 MHA / MQA / GQA
-27 SwiGLU / dense FFN
+25 RMSNorm / RoPE
+26 MHA/MQA/GQA
+27 SwiGLU FFN
 28 MoE
-29 Model Architecture Dossier
-30 Sliding / Hybrid / Latent KV
+29 Model Dossier
+30 Sliding/Hybrid/Latent KV
+31 Tokenizer / Chat Template / Sampling
 ```
 
-## Slice 30 core
+## Slice 31 core
 
-General cache accounting:
-
-```
-Σ_l
-(
-cached positions_l
-× cached state width_l
-× bytes
-)
-```
-
-Ordinary full attention is a special case.
-
-Verified synthetic hybrid:
+Actual model input identity:
 
 ```
-32 layers
-8 full
-24 local
-W=4096
-Hkv=8
-Dh=128
-FP16
-
-32k:
-full 4 GiB
-local 0.5 GiB
-hybrid 1.375 GiB
-
-128k:
-full 16 GiB
-local 0.5 GiB
-hybrid 4.375 GiB
-```
-
-DeepSeek-style MLA proxy is opt-in and architecture-specific.
-
-## Active next slice — Tokenization / Chat Template / Sampling Boundary
-
-Build:
-
-```
-raw user text
-→ chat template serialization
-→ special tokens
+structured messages
+→ chat template
+→ rendered bytes
 → tokenizer
 → token IDs
-→ model logits
-→ sampling policy
-→ next token
-→ text decode
+```
+
+Output:
+
+```
+logits
+→ ordered sampler policy
+→ token ID
+→ decoded text
+```
+
+Benchmark prompt Evidence should preserve:
+- message hash;
+- template hash;
+- rendered hash;
+- token-ID hash/count;
+- sampling config.
+
+Current pinned llama.cpp includes Jinja template support/tests and `llama-tokenize`.
+
+## Active next slice — Quality Gate
+
+Build beginner-first:
+
+```
+logits
+→ probabilities
+→ probability assigned to correct next token
+→ negative log likelihood
+→ mean cross entropy
+→ perplexity = exp(loss)
 ```
 
 Teach:
-- chat template is part of workload/model interface;
-- prompt token count changes PP/KV/context;
-- exact prompt serialization must be preserved for benchmarking;
-- logits are not sampled text;
-- deterministic/greedy vs stochastic sampling;
-- same random seed may still differ across runtimes/numerics.
+- lower PPL on same dataset/tokenizer is better predictive fit;
+- PPL across different tokenizers is not directly comparable;
+- PPL is not chat helpfulness;
+- quant/backend optimization needs quality/correctness check;
+- deterministic task fixtures complement PPL.
 
-Then connect to serving TTFT and reproducible benchmarks.
+Then add a real quant/backend A/B quality packet without fake quality results.

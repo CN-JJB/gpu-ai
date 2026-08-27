@@ -1376,3 +1376,14 @@ URL: https://arxiv.org/abs/2408.00118
 URL: https://arxiv.org/abs/2405.04434
 用途：Multi-head Latent Attention / compressed KV and DeepSeekMoE.
 可信度：primary technical report。
+
+
+### Hugging Face chat templates
+URL: https://huggingface.co/docs/transformers/chat_templating_writing
+用途：current Jinja chat-template model interface, special tokens and generation-prompt behavior.
+可信度：official current Transformers documentation。
+
+### Hugging Face chat template basics
+URL: https://huggingface.co/docs/transformers/main/en/chat_template_basics
+用途：template application/tokenization workflow and duplicate-special-token warning.
+可信度：official current Transformers documentation。
