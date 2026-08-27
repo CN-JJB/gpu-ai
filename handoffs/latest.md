@@ -1,35 +1,25 @@
-# Handoff — GPU × Local LLM Course
+# Handoff — GPU × Local LLM Course / Intelligence Stations
 
 ## Repository
 
 - Repo: CN-JJB/gpu-ai
 - Branch: main
 
-## Completed frontier
+## Stable course state
 
 ~~~text
 Slices 01–49 implemented
 Experiments 01–93 exist
+Stable v1 mainline complete
 ~~~
 
-The stable v1 mainline now reaches the graduation Machine Design Capstone.
+The stable mainline ends with:
+- Experiment 91 whole-machine dossier;
+- Slice 49 Graduation Machine Design Capstone;
+- Experiment 92 synthetic final-review validator;
+- Experiment 93 real graduation report workflow.
 
-## Slice 48 foundation
-
-Whole-machine feasibility remains:
-
-~~~text
-workload/model
-→ hard gates
-→ blocking unknowns
-→ measured performance/quality/SLO
-→ preferences/TCO
-→ ACCEPT / REVISE / BLOCKED
-~~~
-
-Experiment 91 is the real machine dossier.
-
-Decision semantics:
+Stable machine-decision semantics remain:
 
 ~~~text
 known required FAIL → REVISE
@@ -37,101 +27,151 @@ critical UNKNOWN / missing required evidence → BLOCKED
 all required gates PASS → ACCEPT
 ~~~
 
-No weighted score may average away a hard failure.
+No weighted score may average away a hard gate.
 
-## Slice 49 core — Graduation Machine Design Capstone
+## Active Phase 4 frontier
 
-New final workflow:
-
-~~~text
-freeze target
-→ link Experiment 91
-→ material-claim Evidence index
-→ architecture narrative
-→ benchmark / quality / SLO
-→ TCO / risk
-→ causal revision alternatives
-→ evidence-triggered upgrade roadmap
-→ explicit non-claims
-→ final rationale
-→ transfer check
-~~~
-
-Key distinction:
+Verified:
 
 ~~~text
-machine feasibility
-!=
-graduation packet completeness
+I01 catalog / benchmark bridge
+I02 compatibility preflight
+I03 exact measured compatibility ingestion
+I04 comparable benchmark view
+I05 explicit price/performance
+I06 evidence-linked TCO worksheet
 ~~~
 
-A BLOCKED machine can still have a COMPLETE graduation packet if the learner correctly proves the blocker and resolution path.
+These are Intelligence Stations, not Slice 50–55.
 
-An ACCEPT machine can still have an INCOMPLETE graduation packet if its material claims are not auditable.
+## I01 data contract
 
-## New artifacts
+Production catalog:
 
-Research:
-- research/system/0004-graduation-machine-design-capstone.md
+~~~text
+intelligence/catalog/hardware.jsonl
+intelligence/catalog/models.jsonl
+intelligence/catalog/runtimes.jsonl
+intelligence/catalog/market.jsonl
+intelligence/catalog/compatibility.jsonl
+intelligence/catalog/benchmarks.jsonl
+~~~
 
-Reference:
-- reference/system/graduation-machine-design-capstone.md
+Use canonical entities plus dated observations.
 
-Lesson:
-- lessons/49-graduation-capstone/01-evidence-to-design-review.html
+## I02 compatibility semantics
 
-Synthetic lab:
-- labs/experiments/92-graduation-design-review/
+~~~text
+DOCUMENTED_SUPPORTED → NEEDS-TEST
+MEASURED_SUPPORTED → PASS-MEASURED
+PARTIAL / EXPERIMENTAL → REVIEW
+DOCUMENTED_UNSUPPORTED → FAIL
+UNKNOWN → BLOCKED
+stale → STALE-REVALIDATE
+~~~
 
-Real graduation lab:
-- labs/experiments/93-real-graduation-report/
+Do not promote documentation to measured PASS.
+
+## I03 measured ingestion
+
+Preferred path:
+
+~~~text
+Experiment 61 manifest
++ raw llama-bench
++ Evidence Packet
+→ ingest_llama_bench.py
+→ benchmark observation
+→ ingest_measured_compatibility.py
+→ exact MEASURED_SUPPORTED
+~~~
+
+Measured support remains exact-path scoped.
+
+## I04 comparable benchmark rule
+
+~~~text
+same model
++ same artifact SHA
++ same quant
++ same workload
+→ comparable descriptive group
+~~~
+
+Do not rank across groups.
+
+## I05 price/performance rule
+
+Explicit market records only.
+
+Selected market observations must share:
+- geography;
+- channel;
+- cohort;
+- condition;
+- price state;
+- currency.
+
+No automatic latest-price denominator.
+
+## I06 TCO rule
+
+~~~text
+purchase
++ platform delta
++ electricity
++ risk reserve
+- resale
+→ scenario TCO
+~~~
+
+TCO does not rescue an infeasible/unsupported/unsafe design.
+
+## Verification
+
+Exact-content local verification was completed on 2026-08-27.
+
+The checked local files matched main-branch Git blob SHAs for the intelligence scripts/catalog/fixtures used in the run.
+
+Executed:
+
+~~~bash
+python -m py_compile tools/intelligence/*.py
+python tools/intelligence/selftest.py
+~~~
+
+Result:
+
+~~~text
+SELFTEST: PASS
+~~~
 
 Evidence:
-- examples/evidence/experiment-49-graduation-machine-design-capstone.md
+- examples/evidence/intelligence-i01-i06-selftest-verification.md
+- learning/records/2026-08-27-intelligence-i01-i06-verification.md
 
-Learning record:
-- learning/records/2026-08-27-graduation-machine-design-capstone.md
+Defects caught/fixed:
+- literal backslash-n source corruption;
+- missing runtime dictionary initialization;
+- UNKNOWN incorrectly rejected as placeholder.
 
-## Experiment 92
+GitHub Actions workflow:
+- .github/workflows/intelligence-selftest.yml
 
-Synthetic cases cover:
+The connector did not surface a workflow run for the checkpoint, so do not claim CI success.
 
-~~~text
-ACCEPT
-REVISE
-BLOCKED
-~~~
+## Current production-data boundary
 
-Validator checks:
-- gate/decision consistency;
-- material-claim evidence presence and scope;
-- revision coverage for failed gates;
-- explicit non-claims;
-- evidence-triggered roadmap structure.
+Production benchmark catalog remains empty by design.
 
-## Experiment 93
+No real benchmark Evidence has yet been admitted through I01–I03.
 
-Contains:
-- CAPSTONE-REPORT-TEMPLATE.md;
-- RUBRIC.md;
-- capstone.template.json;
-- validate_capstone.py;
-- EXPECTED.md.
+## Next work
 
-The validator returns independently:
+1. Search existing repository Evidence for a real Experiment 61-compatible packet/result.
+2. Ingest it only if hardware/model/runtime/artifact/workload identity is complete and auditable.
+3. Otherwise leave production benchmark data empty and prepare a real-run intake checklist.
+4. Expand dated compatibility observations across NVIDIA / AMD / Apple / Intel.
+5. Delay recommendation/ranking until real comparable Evidence exists.
 
-~~~text
-MACHINE DECISION: ACCEPT / REVISE / BLOCKED
-CAPSTONE COMPLETENESS: COMPLETE / INCOMPLETE
-~~~
-
-## Active next work
-
-Do not extend the stable mainline by default.
-
-Next:
-1. run Experiment 93 on a real learner-owned target/machine;
-2. feed demonstrated gaps back into existing Lessons;
-3. otherwise begin Phase 4 Intelligence Stations for dynamic hardware/model/benchmark data.
-
-No auto-purchase or unsafe hardware modification is part of the graduation workflow.
+No auto-purchase or unsafe hardware modification is part of this workflow.
