@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 22 — Capstone：从实测到单变量优化</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Slice 22 — Capstone：不是“调最快”，而是“知道为什么变快”</h1>
+
+<h2>1. 先锁死四个身份</h2>
+
+<pre>Hardware
+Runtime
+Model artifact
+Workload</pre>
+
+<p>模型必须记录 SHA256。Runtime 必须记录 commit/build。否则今天的 42 tok/s 和明天的 45 tok/s 根本不知道差在哪。</p>
+
+<h2>2. Baseline 至少要有 PP 和 TG</h2>
+
+<table>
+<tr><th>指标</th><th>主要在问</th></tr>
+<tr><td>PP</td><td>prefill / 大矩阵 / attention kernel 怎么样？</td></tr>
+<tr><td>TG</td><td>decode / 权重与 KV 流量怎么样？</td></tr>
+</table>
+
+<p>再记录：</p>
+<ul>
+<li>显存/working set；</li>
+<li>温度；</li>
+<li>功耗；</li>
+<li>backend startup log；</li>
+<li>raw JSON。</li>
+</ul>
+
+<h2>3. 第一次真正做“诊断”</h2>
+
+<h3>装不下</h3>
+<pre>capacity problem
+→ quant / KV / context / sharding</pre>
+
+<h3>TG 慢，而且接近 bandwidth roof</h3>
+<pre>decode bandwidth problem
+→ weight bytes / backend memory traffic
+→ maybe speculative</pre>
+
+<h3>PP 慢，TG 还可以</h3>
+<pre>matrix / attention kernel problem
+→ backend / FA / datatype path</pre>
+
+<h3>短 context 快，长 context 明显掉</h3>
+<pre>KV / cache / memory pressure</pre>
+
+<h3>单用户快，多用户 TTFT 爆炸</h3>
+<pre>queue / slots / batching</pre>
+
+<h3>双卡只快一点</h3>
+<pre>interconnect / split / imbalance</pre>
+
+<div class="callout"><strong>重点：</strong>优化选项不是菜单里随便点一个，而是由 baseline 证据触发。</div>
+
+<h2>4. 每次只改一个变量</h2>
+
+<p>合法：</p>
+<pre>A: -fa 0
+B: -fa 1</pre>
+
+<p>合法：</p>
+<pre>A: KV f16
+B: KV q8_0</pre>
+
+<p>不合法：</p>
+<pre>A: old build + Q4 + FA off + 4k
+B: new build + Q5 + FA on + 16k</pre>
+
+<p>第二种即使更快，你也不知道为什么。</p>
+
+<h2>5. 开跑前先写成功标准</h2>
+
+<p>例如 FA：</p>
+<pre>目标：
+PP +20%以上
+TG 不要求明显变化
+显存不能造成新 OOM
+correctness 正常</pre>
+
+<p>如果最后：</p>
+<pre>PP +31%
+TG +2%</pre>
+
+<p>正确结论是：</p>
+<pre>FA mainly improved prefill path;
+decode remains limited elsewhere.</pre>
+
+<p>不是：</p>
+<pre>FA makes this GPU 31% faster.</pre>
+
+<h2>6. 负优化也是有效结果</h2>
+
+<pre>candidate:
+PP -4%
+TG +0.5%</pre>
+
+<p>如果实验条件控制正确，这已经告诉你：</p>
+<pre>this optimization is not useful
+for this workload/build/hardware</pre>
+
+<p>这比网上复制“必开参数”有价值得多。</p>
+
+<h2>7. 四个生态只换命令，不换科学方法</h2>
+
+<ul>
+<li>NVIDIA：CUDA / nvidia-smi</li>
+<li>AMD：HIP / rocminfo / amd-smi</li>
+<li>Apple：Metal / unified-memory evidence</li>
+<li>Intel：SYCL / Level Zero / XPU</li>
+</ul>
+
+<p>统一流程仍然是：</p>
+
+<pre>profile
+→ baseline
+→ hypothesis
+→ one variable
+→ A/B
+→ interpretation</pre>
+
+<h2>8. 最终毕业标准</h2>
+
+<p>你不需要有 5090，也不需要跑出排行榜第一。</p>
+
+<p>你需要拿自己的硬件证明：</p>
+
+<pre>我知道它现在为什么是这个速度
+我知道我改了什么
+我知道哪个指标应该变
+我有原始数据证明它到底变没变
+我知道下一步该测什么</pre>
+
+<p>这才是前面 21 个 Slice 最终汇合的能力。</p>
+</body></html>
