@@ -7,86 +7,66 @@
 
 ## Completed frontier
 
-Slices 01–34 are implemented.
-Experiments 01–63 exist.
+Slices 01–35 are implemented.
+Experiments 01–65 exist.
 
-## Slice 34 core
+## Slice 35
 
-Serving request timeline:
-
-```
-arrival
-→ queue
-→ prefill/service
-→ first visible token
-→ token stream
-→ completion
-```
-
-Metrics:
+Serving capacity relation:
 
 ```
-TTFT
-ITL
-E2E
-requests/s
-output tok/s
-p50/p95/p99
-SLO compliance
+L = λW
 ```
 
-Synthetic verified:
+but boundaries matter:
 
 ```
-mean TTFT 214.583 ms
-p95 TTFT 1200 ms
-mean ITL 50 ms
-SLO 99% required
-actual 91.667%
-→ FAIL
+L_system = queued + active
+L_active = active service
+L_queue = deferred/waiting
 ```
 
-This demonstrates:
-```
-healthy mean
-!= healthy tail
-```
-
-Real Experiment 63:
-- exact prompt files;
-- streaming client timestamps;
-- raw SSE logs;
-- /metrics before/after;
-- token-bearing chunk-gap explicitly labeled proxy, not true ITL.
-
-## Active next slice — Serving Capacity Planning
-
-Teach Little's Law:
+Verified synthetic:
 
 ```
-L = λ W
+λ = 1.2 req/s
+
+L_system 3.0, peak 5
+L_active 2.7, peak 4
+L_queue  0.3, peak 1
 ```
 
-where:
-- L = average number in system;
-- λ = long-run arrival/completion rate;
-- W = average time in system.
-
-Use it for planning:
+Constant active-KV teaching proxy:
 ```
-req/s × seconds/request
-→ average in-flight requests
+1.5 GiB/sequence
+average 4.05 GiB
+peak 6.0 GiB
 ```
 
-Then connect:
+Do not size slots from ceil(L_system).
+Do not derive active KV from client E2E trace without service-start evidence.
+
+## Active next slice — Overload / Admission Control
+
+Build a synthetic queue experiment with service capacity below offered load.
+
+Compare:
+
 ```
-in-flight sequences
-× per-sequence KV
-→ average KV pressure
+unbounded queue
+vs
+bounded queue + reject
+vs
+bounded queue + immediate retries
+vs
+backoff
 ```
 
-But keep boundaries:
-- average is not peak;
-- Little's Law does not predict p95;
-- overloaded/non-stationary systems need trace evidence;
-- slots should include headroom above average, not equal L blindly.
+Teach:
+- backlog can trade reject rate for disastrous TTFT;
+- immediate retries can amplify offered load;
+- rejecting early can preserve latency for admitted requests;
+- client timeout does not automatically cancel server work unless the system propagates cancellation;
+- admission must consider slots/KV/SLO, not only HTTP request count.
+
+Then add a real llama-server/reverse-proxy observation packet without prescribing one proxy product.

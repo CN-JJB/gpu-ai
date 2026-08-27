@@ -1414,3 +1414,14 @@ URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db
 URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/tests/unit/test_metrics.py
 用途：pinned tests for Prometheus metrics including cached-vs-processed prompt token accounting.
 可信度：pinned upstream official test source。
+
+
+### Little's Law original proof
+URL: https://doi.org/10.1287/opre.9.3.383
+用途：original 1961 proof of the queueing relation L = λW and formal conditions.
+可信度：original peer-reviewed paper。
+
+### Little's Law 50-year retrospective
+URL: https://doi.org/10.1287/opre.1110.0940
+用途：historical/practical context and broader use of Little's Law.
+可信度：author retrospective in Operations Research。

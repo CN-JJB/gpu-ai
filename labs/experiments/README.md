@@ -110,3 +110,9 @@
 
 - 62 synthetic tail-latency trace analyzer
 - 63 real llama-server workload trace / metrics packet
+
+
+### 64–65：Serving Capacity
+
+- 64 synthetic Little's-Law system/active/queue trace
+- 65 real request-trace serving-capacity worksheet

@@ -134,6 +134,7 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 32 | Quality Gate：Cross-Entropy / Perplexity / task regression |
 | 33 | Benchmark / Workload Manifest：one semantic variable + Evidence Packet |
 | 34 | Serving Workload / SLO：TTFT / ITL / tail latency / throughput |
+| 35 | Serving Capacity：Little's Law / slots / KV pressure |
 
 ### 当前下一主线
 

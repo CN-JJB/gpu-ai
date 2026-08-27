@@ -426,6 +426,21 @@ Artifacts:
 
 Synthetic tail-latency/SLO arithmetic verified. Real collector syntax-checked.
 
+### Slice 35 — Serving Capacity / Little's Law
+
+Throughput λ + time W → average occupancy L, with explicit system/queue/active boundaries → peak comparison → KV planning caveats。
+
+Artifacts:
+- research/llm/0017-serving-capacity-littles-law.md
+- reference/llm/serving-capacity-littles-law.md
+- lessons/35-serving-capacity/01-littles-law-slots-kv.html
+- labs/experiments/64-littles-law-trace-model/
+- labs/experiments/65-real-serving-capacity/
+- examples/evidence/experiment-35-serving-capacity-littles-law.md
+- learning/records/2026-08-27-serving-capacity-littles-law.md
+
+Synthetic system/active/queue Little's-Law identities and peak values verified.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -482,8 +497,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build serving-capacity planning slice using Little's Law.
-2. Separate arrival rate, average time in system, average in-flight requests and instantaneous peak concurrency.
-3. Map average/peak in-flight sequences to KV memory pressure and server slots.
-4. Show why Little's Law is an accounting relation, not a p95 latency predictor.
-5. Add a real trace capacity worksheet using Experiment 63 output.
+1. Build overload/admission-control slice.
+2. Compare unbounded queue, bounded queue and rejection under offered load above service capacity.
+3. Show retry amplification when clients retry immediately.
+4. Teach timeout/backoff/jitter as workload-shaping mechanisms.
+5. Tie admission policy to TTFT SLO and finite VRAM/slot capacity.
