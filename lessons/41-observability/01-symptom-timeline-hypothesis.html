@@ -1,0 +1,210 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Observability / Incident Diagnosis</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Observability — GPU 100% 到底是好事还是坏事？</h1>
+
+<h2>1. 单个指标不能直接当根因</h2>
+
+<pre>
+GPU util = 100%
+</pre>
+
+<p>可能代表：</p>
+
+<pre>
+GPU 正在满负荷干有用工作
+</pre>
+
+<p>如果：</p>
+
+<pre>
+TTFT/ITL SLO 都正常
+没有 errors
+clock 正常
+temperature 正常
+</pre>
+
+<p>那它甚至可能是你想要的状态。</p>
+
+<div class="callout"><strong>先看用户症状，再看资源信号解释症状。</strong></div>
+
+<h2>2. 四类信号</h2>
+
+<pre>
+Latency
+Traffic
+Errors
+Saturation
+</pre>
+
+<p>放到本地 LLM：</p>
+
+<pre>
+TTFT / ITL / E2E
+req/s / tok/s
+HTTP/OOM/SLO miss
+queue / slots / KV / GPU / thermal
+</pre>
+
+<h2>3. Case A：排队</h2>
+
+<pre>
+TTFT ↑↑
+requests_deferred ↑
+GPU util ↑
+clock 基本不变
+ITL 基本不变
+</pre>
+
+<p>更合理的假设：</p>
+
+<pre>
+queue/admission pressure
+</pre>
+
+<p>不是：</p>
+
+<pre>
+GPU 突然坏了
+</pre>
+
+<h2>4. 为什么 ITL 可以正常？</h2>
+
+<p>已经拿到 slot 的请求继续正常 decode。</p>
+
+<p>真正倒霉的是：</p>
+
+<pre>
+还在 queue 里的用户
+</pre>
+
+<p>所以先伤 TTFT。</p>
+
+<h2>5. Case B：温度 / clock</h2>
+
+<pre>
+temp:
+70 → 88 C
+
+clock:
+1800 → 1200 MHz
+
+ITL:
+50 → 95 ms
+</pre>
+
+<p>这时：</p>
+
+<pre>
+thermal/power/clock throttling
+</pre>
+
+<p>变成值得验证的 hypothesis。</p>
+
+<p>仍然不能只凭相关性就宣布根因。</p>
+
+<h2>6. Case C：VRAM 95%</h2>
+
+<pre>
+23.0 / 24 GiB
+23.1
+23.0
+23.1
+</pre>
+
+<p>但：</p>
+
+<pre>
+TTFT stable
+ITL stable
+no OOM
+no growth trend
+</pre>
+
+<p>这不能叫 memory leak。</p>
+
+<h2>7. 真正 leak-like 的证据更像</h2>
+
+<pre>
+同样 workload state
+→ VRAM 一轮比一轮高
+→ 不释放
+→ 最后 OOM
+</pre>
+
+<p>还要结合 runtime allocator/cache 行为。</p>
+
+<h2>8. 低 GPU 利用率同样不能直接买新卡</h2>
+
+<p>可能卡在：</p>
+
+<pre>
+CPU
+tokenizer
+storage
+host-device sync
+tiny batches
+network/client
+scheduler
+</pre>
+
+<h2>9. 时间线比截图强得多</h2>
+
+<pre>
+12:00:00 TTFT 200  deferred 0  clock 1800 temp65
+12:00:10 TTFT 300  deferred 2  clock 1800 temp68
+12:00:20 TTFT 600  deferred 5  clock 1780 temp70
+12:00:30 TTFT1200  deferred 9  clock 1780 temp72
+</pre>
+
+<p>你开始能看到事件一起怎么变化。</p>
+
+<h2>10. Metrics / Logs / Trace 各干什么？</h2>
+
+<pre>
+Metrics:
+趋势、率、饱和
+
+Logs:
+错误、异常、启动失败
+
+Request trace:
+每个用户请求时间线
+</pre>
+
+<p>三类 Evidence 互补。</p>
+
+<h2>11. Alert 不应该只是 GPU > 90%</h2>
+
+<p>更有意义：</p>
+
+<pre>
+TTFT p95 连续越 SLO
+requests_deferred 持续增加
+error rate 超限
+health 不 ready
+OOM 风险
+</pre>
+
+<p>然后 resource telemetry 帮你解释。</p>
+
+<h2>12. Incident Packet</h2>
+
+<pre>
+release identity
+workload
+client trace
+server metrics
+GPU telemetry
+logs
+hypothesis
+action
+follow-up A/B
+</pre>
+
+<p>这比：</p>
+
+<pre>
+“昨天好像特别慢”
+</pre>
+
+<p>有用得多。</p>
+</body></html>

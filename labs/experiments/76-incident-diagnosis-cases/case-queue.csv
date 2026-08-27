@@ -1,0 +1,5 @@
+t_s,ttft_p95_ms,itl_p95_ms,requests_deferred,gpu_util_pct,vram_used_gib,vram_total_gib,sm_clock_mhz,temp_c,error_rate
+0,200,50,0,70,18.0,24,1800,65,0
+10,300,50,2,90,18.2,24,1800,68,0
+20,600,52,5,96,18.3,24,1780,70,0
+30,1200,53,9,98,18.4,24,1780,72,0
