@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 12 — Attention 为什么被 HBM 拖住：Online Softmax 到 FlashAttention</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:980px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.7}
+pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}
+</style>
+</head>
+<body>
+<h1>Slice 12 — Attention 为什么被 HBM 拖住：Online Softmax 到 FlashAttention</h1>
+
+<p><strong>真实问题：</strong>同样是精确 attention，为什么“少存中间结果、多做一点计算”的 kernel 反而可能更快？</p>
+
+<h2>1. 先看普通 attention</h2>
+<pre>scores = QKᵀ / √d
+probs  = softmax(scores)
+out    = probs V</pre>
+<p>数学本身没有问题。问题在于一个直白实现很容易把 <code>scores</code> 和 <code>probs</code> 变成巨大的 N×N 中间矩阵，并在不同 kernel 之间写回/读回 HBM。</p>
+
+<h2>2. N×N 有多快膨胀？</h2>
+<table>
+<tr><th>序列长度 N</th><th>两个 fp16-like N×N 矩阵 / head</th><th>32 heads</th></tr>
+<tr><td>1024</td><td>4 MiB</td><td>0.125 GiB</td></tr>
+<tr><td>2048</td><td>16 MiB</td><td>0.5 GiB</td></tr>
+<tr><td>4096</td><td>64 MiB</td><td>2 GiB</td></tr>
+<tr><td>8192</td><td>256 MiB</td><td>8 GiB</td></tr>
+<tr><td>16384</td><td>1 GiB</td><td>32 GiB</td></tr>
+</table>
+<p>这张表是<strong>教学用 materialization 模型</strong>：它说明“如果把两份 N×N 中间量真的落到显存”会有多夸张，不代表某个具体框架的实际峰值显存。</p>
+
+<h2>3. 这就是 Slice 04 的 Roofline 再次出现</h2>
+<p>GPU 很擅长矩阵乘，但如果每一阶段都：</p>
+<pre>compute → write HBM → next kernel → read HBM</pre>
+<p>大量时间会花在数据搬运，而不是 Tensor Core / matrix unit 真正做乘加。</p>
+
+<div class="callout"><strong>关键思想：</strong>有时多算一点，比把巨量中间结果写进 HBM 再读回来更便宜。</div>
+
+<h2>4. Tiling：别一次做完整 N×N</h2>
+<pre>Q tile
+×
+K tile
+→ small score tile
+→ normalize incrementally
+→ accumulate V contribution
+→ discard local score tile</pre>
+<p>这和我们前面 GEMM tiling 的直觉一样：让小块数据留在更快的 on-chip memory 中反复使用。</p>
+
+<h2>5. 但 softmax 不是要看完整一行吗？</h2>
+<p>普通稳定 softmax：</p>
+<pre>m = max(x)
+softmax(xᵢ) = exp(xᵢ-m) / Σ exp(xⱼ-m)</pre>
+<p>看起来必须先知道整行最大值和总和，才能输出任何一个元素。</p>
+
+<h2>6. Online Softmax：把“全局依赖”变成可更新状态</h2>
+<p>对每个 query row 维护三个量：</p>
+<pre>m = running max
+l = running exp-sum
+a = running weighted-V accumulator</pre>
+<p>新 score block 到来时，先得到新的最大值 <code>m'</code>，然后把旧状态乘上 <code>exp(m-m')</code> 重标定，再把新 block 加进去。</p>
+<pre>m' = max(m, max(block))
+α  = exp(m - m')
+
+l' = α l + Σ exp(score - m')
+a' = α a + Σ exp(score - m') V</pre>
+<p>最后：</p>
+<pre>out = a / l</pre>
+<p>这样你可以一块一块处理 K/V，而不需要把整行 scores 保存在 HBM。</p>
+
+<h2>7. 所以 FlashAttention 到底是什么？</h2>
+<p>它不是一条“Flash 指令”。更好的心智模型是：</p>
+<pre>tiling
++ online stable softmax
++ fused accumulation
++ on-chip reuse
++ GPU-aware scheduling</pre>
+<p>目标是在保持 exact dense attention 数学结果的同时，减少 HBM 读写和中间 materialization。</p>
+
+<h2>8. 它没有消灭 N² 计算</h2>
+<p>全量 dense prefill 仍要做大量 QK dot products：</p>
+<pre>O(N²d)</pre>
+<p>FlashAttention 主要改变的是 IO complexity 和中间存储，不是把 exact dense attention 变成 O(N)。</p>
+
+<h2>9. FlashAttention-2 为什么还能继续快？</h2>
+<p>因为“算法已经 IO-aware”不代表 GPU 被喂满。第二代继续优化：</p>
+<ul>
+<li>thread-block 并行度；</li>
+<li>一个 head 内的工作拆分；</li>
+<li>warp 之间的分工；</li>
+<li>shared-memory 通信；</li>
+<li>非 matmul FLOPs。</li>
+</ul>
+<p>这正是 Slice 02 的 latency hiding / occupancy 与 Slice 03 的 shared memory / tiling 回到真实 LLM kernel 的地方。</p>
+
+<h2>10. Prefill 与 Decode 不要混</h2>
+<p>Prefill 是很多 query token 一起对很多 K/V 做 attention，N×N 结构最明显。</p>
+<p>Decode 通常只有一个或很少的新 query token，对长 KV cache 做读取，瓶颈常更偏 KV bandwidth / cache layout / GQA/MQA。</p>
+<div class="callout"><strong>所以：</strong>“FlashAttention 让 prefill 快很多”不能自动推出“decode 也同倍数变快”。</div>
+
+<h2>11. 和其他优化怎么区分？</h2>
+<table>
+<tr><th>技术</th><th>主要减少什么</th></tr>
+<tr><td>GQA / MQA</td><td>KV heads / KV bytes</td></tr>
+<tr><td>Paged KV</td><td>KV 分配与碎片/复用问题</td></tr>
+<tr><td>FlashAttention-style</td><td>attention 中间 IO/materialization</td></tr>
+<tr><td>Continuous batching</td><td>服务端空闲执行槽</td></tr>
+</table>
+
+<h2>12. 你应该带走的判断</h2>
+<ol>
+<li>先问瓶颈是 compute、HBM 还是 cache/interconnect。</li>
+<li>不要用 FLOPs 数量单独判断 kernel 快慢。</li>
+<li>看 fused kernel 是否减少中间落盘到 HBM。</li>
+<li>看 tile 是否能在 register/shared memory 中高复用。</li>
+<li>把 prefill 与 decode 分开 benchmark。</li>
+<li>backend 是否真的启用 FlashAttention，必须用当前 runtime Evidence 确认。</li>
+</ol>
+</body>
+</html>
