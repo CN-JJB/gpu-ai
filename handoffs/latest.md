@@ -5,88 +5,66 @@
 - Repo: CN-JJB/gpu-ai
 - Branch: main
 
-## Frozen constraints
-
-Core ability stack:
-**会理解 → 会调查 → 会选择 → 会实践 → 会改造**
-
-Never fabricate benchmark, market, transaction or model-runtime data.
-
 ## Completed frontier
 
-Slices 01–24 are implemented.
+Slices 01–25 are implemented.
 
-Latest completed model-architecture slice:
+Latest model-architecture sequence:
 
-**24 — Decoder-only Transformer Dataflow**
-
+### Slice 24
+Decoder-only dataflow:
 ```
-token ids
-→ embedding
-→ decoder blocks
-→ final norm
-→ LM head
-→ logits
+prefill [B,T,d]
+vs
+decode [B,1,d] + KV
 ```
 
-The core split:
-
+### Slice 25
 ```
-Prefill:
-[B,T,d]
-→ large matrix regime
-→ build KV
-
-Decode:
-[B,1,d]
-+ historical KV
-→ serial autoregressive regime
-→ append KV
+RMSNorm
+→ pre-norm residual
+→ RoPE Q/K rotations
+→ position-aware KV identity
 ```
 
 Key files:
-- `research/llm/0007-decoder-only-transformer-dataflow.md`
-- `reference/llm/decoder-only-block-shapes.md`
-- `lessons/24-transformer-anatomy/`
-- `labs/experiments/42-decoder-transformer-shape-flow/`
-- `labs/experiments/43-real-model-config-anatomy/`
+- `research/llm/0008-rmsnorm-residual-rope.md`
+- `reference/llm/rmsnorm-residual-rope.md`
+- `lessons/25-rmsnorm-rope/`
+- `labs/experiments/44-rmsnorm-scale-model/`
+- `labs/experiments/45-rope-relative-position-model/`
 
-Experiment 42 synthetic arithmetic was verified.
-Experiment 43 inspects real model config and warns on non-homogeneous architecture features.
+Verified:
+- RMSNorm does not force zero mean;
+- positive rescaling produces near-identical normalized vector;
+- base RoPE common shift preserves relative-position dot relation;
+- rotation preserves vector norm.
 
-## Active next slice — RMSNorm / residual / RoPE
+## Active next slice — MHA / MQA / GQA
 
 Build:
 
 ```
-pre-norm residual block
-→ RMSNorm math
-→ scale vector
-→ Q/K projection
-→ position-dependent RoPE rotation
-→ cached K position identity
-→ context extension / rope scaling boundary
+Hq query heads
+vs
+Hkv key/value heads
+→ Q/K/V projection widths
+→ grouped query mapping
+→ KV bytes/token
+→ decode bandwidth
+→ quality/speed design tradeoff
 ```
 
-Stable concepts first.
-Current runtime/model-specific RoPE scaling schemes should be kept separate when they are architecture/config specific.
+Primary sources:
+- original MHA Transformer;
+- MQA: Fast Transformer Decoding / One Write-Head;
+- GQA paper;
+- Llama 2 as production/model-family example.
 
 ## After
 
-- MHA / MQA / GQA
 - SwiGLU / FFN
 - MoE
+- model architecture comparison project
 
-Tie each to:
-- parameter count;
-- KV;
-- PP/TG;
-- kernel behavior.
-
-## Matt Pocock skills
-
-High-frequency:
-- `teach`
-- `research`
-
-Use verifiable exercises and explicit provenance.
+Never infer architecture only from parameter count.

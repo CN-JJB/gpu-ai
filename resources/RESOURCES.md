@@ -1311,3 +1311,14 @@ URL: https://arxiv.org/abs/2307.09288
 URL: https://arxiv.org/abs/2407.21783
 用途：large modern dense decoder-only model family; current architecture comparison context.
 可信度：primary model paper。
+
+
+### RMSNorm paper
+URL: https://arxiv.org/abs/1910.07467
+用途：RMS-based normalization, no explicit recentering, rescaling invariance.
+可信度：original research paper。
+
+### RoFormer / RoPE
+URL: https://arxiv.org/abs/2104.09864
+用途：rotary position embedding, paired rotations and relative-position attention structure.
+可信度：original research paper。

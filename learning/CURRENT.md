@@ -277,6 +277,21 @@ Artifacts:
 
 L0 tensor/KV arithmetic verified. Real config inspector flags MoE/sliding/per-layer features instead of forcing a dense homogeneous baseline.
 
+### Slice 25 — RMSNorm / residual / RoPE
+
+RMSNorm scale control → pre-norm residual update path → position-dependent RoPE rotation on Q/K → KV position identity → context-scaling boundary。
+
+Artifacts:
+- research/llm/0008-rmsnorm-residual-rope.md
+- reference/llm/rmsnorm-residual-rope.md
+- lessons/25-rmsnorm-rope/01-rmsnorm-residual-rope.html
+- labs/experiments/44-rmsnorm-scale-model/
+- labs/experiments/45-rope-relative-position-model/
+- examples/evidence/experiment-25-rmsnorm-residual-rope.md
+- learning/records/2026-08-27-rmsnorm-residual-rope.md
+
+L0 RMSNorm and RoPE numeric properties verified.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -333,8 +348,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build RMSNorm + pre-norm residual + RoPE slice.
-2. Explain RMSNorm as vector normalization, not a large weight matrix.
-3. Explain RoPE as position-dependent rotation applied to Q/K and why cache position matters.
-4. Then build MHA/MQA/GQA as a separate KV-capacity/inference-bandwidth slice.
-5. Follow with SwiGLU/FFN and MoE.
+1. Build MHA / MQA / GQA slice.
+2. Separate query-head count from KV-head count.
+3. Derive projection widths and KV cache directly from Hq/Hkv/head_dim.
+4. Show why reducing KV heads can improve incremental decode memory traffic/capacity.
+5. Then continue to SwiGLU/FFN and MoE.
