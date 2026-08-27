@@ -1,0 +1,1 @@
+{"schema_version":1,"record_type":"runtime","record_id":"runtime:fixture","runtime_id":"runtime:fixture","canonical_name":"Synthetic Runtime","repository":"fixture/runtime","source":{"evidence_class":"SYNTHETIC","source_path":"tools/intelligence/fixtures/catalog/runtimes.jsonl","observed_at":"2026-08-27"},"synthetic":true}
