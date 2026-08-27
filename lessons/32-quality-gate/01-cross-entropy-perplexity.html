@@ -1,0 +1,214 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 质量门：PPL 与优化安全</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 质量门 — 快了，不代表优化成功</h1>
+
+<h2>1. GPU 教程为什么必须讲质量？</h2>
+
+<p>因为你会不断做：</p>
+
+<pre>FP16 → Q8 → Q4
+KV FP16 → Q8
+old backend → new backend
+FA off → on</pre>
+
+<p>如果只记录 tokens/s：</p>
+
+<pre>更快
+=
+成功</pre>
+
+<p>这个结论不成立。</p>
+
+<div class="callout"><strong>优化目标必须同时有性能和质量。</strong></div>
+
+<h2>2. 模型每一步都在猜“下一个 token”</h2>
+
+<p>真实下一个 token 是 y。</p>
+
+<p>模型给它的概率：</p>
+
+<pre>p(y | prefix)</pre>
+
+<p>概率越高，说明模型越不意外。</p>
+
+<h2>3. 为什么用 -log？</h2>
+
+<pre>NLL = -ln p</pre>
+
+<table>
+<tr><th>正确 token 概率</th><th>NLL</th></tr>
+<tr><td>1.0</td><td>0</td></tr>
+<tr><td>0.5</td><td>~0.693</td></tr>
+<tr><td>0.01</td><td>~4.605</td></tr>
+</table>
+
+<p>很自信地给正确答案极低概率，会被重罚。</p>
+
+<h2>4. 一段文本取平均</h2>
+
+<pre>Cross Entropy
+=
+mean(-ln p(correct token))</pre>
+
+<p>然后：</p>
+
+<pre>Perplexity
+=
+exp(Cross Entropy)</pre>
+
+<p>同一测试条件下：</p>
+
+<pre>越低越好</pre>
+
+<h2>5. 小例子</h2>
+
+<pre>correct-token probabilities:
+0.5
+0.25
+0.125
+0.5</pre>
+
+<p>得到：</p>
+
+<pre>CE ≈ 1.2130
+PPL ≈ 3.3636</pre>
+
+<p>如果量化后变成：</p>
+
+<pre>0.48
+0.22
+0.10
+0.45</pre>
+
+<p>则：</p>
+
+<pre>CE ≈ 1.3373
+PPL ≈ 3.8087</pre>
+
+<p>这个 synthetic 例子里 candidate 预测变差。</p>
+
+<h2>6. 最危险的错误：跨 tokenizer 比 PPL</h2>
+
+<p>Tokenizer A：</p>
+
+<pre>一句话 → 8 tokens</pre>
+
+<p>Tokenizer B：</p>
+
+<pre>一句话 → 13 tokens</pre>
+
+<p>概率分解已经不是同一个问题。</p>
+
+<p>所以不能简单说：</p>
+
+<pre>A PPL 5
+B PPL 6
+→ A 模型一定更强</pre>
+
+<h2>7. PPL 也不是 ChatGPT 式“好不好用”</h2>
+
+<p>Instruction finetune 可能：</p>
+
+<ul>
+<li>更会听指令；</li>
+<li>更会聊天；</li>
+<li>但普通文本 PPL 反而高一点。</li>
+</ul>
+
+<p>所以：</p>
+
+<pre>PPL = predictive-fit instrument
+not universal assistant score</pre>
+
+<h2>8. 它为什么特别适合比较量化？</h2>
+
+<p>因为你可以固定：</p>
+
+<pre>同一个 source model
+同一个 tokenizer
+同一个 corpus
+同一个 runtime
+只换 quant</pre>
+
+<p>这就是非常干净的 A/B。</p>
+
+<h2>9. KL 又是什么？</h2>
+
+<p>PPL 看正确 token。</p>
+
+<p>KL 可以更细地比较整个 token distribution。</p>
+
+<pre>KL = 0
+→ 两个 distribution 完全相同</pre>
+
+<p>llama.cpp 当前 perplexity 工具就有用高精度 logits 做量化 KL 比较的路径。</p>
+
+<p>但日志文件可能巨大，不要无脑开启。</p>
+
+<h2>10. 为什么还需要自己的 Task Fixtures？</h2>
+
+<p>你的目标可能是：</p>
+
+<pre>写代码
+中文问答
+JSON 输出
+RAG
+tool calling
+长上下文找信息</pre>
+
+<p>Wikitext PPL 不会替你回答这些。</p>
+
+<p>所以还要有自己的回归集。</p>
+
+<h2>11. Fixture 怎么设计？</h2>
+
+<p>可以是：</p>
+
+<pre>exact
+contains
+regex
+JSON schema
+multiple choice
+domain-specific test</pre>
+
+<p>版本化保存。</p>
+
+<h2>12. Stochastic sampling 不适合当唯一质量证据</h2>
+
+<p>两次输出文字不同，可能只是随机路径不同。</p>
+
+<p>更好的比较：</p>
+
+<pre>teacher-forced PPL/logprob
++
+greedy/controlled fixtures</pre>
+
+<h2>13. 没有万能 ΔPPL 阈值</h2>
+
+<p>不要背：</p>
+
+<pre>ΔPPL < 0.1 一定安全</pre>
+
+<p>正确做法：</p>
+
+<pre>我的 workload
+允许多少 quality loss
+换多少速度/显存收益？</pre>
+
+<h2>14. 最终 Capstone 变成</h2>
+
+<pre>Baseline
+├─ PP/TG
+├─ VRAM
+└─ Quality
+
+change ONE variable
+
+Candidate
+├─ PP/TG
+├─ VRAM
+└─ Quality
+
+→ ACCEPT / REJECT</pre>
+
+<p>这样“优化”才完整。</p>
+</body></html>
