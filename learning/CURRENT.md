@@ -4,9 +4,9 @@
 
 - Repo: CN-JJB/gpu-ai
 - Branch: main
-- Stable course and dynamic intelligence are separate layers.
+- Stable course and dynamic intelligence remain separate.
 
-## Stable course frontier
+## Stable course
 
 ```text
 Slices 01–49 implemented
@@ -14,83 +14,67 @@ Experiments 01–93 exist
 Stable v1 mainline complete
 ```
 
-Do not extend stable Lessons merely to store volatile price, compatibility or benchmark data.
-
-## Active frontier — Phase 4 Intelligence Stations
-
-Implemented frontier:
+## Active Phase 4 frontier
 
 ```text
 I01 catalog + benchmark bridge
 I02 compatibility preflight
-I03 exact measured compatibility ingestion
+I03 exact measured compatibility
 I04 comparable benchmark view
 I05 explicit price/performance
 I06 evidence-linked TCO
-I07 real benchmark intake gate
+I07 real benchmark intake
 I08 four-ecosystem documented compatibility
-I09 compatibility coverage matrix
-I10 freshness / revalidation queue
-I11 explicit real MEDIAN_ASK market cohort
-I12 market sample/method evidence audit
+I09 compatibility matrix
+I10 freshness queue
+I11 real MEDIAN_ASK cohort
+I12 market evidence audit
+I13 sold-marked listing cohort
+I14 cross-market signal comparison
+I15 China secondary watch
 ```
 
-These are Intelligence Stations, not stable Slice 50–61.
+These are Intelligence Stations, not stable Lesson slices.
 
-## Compatibility state
+## Compatibility
 
 For Qwen3-8B + llama.cpp:
 
 ```text
-RTX 3090 / CUDA  → DOCUMENTED_SUPPORTED → NEEDS-TEST
-RX 7900 XTX / HIP → DOCUMENTED_SUPPORTED → NEEDS-TEST
-M4 Max / Metal → DOCUMENTED_SUPPORTED → NEEDS-TEST
-Arc A770 / SYCL → DOCUMENTED_SUPPORTED → NEEDS-TEST
+RTX 3090 / CUDA   → NEEDS-TEST
+RX 7900 XTX / HIP → NEEDS-TEST
+M4 Max / Metal    → NEEDS-TEST
+Arc A770 / SYCL   → NEEDS-TEST
 ```
 
-No production PP/TG exists for these paths.
+All are DOCUMENTED_SUPPORTED, not MEASURED_SUPPORTED.
 
-## Real benchmark admission
+## Benchmark boundary
 
-Required chain:
+Real production benchmark rows:
+
+```text
+0
+```
+
+Required admission:
 
 ```text
 Experiment 61 manifest
-+ raw llama-bench result
++ raw result
 + PACKET.json
-+ canonical hardware/model/runtime IDs
-→ I07 INTAKE: READY
-→ ingest benchmark
++ canonical IDs
+→ I07 READY
+→ ingest
 → validate
-→ derive exact MEASURED_SUPPORTED
-→ validate again
+→ exact measured compatibility
 ```
 
-Repository search found no real Experiment 61-compatible bundle.
+No real packet currently exists in the repo.
 
-Therefore:
+## Market contracts
 
-```text
-intelligence/catalog/benchmarks.jsonl
-= intentionally empty
-```
-
-## Market state
-
-Production market observations now include two deliberately separate evidence contracts.
-
-Existing China secondary signal:
-
-```text
-CN
-secondary-summary
-used-consumer
-working-unverified
-SECONDARY_REPORTED
-CNY
-```
-
-Current same-cohort global used asking data:
+### GLOBAL-EBAY active asks
 
 ```text
 GLOBAL-EBAY
@@ -101,81 +85,83 @@ MEDIAN_ASK
 USD
 ```
 
-Current dated asks:
-
 ```text
-RTX 3090      1499 USD
-RX 7900 XTX   1020 USD
-Arc A770 16G   330 USD
+RTX 3090      1499
+RX 7900 XTX   1020
+Arc A770 16G   330
 ```
 
-These are asking prices, not confirmed sales.
-
-## Market sample/method evidence
-
-I12 preserves:
+Sample/method evidence:
 
 ```text
-active listing count
-middle-half asking range
-methodology
-source export timestamp
+RTX 3090      47 active  range 1400–1520  BROAD-SAMPLE
+RX 7900 XTX   23 active  range 997–1080   LIMITED-SAMPLE
+Arc A770 16G   8 active  range 325–347    SMALL-SAMPLE
+```
+
+All are ASK-ONLY and confirmed_sale=false.
+
+### US OfferUp sold-marked pages
+
+```text
+US
+offerup-sold-marked-listing
+used-consumer
+used
+SOLD_MARKED_LISTING_PRICE
+USD
+```
+
+```text
+RTX 3090      850 / 950 / 1050 → median displayed 950
+RX 7900 XTX   580 / 700 / 800  → median displayed 700
+Arc A770 16G  150 / 200 / 250  → median displayed 200
+```
+
+Every page is marked SOLD, but every record preserves:
+
+```text
+confirmed_transaction_price=false
+```
+
+### Cross-contract signal
+
+```text
+RTX 3090      → -36.6%
+RX 7900 XTX   → -31.4%
+Arc A770 16G  → -39.4%
+```
+
+This is an eBay-active-ask vs OfferUp-sold-marked-display gap.
+
+It is not a confirmed transaction discount or fair-value discount.
+
+### China secondary watch
+
+```text
+CN
+secondary-summary
+used-consumer
+working-unverified
+SECONDARY_REPORTED
+CNY
+```
+
+```text
+RTX 3090 → 7400 CNY
+Arc A770 → 1450 CNY
+```
+
+Both preserve:
+
+```text
+direct_listing_capture=false
 confirmed_sale=false
-freshness
 ```
 
-Current source samples:
-
-```text
-RTX 3090
-47 active
-1400–1520
-→ BROAD-SAMPLE
-
-RX 7900 XTX
-23 active
-997–1080
-→ LIMITED-SAMPLE
-
-Arc A770 16GB
-8 active
-325–347
-→ SMALL-SAMPLE
-```
-
-These sample bands are descriptive heuristics, not confidence scores.
-
-Production MEDIAN_ASK rows now fail validation if sample/method evidence is missing or if confirmed_sale is not false.
-
-## Benchmark / price / TCO guardrails
-
-Comparable benchmark requires:
-
-```text
-same model_id
-+ exact artifact SHA
-+ quant
-+ workload
-```
-
-Price/performance additionally requires explicit market-record selection and one matching market contract.
-
-TCO:
-
-```text
-purchase
-+ platform delta
-+ electricity
-+ risk reserve
-- resale
-→ scenario TCO
-```
-
-Neither price/performance nor TCO can rescue a failed capacity/support/safety/quality gate.
+The A770 watch signal is due for revalidation on 2026-08-28.
 
 ## Freshness
-
-I10 states:
 
 ```text
 STALE != FALSE
@@ -183,72 +169,43 @@ STALE != FALSE
 
 STALE means revalidate before current use.
 
-The eBay ask observations use a 7-day revalidation horizon.
-
 ## Verification levels
 
 ### Full Python execution
 
-Verified through I10 on 2026-08-28:
-
-```bash
-python -m py_compile tools/intelligence/*.py
-python tools/intelligence/selftest.py
-```
-
-Result:
+I01–I10 were executed end-to-end on exact main content:
 
 ```text
 SELFTEST: PASS
 ```
 
-### I11–I12 exact-main verification
+### I11–I15 exact-main contract verification
 
-After the market additions, local full-repository execution timed out/rate-limited.
+After the market expansions, the available local full-repo execution path timed out/rate-limited.
 
-I11–I12 were therefore checked directly against latest GitHub blobs with contract-equivalent execution.
+For I11–I15:
+- latest GitHub blobs were read directly;
+- contract-equivalent calculations/checks were executed;
+- validator guardrails were inspected on exact blobs;
+- self-test assertions were verified present.
 
-I11 confirmed:
-- 3 market rows;
-- 1 complete contract;
-- all hardware IDs resolve;
-- 330 / 1020 / 1499 USD;
-- current freshness as of 2026-08-28;
-- self-test assertions present.
+Do not claim a fresh full Python PASS for I11–I15 until a real rerun is recorded.
 
-I12 confirmed:
-- BROAD=1 / LIMITED=1 / SMALL=1;
-- all medians inside their recorded middle-half ranges;
-- confirmed_sale=false on all three;
-- MEDIAN_ASK validator gate present;
-- malformed-sample rejection assertion present.
-
-Do not call I11–I12 a newly re-run full Python PASS until that execution is recorded.
-
-## Current production catalog
+## Production catalog counts
 
 ```text
-hardware entities:      4
-model entities:         1
-runtime entities:       1
-market observations:    4
-compatibility rows:     4
-real benchmark rows:    0
+hardware:       4
+models:         1
+runtimes:       1
+market:        14
+compatibility:  4
+real benchmark: 0
 ```
 
-## Evidence
+## Next
 
-- examples/evidence/intelligence-07-real-benchmark-intake.md
-- examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
-- examples/evidence/intelligence-09-compatibility-coverage-matrix.md
-- examples/evidence/intelligence-10-freshness-revalidation.md
-- examples/evidence/intelligence-11-market-cohort-coverage.md
-- examples/evidence/intelligence-12-market-evidence-audit.md
-
-## Next actions
-
-1. Add stronger local-market or confirmed-sale evidence while preserving a separate contract.
-2. Acquire/receive the first real Experiment 61 packet and require I07 READY.
-3. Refresh observations when I10 marks them due/stale.
-4. Repeat full Python self-test when the execution path is available.
-5. Build recommendation views only after real comparable benchmark + quality/SLO + feasibility Evidence exists.
+1. Resolve the full-Python/CI rerun debt.
+2. Add stronger direct-listing or confirmed-transaction evidence without collapsing contracts.
+3. Acquire the first real Experiment 61 Evidence Packet.
+4. Refresh due/stale observations through I10.
+5. Delay recommendation ranking until real benchmark + quality/SLO + feasibility evidence exists.
