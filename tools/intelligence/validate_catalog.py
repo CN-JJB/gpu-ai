@@ -207,6 +207,26 @@ def main():
                 if not present(src.get("data_exported_at")):
                     errors.append(f"{loc}: MEDIAN_ASK source.data_exported_at missing")
 
+            if str(r.get("price_state", "")).upper() == "SOLD_MARKED_LISTING_PRICE":
+                listing = r.get("listing")
+                if not isinstance(listing, dict):
+                    errors.append(f"{loc}: SOLD_MARKED_LISTING_PRICE requires listing object")
+                else:
+                    if str(listing.get("status", "")).upper() != "SOLD":
+                        errors.append(f"{loc}: listing.status must be SOLD")
+                    if listing.get("confirmed_transaction_price") is not False:
+                        errors.append(f"{loc}: confirmed_transaction_price must be false")
+                    displayed = listing.get("displayed_price")
+                    value = (price or {}).get("value")
+                    if not positive_number(displayed):
+                        errors.append(f"{loc}: listing.displayed_price must be > 0")
+                    elif isinstance(value, (int, float)) and not isinstance(value, bool) and displayed != value:
+                        errors.append(f"{loc}: listing.displayed_price must equal price.value")
+                    if not present(listing.get("title")):
+                        errors.append(f"{loc}: listing.title missing")
+                    if not present(listing.get("location")):
+                        errors.append(f"{loc}: listing.location missing")
+
         elif t == "compatibility":
             for f in ("hardware_id", "model_id", "runtime_id", "backend", "observed_at"):
                 req(r, f, errors)
