@@ -1,0 +1,16 @@
+{
+  "label": "candidate-fast-bad",
+  "identity": {
+    "runtime_sha": "runtime-C",
+    "model_sha": "model-A",
+    "config_sha": "config-A"
+  },
+  "readiness_ms": 5200,
+  "first_inference_ms": 5900,
+  "smoke_ok": true,
+  "tg_tok_s": 60,
+  "ppl": 5.2,
+  "critical_fixtures_ok": true,
+  "ttft_p95_ms": 900,
+  "slo_compliance": 0.92
+}

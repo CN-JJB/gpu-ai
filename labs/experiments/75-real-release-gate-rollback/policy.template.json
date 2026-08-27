@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "max_readiness_ms": 8000,
+  "max_first_inference_ms": 9000,
+  "min_tg_speedup": 1.0,
+  "max_ppl_ratio": 1.02,
+  "max_ttft_p95_ms": 500,
+  "min_slo_compliance": 0.99,
+  "max_error_rate": 0.01,
+  "require_smoke": true,
+  "require_critical_fixtures": true
+}

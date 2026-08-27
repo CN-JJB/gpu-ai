@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "release_id": "REPLACE",
+  "role": "baseline",
+  "identity": {
+    "runtime_sha256": "REPLACE",
+    "model_sha256": "REPLACE",
+    "config_sha256": "REPLACE",
+    "manifest_sha256": "REPLACE"
+  },
+  "recovery": {
+    "readiness_ms": 0,
+    "first_inference_ms": 0,
+    "smoke_ok": false,
+    "restart_result": "REPLACE"
+  },
+  "performance": {
+    "pp_tok_s": 0,
+    "tg_tok_s": 0,
+    "memory_gib": 0,
+    "raw_result": "REPLACE"
+  },
+  "quality": {
+    "ppl": 0,
+    "critical_fixtures_ok": false,
+    "raw_result": "REPLACE"
+  },
+  "serving": {
+    "ttft_p95_ms": 0,
+    "slo_compliance": 0,
+    "error_rate": 0,
+    "raw_result": "REPLACE"
+  }
+}

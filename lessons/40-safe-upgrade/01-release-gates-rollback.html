@@ -1,0 +1,210 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safe Upgrade / Rollback</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Safe Upgrade / Rollback — 新版本快 20%，为什么我还是可能拒绝它？</h1>
+
+<h2>1. Release 不是只看 version</h2>
+
+<pre>
+runtime SHA
+model SHA
+config
+workload
+quality
+SLO
+</pre>
+
+<p>这些一起才是 release 身份。</p>
+
+<h2>2. 先保住 baseline</h2>
+
+<p>不要：</p>
+
+<pre>
+把旧 llama-server 覆盖掉
+把旧 GGUF 覆盖掉
+然后再开始测试
+</pre>
+
+<p>否则 candidate 一坏，你没有真正的 rollback。</p>
+
+<div class="callout"><strong>Known-good artifact 必须在升级前就可恢复。</strong></div>
+
+<h2>3. 门槛必须先写</h2>
+
+<p>例如只是教学 policy：</p>
+
+<pre>
+ready <= 8s
+first inference <= 9s
+TG >= baseline
+PPL ratio <= 1.02
+TTFT p95 <= 500ms
+SLO compliance >= 99%
+</pre>
+
+<p>这些值不是万能标准。</p>
+
+<p>重点是：</p>
+
+<pre>
+先写
+再跑 candidate
+</pre>
+
+<h2>4. Good Candidate</h2>
+
+<pre>
+TG:
+50 → 54 tok/s
+
+PPL:
+5.0 → 5.05
+
+TTFT p95:
+400 → 450 ms
+
+SLO:
+99.5% → 99.3%
+</pre>
+
+<p>在这个 synthetic policy 下：</p>
+
+<pre>
+ACCEPT
+</pre>
+
+<h2>5. Fast-but-Bad Candidate</h2>
+
+<pre>
+TG:
+50 → 60 tok/s
+</pre>
+
+<p>很好看。</p>
+
+<p>但是：</p>
+
+<pre>
+PPL:
+5.0 → 5.2
+
+TTFT p95:
+400 → 900ms
+
+SLO:
+99.5% → 92%
+</pre>
+
+<p>结果：</p>
+
+<pre>
+ROLLBACK
+</pre>
+
+<div class="callout"><strong>性能赢不能覆盖质量门和用户 SLO 失败。</strong></div>
+
+<h2>6. Rollback 不是再 restart 一下</h2>
+
+<p>Candidate：</p>
+
+<pre>
+runtime B
+model B
+config B
+</pre>
+
+<p>Rollback 必须恢复：</p>
+
+<pre>
+runtime A
+model A
+config A
+</pre>
+
+<p>并验证 hashes。</p>
+
+<h2>7. 恢复身份后还没结束</h2>
+
+<p>还要：</p>
+
+<pre>
+/health ready
++
+smoke inference
+</pre>
+
+<p>否则只是“文件看起来换回去了”。</p>
+
+<h2>8. Rollback 自己也可能坏</h2>
+
+<pre>
+旧 binary 被覆盖
+旧 model 被删
+config 被改写
+port 还被占
+persisted state 不兼容
+</pre>
+
+<p>所以 rollback path 应该提前试过。</p>
+
+<h2>9. Runtime upgrade 和 model upgrade 要分开说</h2>
+
+<pre>
+commit A → B
+</pre>
+
+<p>和：</p>
+
+<pre>
+Q8 → Q4
+</pre>
+
+<p>不是同一种变化。</p>
+
+<p>如果一次全换：</p>
+
+<pre>
+runtime + model + config
+</pre>
+
+<p>可以叫 release comparison，但不要冒充 one-variable causal A/B。</p>
+
+<h2>10. Failed candidate 也要留 Evidence</h2>
+
+<p>Rollback 后保留：</p>
+
+<pre>
+candidate logs
+manifest
+PP/TG
+PPL
+serving trace
+gate result
+</pre>
+
+<p>不然下次你只知道：</p>
+
+<pre>
+“好像以前升级失败过”
+</pre>
+
+<h2>11. 发布流程</h2>
+
+<pre>
+known-good baseline
+→ policy
+→ candidate identity
+→ readiness
+→ smoke
+→ performance
+→ quality
+→ SLO
+→ ACCEPT
+     or
+  ROLLBACK
+→ rollback identity
+→ readiness
+→ smoke
+</pre>
+
+<p>这就是本地 LLM 也值得有的 release discipline。</p>
+</body></html>

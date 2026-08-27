@@ -1,0 +1,16 @@
+{
+  "label": "baseline",
+  "identity": {
+    "runtime_sha": "runtime-A",
+    "model_sha": "model-A",
+    "config_sha": "config-A"
+  },
+  "readiness_ms": 5000,
+  "first_inference_ms": 5800,
+  "smoke_ok": true,
+  "tg_tok_s": 50,
+  "ppl": 5,
+  "critical_fixtures_ok": true,
+  "ttft_p95_ms": 400,
+  "slo_compliance": 0.995
+}
