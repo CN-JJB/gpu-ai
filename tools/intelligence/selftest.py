@@ -69,6 +69,21 @@ def main():
     assert "No cross-group ranking is performed." in out
 
     out = run([
+        PY, str(HERE / "price_performance.py"),
+        str(fixture),
+        "--model-id", "model:fixture:8b",
+        "--artifact-sha256", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "--market-record", "market:fixture:24g:2026-08-27",
+        "--market-record", "market:fixture:16g:2026-08-27",
+        "--metric", "tg_tok_s",
+        "--include-synthetic",
+    ])
+    assert "per_1000=33.333" in out
+    assert "per_1000=25.000" in out
+    assert "This is not TCO and not a purchase recommendation." in out
+    assert "no automatic latest-price join" in out
+
+    out = run([
         PY, str(HERE / "compatibility_preflight.py"),
         str(fixture),
         "--hardware-id", "hw:fixture:24g",
@@ -198,6 +213,7 @@ def main():
     print("- synthetic catalog validates only with explicit allowance")
     print("- Hardware ↔ Model ↔ Benchmark bridge returns the fixture observation")
     print("- same artifact/workload observations form one descriptive comparison group")
+    print("- explicit same-cohort market rows enable descriptive price/performance")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")\n    print("- Experiment 61 importer reproduces PP/TG")
     print("- broken canonical hardware reference is rejected")
 
