@@ -1,0 +1,12 @@
+{
+  "eu_equals_cuda_core_1_to_1": false,
+  "xe_core_equals_vector_engine": false,
+  "xmx_is_matrix_acceleration": true,
+  "xe_lp_has_same_arc_class_xmx_path": false,
+  "alchemist_is_xe_hpg": true,
+  "battlemage_is_xe2": true,
+  "intel_subgroup_always_32": false,
+  "slm_is_extra_vram": false,
+  "level_zero_is_hardware_architecture": false,
+  "xmx_guarantees_q4_gguf_native_path": false
+}
