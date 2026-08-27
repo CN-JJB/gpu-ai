@@ -145,6 +145,26 @@ def main():
     assert "PREFLIGHT: NEEDS-TEST" in out
 
     out = run([
+        PY, str(HERE / "freshness_report.py"),
+        str(prod),
+        "--as-of", "2026-08-28",
+        "--within-days", "1",
+    ])
+    assert "DUE-SOON=1" in out
+    assert "STALE=0" in out
+    assert "market:cn:rtx3090:secondary:2026-08-22" in out
+    assert "FRESHNESS: REVALIDATION-QUEUE-PRESENT" in out
+
+    out = run([
+        PY, str(HERE / "freshness_report.py"),
+        str(prod),
+        "--as-of", "2026-09-29",
+        "--within-days", "30",
+    ])
+    assert "STALE=6" in out
+    assert "FRESHNESS: STALE-REVALIDATION-REQUIRED" in out
+
+    out = run([
         PY, str(HERE / "compatibility_matrix.py"),
         str(prod),
         "--model-id", "model:qwen:qwen3-8b",
@@ -312,6 +332,7 @@ def main():
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")
     print("- NVIDIA/CUDA, AMD/HIP, Apple/Metal and Intel/SYCL production paths all remain NEEDS-TEST")
     print("- compatibility coverage matrix reports four production NEEDS-TEST observations without ranking")
+    print("- freshness queue surfaces due-soon and stale production observations")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
