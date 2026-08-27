@@ -29,7 +29,20 @@ python3 query_bridge.py fixtures/catalog --hardware-id hw:fixture:24g --model-id
 
 The output groups benchmark observations by workload fingerprint.
 
-## 4. Ingest a real llama-bench result
+## 4. Compatibility preflight
+
+~~~bash
+python3 compatibility_preflight.py ../../intelligence/catalog \
+  --hardware-id hw:nvidia:geforce-rtx-3090:24g \
+  --model-id model:qwen:qwen3-8b \
+  --runtime-id runtime:ggml-org:llama.cpp \
+  --backend CUDA \
+  --as-of 2026-08-27
+~~~
+
+Documented support returns NEEDS-TEST, not PASS-MEASURED.
+
+## 5. Ingest a real llama-bench result
 
 Preferred input is the Experiment 61 manifest plus raw llama-bench JSON.
 
