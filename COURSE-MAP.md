@@ -133,6 +133,7 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 31 | Tokenizer / Chat Template / Sampling identity |
 | 32 | Quality Gate：Cross-Entropy / Perplexity / task regression |
 | 33 | Benchmark / Workload Manifest：one semantic variable + Evidence Packet |
+| 34 | Serving Workload / SLO：TTFT / ITL / tail latency / throughput |
 
 ### 当前下一主线
 

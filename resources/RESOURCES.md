@@ -1398,3 +1398,19 @@ URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db
 URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/examples/model-conversion/scripts/utils/perplexity-run-simple.sh
 用途：current pinned command path for `llama-perplexity -m MODEL -f CORPUS`.
 可信度：pinned upstream official repository script。
+
+
+### llama.cpp server metrics / benchmark
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md
+用途：pinned llama-server slots, continuous batching, metrics endpoint and current server options.
+可信度：pinned upstream official repository documentation。
+
+### llama.cpp server benchmark
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/bench/README.md
+用途：pinned concurrent serving benchmark workflow, request-count/concurrency/prompt-output controls.
+可信度：pinned upstream official repository documentation。
+
+### llama.cpp server metrics tests
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/tests/unit/test_metrics.py
+用途：pinned tests for Prometheus metrics including cached-vs-processed prompt token accounting.
+可信度：pinned upstream official test source。

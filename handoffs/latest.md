@@ -7,64 +7,86 @@
 
 ## Completed frontier
 
-Slices 01–33 are implemented.
-Experiments 01–61 exist.
+Slices 01–34 are implemented.
+Experiments 01–63 exist.
 
-## Slice 33
+## Slice 34 core
 
-Unified benchmark identity:
-
-```
-fixed
-+ variant
-+ audit
-```
-
-Only one declared path under `variant.*` may change.
-
-Examples:
+Serving request timeline:
 
 ```
-variant.execution.flash_attention
+arrival
+→ queue
+→ prefill/service
+→ first visible token
+→ token stream
+→ completion
 ```
 
-for a leaf A/B, or:
+Metrics:
 
 ```
-variant.model
+TTFT
+ITL
+E2E
+requests/s
+output tok/s
+p50/p95/p99
+SLO compliance
 ```
 
-for a quantization block where artifact SHA/bytes/quant necessarily co-vary.
-
-Validator synthetic self-check:
-- legal Q8→Q4 model block: PASS;
-- same change + hidden prompt-token hash mutation: FAIL.
-
-Experiment 61 is now the stricter manifest path; Experiment 40 remains the beginner controlled-A/B introduction.
-
-## Active next slice — Serving Workload / SLO
-
-Build:
+Synthetic verified:
 
 ```
-request arrival
-+ prompt length
-+ output length
-+ concurrency
-→ queue wait
-→ TTFT
-→ token cadence / ITL
-→ E2E
-→ request throughput
-→ aggregate token throughput
-→ percentiles / SLO
+mean TTFT 214.583 ms
+p95 TTFT 1200 ms
+mean ITL 50 ms
+SLO 99% required
+actual 91.667%
+→ FAIL
 ```
 
-Need to teach:
-- averages hide tails;
-- p95/p99 are order statistics, not magic guarantees;
-- long prompts can hurt short-request TTFT through shared batching/queueing;
-- throughput-optimal concurrency may violate latency SLO;
-- workload distributions must be part of manifest identity.
+This demonstrates:
+```
+healthy mean
+!= healthy tail
+```
 
-Reuse Slice 08 continuous batching and Slice 09 cache concepts rather than duplicating them.
+Real Experiment 63:
+- exact prompt files;
+- streaming client timestamps;
+- raw SSE logs;
+- /metrics before/after;
+- token-bearing chunk-gap explicitly labeled proxy, not true ITL.
+
+## Active next slice — Serving Capacity Planning
+
+Teach Little's Law:
+
+```
+L = λ W
+```
+
+where:
+- L = average number in system;
+- λ = long-run arrival/completion rate;
+- W = average time in system.
+
+Use it for planning:
+```
+req/s × seconds/request
+→ average in-flight requests
+```
+
+Then connect:
+```
+in-flight sequences
+× per-sequence KV
+→ average KV pressure
+```
+
+But keep boundaries:
+- average is not peak;
+- Little's Law does not predict p95;
+- overloaded/non-stationary systems need trace evidence;
+- slots should include headroom above average, not equal L blindly.

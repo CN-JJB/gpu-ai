@@ -411,6 +411,21 @@ Artifacts:
 
 Synthetic quant-block PASS and hidden prompt-change FAIL paths were self-checked.
 
+### Slice 34 — Serving Workload / SLO
+
+Request arrivals + prompt/output lengths + slots/batching/cache → TTFT / ITL / E2E → request/token throughput → p50/p95/p99 → SLO。
+
+Artifacts:
+- research/llm/0016-serving-workload-slo.md
+- reference/llm/serving-workload-slo.md
+- lessons/34-serving-slo/01-ttft-itl-tail-throughput.html
+- labs/experiments/62-serving-tail-latency-trace/
+- labs/experiments/63-real-llama-server-serving-trace/
+- examples/evidence/experiment-34-serving-workload-slo.md
+- learning/records/2026-08-27-serving-workload-slo.md
+
+Synthetic tail-latency/SLO arithmetic verified. Real collector syntax-checked.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -467,8 +482,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build serving-workload/SLO slice.
-2. Separate TTFT, ITL, E2E latency, request throughput and aggregate token throughput.
-3. Model prompt/output length distributions rather than one fixed request shape.
-4. Teach percentile latency and tail behavior under concurrency/queueing.
-5. Extend the workload manifest for serving traces and SLO decisions.
+1. Build serving-capacity planning slice using Little's Law.
+2. Separate arrival rate, average time in system, average in-flight requests and instantaneous peak concurrency.
+3. Map average/peak in-flight sequences to KV memory pressure and server slots.
+4. Show why Little's Law is an accounting relation, not a p95 latency predictor.
+5. Add a real trace capacity worksheet using Experiment 63 output.

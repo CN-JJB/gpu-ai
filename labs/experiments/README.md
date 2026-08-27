@@ -104,3 +104,9 @@
 
 - 60 semantic benchmark-manifest validator
 - 61 real benchmark/workload Evidence Packet
+
+
+### 62–63：Serving Workload / SLO
+
+- 62 synthetic tail-latency trace analyzer
+- 63 real llama-server workload trace / metrics packet
