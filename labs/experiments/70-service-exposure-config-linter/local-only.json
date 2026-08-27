@@ -1,0 +1,11 @@
+{
+  "listen_host": "127.0.0.1",
+  "listen_port": 8080,
+  "authentication": "none",
+  "tls_termination": "none",
+  "metrics_enabled": false,
+  "slots_enabled": true,
+  "cors_origins": "*",
+  "tools_or_agent_enabled": false,
+  "prompt_logging": false
+}

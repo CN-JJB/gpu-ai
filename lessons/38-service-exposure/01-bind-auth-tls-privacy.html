@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Service Exposure / Privacy / Auth</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style>
+</head><body>
+<h1>Service Exposure / Privacy — 把 127.0.0.1 改成 0.0.0.0，发生了什么？</h1>
+
+<h2>1. 这不是一个“小网络参数”</h2>
+
+<p>默认 loopback：</p>
+
+<pre>
+127.0.0.1:8080
+</pre>
+
+<p>通常只有本机能直接访问。</p>
+
+<p>改成：</p>
+
+<pre>
+0.0.0.0:8080
+</pre>
+
+<p>服务开始监听所有 IPv4 interfaces。</p>
+
+<div class="callout"><strong>你改变的是信任边界。</strong></div>
+
+<h2>2. 但 0.0.0.0 也不等于“公网已开放”</h2>
+
+<p>还取决于：</p>
+
+<pre>
+firewall
+router/NAT
+VPN
+cloud security group
+host network
+</pre>
+
+<p>所以要看实际 socket + 网络路径，不能靠猜。</p>
+
+<h2>3. LAN 也不是认证</h2>
+
+<p>你的 LAN 可能有：</p>
+
+<pre>
+guest
+IoT
+roommate
+compromised PC
+</pre>
+
+<p>而 LLM prompt 里可能有：</p>
+
+<pre>
+代码
+私人文档
+API keys
+RAG 内容
+</pre>
+
+<h2>4. Auth 和 TLS 分开</h2>
+
+<p>API key：</p>
+
+<pre>
+谁可以用
+</pre>
+
+<p>TLS：</p>
+
+<pre>
+路上别人能不能看明文
+</pre>
+
+<p>两个不是替代关系。</p>
+
+<h2>5. CORS 更不是 Auth</h2>
+
+<p>CORS 是浏览器规则。</p>
+
+<p><code>curl</code>、原生客户端不靠 CORS 做访问控制。</p>
+
+<pre>
+CORS
+!= firewall
+!= authentication
+</pre>
+
+<h2>6. 当前 llama-server 默认值得记住什么？</h2>
+
+<pre>
+host = 127.0.0.1
+api key = none
+metrics = off
+slots endpoint = on
+</pre>
+
+<p>这套默认假设更接近：</p>
+
+<pre>
+personal local process
+</pre>
+
+<p>如果你把 host 扩到 LAN，就必须重新审视 auth/TLS/endpoints。</p>
+
+<h2>7. Metrics 也属于信息面</h2>
+
+<p>它可能不含 prompt 正文，但会暴露：</p>
+
+<pre>
+请求活动
+token 数
+吞吐
+slot 压力
+</pre>
+
+<p>管理员需要，不代表普通客户端也需要。</p>
+
+<h2>8. slots/cache endpoint 更应该审计</h2>
+
+<p>普通聊天客户端只需要 chat/completion。</p>
+
+<p>为什么它还应该能看到内部 slot 状态？</p>
+
+<p>原则：</p>
+
+<pre>
+least exposure
+</pre>
+
+<h2>9. Tools / Agent 是另一个风险等级</h2>
+
+<p>纯生成：</p>
+
+<pre>
+prompt
+→ text
+</pre>
+
+<p>如果启用了：</p>
+
+<pre>
+read_file
+write_file
+shell execution
+MCP
+agent
+</pre>
+
+<p>模型可能影响真实主机资源。</p>
+
+<div class="callout"><strong>“聊天 API 可以放 LAN”绝不能自动推出“shell/tool-enabled agent 也可以放 LAN”。</strong></div>
+
+<h2>10. 日志也是隐私系统</h2>
+
+<p>检查：</p>
+
+<pre>
+prompt 是否落盘
+response 是否落盘
+保存多久
+谁能读
+有没有上传 telemetry
+</pre>
+
+<h2>11. Evidence 不能把秘密也一起打包</h2>
+
+<p>不要把：</p>
+
+<pre>
+Authorization: Bearer sk-...
+--api-key SECRET
+cookie
+私人 prompt
+</pre>
+
+<p>原样塞进 GitHub。</p>
+
+<p>应该记录：</p>
+
+<pre>
+auth configured = yes
+secret source = env/file
+</pre>
+
+<p>而不是 secret 本身。</p>
+
+<h2>12. Model license 和 llama.cpp license 也不同</h2>
+
+<p>你可以合法使用某个 runtime，不能因此自动推出：</p>
+
+<pre>
+模型 weights 可以随便重新发布
+</pre>
+
+<p>分享 Docker image / course bundle 前，要看 exact model license。</p>
+
+<h2>13. 这一章真正要你会做的</h2>
+
+<pre>
+listen socket
+→ network scope
+→ auth
+→ TLS path
+→ endpoint exposure
+→ logs/privacy
+→ tools/actions
+→ model license
+</pre>
+
+<p>然后给出：</p>
+
+<pre>
+LOCAL-ONLY
+LAN-ACCEPTABLE-WITH-CONTROLS
+REVIEW
+</pre>
+
+<p>而不是直接复制一段“公网部署命令”。</p>
+</body></html>
