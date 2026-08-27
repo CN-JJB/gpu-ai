@@ -193,6 +193,8 @@ goal/workload
 | I11 | explicit GLOBAL-EBAY used MEDIAN_ASK cohort for 3090 / 7900 XTX / A770 | contract-verified |
 | I12 | market sample/method audit + MEDIAN_ASK evidence validator | contract-verified |
 | I13 | OfferUp SOLD-marked listing cohort with non-confirmed transaction semantics | contract-verified |
+| I14 | explicit eBay-ask vs OfferUp-sold-marked cross-contract signal comparison | contract-verified |
+| I15 | China 3090/A770 SECONDARY_REPORTED watch signals | contract-verified |
 
 当前稳定边界：
 
