@@ -154,6 +154,23 @@ Artifacts:
 
 L0 capacity/bandwidth roof verified. Real experiment directly queries Metal unified-memory and SIMD-group properties. M5 tensor-path integration remains dynamic intelligence.
 
+### Slice 17 — Intel Xe / Arc / XMX / oneAPI
+
+EU-era graphics → Xe-LP → Xe-HPG/Alchemist → Xe2/Battlemage；Vector Engine → Xe-Core → XMX；SYCL/oneAPI → Level Zero → local LLM backend。
+
+Artifacts:
+- research/gpu/0011-intel-xe-arc-xmx-oneapi.md
+- reference/gpu/intel-xe-arc-xmx.md
+- lessons/17-intel-xe/01-eu-xe-core-xmx.html
+- lessons/17-intel-xe/02-arc-oneapi-llm.html
+- labs/experiments/29-intel-xe-terminology-traps/
+- labs/experiments/30-real-intel-xpu-sycl-inventory/
+- examples/evidence/experiment-17-intel-xe.md
+- intelligence/gpu/intel-oneapi-xpu-2026-08-27.md
+- learning/records/2026-08-27-intel-xe-slice.md
+
+L0 terminology checker verified 10/10. Real experiment checks SYCL/Level Zero, torch.xpu and llama.cpp visibility separately.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -210,8 +227,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Add the lighter Intel GPU architecture section: Gen/EU → Xe-LP → Xe-HPG/Arc → Xe2.
-2. Explain EU/Xe-core/XMX without forcing NVIDIA terminology.
-3. Cover oneAPI/Level Zero/SYCL and current Arc local-LLM relevance.
-4. Add a small capability/backend inventory experiment rather than a huge Intel history branch.
-5. Then converge NVIDIA/AMD/Apple/Intel into a cross-vendor used-hardware decision framework.
+1. Build the cross-vendor used-hardware decision framework.
+2. Convert architecture knowledge into a reproducible buy/keep/skip scorecard.
+3. Separate capacity, bandwidth, PP compute, TG bandwidth, software support and TCO.
+4. Add a no-hardware L0 decision simulation and a real evidence card for any candidate used GPU/Mac.
+5. Start the China secondhand-market intelligence workflow only after the stable decision model exists.

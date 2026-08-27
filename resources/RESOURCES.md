@@ -1157,3 +1157,49 @@ Related PR: https://github.com/ggml-org/llama.cpp/pull/27461
 用途：current backend-integration case study: hardware capability != runtime readiness.
 可信度：canonical llama.cpp upstream issue/PR。
 局限：open/unconfirmed and rapidly changing; intelligence only.
+
+
+## Intel Xe / Arc / oneAPI
+
+### Intel Xe GPU Architecture
+URL: https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/latest/intel-xe-gpu-architecture.html
+用途：Vector Engine, Xe-Core, XMX, SLM, current Arc A/B and integrated Xe tables.
+可信度：Intel official optimization guide。
+
+### Intel Xe-HPG architecture
+URL: https://www.intel.com/content/www/us/en/developer/articles/technical/intel-xe-hpg-architecture.html
+用途：Alchemist/Xe-HPG, XMX/DPAS matrix path.
+可信度：Intel official。
+
+### Intel oneAPI Toolkit
+URL: https://www.intel.com/content/www/us/en/developer/tools/oneapi/oneapi-toolkit.html
+Release notes: https://www.intel.com/content/www/us/en/developer/articles/release-notes/oneapi-toolkit/2026.html
+用途：current oneAPI/SYCL compiler/libraries/GPU support.
+可信度：Intel official current docs。
+
+### Intel Level Zero backend
+URL: https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/latest/programming-with-intel-oneapi-level-zero-backend.html
+用途：device discovery, Level Zero backend, sycl-ls, multi-device.
+可信度：Intel official。
+
+### PyTorch XPU
+URL: https://docs.pytorch.org/docs/stable/xpu.html
+Getting started: https://docs.pytorch.org/docs/stable/notes/get_start_xpu.html
+用途：current torch.xpu API and validated Intel GPU families.
+可信度：PyTorch official current docs。
+
+### llama.cpp SYCL backend
+URL: https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/SYCL.md
+用途：current Intel-oriented SYCL backend, oneDNN/oneMKL/FA, Arc A/B support, current issues.
+可信度：canonical upstream。
+局限：rapidly changing; pin exact commit.
+
+### Intel Arc B-Series
+URL: https://www.intel.com/content/www/us/en/ark/products/series/240391/intel-arc-b-series-graphics.html
+用途：current B570/B580 Xe2 product facts.
+可信度：Intel official current product database。
+
+### Intel Arc Pro B-Series
+URL: https://www.intel.com/content/www/us/en/ark/products/series/242616/intel-arc-pro-b-series-graphics.html
+用途：current 2026 workstation Xe2/32GB options.
+可信度：Intel official current product database。
