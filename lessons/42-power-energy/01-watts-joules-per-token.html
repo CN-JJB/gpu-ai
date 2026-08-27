@@ -1,0 +1,88 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Power / Energy Efficiency</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>Power / Energy Efficiency — 300W 的卡一定比 220W 更费电吗？</h1>
+
+<h2>1. Watt 不是电量</h2>
+<pre>W = J/s</pre>
+<p>300W 只告诉你每秒的能量流率，还不知道跑多久。</p>
+
+<h2>2. Energy</h2>
+<pre>E = ∫ P(t) dt</pre>
+<p>近似恒定：</p>
+<pre>E ≈ Power × Time</pre>
+<div class="callout"><strong>比较能耗必须同时看 watts 和完成时间。</strong></div>
+
+<h2>3. Toy A</h2>
+<pre>300W
+60 tok/s
+1000 tokens</pre>
+<p>得到：</p>
+<pre>16.667s
+5000J
+5.0 J/token</pre>
+
+<h2>4. Toy B</h2>
+<pre>220W
+50 tok/s
+1000 tokens</pre>
+<p>得到：</p>
+<pre>20s
+4400J
+4.4 J/token</pre>
+<p>B 更慢，却更省每个 token 的能量。</p>
+
+<h2>5. Toy C</h2>
+<pre>180W
+42 tok/s
+≈4.286 J/token</pre>
+<p>三者里它最慢，但 synthetic efficiency 最好。</p>
+
+<h2>6. tokens/J</h2>
+<pre>tokens/J = 1 / (J/token)</pre>
+<p>稳定状态下：</p>
+<pre>tok/s/W = tok/J</pre>
+
+<h2>7. PP 和 TG 必须分开</h2>
+<p>decode J/token 不能直接代表 prefill J/token。</p>
+
+<h2>8. Idle baseline</h2>
+<p>可以同时报告：</p>
+<pre>total board energy
+incremental energy above idle</pre>
+<p>但必须明确是哪一个。</p>
+
+<h2>9. Board Power ≠ 插座 Power</h2>
+<p><code>nvidia-smi</code> 的 GPU board power 不包含 CPU、RAM、主板、存储、风扇和 PSU loss。</p>
+
+<h2>10. kWh</h2>
+<pre>1 kWh = 3,600,000 J</pre>
+<p>4.4 J/token：</p>
+<pre>1M tokens ≈ 1.222 kWh</pre>
+<p>再乘你自己的电价。</p>
+
+<h2>11. 采样积分</h2>
+<pre>E ≈ (P0+P1)/2 × Δt</pre>
+<p>对整段 trace 累加。</p>
+
+<h2>12. Thermal 会反过来影响 efficiency</h2>
+<pre>Power high
+→ Temp high
+→ Clock down
+→ tok/s down
+→ J/token 可能变差</pre>
+
+<h2>13. 多卡</h2>
+<pre>total board power
+=
+参与 workload 的 GPU 功率之和</pre>
+<p>不要把无关 GPU 也算进去。</p>
+
+<h2>14. 垃圾佬最终比较</h2>
+<pre>售价
+VRAM
+tok/s
+J/token
+电价
+平台成本
+软件风险</pre>
+<p>而不是只看 TDP。</p>
+</body></html>

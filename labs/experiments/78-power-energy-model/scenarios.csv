@@ -1,0 +1,4 @@
+name,power_w,tok_s,output_tokens,idle_w
+fast-high-power,300,60,1000,70
+balanced,220,50,1000,70
+low-power,180,42,1000,70
