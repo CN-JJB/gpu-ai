@@ -4,7 +4,7 @@
 
 Phase 2 now spans GPU architecture/performance fundamentals through a reproducible local LLM service stack with capacity planning, quantization interpretation, concurrency, prefix KV reuse and speculative decode acceleration.
 
-The course now has enough causal models to begin single-node multi-GPU reasoning without treating “two GPUs = twice as fast” as a rule.
+The course has now begun the single-node multi-GPU slice without treating “two GPUs = twice as fast” as a rule.
 
 ## Completed slices
 
@@ -89,9 +89,15 @@ Real-run paths ready:
 
 Experiment 16 has a low-dependency n-gram path plus an optional compatible two-model draft path and current speculative metric counters. No real target/draft performance data is fabricated.
 
-## Current goal
+## Active Slice 11 — Single-node multi-GPU / interconnect
 
-下一切片进入单机多 GPU / 互联：
+Research + reference 已完成：
+- research/gpu/0005-multi-gpu-interconnect-scaling.md
+- reference/gpu/multi-gpu-split-interconnect.md
+
+当前继续完成 Lesson / Experiments / Evidence / Intelligence。
+
+主线：
 
 **one GPU limit → model/layer split vs tensor split → PCIe / NVLink / vendor interconnect → synchronization/data movement → capacity aggregation → throughput/latency → scaling efficiency**
 
@@ -109,9 +115,9 @@ Experiment 16 has a low-dependency n-gram path plus an optional compatible two-m
 
 ## Next actions
 
-1. Research NVIDIA/AMD/PCI-SIG primary docs for PCIe, peer-to-peer, NVLink/Infinity-style interconnect and device topology.
-2. Research current llama.cpp multi-GPU split modes/tensor split and backend limitations.
-3. Build stable layer-split vs tensor-parallel communication model.
-4. L0 experiment: compute time + communication time → scaling efficiency crossover.
-5. Optional real two-GPU experiment with one-GPU baseline and exact topology Evidence.
+1. Write the stable HTML Lesson for capacity aggregation, layer split, tensor split, P2P and interconnect roof.
+2. Build L0 experiment 17: compute + communication + sync → scaling efficiency crossover.
+3. Build real experiment 18: exact topology/P2P Evidence → one-GPU PP/TG baseline → two-GPU split PP/TG.
+4. Add experiment-11 Evidence template and current topology/tool intelligence.
+5. Update learning record after the slice is complete.
 6. Keep current card prices/model compatibility in intelligence, not stable Lesson.
