@@ -1,0 +1,41 @@
+{
+  "case_id": "graduation-accept",
+  "gates": {
+    "model_vram": {"required": true, "status": "PASS", "source": "evidence/model-capacity.json#sha256-demo"},
+    "runtime": {"required": true, "status": "PASS", "source": "evidence/runtime-log.txt#sha256-demo"},
+    "psu_cables": {"required": true, "status": "PASS", "source": "evidence/psu-dossier.md#sha256-demo"},
+    "thermal": {"required": true, "status": "PASS", "source": "evidence/thermal.csv#sha256-demo"}
+  },
+  "claims": [
+    {
+      "id": "C1",
+      "material": true,
+      "claim": "target model fits the declared runtime capacity",
+      "evidence": "evidence/model-capacity.json#sha256-demo",
+      "scope": "exact model hash, quant, context and concurrency"
+    },
+    {
+      "id": "C2",
+      "material": true,
+      "claim": "sustained token generation meets the target",
+      "evidence": "evidence/thermal.csv#sha256-demo",
+      "scope": "30-minute repeated run on the declared backend"
+    }
+  ],
+  "revisions": [],
+  "upgrade_roadmap": {
+    "now": [],
+    "next": [
+      {"trigger": "serving TTFT p95 exceeds declared SLO", "action": "run queue/KV capacity diagnosis before changing hardware"}
+    ],
+    "later": [
+      {"trigger": "runtime capacity headroom falls below the declared threshold", "action": "re-evaluate quant, model size or GPU topology"}
+    ]
+  },
+  "non_claims": [
+    "ACCEPT does not prove universal optimality",
+    "the sustained test does not prove multi-year reliability",
+    "current backend evidence does not prove future-version compatibility"
+  ],
+  "declared_decision": "ACCEPT"
+}
