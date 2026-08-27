@@ -86,8 +86,11 @@ Fill exact:
 - runtime version/commit;
 - device identity;
 - PP/TG/repeats;
-- config fields;
+- semantic config fields;
+- exact full command in `command_record`;
 - raw result path.
+
+`command_record` is audit evidence. It is deliberately **not** counted as an independent configuration variable by `validate_ab.py`, because changing one semantic option naturally changes the command string too.
 
 ## 4. Diagnose
 
@@ -121,7 +124,7 @@ Candidate:
 true
 ```
 
-Everything else should stay equal.
+Everything else in `config` should stay equal.
 
 ## 6. Run candidate
 
@@ -139,6 +142,8 @@ Then fill:
 cp candidate-manifest.template.json candidate-manifest.json
 ```
 
+Record the exact candidate command in `command_record`.
+
 ## 7. Validate the A/B
 
 ```bash
@@ -150,6 +155,7 @@ Expected for a valid experiment:
 ```
 IDENTITY CHECK: PASS
 ONE-VARIABLE CHECK: PASS
+PLACEHOLDER CHECK: PASS
 ```
 
 The validator checks:
@@ -157,7 +163,7 @@ The validator checks:
 - same runtime identity;
 - same device identity;
 - same PP/TG/repetitions;
-- exactly one declared config field differs.
+- exactly one declared semantic `config.*` field differs.
 
 It does **not** prove that hidden environment/thermal state is identical. You still record those manually.
 

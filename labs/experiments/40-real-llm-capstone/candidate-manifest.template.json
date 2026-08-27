@@ -17,8 +17,8 @@
     "context_or_depth": "REPLACE",
     "split_mode": "REPLACE",
     "tensor_split": "REPLACE",
-    "threads": "REPLACE",
-    "extra_args": "REPLACE"
+    "threads": "REPLACE"
   },
+  "command_record": "REPLACE",
   "raw_result": "candidate.json"
 }
