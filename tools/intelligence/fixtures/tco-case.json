@@ -1,0 +1,19 @@
+{
+  "case_id": "tco-fixture-24g",
+  "market_record_id": "market:fixture:24g:2026-08-27",
+  "horizon_months": 12,
+  "average_system_power_w": 300,
+  "hours_per_day": 4,
+  "electricity_rate_per_kwh": 1,
+  "platform_delta": 300,
+  "risk_reserve": 200,
+  "resale_estimate": 1000,
+  "evidence": {
+    "average_system_power_w": "SYNTHETIC fixture assumption",
+    "electricity_rate_per_kwh": "SYNTHETIC fixture assumption",
+    "platform_delta": "SYNTHETIC fixture assumption",
+    "risk_reserve": "SYNTHETIC fixture policy",
+    "resale_estimate": "SYNTHETIC fixture assumption"
+  },
+  "synthetic": true
+}
