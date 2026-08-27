@@ -173,3 +173,27 @@ goal/workload
 1. 用真实 learner-owned target 完成 Experiment 93；
 2. 根据真实毕业报告暴露的缺口回修稳定 Lesson；
 3. 否则进入 Intelligence Stations，维护动态硬件 / 模型 / Benchmark 数据。
+
+## Phase 4 Intelligence 实现索引
+
+这部分不是稳定 Lesson Slice；它是动态情报/工具层。
+
+| ID | 内容 | 状态 |
+|---|---|---|
+| I01 | Hardware/Model entities + Market/Benchmark observations + Experiment 61 bridge | implemented |
+| I02 | Runtime entities + compatibility observations + documented-vs-measured preflight | implemented |
+
+当前稳定边界：
+
+~~~text
+Lesson/Reference
+→ durable reasoning
+
+Intelligence
+→ dated current observation
+
+Evidence Packet
+→ raw/hashed measurement chain
+~~~
+
+不要把动态排行榜结果反写成“永久硬件常识”。
