@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Serving Capacity：Little's Law</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style>
+</head><body>
+<h1>Serving Capacity — 2 req/s × 3 秒，为什么系统里平均有 6 个请求？</h1>
+
+<h2>1. Little's Law</h2>
+
+<pre>
+L = λ W
+</pre>
+
+<p>这里：</p>
+
+<pre>
+L = 平均有多少东西在系统里
+λ = 每秒通过多少
+W = 每个东西平均待多久
+</pre>
+
+<h2>2. 最简单例子</h2>
+
+<pre>
+2 req/s
+×
+3 s/request
+=
+6 requests
+</pre>
+
+<p>平均有 6 个请求 somewhere in system。</p>
+
+<div class="callout"><strong>“平均 6 个”不是“每时每刻正好 6 个”，更不是“配 6 个 slot 就完事”。</strong></div>
+
+<h2>3. 最大陷阱：你说的“system”到底是什么？</h2>
+
+<p>端到端：</p>
+
+<pre>
+arrival
+→ queue
+→ active
+→ completion
+</pre>
+
+<p>此时：</p>
+
+<pre>
+L_system
+=
+queued + active 的平均数
+</pre>
+
+<p>但 server slots 一般更接近：</p>
+
+<pre>
+active requests
+</pre>
+
+<p>所以不能直接：</p>
+
+<pre>
+ceil(L_system)
+=
+slots
+</pre>
+
+<h2>4. 把它拆成三份</h2>
+
+<pre>
+W_system
+=
+W_queue
++
+W_active
+</pre>
+
+<p>于是同一个 throughput λ 下：</p>
+
+<pre>
+L_system = λW_system
+L_queue  = λW_queue
+L_active = λW_active
+</pre>
+
+<p>并且：</p>
+
+<pre>
+L_system
+=
+L_queue
++
+L_active
+</pre>
+
+<h2>5. 一个 6 请求 synthetic trace</h2>
+
+<table>
+<tr><th>ID</th><th>Arrival</th><th>Service Start</th><th>Done</th></tr>
+<tr><td>r0</td><td>0.0</td><td>0.0</td><td>3.0</td></tr>
+<tr><td>r1</td><td>0.5</td><td>0.5</td><td>2.5</td></tr>
+<tr><td>r2</td><td>1.0</td><td>1.0</td><td>5.0</td></tr>
+<tr><td>r3</td><td>1.5</td><td>2.0</td><td>3.0</td></tr>
+<tr><td>r4</td><td>2.0</td><td>2.5</td><td>4.5</td></tr>
+<tr><td>r5</td><td>2.5</td><td>3.0</td><td>4.5</td></tr>
+</table>
+
+<h2>6. Throughput</h2>
+
+<pre>
+6 requests / 5 seconds
+=
+1.2 req/s
+</pre>
+
+<h2>7. 系统平均停留</h2>
+
+<pre>
+W_system
+=
+2.5 s
+</pre>
+
+<p>所以：</p>
+
+<pre>
+L_system
+=
+1.2 × 2.5
+=
+3.0
+</pre>
+
+<h2>8. Active 部分</h2>
+
+<pre>
+W_active
+=
+2.25 s
+</pre>
+
+<pre>
+L_active
+=
+1.2 × 2.25
+=
+2.7
+</pre>
+
+<h2>9. Queue 部分</h2>
+
+<pre>
+W_queue
+=
+0.25 s
+</pre>
+
+<pre>
+L_queue
+=
+1.2 × 0.25
+=
+0.3
+</pre>
+
+<p>验证：</p>
+
+<pre>
+3.0
+=
+2.7
++
+0.3
+</pre>
+
+<h2>10. 但 Peak 呢？</h2>
+
+<p>同一个 trace：</p>
+
+<pre>
+average system = 3.0
+peak system    = 5
+
+average active = 2.7
+peak active    = 4
+</pre>
+
+<p>所以如果你只按平均 2.7 配 3 个 slots，突发时仍然会排队。</p>
+
+<h2>11. 和 KV 怎么接？</h2>
+
+<p>假设只是教学 proxy：</p>
+
+<pre>
+每个 active sequence
+≈ 1.5 GiB KV
+</pre>
+
+<p>平均：</p>
+
+<pre>
+2.7 × 1.5
+=
+4.05 GiB
+</pre>
+
+<p>Peak：</p>
+
+<pre>
+4 × 1.5
+=
+6 GiB
+</pre>
+
+<p>这已经差了快 2 GiB。</p>
+
+<p>真实模型还更复杂，因为每个 sequence 的当前 context 不一样。</p>
+
+<h2>12. Queue 中的请求为什么不能直接乘 KV？</h2>
+
+<p>它还没被 server admission 到 active model sequence 时，通常没有同等 active KV。</p>
+
+<p>所以：</p>
+
+<pre>
+L_system × KV
+</pre>
+
+<p>可能把排队请求也算成 active KV。</p>
+
+<h2>13. Little's Law 不能给你 p95</h2>
+
+<p>两个 workload 可以：</p>
+
+<pre>
+λ 一样
+mean W 一样
+</pre>
+
+<p>但：</p>
+
+<pre>
+一个非常平稳
+另一个偶尔卡 10 秒
+</pre>
+
+<p>所以 tail latency 仍然回 Slice 34 测。</p>
+
+<h2>14. 服务器过载时更不能乱套</h2>
+
+<p>如果长期：</p>
+
+<pre>
+arrival rate
+>
+completion rate
+</pre>
+
+<p>queue 会越来越长。</p>
+
+<p>这时拿 arrival rate 乘一个旧的平均 latency，不是在做容量规划，是在掩盖 overload。</p>
+
+<h2>15. 对垃圾佬很实用的一点</h2>
+
+<p>如果你的两张便宜 GPU 因 PCIe 导致 TG 变慢：</p>
+
+<pre>
+W_active ↑
+</pre>
+
+<p>要维持同样请求吞吐：</p>
+
+<pre>
+L_active = λW_active ↑
+</pre>
+
+<p>于是：</p>
+
+<pre>
+需要同时存活的 sequences ↑
+KV 压力 ↑
+</pre>
+
+<p>所以 GPU “速度慢一点”和“显存够不够”会在 Serving 里重新耦合起来。</p>
+</body></html>
