@@ -35,9 +35,23 @@ Slices 01–49 now cover GPU/LLM foundations, serving, four GPU ecosystems, seco
 Next validation step: complete Experiment 93 against a real learner-owned target and feed only demonstrated gaps back into stable lessons.
 
 ## Phase 4 — Intelligence Stations
-Status: next major build frontier
+Status: active
 
-Hardware DB + Model DB + Benchmark bridge + rankings/recommendation/TCO tools.
+Completed foundations:
+- [x] I01 canonical Hardware / Model catalog + Market / Benchmark observations
+- [x] I01 Experiment 61 → llama-bench benchmark ingester
+- [x] I01 Hardware ↔ Model ↔ Benchmark query bridge
+- [x] I01 provenance/freshness/synthetic validation
+- [x] I02 Runtime entities + compatibility observations
+- [x] I02 DOCUMENTED vs MEASURED support preflight
+
+Next:
+- [ ] measured compatibility ingestion;
+- [ ] expand current vendor/backend observations;
+- [ ] comparable-workload benchmark views;
+- [ ] normalized direct-market ingestion;
+- [ ] explicit price/performance and TCO queries;
+- [ ] recommendation views only after feasibility/support gates.
 
 Dynamic prices, current compatibility, model releases and benchmark observations belong here rather than being written into stable lessons.
 
