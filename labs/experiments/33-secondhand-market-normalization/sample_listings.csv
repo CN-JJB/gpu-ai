@@ -1,0 +1,11 @@
+id,exact_model,vram_gib,cohort,condition,price_state,price_cny,multi_sku,product_only,notes
+1,RTX 3090,24,STOCK,WORKING,ASK,7400,false,true,normal stock card
+2,RTX 3090,24,STOCK,WORKING,ASK,7600,false,true,normal stock card
+3,MULTI,0,MIXED,UNKNOWN,ASK,1598,true,true,"3050/3060/3070/3080Ti/3090 multi-SKU teaser"
+4,RTX 3090,0,ACCESSORY,PART_ONLY,ASK,400,false,false,cooler only
+5,RTX 3090,48,MOD_VRAM,WORKING,ASK,9500,false,true,48G modified VRAM
+6,RTX 3090,24,STOCK,BROKEN,ASK,3000,false,true,junk/repair candidate
+7,RTX 3090,24,STOCK,WORKING,ASK,7200,false,true,normal stock card
+8,RTX 3090,24,STOCK,WORKING,SOLD-CONFIRMED,7300,false,true,confirmed sold example
+9,RTX 3090,24,STOCK,WORKING,ASK,7800,false,true,normal stock card
+10,RTX 3090,24,STOCK,WORKING,ASK,7500,false,true,normal stock card

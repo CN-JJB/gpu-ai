@@ -1,0 +1,2 @@
+timestamp,marketplace,listing_id,url,exact_model,vram_gib,cohort,condition,seller_type,price_state,price_cny,shipping_cny,condition_evidence,market_evidence,include_normalized,exclude_reason,notes
+2026-08-27T00:00:00+08:00,EXAMPLE,example-1,https://example.invalid,RTX 3090,24,STOCK,WORKING,PERSONAL,ASK,0,0,C0,M0,false,template_only,replace this row with real evidence
