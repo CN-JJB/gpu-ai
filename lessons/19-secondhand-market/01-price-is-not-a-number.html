@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 19 — 二手显卡：价格不是一个数字</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Slice 19 — 中国二手 GPU：先学会“价格不是一个数字”</h1>
+
+<p>你打开闲鱼搜“3090”，第一屏能看到很多数字。真正的问题是：<strong>这些数字到底是不是同一种东西？</strong></p>
+
+<h2>1. 一个最危险的例子</h2>
+<p>商品标题可能写：</p>
+<pre>RTX3050 / 3060 / 3070 / 3080Ti / 3090
+¥1598</pre>
+
+<p>如果搜索页把最低选项显示为 ¥1598，你不能记：</p>
+<pre>3090 = 1598</pre>
+
+<p>这类链接可能把多个 SKU、配件、坏卡、定金放进一个商品。</p>
+
+<div class="callout"><strong>规则：</strong>没有 exact option price，就不进入 exact-SKU 行情样本。</div>
+
+<h2>2. 二手市场至少有六种“价格”</h2>
+
+<table>
+<tr><th>状态</th><th>意思</th></tr>
+<tr><td>ASK</td><td>卖家当前挂牌</td></tr>
+<tr><td>SOLD-CONFIRMED</td><td>平台明确显示成交</td></tr>
+<tr><td>DELISTED-ASSUMED</td><td>下架，被第三方推测成交</td></tr>
+<tr><td>MERCHANT-QUOTE</td><td>商家报价</td></tr>
+<tr><td>BUYBACK</td><td>回收价</td></tr>
+<tr><td>UNKNOWN</td><td>状态不明</td></tr>
+</table>
+
+<p>它们不能直接混在一起算“均价”。</p>
+
+<h2>3. 同一个 GPU 名字也可能不是同一个产品</h2>
+
+<p>例如：</p>
+<pre>A770 8G
+A770 16G</pre>
+
+<p>本地 LLM 对显存非常敏感，所以必须分开。</p>
+
+<p>再比如：</p>
+<pre>2080 Ti 11G stock
+2080 Ti 22G VRAM mod</pre>
+
+<p>后者已经是一个 custom hardware cohort。</p>
+
+<h2>4. “非矿”不是检测结果</h2>
+<p>卖家说：</p>
+<ul>
+<li>个人自用；</li>
+<li>女生自用；</li>
+<li>非矿；</li>
+<li>网吧拆机；</li>
+<li>服务器退役；</li>
+<li>无修。</li>
+</ul>
+
+<p>全部先存成：</p>
+<pre>seller_claim</pre>
+
+<p>不要自动转成：</p>
+<pre>low risk</pre>
+
+<h2>5. 证据强度应该单独记录</h2>
+<table>
+<tr><th>等级</th><th>含义</th></tr>
+<tr><td>C0</td><td>无条件证据</td></tr>
+<tr><td>C1</td><td>卖家口述</td></tr>
+<tr><td>C2</td><td>有当前功能截图/视频</td></tr>
+<tr><td>C3</td><td>有身份、持续负载、显存/温度等完整测试</td></tr>
+<tr><td>C4</td><td>第三方或买家本人独立验证</td></tr>
+</table>
+
+<h2>6. 验货服务也不是万能 GPU 测试</h2>
+<p>平台第三方验货可以提高交易保障，但查验有明确服务范围和标准。</p>
+
+<p>对 AI GPU，你仍然需要自己关心：</p>
+<ul>
+<li>显存容量是否正确；</li>
+<li>显存错误；</li>
+<li>持续 compute 稳定性；</li>
+<li>热点/显存温度；</li>
+<li>驱动重置；</li>
+<li>BIOS；</li>
+<li>维修/魔改。</li>
+</ul>
+
+<h2>7. 为什么不能迷信“最低价”</h2>
+
+<p>正常样本里你更应该看：</p>
+<pre>n
+median
+Q1-Q3
+confirmed sold sample
+condition cohort
+</pre>
+
+<p>而不是：</p>
+<pre>min(listing)
+</pre>
+
+<p>最低的那条最可能恰好是：</p>
+<ul>
+<li>坏卡；</li>
+<li>配件；</li>
+<li>诈骗引流；</li>
+<li>修过；</li>
+<li>定金；</li>
+<li>错误型号。</li>
+</ul>
+
+<h2>8. 二手显卡不只有“矿卡风险”</h2>
+
+<p>本地 LLM 特别容易遇到：</p>
+<ul>
+<li>退役计算卡；</li>
+<li>涡轮/被动散热卡；</li>
+<li>显存魔改；</li>
+<li>无输出卡；</li>
+<li>EPS 特殊供电；</li>
+<li>板修；</li>
+<li>OEM 怪板；</li>
+<li>工程样品。</li>
+</ul>
+
+<p>每一种都会改变：</p>
+<pre>平台成本
++ 测试成本
++ 故障概率
++ resale
+</pre>
+
+<h2>9. 真正有用的是“我的最高买价”</h2>
+
+<p>你不应该问：</p>
+<pre>3090 值多少钱？</pre>
+
+<p>应该问：</p>
+<pre>对我的 32B Q4 + 16k context
+这张 exact 3090
+在当前软件和风险条件下
+最高值得我付多少钱？</pre>
+
+<p>简化：</p>
+<pre>max buy price
+= workload value
+- platform extras
+- repair reserve
+- software burden
+- condition/risk discount</pre>
+
+<h2>10. 最终市场工作流</h2>
+<pre>抓 listing
+→ exact SKU
+→ condition cohort
+→ price state
+→ duplicate/outlier cleanup
+→ median/Q1-Q3
+→ evidence grade
+→ candidate dossier
+→ BUY IF PRICE ≤ X</pre>
+
+<p>这才是“垃圾佬”真正可复用的市场能力。</p>
+</body></html>
