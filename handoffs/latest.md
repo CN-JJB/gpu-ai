@@ -40,6 +40,7 @@ I03 exact measured compatibility ingestion
 I04 comparable benchmark view
 I05 explicit price/performance
 I06 evidence-linked TCO worksheet
+I07 real benchmark intake gate
 ~~~
 
 These are Intelligence Stations, not Slice 50–55.
@@ -127,9 +128,34 @@ purchase
 
 TCO does not rescue an infeasible/unsupported/unsafe design.
 
+## I07 real benchmark intake
+
+Tool:
+
+~~~text
+tools/intelligence/verify_real_intake.py
+~~~
+
+Required chain:
+
+~~~text
+manifest
++ raw benchmark result
++ PACKET.json
++ canonical IDs
+→ INTAKE: READY
+→ ingestion
+~~~
+
+Verified:
+- intact fixture packet → READY;
+- tampered packet SHA → BLOCKED.
+
+Repository search found no real Experiment 61-compatible packet/result bundle, so production benchmarks remain empty by design.
+
 ## Verification
 
-Exact-content local verification was completed on 2026-08-27.
+Exact-content local verification through I07 was completed on 2026-08-27.
 
 The checked local files matched main-branch Git blob SHAs for the intelligence scripts/catalog/fixtures used in the run.
 
@@ -168,10 +194,9 @@ No real benchmark Evidence has yet been admitted through I01–I03.
 
 ## Next work
 
-1. Search existing repository Evidence for a real Experiment 61-compatible packet/result.
-2. Ingest it only if hardware/model/runtime/artifact/workload identity is complete and auditable.
-3. Otherwise leave production benchmark data empty and prepare a real-run intake checklist.
-4. Expand dated compatibility observations across NVIDIA / AMD / Apple / Intel.
-5. Delay recommendation/ranking until real comparable Evidence exists.
+1. Acquire/receive a real Experiment 61 packet and pass I07 intake.
+2. Keep production benchmark data empty until that happens.
+3. Expand dated compatibility observations across NVIDIA / AMD / Apple / Intel.
+4. Delay recommendation/ranking until real comparable Evidence exists.
 
 No auto-purchase or unsafe hardware modification is part of this workflow.
