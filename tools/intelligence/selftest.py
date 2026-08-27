@@ -107,6 +107,19 @@ def main():
 
     out = run([
         PY, str(HERE / "compatibility_preflight.py"),
+        str(fixture),
+        "--hardware-id", "hw:fixture:24g",
+        "--model-id", "model:fixture:8b",
+        "--runtime-id", "runtime:fixture",
+        "--backend", "FIXTURE-UNKNOWN",
+        "--as-of", "2026-08-27",
+        "--include-synthetic",
+    ])
+    assert "status=UNKNOWN" in out
+    assert "PREFLIGHT: BLOCKED" in out
+
+    out = run([
+        PY, str(HERE / "compatibility_preflight.py"),
         str(prod),
         "--hardware-id", "hw:nvidia:geforce-rtx-3090:24g",
         "--model-id", "model:qwen:qwen3-8b",
@@ -233,6 +246,7 @@ def main():
     print("- explicit same-cohort market rows enable descriptive price/performance")
     print("- evidence-linked TCO fixture reproduces the expected scenario arithmetic")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")
+    print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- Experiment 61 importer reproduces PP/TG")
     print("- exact benchmark Evidence upgrades only the matching path to PASS-MEASURED")
     print("- a different artifact falls back to NEEDS-TEST")
