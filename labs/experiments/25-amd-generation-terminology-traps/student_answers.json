@@ -1,0 +1,14 @@
+{
+  "classic_gcn_primary_wave_size": 64,
+  "rdna_supports_only_wave32": false,
+  "rdna_wgp_groups_two_cus": true,
+  "infinity_cache_is_extra_vram": false,
+  "rdna_and_cdna_are_one_sequential_line": false,
+  "cdna_mfma_is_matrix_acceleration": true,
+  "rdna3_dual_issue_guarantees_2x": false,
+  "mi300a_and_mi300x_same_package": false,
+  "rdna4_fp8_int4_guarantees_q4_native_llm": false,
+  "rocm_support_can_be_decided_by_architecture_name_only": false,
+  "cdna5_currently_uses_wgp_wave32_direction": true,
+  "rocm_7_14_standard_matrix_lists_cdna5_as_supported": false
+}
