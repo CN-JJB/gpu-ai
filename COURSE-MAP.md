@@ -146,21 +146,30 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 44 | Host Memory Pressure / Swap / OOM：available RAM / paging / host-vs-VRAM OOM |
 | 45 | Thermal / Cooling / Sustained Performance：thermal soak / clocks / TG drift |
 | 46 | Used-GPU Validation / Purchase Acceptance：identity / PCIe / errors / sustained LLM |
+| 47 | PSU / Power Delivery / Platform Integration：capacity / cables / headroom |
+| 48 | Whole-Machine System Integration：hard gates / blockers / dossier |
+| 49 | Graduation Machine Design Capstone：Evidence review / revisions / upgrade roadmap |
 
-### 当前下一主线
+### v1 稳定主线状态
 
-二手交易基础验收已在 Slice 20 建立；Slice 46 将其升级为更严格的硬件身份、PCIe、错误状态与 sustained Local-LLM Evidence 路径。
+Slice 49 已把前面的模型、GPU、平台、Serving 与 Evidence 汇合成毕业 Machine Design Capstone。
 
-下一阶段补整机供电与平台约束：
+毕业交付物：
 
-```
-GPU board power
-→ PSU continuous capacity
-→ connector/cable topology
-→ slot power / auxiliary power
-→ transient/headroom
-→ multi-GPU platform budget
-→ safe acceptance
-```
+~~~text
+goal/workload
+→ Experiment 91 machine dossier
+→ material-claim Evidence index
+→ architecture narrative
+→ benchmark / quality / SLO
+→ TCO / risk
+→ revision alternatives
+→ evidence-triggered upgrade roadmap
+→ explicit non-claims
+→ ACCEPT / REVISE / BLOCKED
+~~~
 
-然后把 PSU、PCIe、RAM、SSD、散热和多 GPU 汇总到整机毕业设计。
+稳定主线默认不再为了“继续加内容”扩张。下一阶段优先：
+1. 用真实 learner-owned target 完成 Experiment 93；
+2. 根据真实毕业报告暴露的缺口回修稳定 Lesson；
+3. 否则进入 Intelligence Stations，维护动态硬件 / 模型 / Benchmark 数据。
