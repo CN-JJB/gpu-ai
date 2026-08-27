@@ -1,0 +1,68 @@
+{
+  "capstone_id": "REPLACE",
+  "report_path": "REPLACE",
+  "target_sha256": "REPLACE",
+  "experiment91": {
+    "dossier_source": "REPLACE",
+    "dossier_sha256": "REPLACE",
+    "machine_decision": "REPLACE"
+  },
+  "evidence_packet": {
+    "index_source": "REPLACE",
+    "index_sha256": "REPLACE"
+  },
+  "claims": [
+    {
+      "id": "C1",
+      "material": true,
+      "claim": "REPLACE",
+      "evidence_type": "REPLACE",
+      "evidence": "REPLACE",
+      "scope": "REPLACE"
+    }
+  ],
+  "revisions": [
+    {
+      "id": "R1",
+      "change": "REPLACE",
+      "addresses_gates": [],
+      "new_evidence_required": "REPLACE",
+      "new_cost_risk": "REPLACE"
+    }
+  ],
+  "upgrade_roadmap": {
+    "now": [],
+    "next": [
+      {
+        "trigger": "REPLACE",
+        "action": "REPLACE",
+        "validation_required": "REPLACE"
+      }
+    ],
+    "later": [
+      {
+        "trigger": "REPLACE",
+        "action": "REPLACE",
+        "validation_required": "REPLACE"
+      }
+    ]
+  },
+  "non_claims": [
+    "REPLACE",
+    "REPLACE",
+    "REPLACE",
+    "REPLACE"
+  ],
+  "rubric": {
+    "workload_identity": "NEEDS-EVIDENCE",
+    "architecture_reasoning": "NEEDS-EVIDENCE",
+    "hard_gate_discipline": "NEEDS-EVIDENCE",
+    "evidence_traceability": "NEEDS-EVIDENCE",
+    "benchmark_quality_slo": "NEEDS-EVIDENCE",
+    "tco_risk": "NEEDS-EVIDENCE",
+    "revision_quality": "NEEDS-EVIDENCE",
+    "upgrade_roadmap": "NEEDS-EVIDENCE",
+    "non_claims": "NEEDS-EVIDENCE",
+    "final_decision": "NEEDS-EVIDENCE"
+  }
+}
