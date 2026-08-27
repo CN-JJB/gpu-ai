@@ -18,6 +18,7 @@ Phase 4 specs：
 - docs/specs/0011-intelligence-freshness-revalidation-queue.md
 - docs/specs/0012-intelligence-market-cohort-coverage.md
 - docs/specs/0013-intelligence-market-evidence-audit.md
+- docs/specs/0014-intelligence-sold-marked-listing-evidence.md
 
 Schema：
 - intelligence/schema/README.md
@@ -187,6 +188,43 @@ Arc A770 16GB → SMALL-SAMPLE
 
 These labels are operational heuristics, not statistical confidence scores.
 
+## Sold-marked listing evidence
+
+A separate US peer-to-peer cohort preserves marketplace pages marked SOLD:
+
+~~~text
+US
+offerup-sold-marked-listing
+used-consumer
+used
+SOLD_MARKED_LISTING_PRICE
+USD
+~~~
+
+Important:
+
+~~~text
+SOLD page label
+!=
+confirmed negotiated transaction amount
+~~~
+
+Current descriptive displayed-price medians:
+
+~~~text
+RTX 3090      → 950 USD
+RX 7900 XTX   → 700 USD
+Arc A770 16GB → 200 USD
+~~~
+
+Tool:
+
+~~~bash
+python3 tools/intelligence/sold_marked_market.py intelligence/catalog
+~~~
+
+Every record keeps confirmed_transaction_price=false.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -242,8 +280,9 @@ Evidence:
 - examples/evidence/intelligence-10-freshness-revalidation.md
 - examples/evidence/intelligence-11-market-cohort-coverage.md
 - examples/evidence/intelligence-12-market-evidence-audit.md
+- examples/evidence/intelligence-13-sold-marked-listings.md
 
-I11–I12 were additionally checked against exact latest-main blobs with contract-equivalent execution. A fresh full Python repository run was not repeated because the local execution path timed out/rate-limited; do not collapse these two verification levels.
+I11–I13 were additionally checked against exact latest-main blobs with contract-equivalent execution. A fresh full Python repository run was not repeated because the local execution path timed out/rate-limited; do not collapse these two verification levels.
 
 ## Current production-data boundary
 
