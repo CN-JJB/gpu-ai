@@ -214,6 +214,34 @@ def main():
     assert "not a confirmed-sale median" in out
 
     out = run([
+        PY, str(HERE / "compare_market_contracts.py"),
+        str(prod),
+        "--left-geography", "GLOBAL-EBAY",
+        "--left-channel", "secondary-aggregated-ebay-active",
+        "--left-cohort", "used-consumer",
+        "--left-condition", "used",
+        "--left-price-state", "MEDIAN_ASK",
+        "--left-currency", "USD",
+        "--right-geography", "US",
+        "--right-channel", "offerup-sold-marked-listing",
+        "--right-cohort", "used-consumer",
+        "--right-condition", "used",
+        "--right-price-state", "SOLD_MARKED_LISTING_PRICE",
+        "--right-currency", "USD",
+    ])
+    assert "common_hardware=3" in out
+    assert "left_median=1499" in out
+    assert "right_median=950" in out
+    assert "right_vs_left_pct=-36.6%" in out
+    assert "left_median=1020" in out
+    assert "right_median=700" in out
+    assert "right_vs_left_pct=-31.4%" in out
+    assert "left_median=330" in out
+    assert "right_median=200" in out
+    assert "right_vs_left_pct=-39.4%" in out
+    assert "not a confirmed transaction discount" in out
+
+    out = run([
         PY, str(HERE / "compatibility_matrix.py"),
         str(prod),
         "--model-id", "model:qwen:qwen3-8b",
@@ -453,6 +481,7 @@ def main():
     print("- MEDIAN_ASK without sample metadata is rejected")
     print("- sold-marked OfferUp pages stay distinct from confirmed transaction prices")
     print("- SOLD_MARKED_LISTING_PRICE falsely claiming confirmed transaction is rejected")
+    print("- cross-market comparison exposes eBay-ask vs OfferUp-sold-marked signal gaps without calling them discounts")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
