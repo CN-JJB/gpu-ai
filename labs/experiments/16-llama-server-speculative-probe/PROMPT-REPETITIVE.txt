@@ -1,0 +1,5 @@
+Repeat exactly the following line many times, one line per repetition, with no numbering and no commentary:
+
+alpha beta gamma delta epsilon zeta eta theta
+
+Continue repeating the exact line until you reach the output limit.

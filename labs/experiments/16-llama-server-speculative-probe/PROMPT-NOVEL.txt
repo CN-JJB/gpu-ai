@@ -1,0 +1,1 @@
+Explain, in your own words and with concrete examples, how GPU memory capacity, memory bandwidth, arithmetic intensity, KV cache size, and speculative decoding can each become a bottleneck in local LLM inference. Avoid repeating the same sentence structure and develop the explanation progressively.
