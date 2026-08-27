@@ -7,72 +7,66 @@
 
 ## Completed frontier
 
-Slices 01–39 are implemented.
-Experiments 01–73 exist.
+Slices 01–40 are implemented.
+Experiments 01–75 exist.
 
-## Slice 39 core
+## Slice 40 core
 
-Pinned `llama-server /health`:
+Release policy is defined before candidate interpretation.
 
-```
-503 = Loading model
-200 = model loaded / ready
-```
-
-Operational states:
+Synthetic policy result:
 
 ```
-process alive
-→ listener/HTTP
-→ readiness
-→ smoke inference
-→ warm steady state
+candidate-good:
+TG 1.08×
+PPL ratio 1.01
+TTFT 450 ms
+SLO 99.3%
+→ ACCEPT
+
+candidate-fast-bad:
+TG 1.20×
+PPL ratio 1.04
+TTFT 900 ms
+SLO 92%
+→ ROLLBACK
 ```
 
-Synthetic verified:
+Rollback only completes when exact baseline:
 
 ```
-cold:
-HTTP 400 ms
-ready 5000 ms
-first inference 5800 ms
-warm 150 ms
-
-restart:
-HTTP 450 ms
-ready 5100 ms
-first inference 6300 ms
-warm 160 ms
+runtime SHA
+model SHA
+config SHA
+manifest SHA
 ```
 
-Real Experiment 73 is hardened:
-- forced 127.0.0.1;
-- only own child process managed;
-- LLAMA_ARG_* hidden overrides stripped;
-- model/network/auth/tools overrides rejected;
-- model/server SHA recorded.
+is restored and readiness/smoke pass.
 
-## Active next slice — Safe Upgrade / Rollback
+Real Experiment 75 consumes prior Evidence; it does not install services or overwrite artifacts.
 
-Build a release gate:
+## Active next slice — Observability / Incident Diagnosis
+
+Build:
 
 ```
-baseline release
-→ candidate identity
-→ readiness
-→ smoke
-→ PP/TG
-→ quality
-→ serving SLO
-→ ACCEPT or ROLLBACK
+user symptom
+→ timeline
+→ client latency/error
+→ queue/server metrics
+→ GPU memory/utilization/clocks/temperature
+→ logs
+→ hypothesis
+→ evidence
+→ action
 ```
-
-Define rollback triggers before candidate run.
 
 Teach:
-- runtime upgrade != model upgrade != config change;
-- a new release may be faster but fail quality/SLO;
-- rollback means restoring exact previous artifact/config identity, not merely restarting;
-- rollback readiness must itself be verified.
+- symptom != cause;
+- 100% GPU can be healthy;
+- low GPU utilization can be queue/CPU/tokenization/I/O or measurement artifact;
+- VRAM full can be expected reservation rather than leak;
+- thermals/clocks matter over time;
+- correlate clocks/queue/TTFT rather than alerting on one metric.
 
-Real lab should remain local, use exact artifacts, and avoid system-service installation.
+Real lab should be read-only and produce an incident packet without changing power limits/clocks/driver settings.

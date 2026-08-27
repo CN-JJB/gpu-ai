@@ -140,3 +140,9 @@
 
 - 72 synthetic liveness/listener/readiness/warm-state timeline
 - 73 real loopback llama-server restart/readiness probe
+
+
+### 74–75：Safe Upgrade / Rollback
+
+- 74 synthetic release gate ACCEPT vs fast-but-bad ROLLBACK
+- 75 real evidence-driven release gate / rollback verification

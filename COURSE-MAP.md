@@ -139,6 +139,7 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 37 | Multi-Tenant Fairness：quotas / work-conserving borrowing / per-tenant SLO |
 | 38 | Service Exposure / Privacy / Auth：bind scope / TLS / endpoints / logs |
 | 39 | Operational Reliability：liveness / readiness / restart recovery |
+| 40 | Safe Upgrade / Rollback：release gates / exact rollback verification |
 
 ### 当前下一主线
 

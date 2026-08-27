@@ -501,6 +501,21 @@ Artifacts:
 
 Synthetic lifecycle timing verified. Real restart lab is forced-loopback and manages only its own child process.
 
+### Slice 40 — Safe Upgrade / Rollback
+
+Known-good release identity → predeclared gate policy → candidate readiness/performance/quality/SLO → ACCEPT or exact identity rollback → rollback readiness/smoke。
+
+Artifacts:
+- research/llm/0022-safe-upgrade-rollback.md
+- reference/llm/safe-upgrade-rollback.md
+- lessons/40-safe-upgrade/01-release-gates-rollback.html
+- labs/experiments/74-release-gate-model/
+- labs/experiments/75-real-release-gate-rollback/
+- examples/evidence/experiment-40-safe-upgrade-rollback.md
+- learning/records/2026-08-27-safe-upgrade-rollback.md
+
+Synthetic ACCEPT/ROLLBACK paths verified. Real gate blocks missing/invalid numeric evidence.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -557,8 +572,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build safe upgrade/rollback slice.
-2. Join manifest, readiness, performance, quality and serving-SLO gates into one release decision.
-3. Separate runtime upgrade, model upgrade and configuration change as different semantic interventions.
-4. Define rollback triggers before candidate deployment.
-5. Verify rollback restores the previous binary/model/config identity and health.
+1. Build observability/incident-diagnosis slice.
+2. Separate symptom metrics from root-cause evidence.
+3. Correlate client TTFT/ITL with queue, GPU utilization/memory, clocks/thermals and server logs on one timeline.
+4. Teach alerting on SLO/resource state rather than one noisy utilization metric.
+5. Add a read-only incident evidence packet and synthetic diagnosis cases.
