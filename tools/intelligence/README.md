@@ -60,7 +60,25 @@ UNKNOWN/no match → BLOCKED
 stale → STALE-REVALIDATE
 ~~~
 
-## 5. Ingest a real llama-bench result
+## 5. Verify a real benchmark intake bundle
+
+Before ingestion:
+
+~~~bash
+python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD
+~~~
+
+Required result:
+
+~~~text
+INTAKE: READY
+~~~
+
+The verifier checks canonical IDs, manifest identity, positive raw metrics, and PACKET SHA/byte integrity.
+
+READY is not benchmark truth or purchase approval.
+
+## 6. Ingest a real llama-bench result
 
 Preferred input is the Experiment 61 manifest plus raw llama-bench JSON.
 
@@ -79,7 +97,7 @@ python3 ingest_llama_bench.py \
 
 Review the generated JSON before appending it to the production catalog.
 
-## 6. Derive exact measured compatibility
+## 7. Derive exact measured compatibility
 
 ~~~bash
 python3 ingest_measured_compatibility.py \
@@ -93,7 +111,7 @@ This upgrades only the exact recorded artifact/build/device path.
 
 One successful benchmark does not create family-wide support.
 
-## 7. Comparable benchmark view
+## 8. Comparable benchmark view
 
 ~~~bash
 python3 comparable_benchmarks.py fixtures/catalog \
@@ -111,7 +129,7 @@ Comparison grouping requires the same:
 
 Rows are descriptive system comparisons, not automatically causal A/B claims.
 
-## 8. Explicit price/performance
+## 9. Explicit price/performance
 
 ~~~bash
 python3 price_performance.py fixtures/catalog \
@@ -127,7 +145,7 @@ The tool never auto-selects a “latest price”.
 
 Selected market records must share the same geography/channel/cohort/condition/price-state/currency contract.
 
-## 9. TCO worksheet
+## 10. TCO worksheet
 
 ~~~bash
 python3 tco_worksheet.py fixtures/catalog \
@@ -146,7 +164,7 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 10. Self-test
+## 11. Self-test
 
 From repository root:
 
