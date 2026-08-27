@@ -47,7 +47,7 @@ Documented support returns NEEDS-TEST, not PASS-MEASURED.
 Preferred input is the Experiment 61 manifest plus raw llama-bench JSON.
 
 ~~~bash
-python3 ingest_llama_bench.py --manifest /path/to/baseline-manifest.json --result /path/to/baseline.json --hardware-id hw:... --model-id model:... --record-id bench:... --observed-at 2026-08-27 --packet-source /path/to/PACKET.json --out benchmark-record.jsonl
+python3 ingest_llama_bench.py --manifest /path/to/baseline-manifest.json --result /path/to/baseline.json --hardware-id hw:... --model-id model:... --runtime-id runtime:... --record-id bench:... --observed-at 2026-08-27 --packet-source /path/to/PACKET.json --out benchmark-record.jsonl
 ~~~
 
 Review the generated JSON before appending it to the production catalog.
