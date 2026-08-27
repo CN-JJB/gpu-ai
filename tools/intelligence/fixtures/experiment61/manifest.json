@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "comparison_id": "fixture-comparison",
+  "label": "baseline",
+  "intentional_variable": "variant.execution.flash_attention",
+  "fixed": {
+    "protocol": {
+      "pp_tokens": 512,
+      "tg_tokens": 128,
+      "repetitions": 5,
+      "warmup_runs": 1
+    },
+    "quality_eval": {
+      "tokenizer_identity": "fixture-tokenizer",
+      "corpus_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "fixture_revision": "fixture",
+      "evaluation_args": "fixture"
+    }
+  },
+  "variant": {
+    "hardware": {
+      "device_identity": "Synthetic 24 GiB GPU",
+      "profile_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "runtime": {
+      "runtime_identity": "llama.cpp fixture-commit",
+      "backend": "FIXTURE",
+      "build_identity": "fixture-build"
+    },
+    "model": {
+      "artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifact_bytes": 4294967296,
+      "quant": "Q4_K_M",
+      "source_revision": "fixture-rev"
+    },
+    "execution": {
+      "context": 8192,
+      "sequences": 1,
+      "gpu_layers": "all",
+      "flash_attention": true,
+      "kv_k": "f16",
+      "kv_v": "f16",
+      "split_mode": "none",
+      "tensor_split": "",
+      "threads": "8"
+    },
+    "prompt": {
+      "messages_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "chat_template_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "rendered_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "token_ids_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "token_count": 512
+    },
+    "sampler": {
+      "mode": "not-applicable-model-eval",
+      "temperature": null,
+      "top_k": null,
+      "top_p": null,
+      "min_p": null,
+      "seed": null,
+      "chain": []
+    }
+  },
+  "audit": {
+    "command_record": "fixture",
+    "raw_result": "result.json",
+    "telemetry": "fixture",
+    "quality_log": "fixture",
+    "notes": "synthetic fixture"
+  }
+}
