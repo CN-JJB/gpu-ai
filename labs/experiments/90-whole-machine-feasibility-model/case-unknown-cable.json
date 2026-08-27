@@ -1,0 +1,13 @@
+{
+  "case_id": "unknown-psu-cable",
+  "model": {"required_runtime_vram_gib": 24},
+  "gpu": {"runtime_available_vram_gib": 24, "multi_gpu": false},
+  "software": {"target_backend_supported": true},
+  "host": {"required_ram_gib": 48, "available_ram_gib": 64},
+  "storage": {"required_free_gib": 150, "available_free_gib": 500},
+  "psu": {"capacity_policy_pass": true, "cable_compatibility_confirmed": null},
+  "thermal": {"sustained_target_pass": true},
+  "serving": {"required": true, "slo_pass": true},
+  "network": {"wider_than_loopback": false, "controls_pass": null},
+  "budget": {"max_total": 1200, "estimated_total": 1050}
+}

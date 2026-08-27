@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "design_id": "REPLACE",
+  "target_sha256": "REPLACE",
+  "gates": {
+    "model_vram": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "runtime_backend": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "multi_gpu_topology": {"required": false, "status": "UNKNOWN", "source": "REPLACE"},
+    "host_ram": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "storage": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "psu_capacity": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "psu_cables": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "sustained_thermal": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "serving_slo": {"required": false, "status": "UNKNOWN", "source": "REPLACE"},
+    "network_privacy": {"required": true, "status": "UNKNOWN", "source": "REPLACE"},
+    "budget": {"required": true, "status": "UNKNOWN", "source": "REPLACE"}
+  },
+  "preferences": {
+    "performance": "REPLACE",
+    "energy": "REPLACE",
+    "noise_size": "REPLACE",
+    "maintenance": "REPLACE",
+    "upgrade_room": "REPLACE"
+  }
+}

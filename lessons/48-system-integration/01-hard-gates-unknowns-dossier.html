@@ -1,0 +1,138 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Whole-Machine Integration</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>整机 System Integration — 为什么“综合 90 分”仍然可能不能买？</h1>
+
+<h2>1. 现在把前 47 个 Slice 汇合</h2>
+<pre>workload/model
++ GPU/VRAM
++ software
++ PCIe/topology
++ RAM
++ SSD
++ PSU/cables
++ cooling
++ serving/network
++ budget
+→ machine decision</pre>
+
+<h2>2. 不做万能综合分</h2>
+<p>假设：</p>
+<pre>速度 10/10
+价格 10/10
+显存 0/10</pre>
+<p>平均分看起来还能看。</p>
+<p>但是目标模型装不下：</p>
+<pre>HARD GATE FAIL
+→ REVISE</pre>
+<div class="callout"><strong>致命条件不能被其他优点平均掉。</strong></div>
+
+<h2>3. 三类信息</h2>
+<pre>HARD GATE
+UNKNOWN BLOCKER
+PREFERENCE</pre>
+
+<h2>4. Hard Gate</h2>
+<p>例如目标：</p>
+<pre>runtime 需要 30 GiB
+机器只有 24 GiB</pre>
+<p>结论：</p>
+<pre>REVISE</pre>
+<p>不是 24 GiB 卡“差”，是当前设计不满足当前目标。</p>
+
+<h2>5. UNKNOWN 和 FAIL 不一样</h2>
+<p>二手模组 PSU：</p>
+<pre>线长得能插
+但不知道是不是这个 PSU 的原配/兼容线</pre>
+<p>不能写 PASS。</p>
+<p>如果这是供电安全关键：</p>
+<pre>BLOCKED</pre>
+
+<h2>6. Preference 最后才比较</h2>
+<pre>TG
+TTFT
+J/token
+noise
+price
+size
+maintenance</pre>
+<p>这些只应该在可行方案之间排序。</p>
+
+<h2>7. 模型 Gate</h2>
+<p>不能只看：</p>
+<pre>GGUF 20GB
+VRAM 24GB
+→ fits</pre>
+<p>还要算：</p>
+<pre>weights
+KV
+context × concurrency
+workspace/headroom
+backend allocation</pre>
+
+<h2>8. Software Gate</h2>
+<pre>PCIe 能看到 GPU
+!= CUDA/ROCm/Metal/SYCL backend 能稳定跑目标模型</pre>
+<p>必须有 runtime evidence。</p>
+
+<h2>9. 多卡 Gate</h2>
+<pre>GPU0 pass
+GPU1 pass
+!=
+2-GPU system pass</pre>
+<p>还要看：</p>
+<pre>split mode
+PCIe topology
+P2P
+lane
+interconnect
+scaling
+</pre>
+
+<h2>10. RAM / Storage</h2>
+<p>主机内存和 SSD 不是“GPU 之外不重要”。</p>
+<pre>RAM 不够
+→ swap/OOM/load 问题
+
+SSD 很慢
+→ cold startup 可能很慢</pre>
+<p>但不要把 SSD 速度冒充 steady TG。</p>
+
+<h2>11. PSU/cable</h2>
+<pre>总瓦数够
+但 cable 不兼容
+→ HARD FAIL</pre>
+<p>这正是为什么不能做单一分数。</p>
+
+<h2>12. Cooling</h2>
+<p>短测 55 tok/s：</p>
+<pre>10 分钟后 42 tok/s</pre>
+<p>如果你的目标是长期服务，sustained performance 本身就是容量。</p>
+
+<h2>13. Serving</h2>
+<p>单用户：</p>
+<pre>TG 很快</pre>
+<p>多人：</p>
+<pre>TTFT p95 爆炸</pre>
+<p>那它仍然可以失败你的 serving SLO。</p>
+
+<h2>14. 真正的 Dossier</h2>
+<pre>每个 Gate
+→ requirement
+→ Evidence path/hash
+→ PASS/FAIL/UNKNOWN</pre>
+<p>然后：</p>
+<pre>known FAIL → REVISE
+critical UNKNOWN → BLOCKED
+all gates pass → ACCEPT</pre>
+
+<h2>15. ACCEPT 不等于“宇宙最强配置”</h2>
+<p>只意味着：</p>
+<pre>对这个 workload
+按这套 evidence
+当前设计可行</pre>
+
+<h2>16. 最成熟的垃圾佬结论有时是</h2>
+<pre>DO NOT BUY YET
+</pre>
+<p>因为缺了一条关键证据。</p>
+<p>这不是没做完，是你终于没有拿真钱替未知数买单。</p>
+</body></html>
