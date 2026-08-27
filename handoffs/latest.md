@@ -7,72 +7,89 @@
 
 ## Completed frontier
 
-Slices 01–42 are implemented.
-Experiments 01–79 exist.
+Slices 01–43 are implemented.
+Experiments 01–81 exist.
 
-## Slice 42 core
+## Slice 43 core
 
-```
-W = J/s
-E = ∫Pdt
-J/token = energy/tokens
-tokens/J = reciprocal
-```
-
-Synthetic verified:
+Loading path:
 
 ```
-300W @ 60 tok/s → 5.0 J/token
-220W @ 50 tok/s → 4.4 J/token
-180W @ 42 tok/s → 4.285714 J/token
+GGUF bytes
+→ storage/filesystem
+→ page cache
+→ mmap/read/page faults
+→ host buffers
+→ device upload
+→ health ready
+→ first inference
 ```
 
-Therefore:
-```
-fastest
-!= most energy-efficient
-```
-
-Integration sanity:
+Synthetic 20 GiB model:
 
 ```
-100,120,140W at 0,1,2s
-→ 240J total
-→ 120W average
+0.2 GiB/s source
+→ 102.667 s simple ready
+
+0.5 GiB/s
+→ 42.667 s
+
+3 GiB/s
+→ 9.333 s
+
+20 GiB/s page-cache-like
+→ 3.667 s
 ```
 
-Real NVIDIA lab:
-- reuses read-only incident telemetry;
-- filters participating GPU indices;
-- sums board power;
-- trapezoidal integration;
-- refuses missing samples.
-
-Boundary:
+All keep:
 
 ```
-GPU board energy
-!= whole-system wall energy
+steady TG = 50 tok/s
 ```
 
-## Active next slice — Storage / Model Loading
+to teach:
+
+```
+startup bottleneck
+!= steady decode bottleneck
+```
+
+Real lab:
+- no global drop_caches;
+- default bounded 512 MiB reads;
+- optional raw Linux fincore evidence;
+- first run labeled UNKNOWN unless residency evidence exists;
+- reading/hashing is recognized as cache-changing.
+
+Current pinned llama.cpp load-mode dynamic details are isolated in:
+`intelligence/llm/llama-load-mode-2026-08-27.md`.
+
+## Active next slice — Host Memory Pressure / Swap / OOM
 
 Teach:
 
 ```
-model file bytes
-→ storage read/page faults
-→ OS page cache
-→ mmap/load mode
-→ host memory
-→ GPU upload/allocation
-→ health ready
+physical RAM
+=
+anonymous/process memory
++
+file-backed page cache
++
+kernel/other
 ```
 
-Questions:
-- why first cold start can be slow;
-- why second start can look much faster;
-- why SSD speed may affect startup but not steady-state TG after weights are resident;
-- why benchmarking "disk speed" from warm page cache is invalid.
+with reclaimable-cache nuance.
 
-Real lab should be read-only and avoid destructive cache-dropping commands by default.
+Separate:
+- free vs available memory;
+- page-cache reclaim;
+- swap/compression;
+- host OOM;
+- GPU VRAM OOM;
+- mmap model behavior under pressure.
+
+Real lab must be read-only by default:
+- /proc/meminfo / vmstat on Linux;
+- process RSS/maps where available;
+- server/GPU telemetry;
+- no memory stress allocation as a required course step.

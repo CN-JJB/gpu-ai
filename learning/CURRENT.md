@@ -546,6 +546,22 @@ Artifacts:
 
 Synthetic energy arithmetic and trapezoidal-integration sanity case verified. Real NVIDIA path remains read-only.
 
+### Slice 43 — Storage / Model Loading
+
+Model bytes → storage/page cache → mmap/page faults → host/device load → readiness → first inference, separated from steady PP/TG。
+
+Artifacts:
+- research/llm/0025-storage-model-loading-page-cache.md
+- intelligence/llm/llama-load-mode-2026-08-27.md
+- reference/llm/storage-model-loading.md
+- lessons/43-storage-loading/01-page-cache-mmap-startup.html
+- labs/experiments/80-storage-model-load-model/
+- labs/experiments/81-real-storage-model-startup/
+- examples/evidence/experiment-43-storage-model-loading.md
+- learning/records/2026-08-27-storage-model-loading.md
+
+Synthetic stage arithmetic verified. Real lab never auto-labels the first pass cold and never drops global page cache by default.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -602,8 +618,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build storage/model-loading slice.
-2. Separate model artifact bytes, storage read bandwidth, OS page cache and GPU upload/load time.
-3. Compare cold vs warm model startup without claiming disk bandwidth determines steady TG.
-4. Teach mmap/page-fault intuition and why page cache can hide storage differences on repeat runs.
-5. Add a read-only local file-read/model-startup evidence packet.
+1. Build host-memory pressure / swap / OOM slice.
+2. Separate free RAM, available RAM, page cache and anonymous/process memory.
+3. Explain why file-backed model pages can be reclaimed while active anonymous/KV/runtime buffers have different behavior.
+4. Separate host OOM/swap symptoms from GPU VRAM OOM.
+5. Add a read-only memory-pressure evidence packet with no synthetic stress by default.

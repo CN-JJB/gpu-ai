@@ -51,10 +51,11 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 40 | `40-safe-upgrade/` | release gates / rollback |
 | 41 | `41-observability/` | timeline / saturation / incident diagnosis |
 | 42 | `42-power-energy/` | watts / joules / J-token / TCO |
+| 43 | `43-storage-loading/` | page cache / mmap / startup |
 
 ## 使用方式
 
-不需要从 01 线性读到 42。
+不需要从 01 线性读到 43。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21

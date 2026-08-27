@@ -158,3 +158,9 @@
 
 - 78 synthetic watts → joules → J/token model
 - 79 real NVIDIA board-power trapezoidal energy integration
+
+
+### 80–81：Storage / Model Loading
+
+- 80 synthetic storage/read/upload/startup stage model
+- 81 read-only file-cache / model-startup evidence packet

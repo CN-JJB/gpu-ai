@@ -142,6 +142,7 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 40 | Safe Upgrade / Rollback：release gates / exact rollback verification |
 | 41 | Observability / Incident Diagnosis：latency / traffic / errors / saturation |
 | 42 | Power / Energy Efficiency：watts / joules / J-token / electricity |
+| 43 | Storage / Model Loading：page cache / mmap / startup vs steady inference |
 
 ### 当前下一主线
 

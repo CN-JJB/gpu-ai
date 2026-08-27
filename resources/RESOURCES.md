@@ -1453,3 +1453,29 @@ URL: https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/
 URL: https://docs.nvidia.com/vgpu/latest/grid-vgpu-user-guide/performance-monitoring-gpu.html
 用途：current nvidia-smi monitoring examples and GPU state/usage context.
 可信度：official NVIDIA documentation。
+
+
+### Linux page cache
+URL: https://www.kernel.org/doc/html/v6.9/mm/page_cache.html
+用途：normal filesystem reads/writes/mmaps and the Linux page-cache path.
+可信度：official Linux kernel documentation。
+
+### Linux memory-management concepts — page cache
+URL: https://www.kernel.org/doc/html/v5.17/admin-guide/mm/concepts.html
+用途：page-cache motivation and repeated file access avoiding expensive backing-storage reads.
+可信度：official Linux kernel documentation。
+
+### Linux mmap(2)
+URL: https://man7.org/linux/man-pages/man2/mmap.2.html
+用途：file-backed virtual-memory mapping and page-fault/prefault concepts.
+可信度：Linux man-pages documentation。
+
+### util-linux fincore
+URL: https://man7.org/linux/man-pages/man1/fincore.1.html
+用途：file-page residency evidence using cachestat/mincore where supported.
+可信度：util-linux upstream manual page。
+
+### llama.cpp pinned load-mode
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md
+用途：dated load-mode auto/none/mmap/mlock/mmap+mlock/dio CLI snapshot.
+可信度：pinned upstream repository documentation。
