@@ -17,9 +17,7 @@
 7. `learning/PROFILE.md`
 8. `learning/CURRENT.md`
 
-## Requirements already frozen
-
-Do not reopen course scope unless a contradiction is discovered.
+## Frozen course constraints
 
 Core ability stack:
 
@@ -29,67 +27,88 @@ Core teaching pattern:
 
 **真实问题 → 必要原理 → 小实验 → 可玩项目 → 结果分析 → 如何选择 → 如何迁移到其他平台/硬件**
 
-Important constraints:
-- Self-study first.
-- No discrete GPU required to begin.
-- Linux is the main practical platform.
-- GPU architecture evolution opens the course.
-- NVIDIA primary, AMD systematic secondary, Apple special section, Intel lighter.
-- LLM is the primary AI workload.
-- Stable knowledge is separated from dynamic intelligence.
-- Important experiments use reproducible Evidence.
-- Mainline milestones + Challenge Labs.
-- China secondhand market primary, global technical/community intelligence secondary.
-- Prefer first-party/official evidence for real course claims.
-- Reuse open-source implementations before building tools from scratch.
+NVIDIA primary, AMD systematic secondary, Apple special section, Intel lighter.
+No CPU-architecture course.
+Stable architecture knowledge is separated from current software/market intelligence.
+Never fabricate real benchmark numbers.
 
-## Completed main slices
+## Completed frontier
 
-01. GPU evolution
-02. GPU execution model / latency hiding
-03. On-chip memory / tiling / reuse
-04. Bandwidth / arithmetic intensity / Roofline
-05. Local LLM VRAM capacity
-06. Quantization / format / backend
-07. First reproducible local LLM deployment
-08. Server concurrency / continuous batching
-09. Prefix / paged KV cache
-10. Speculative decoding
+Slices 01–14 are implemented.
 
-## Active slice — 11 single-node multi-GPU / interconnect
+Most recent completed slice:
 
-Research and reference are already present:
+**14 — NVIDIA architecture generation spine**
 
-- `research/gpu/0005-multi-gpu-interconnect-scaling.md`
-- `reference/gpu/multi-gpu-split-interconnect.md`
+```
+Tesla/G80
+→ Fermi
+→ Kepler
+→ Maxwell
+→ Pascal
+→ Volta
+→ Turing
+→ Ampere
+→ Ada / Hopper
+→ Blackwell
+```
 
-Key established model:
+Key files:
+- `research/gpu/0008-nvidia-architecture-generation-spine.md`
+- `reference/gpu/nvidia-generation-spine.md`
+- `lessons/14-nvidia-architecture/`
+- `labs/experiments/23-nvidia-generation-feature-traps/`
+- `labs/experiments/24-real-nvidia-capability-inventory/`
+- `examples/evidence/experiment-14-nvidia-generation-spine.md`
+- `intelligence/gpu/nvidia-generation-support-2026-08-27.md`
 
-**partition → per-GPU compute → cross-GPU movement → synchronization → scaling efficiency**
+Current 2026 support boundary is dynamic intelligence:
+Maxwell/Pascal/Volta are pinned to CUDA 12.x-era support; Turing+ remains on the current line at the snapshot date.
 
-Do not reduce multi-GPU to “2× VRAM = one larger GPU” or “2 GPUs = 2× speed”.
+## Active next slice — AMD architecture spine
 
-The next production loop is:
+Build a systematic AMD-native lineage:
 
-**Lesson → L0 Experiment → real two-GPU probe → Evidence → Learning update**
+```
+GCN
+→ Vega
+→ RDNA / CDNA split
+→ RDNA2 / CDNA2
+→ RDNA3 / CDNA3
+→ RDNA4 / CDNA4
+→ current CDNA5 frontier
+```
 
-Recommended remaining artifacts:
+Use AMD-native concepts:
+- wavefront / Wave64 / Wave32;
+- CU / WGP;
+- SGPR / VGPR;
+- LDS;
+- cache hierarchy / Infinity Cache / HBM;
+- MFMA / WMMA / matrix cores;
+- Infinity Fabric / xGMI;
+- HIP / ROCm gfx target;
+- Radeon vs Instinct product-line split.
 
-- `lessons/11-multi-gpu/01-capacity-split-interconnect.html`
-- `labs/experiments/17-multi-gpu-interconnect-roof-model/`
-- `labs/experiments/18-real-multi-gpu-scaling/`
-- `examples/evidence/experiment-11-multi-gpu-interconnect.md`
-- `intelligence/gpu/multi-gpu-topology-2026-08-26.md`
-- a new learning/build record
+Do **not** translate AMD into fake NVIDIA terminology.
 
-Real multi-GPU work must record topology/P2P first, then one-GPU PP/TG baseline, then multi-GPU PP/TG. Do not fabricate hardware benchmark results.
+Production loop:
+
+**Research → Reference → detailed Lessons → L0 lineage experiment → real ROCm/HIP inventory probe → Evidence → dynamic support intelligence → learning update**
+
+## After AMD
+
+Apple Silicon special section:
+- unified memory;
+- Metal GPU execution;
+- GPU vs Neural Engine;
+- memory-bandwidth/capacity implications;
+- MLX / llama.cpp / Metal runtime reality.
 
 ## Matt Pocock skills
-
-Use the repository's routing rather than applying every skill mechanically.
 
 High-frequency:
 - `teach`
 - `research`
 
-Use scaffold/problem-solution ideas for verifiable exercises where useful. Use domain-modeling only when domain language changes. Scope is frozen, so do not restart discovery/spec grilling.
+Use scaffold/problem-solution patterns for verifiable exercises. Do not reopen frozen scope.
