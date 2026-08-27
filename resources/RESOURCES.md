@@ -749,3 +749,85 @@ URL: https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.
 可信度：canonical upstream。
 适用：real local-LLM multi-GPU A/B。
 局限：flags, separators and experimental modes are dynamic; pin exact build.
+
+
+## Attention IO / FlashAttention
+
+### FlashAttention paper
+
+URL: https://arxiv.org/abs/2205.14135
+
+用途：
+- IO-aware exact attention
+- HBM↔SRAM data movement
+- tiling
+- IO complexity
+
+可信度：original paper。
+适用：stable algorithmic foundation。
+局限：historical benchmark numbers are not current GPU claims.
+
+### FlashAttention-2
+
+URL: https://arxiv.org/abs/2307.08691
+
+用途：
+- block parallelism
+- warp work partition
+- non-matmul FLOPs
+- shared-memory communication
+
+可信度：original paper。
+适用：GPU scheduling bridge。
+局限：paper hardware/results are historical.
+
+### PyTorch — scaled_dot_product_attention
+
+URL: https://docs.pytorch.org/docs/main/generated/torch.nn.functional.scaled_dot_product_attention.html
+
+用途：
+- current SDPA implementations
+- auto backend selection
+- current fused-kernel limitations
+
+可信度：PyTorch official。
+适用：real GPU backend probe。
+局限：API/dispatch changes.
+
+### PyTorch — sdpa_kernel
+
+URL: https://docs.pytorch.org/docs/main/generated/torch.nn.attention.sdpa_kernel.html
+
+用途：
+- force/select SDPA backend
+- reproduce math vs fused comparison
+
+可信度：PyTorch official。
+适用：Experiment 20。
+局限：currently beta.
+
+### NVIDIA Transformer Engine — Attention
+
+URL: https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/attention/attention.html
+
+用途：
+- tiling
+- recomputation vs global-memory traffic
+- current NVIDIA flash/cudnn attention context
+
+可信度：NVIDIA official。
+适用：cross-check IO-aware explanation。
+局限：implementation-specific details are dynamic.
+
+### AMD ROCm Composable Kernel
+
+URL: https://rocm.docs.amd.com/projects/composable_kernel/en/develop/
+
+用途：
+- AMD optimized kernel ecosystem
+- FlashAttention GPU implementation context
+- block/warp-style scheduling concepts on AMD
+
+可信度：AMD ROCm official。
+适用：AMD migration/intelligence。
+局限：hardware/version support must be checked separately.

@@ -65,6 +65,22 @@ Artifacts:
 - Prefix Cache, Continuous Batching and Speculative Decoding optimize different work and should be A/B tested independently before stacking.
 - theoretical speculative algorithms are designed to preserve the target distribution; practical byte-identical output across stochastic/runtime runs is not the correctness criterion.
 
+### Slice 12 — Attention IO / Online Softmax / FlashAttention
+
+attention math → N×N materialization → HBM IO → tiling → online stable softmax → fused exact attention → GPU work partition。
+
+Artifacts:
+- research/gpu/0006-attention-io-online-softmax-flashattention.md
+- reference/gpu/attention-io-online-softmax.md
+- lessons/12-attention-kernels/01-io-aware-flashattention.html
+- labs/experiments/19-attention-online-softmax-io-model/
+- labs/experiments/20-real-sdpa-backend-probe/
+- examples/evidence/experiment-12-attention-io.md
+- intelligence/gpu/attention-backends-2026-08-27.md
+- learning/records/2026-08-27-attention-io-slice.md
+
+L0 online-softmax correctness verified; real backend probe contains no fabricated GPU timings.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -121,8 +137,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Enter the attention-kernel bridge: naive attention IO → tiled/online softmax → FlashAttention-style IO awareness.
-2. Keep the first experiment L0 so no discrete GPU is required.
-3. Add optional real GPU attention benchmark only when results can be captured reproducibly.
-4. Connect the new slice back to registers/shared memory, arithmetic intensity, prefill and long-context behavior.
-5. Keep backend-specific FlashAttention flags/support matrices in intelligence rather than stable Lesson.
+1. Enter matrix-unit/numerical-format architecture: Tensor Cores / MFMA-style matrix units / Apple matrix paths.
+2. Build the stable distinction between input datatype, accumulation datatype, advertised TOPS/TFLOPS and realized GEMM throughput.
+3. Connect FP16/BF16/TF32/FP8/INT8/INT4 to LLM quantization without conflating storage format with arithmetic.
+4. Add an L0 throughput/precision model before any real GPU benchmark.
+5. Keep exact generation/SKU feature matrices in dynamic intelligence.
