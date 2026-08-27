@@ -2,174 +2,163 @@
 
 ## Source of truth
 
-- Repo: `CN-JJB/gpu-ai`
-- Branch: `main`
+- Repo: CN-JJB/gpu-ai
+- Branch: main
 - Course is independent; do not return to old fork history.
 
 ## Historical archive
 
 The previous long-form CURRENT state through Slice 45 is preserved byte-for-byte at:
 
-```text
+~~~text
 learning/archive/CURRENT-through-slice45-2026-08-27.md
-```
+~~~
 
-Detailed per-slice history also remains in:
+Detailed per-slice history remains in:
 
-```text
+~~~text
 learning/records/
 examples/evidence/
-```
+~~~
 
-This file now stays intentionally short and tracks the active frontier.
+This file intentionally tracks only the active frontier.
 
 ## Completed frontier
 
-```text
-Slices 01–48 implemented
-Experiments 01–91 exist
-```
+~~~text
+Slices 01–49 implemented
+Experiments 01–93 exist
+~~~
 
-The course now spans:
+The stable v1 mainline now spans:
 - GPU architecture / execution / memory / Roofline;
-- four major GPU ecosystems;
-- quantization, KV, local inference and serving;
+- NVIDIA / AMD / Apple / Intel GPU ecosystems;
+- LLM memory, quantization, KV and modern model architecture;
+- reproducible local inference and serving;
 - multi-GPU / interconnect;
-- secondhand market / purchase / acceptance;
-- model architecture dossier and quality gates;
-- benchmark/workload manifests;
+- benchmark manifests, quality gates and Evidence Packets;
 - serving SLO/capacity/admission/fairness;
-- service privacy/reliability/rollback/observability;
-- energy, storage, host RAM/OOM and thermals;
-- advanced used-GPU validation;
+- privacy/reliability/rollback/observability;
+- power/energy, storage, host RAM/OOM and thermal behavior;
+- secondhand market / purchase / used-GPU acceptance;
 - PSU / power-delivery integration;
-- whole-machine system feasibility.
+- whole-machine feasibility;
+- graduation Machine Design Capstone.
 
 ## Recent frontier
 
-### Slice 43 — Storage / Model Loading
+### Slice 46 — Used-GPU Validation
 
-Model bytes → page cache / mmap / page faults → readiness / first inference, kept separate from steady TG.
+Deep acceptance path:
 
-Real path avoids destructive global cache dropping by default.
-
-### Slice 44 — Host Memory Pressure / Swap / OOM
-
-`MemFree != MemAvailable`; file-backed reclaim differs from anonymous memory; host RAM OOM differs from discrete VRAM OOM; Apple unified memory remains a special architecture.
-
-### Slice 45 — Thermal / Cooling / Sustained Performance
-
-Short cold benchmark != sustained performance.
-
-Evidence combines:
-
-```text
-temperature
-+ clocks / limiter evidence
-+ repeated TG
-```
-
-Default real path changes no OC/UV/power/fan settings.
-
-### Slice 46 — Used-GPU Validation / Purchase Acceptance
-
-Slice 20 remains transaction/arrival acceptance.
-
-Slice 46 adds the deeper hardware-evidence layer:
-
-```text
+~~~text
 identity
 → VRAM
 → runtime recognition
-→ PCIe capability/current state
+→ PCIe
 → ECC/RAS/XID/error evidence
 → sustained LLM
 → ACCEPT / REVIEW / REJECT
-```
+~~~
 
-Verified L0:
-
-```text
-healthy → ACCEPT
-idle PCIe x1 current / x16 max → REVIEW
-24 GiB claimed / 12 GiB observed → REJECT
-```
-
-Default real lab is read-only plus ordinary inference; no firmware flash or destructive VRAM stress.
-
-### Slice 47 — PSU / Power Delivery / Platform Integration
+### Slice 47 — PSU / Power Delivery
 
 Independent gates:
 
-```text
+~~~text
 capacity/headroom
 +
 connector/cable compatibility
 +
 transient/documentation uncertainty
-```
-
-Verified L0:
-
-```text
-850W / 550W / compatible paths → ACCEPT
-850W / 820W / synthetic headroom policy → REVIEW
-1000W / 600W / incompatible modular cable → REJECT
-```
+~~~
 
 No PSU opening, exposed-mains probing, protection bypass or intentional overload.
 
-### Slice 48 — Whole-Machine System Integration Dossier
+### Slice 48 — Whole-Machine System Integration
 
-The course now combines prior Evidence as:
+Machine feasibility:
 
-```text
-HARD GATE
-PURCHASE-CRITICAL UNKNOWN
-PREFERENCE / OPTIMIZATION
-```
+~~~text
+known required FAIL → REVISE
+critical UNKNOWN → BLOCKED
+all required gates PASS → ACCEPT
+~~~
 
-Decision semantics:
+No weighted score may average away a hard failure.
 
-```text
-known hard fail → REVISE
-critical unknown → BLOCKED
-all required gates pass → ACCEPT
-```
+Experiment 91 is the real Evidence-linked machine dossier.
 
-Verified L0:
+### Slice 49 — Graduation Machine Design Capstone
 
-```text
-balanced design → ACCEPT
-known VRAM shortfall → REVISE
-unknown PSU cable compatibility → BLOCKED
-```
+Final learner deliverable:
 
-There is deliberately no universal weighted hardware score.
+~~~text
+goal/workload
+→ Experiment 91 dossier
+→ material-claim Evidence index
+→ architecture narrative
+→ benchmark/quality/SLO
+→ TCO/risk
+→ revision alternatives
+→ evidence-triggered upgrade roadmap
+→ explicit non-claims
+→ final rationale
+→ transfer check
+~~~
+
+New stable distinction:
+
+~~~text
+machine feasibility
+!=
+graduation packet completeness
+~~~
+
+Therefore:
+
+~~~text
+MACHINE DECISION: BLOCKED
+CAPSTONE COMPLETENESS: COMPLETE
+~~~
+
+can be a valid graduation result.
+
+Experiment 92 contains synthetic ACCEPT / REVISE / BLOCKED review cases.
+
+Experiment 93 contains the real final report template, rubric and completeness validator.
 
 ## Stable design rule
 
 Always evaluate in this order:
 
-```text
+~~~text
 workload/model identity
 → feasibility hard gates
 → blocking unknowns
 → measured performance/quality/SLO
 → preferences/TCO
 → decision
-```
+→ explicit limits
+→ revision / upgrade path
+~~~
 
-Do not let speed, price or a weighted score average away:
+Do not let speed, price, prose quality or a weighted score erase:
 - insufficient VRAM;
 - unsupported runtime;
 - invalid power path;
-- unresolved purchase/safety evidence.
+- unresolved purchase/safety evidence;
+- missing material-claim Evidence.
 
 ## Next actions
 
-1. Build the graduation Machine Design Capstone.
-2. Turn Experiment 91 dossier into a human-readable final design report workflow.
-3. Require an Evidence Packet index for every material hardware/model/performance claim.
-4. Add revision scenarios: smaller model/quant, different GPU, multi-GPU, PSU/platform upgrade, or tighter serving target.
-5. Produce a final `ACCEPT / REVISE / BLOCKED` machine design plus an upgrade roadmap, without auto-purchasing anything.
+1. Complete Experiment 93 with a real learner-owned target/machine.
+2. Use that real graduation packet to identify actual curriculum gaps.
+3. Patch stable Lessons only when the real Evidence shows a gap.
+4. Otherwise move the major build frontier to Intelligence Stations:
+   - dynamic hardware data;
+   - current backend/model compatibility;
+   - market observations;
+   - benchmark bridge;
+   - recommendation/TCO tooling.
+5. Keep dynamic data out of stable Lessons unless it is converted into a durable reasoning rule.
