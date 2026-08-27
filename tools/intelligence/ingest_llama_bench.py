@@ -72,6 +72,7 @@ def main():
     p.add_argument("--result", type=Path, required=True)
     p.add_argument("--hardware-id", required=True)
     p.add_argument("--model-id", required=True)
+    p.add_argument("--runtime-id", required=True)
     p.add_argument("--record-id", required=True)
     p.add_argument("--observed-at", required=True)
     p.add_argument("--packet-source", required=True)
@@ -123,6 +124,7 @@ def main():
         "record_id": a.record_id,
         "hardware_id": a.hardware_id,
         "model_id": a.model_id,
+        "runtime_id": a.runtime_id,
         "observed_at": a.observed_at,
         "artifact": {
             "sha256": model["artifact_sha256"],
