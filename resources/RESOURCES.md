@@ -912,3 +912,81 @@ URL: https://docs.pytorch.org/docs/main/generated/torch.set_float32_matmul_preci
 可信度：PyTorch official。
 适用：Experiment 22。
 局限：backend-specific dynamic behavior.
+
+
+## NVIDIA architecture generations
+
+### NVIDIA architecture timeline
+URL: https://www.nvidia.com/en-us/technologies/
+用途：official Tesla→Blackwell chronology and family naming.
+可信度：NVIDIA official。
+
+### NVIDIA Research — Tesla unified architecture
+URL: https://research.nvidia.com/publication/2008-04_nvidia-tesla-unified-graphics-and-computing-architecture
+用途：unified programmable processor, massively multithreaded CUDA-era foundation.
+可信度：NVIDIA Research / IEEE publication。
+
+### NVIDIA Fermi Compute Architecture
+URL: https://www.nvidia.com/content/PDF/fermi_white_papers/NVIDIA_Fermi_Compute_architecture_Whitepaper.pdf
+用途：G80/GT200 bridge, Fermi SM/cache/L2/FMA/HPC changes.
+可信度：NVIDIA official whitepaper。
+
+### Kepler Tuning Guide
+URL: https://docs.nvidia.com/cuda/kepler-tuning-guide/
+用途：SMX, TLP/ILP, Hyper-Q, Dynamic Parallelism, warp shuffle.
+可信度：NVIDIA official CUDA docs。
+局限：GK110-specific features must be labeled.
+
+### Maxwell Tuning Guide
+URL: https://docs.nvidia.com/cuda/maxwell-tuning-guide/
+用途：SMM partitioning, shared-memory/L1 changes, occupancy, shared atomics.
+可信度：NVIDIA official。
+
+### Pascal Tuning Guide
+URL: https://docs.nvidia.com/cuda/pascal-tuning-guide/
+用途：GP100 vs GP104, FP16/INT8 differences, HBM2, NVLink, Unified Memory.
+可信度：NVIDIA official。
+关键：architecture-family variation.
+
+### Volta Tuning Guide
+URL: https://docs.nvidia.com/cuda/volta-tuning-guide/
+用途：Tensor Cores, Independent Thread Scheduling, unified L1/shared, warp synchronization.
+可信度：NVIDIA official。
+
+### Turing Tuning Guide
+URL: https://docs.nvidia.com/cuda/turing-tuning-guide/
+用途：concurrent FP32/INT32, Independent Thread Scheduling, Tensor inference modes, unified L1/shared.
+可信度：NVIDIA official。
+
+### Ampere Tuning Guide
+URL: https://docs.nvidia.com/cuda/ampere-tuning-guide/
+用途：BF16/TF32, async global→shared, split barriers, L2 residency, cc8.0 vs 8.6.
+可信度：NVIDIA official。
+
+### NVIDIA Ada Lovelace architecture
+URL: https://www.nvidia.com/en-us/geforce/ada-lovelace-architecture/
+Whitepaper: https://images.nvidia.com/aem-dam/Solutions/geforce/ada/nvidia-ada-gpu-architecture.pdf
+用途：4th-gen Tensor, FP8-era RTX, SER, AD102 large L2, AV1.
+可信度：NVIDIA official。
+局限：full AD102 numbers are not every Ada SKU.
+
+### NVIDIA Hopper architecture
+URL: https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/
+用途：FP8/Transformer Engine, TMA, block clusters, 4th-gen Tensor.
+可信度：NVIDIA official technical blog。
+
+### NVIDIA RTX Blackwell whitepaper
+URL: https://images.nvidia.com/aem-dam/Solutions/geforce/blackwell/nvidia-rtx-blackwell-gpu-architecture.pdf
+用途：RTX Blackwell SM, 5th-gen Tensor, FP4, GDDR7; distinguish RTX from datacenter Blackwell.
+可信度：NVIDIA official。
+
+### Current CUDA architecture matrix
+URL: https://docs.nvidia.com/datacenter/tesla/drivers/cuda-toolkit-driver-and-architecture-matrix.html
+用途：compute capability, first/last CUDA toolkit, last/current driver branch.
+可信度：NVIDIA official current docs。
+适用：dynamic used-GPU software-lifetime intelligence.
+
+### CUDA release notes
+URL: https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/
+用途：current architecture deprecation/removal status, including CUDA 13 Maxwell/Pascal/Volta cutoff.
+可信度：NVIDIA official。
