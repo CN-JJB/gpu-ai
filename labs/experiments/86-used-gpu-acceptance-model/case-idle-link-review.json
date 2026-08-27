@@ -1,0 +1,9 @@
+{
+  "case_id": "idle-pcie-downshift",
+  "claim": {"vram_gib": 24},
+  "observed": {"vram_gib": 24, "driver_recognized": true, "target_runtime_recognized": true},
+  "pcie": {"max_width": 16, "current_width": 1, "expected_platform_width": 16, "observed_under_load": false},
+  "errors": {"uncorrectable": null},
+  "workload": {"sustained_completed": true, "tg_first": 50, "tg_last": 49.5},
+  "physical": {"display_required": false, "display_outputs_tested": false}
+}

@@ -1,0 +1,9 @@
+{
+  "case_id": "healthy-used-card",
+  "claim": {"vram_gib": 24},
+  "observed": {"vram_gib": 24, "driver_recognized": true, "target_runtime_recognized": true},
+  "pcie": {"max_width": 16, "current_width": 16, "expected_platform_width": 16, "observed_under_load": true},
+  "errors": {"uncorrectable": 0},
+  "workload": {"sustained_completed": true, "tg_first": 50, "tg_last": 49},
+  "physical": {"display_required": false, "display_outputs_tested": false}
+}

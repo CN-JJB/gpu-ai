@@ -1,0 +1,113 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Used GPU Validation</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>二手显卡验收 — “系统显示型号正常”为什么远远不够？</h1>
+
+<h2>1. 先把卖家描述变成可检查的字段</h2>
+<pre>型号
+VRAM
+板卡/子厂
+接口
+工作状态</pre>
+<p>然后逐个找独立证据。</p>
+
+<div class="callout"><strong>外壳贴纸和一个 GPU 名称字符串都只是证据之一。</strong></div>
+
+<h2>2. 身份至少交叉看</h2>
+<pre>PCI vendor/device/subsystem
+BDF / UUID
+runtime product name
+VRAM
+VBIOS
+board info</pre>
+<p>字段互相一致，可信度才提高。</p>
+
+<h2>3. 对垃圾佬最关键的是 VRAM</h2>
+<p>你买卡就是为了 24 GiB：</p>
+<pre>卖家：24 GiB
+驱动/runtime：约 12 GiB</pre>
+<p>这不是小误差，是购买关键 claim 冲突。</p>
+
+<h2>4. PCIe Gen1/x1 先别急着退货</h2>
+<p>你可能在 idle 时看到低 current state。</p>
+<pre>current link
+!= max capability</pre>
+<p>而且主板、CPU lanes、riser、bifurcation 都可能限制链路。</p>
+
+<h2>5. 真正要记两组</h2>
+<pre>max/capable Gen + width
+current negotiated Gen + width</pre>
+<p>如果要判断负载状态，再在普通 workload 下观察。</p>
+
+<h2>6. ECC N/A 不是“0 错误”</h2>
+<p>很多消费卡没有你期待的 ECC/RAS 字段。</p>
+<pre>NOT_SUPPORTED
+!=
+0 errors</pre>
+<p>写 N/A，继续用其他证据。</p>
+
+<h2>7. 什么错误更值得警惕？</h2>
+<pre>uncorrectable ECC/RAS
+repeated XID/runtime error
+PCIe recovery/replay异常增长
+bad pages
+普通 inference 反复 crash</pre>
+<p>但每个字段是否支持，要看具体卡和驱动。</p>
+
+<h2>8. 一次 30 秒通过意味着什么？</h2>
+<pre>这个 30 秒窗口没看到错误</pre>
+<p>只意味着这个。</p>
+<p>不意味着：</p>
+<pre>永久可靠
+所有显存地址都好
+所有 DP/HDMI 都好</pre>
+
+<h2>9. 最有价值的测试是你真的要跑的 workload</h2>
+<p>直接复用课程 sustained TG：</p>
+<pre>固定 model SHA
+固定 runtime
+重复 TG
+记录 temp / clock / errors</pre>
+<p>因为你买卡就是为了 Local LLM。</p>
+
+<h2>10. 温度高也别单独判死刑</h2>
+<pre>温度
++
+clock
++
+TG drift
++
+limiter/event</pre>
+<p>一起看。</p>
+
+<h2>11. 显示坏和计算坏不是一回事</h2>
+<p>如果你只做 headless inference：</p>
+<pre>HDMI 坏
+但 compute 稳定</pre>
+<p>可能是你愿意接受的折价缺陷。</p>
+<p>但必须明确记录，不能当“全好”。</p>
+
+<h2>12. 默认课程不做什么？</h2>
+<pre>刷 VBIOS
+超频/降压
+改 power limit
+错误注入
+破坏性 VRAM stress</pre>
+<p>先把只读证据和普通工作负载做扎实。</p>
+
+<h2>13. 最后的决定只有三类</h2>
+<pre>ACCEPT
+REVIEW
+REJECT</pre>
+<p>不要写：</p>
+<pre>“看起来应该没问题”</pre>
+
+<h2>14. 一个好验收包</h2>
+<pre>seller claim
++ identity
++ VRAM
++ PCIe
++ error state
++ sustained TG
++ thermal
++ physical/display
+→ decision</pre>
+</body></html>
