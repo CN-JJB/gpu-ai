@@ -38,10 +38,13 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 27 | `27-swiglu-ffn/` | dense SwiGLU FFN |
 | 28 | `28-moe/` | MoE active/resident/traffic |
 | 29 | `29-model-dossier/` | config → hardware hypothesis |
+| 30 | `30-modern-kv/` | sliding / hybrid / latent KV |
+| 31 | `31-tokenizer-sampling/` | chat template / tokenizer / sampler |
+| 32 | `32-quality-gate/` | cross-entropy / perplexity / quality gate |
 
 ## 使用方式
 
-不需要从 01 线性读到 29。
+不需要从 01 线性读到 32。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21

@@ -382,6 +382,21 @@ Artifacts:
 
 Toy template/token-count and duplicate-BOS behavior verified. Real prompt path hashes messages/template/rendered/token IDs.
 
+### Slice 32 — Quality Gate
+
+Logits → correct-token probability → NLL → cross entropy → perplexity → target-task fixtures → performance/quality tradeoff。
+
+Artifacts:
+- research/llm/0015-quality-gate-perplexity.md
+- reference/llm/quality-gate-card.md
+- lessons/32-quality-gate/01-cross-entropy-perplexity.html
+- labs/experiments/58-perplexity-math-model/
+- labs/experiments/59-real-quality-gate/
+- examples/evidence/experiment-32-quality-gate.md
+- learning/records/2026-08-27-quality-gate.md
+
+L0 CE/PPL arithmetic verified. Real quality lab contains no fabricated model scores.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -438,8 +453,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build a quality gate: next-token probability, cross-entropy and perplexity for beginners.
-2. Explain why faster tokens/s is invalid optimization evidence if model quality/correctness regresses.
-3. Add deterministic prompt/task checks for backend/quant A/B.
-4. Separate perplexity from chat helpfulness and benchmark-task quality.
-5. Extend Capstone success criteria to include an explicit quality check when numerical/model representation changes.
+1. Build a unified Benchmark / Workload Manifest.
+2. Freeze hardware, runtime, exact model SHA, prompt/token identity, sampler and quality-evaluation identity in one machine-readable file.
+3. Add a validator that rejects comparisons when undeclared workload identity changes.
+4. Generate an evidence packet index linking raw PP/TG, telemetry, prompt manifest and quality logs.
+5. Use the manifest as the reproducibility contract for all later optimization/serving projects.

@@ -7,69 +7,73 @@
 
 ## Completed frontier
 
-Slices 01–31 are implemented.
+Slices 01–32 are implemented.
+Experiments 01–59 exist.
 
 Latest model/system chain:
 
 ```
 24 decoder-only dataflow
-25 RMSNorm / RoPE
-26 MHA/MQA/GQA
-27 SwiGLU FFN
+25 RMSNorm / residual / RoPE
+26 MHA / MQA / GQA
+27 SwiGLU / dense FFN
 28 MoE
-29 Model Dossier
-30 Sliding/Hybrid/Latent KV
+29 Model Architecture Dossier
+30 Sliding / Hybrid / Latent KV
 31 Tokenizer / Chat Template / Sampling
+32 Quality Gate
 ```
 
-## Slice 31 core
+## Slice 32 core
 
-Actual model input identity:
-
-```
-structured messages
-→ chat template
-→ rendered bytes
-→ tokenizer
-→ token IDs
-```
-
-Output:
+For a fixed tokenizer/corpus/evaluation:
 
 ```
-logits
-→ ordered sampler policy
-→ token ID
-→ decoded text
+NLL = -ln p(correct token)
+CE = mean(NLL)
+PPL = exp(CE)
 ```
 
-Benchmark prompt Evidence should preserve:
-- message hash;
-- template hash;
-- rendered hash;
-- token-ID hash/count;
-- sampling config.
+Lower PPL means better next-token fit **only on the same evaluation setup**.
 
-Current pinned llama.cpp includes Jinja template support/tests and `llama-tokenize`.
+Do not use PPL as:
+- a universal chat-quality score;
+- a direct comparison across different tokenizers;
+- the only regression gate.
 
-## Active next slice — Quality Gate
+Pair it with target-task fixtures.
 
-Build beginner-first:
+## Verified L0 toy
 
 ```
-logits
-→ probabilities
-→ probability assigned to correct next token
-→ negative log likelihood
-→ mean cross entropy
-→ perplexity = exp(loss)
+baseline PPL = 3.363585661
+candidate PPL = 3.808736185
+ratio = 1.132344043×
 ```
 
-Teach:
-- lower PPL on same dataset/tokenizer is better predictive fit;
-- PPL across different tokenizers is not directly comparable;
-- PPL is not chat helpfulness;
-- quant/backend optimization needs quality/correctness check;
-- deterministic task fixtures complement PPL.
+Synthetic only.
 
-Then add a real quant/backend A/B quality packet without fake quality results.
+## Active next slice — Benchmark / Workload Manifest
+
+Create one machine-readable experiment identity:
+
+```
+hardware
++ runtime/build
++ model artifact SHA
++ architecture dossier
++ prompt/token artifact
++ sampler
++ PP/TG config
++ quality corpus/fixtures
++ telemetry mode
+```
+
+Then:
+- hash the manifest;
+- validate baseline vs candidate;
+- reject undeclared identity changes;
+- allow exactly one declared experimental variable;
+- index all raw Evidence files.
+
+This should supersede ad-hoc command screenshots and strengthen Experiment 40 rather than duplicate it.

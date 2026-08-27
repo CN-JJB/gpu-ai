@@ -88,3 +88,13 @@
 - 所有可比较结果尽量保存 raw JSON/CSV/log。
 - 一个 A/B 只改一个声明变量。
 - vendor device identity 必须由实际 runtime/device log 证明。
+
+
+### 54–59：Modern KV / Prompt / Quality
+
+- 54 sliding/full/hybrid KV model
+- 55 real attention/KV architecture inspector
+- 56 chat-template/special-token toy model
+- 57 real prompt/token identity packet
+- 58 cross-entropy/perplexity math model
+- 59 real quant/backend quality gate

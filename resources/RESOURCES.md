@@ -1387,3 +1387,14 @@ URL: https://huggingface.co/docs/transformers/chat_templating_writing
 URL: https://huggingface.co/docs/transformers/main/en/chat_template_basics
 用途：template application/tokenization workflow and duplicate-special-token warning.
 可信度：official current Transformers documentation。
+
+
+### llama.cpp Perplexity
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/perplexity/README.md
+用途：current pinned perplexity semantics, quantization-quality workflow, optional KL/logit comparison and comparability warnings.
+可信度：pinned upstream official repository documentation。
+
+### llama.cpp simple perplexity helper
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/examples/model-conversion/scripts/utils/perplexity-run-simple.sh
+用途：current pinned command path for `llama-perplexity -m MODEL -f CORPUS`.
+可信度：pinned upstream official repository script。
