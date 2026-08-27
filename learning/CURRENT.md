@@ -97,6 +97,26 @@ Artifacts:
 
 L0 synthetic Roofline verified; real shape/precision probe is ready with no fake INT4 path.
 
+### Slice 14 — NVIDIA architecture generation spine
+
+Tesla/G80 → Fermi → Kepler → Maxwell → Pascal → Volta → Turing → Ampere → Ada/Hopper → Blackwell。
+
+Artifacts:
+- research/gpu/0008-nvidia-architecture-generation-spine.md
+- reference/gpu/nvidia-generation-spine.md
+- lessons/14-nvidia-architecture/01-tesla-fermi-kepler.html
+- lessons/14-nvidia-architecture/02-maxwell-pascal.html
+- lessons/14-nvidia-architecture/03-volta-turing.html
+- lessons/14-nvidia-architecture/04-ampere-ada.html
+- lessons/14-nvidia-architecture/05-hopper-blackwell.html
+- labs/experiments/23-nvidia-generation-feature-traps/
+- labs/experiments/24-real-nvidia-capability-inventory/
+- examples/evidence/experiment-14-nvidia-generation-spine.md
+- intelligence/gpu/nvidia-generation-support-2026-08-27.md
+- learning/records/2026-08-27-nvidia-architecture-spine.md
+
+L0 lineage assertions verified 10/10. Real NVIDIA inventory path is ready. Current CUDA/driver lifespan stays in dynamic intelligence.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -153,8 +173,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Start the detailed NVIDIA architecture-generation spine: Tesla/G80 → Fermi → Kepler → Maxwell → Pascal → Volta → Turing → Ampere → Ada → Hopper → Blackwell.
-2. For each generation, teach the problem it solved, SM/execution changes, memory/cache changes, matrix/AI changes and software consequences.
-3. Separate stable architecture history from current used-market value/driver/backend intelligence.
-4. Use NVIDIA as primary spine, then map AMD generations to the same questions.
-5. Add Apple as a separate unified-memory/Metal/ANE architecture section rather than forcing CUDA terminology onto it.
+1. Build the systematic AMD architecture spine using the same causal questions, not NVIDIA terminology.
+2. Separate GCN/RDNA consumer lineage from CDNA datacenter/AI lineage.
+3. Explain wavefront, CU/WGP, LDS, Infinity Cache/HBM and MFMA/matrix units.
+4. Add current ROCm consumer/datacenter support as dynamic intelligence.
+5. After AMD, build the Apple Silicon special section: unified memory, Metal GPU and ANE boundaries with local-LLM implications.
