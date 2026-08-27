@@ -7,78 +7,89 @@
 
 ## Completed frontier
 
-Slices 01–45 are implemented.
-Experiments 01–85 exist.
+Slices 01–46 are implemented.
+Experiments 01–87 exist.
 
-## Slice 45 core
+## Slice 46 core — Used-GPU Validation / Purchase Acceptance
 
-Sustained timeline:
+Slice 20 remains the transaction/arrival acceptance workflow.
 
-```
-workload duration
-→ power
-→ temperature
-→ clock/limiter
-→ sustained TG
+Slice 46 is the advanced hardware-evidence layer:
+
+```text
+seller claim
+→ PCI/device/subsystem identity
+→ VRAM
+→ runtime recognition
+→ PCIe capability/current state
+→ ECC/RAS/XID/error evidence
+→ sustained Local-LLM workload
+→ thermal/clock stability
+→ ACCEPT / REVIEW / REJECT
 ```
 
 Synthetic verified:
 
-```
-thermal-like:
-55→86C
-1900→1450 MHz
-55→42 tok/s
-→ compatible thermal/clock/perf drift
+```text
+healthy card
+→ ACCEPT
 
-hot-stable:
-80→84C
-clock stable
-50→49.8 tok/s
-→ sustained stable
+idle PCIe x1 current, x16 max, no under-load check
+→ REVIEW
 
-clock/perf drift with only +6C:
-→ investigate power/other limiter
+claimed 24 GiB, observed 12 GiB
+→ REJECT
 ```
 
-Lesson:
+Important rules:
 
-```
-high temperature
-!= throttling
-clock drop
-!= automatically thermal cause
-```
+```text
+idle low PCIe state
+!= defective GPU
 
-Real Experiment 85:
-- pinned llama-bench repetitions / samples_ts;
-- fixed local model;
-- warmup recorded;
-- read-only telemetry;
-- no OC/UV/power/fan changes.
+ECC/RAS unsupported
+!= zero errors
 
-## Active next slice — Used-GPU Validation / Purchase Acceptance
-
-Build for garbage-hardware buyers:
-
-```
-seller/model claim
-→ PCI identity
-→ VRAM identity
-→ driver/runtime recognition
-→ PCIe link
-→ telemetry/error state
-→ controlled sustained TG
-→ thermal stability
-→ acceptance decision
+short clean test
+!= lifetime reliability proof
 ```
 
-Need distinguish:
-- cosmetic/model-name claim vs hardware IDs;
-- idle PCIe link downshift vs under-load link capability;
-- ECC-capable vs non-ECC consumer cards;
-- error-free short test vs reliable card;
-- display-port issue vs compute issue;
-- BIOS/firmware flashing as OUT OF DEFAULT LAB.
+Real Experiment 87:
+- Linux + Windows read-only inventory;
+- raw NVIDIA/AMD vendor evidence where installed;
+- PCI identity/link evidence;
+- ordinary sustained LLM workload via Experiment 85;
+- separate display/physical inspection;
+- no VBIOS flash, OC/UV, power/fan changes, error injection or destructive VRAM stress.
 
-Real lab should remain read-only plus ordinary inference workload; no firmware flash, overclock or destructive VRAM stress by default.
+## Active next slice — PSU / Power Delivery / Platform Integration
+
+Build for secondhand/multi-GPU systems:
+
+```text
+GPU board power
++ CPU/platform/load
+→ PSU continuous capacity
+→ headroom
+→ PCIe slot power
+→ auxiliary connector/cable topology
+→ transient behavior
+→ connector temperature/damage risk
+→ multi-GPU aggregate budget
+```
+
+Need teach:
+- PSU wattage label alone is insufficient;
+- board power/TDP/TGP is not identical to wall draw or transient peak;
+- PCIe slot and auxiliary connectors are separate paths;
+- daisy-chain/pigtail cable suitability depends on PSU/cable/vendor guidance;
+- adapters/connectors require exact specification and inspection;
+- multi-GPU needs rail/cable/connector/airflow planning, not only total watts.
+
+Real lab should remain non-invasive:
+- inventory PSU label/model externally;
+- record GPU telemetry under ordinary workload;
+- inspect connectors/cables powered off;
+- do not open PSU chassis;
+- do not probe mains/high-voltage internals;
+- do not intentionally overload connectors/PSU.
