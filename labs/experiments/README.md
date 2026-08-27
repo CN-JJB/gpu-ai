@@ -182,3 +182,9 @@
 
 - 86 synthetic ACCEPT / REVIEW / REJECT evidence model
 - 87 real read-only identity/PCIe/error + sustained LLM acceptance packet
+
+
+### 88–89：PSU / Power Delivery / Platform Integration
+
+- 88 synthetic PSU capacity/headroom + connector/cable gate model
+- 89 real non-invasive PSU label/cable-map/power-delivery dossier
