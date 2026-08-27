@@ -192,6 +192,7 @@ goal/workload
 | I10 | freshness / revalidation queue | verified |
 | I11 | explicit GLOBAL-EBAY used MEDIAN_ASK cohort for 3090 / 7900 XTX / A770 | contract-verified |
 | I12 | market sample/method audit + MEDIAN_ASK evidence validator | contract-verified |
+| I13 | OfferUp SOLD-marked listing cohort with non-confirmed transaction semantics | contract-verified |
 
 当前稳定边界：
 
