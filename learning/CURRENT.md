@@ -486,6 +486,21 @@ Artifacts:
 
 Synthetic exposure findings verified. Real audit remains loopback-only/read-only and stores no secrets.
 
+### Slice 39 — Operational Reliability / Recovery
+
+Process liveness → listener → health readiness → smoke inference → warm steady state → restart identity/recovery。
+
+Artifacts:
+- research/llm/0021-operational-reliability-recovery.md
+- reference/llm/operational-reliability-recovery.md
+- lessons/39-operational-reliability/01-readiness-restart-recovery.html
+- labs/experiments/72-lifecycle-readiness-model/
+- labs/experiments/73-real-local-restart-readiness/
+- examples/evidence/experiment-39-operational-reliability-recovery.md
+- learning/records/2026-08-27-operational-reliability-recovery.md
+
+Synthetic lifecycle timing verified. Real restart lab is forced-loopback and manages only its own child process.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -542,8 +557,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build process lifecycle/readiness/recovery slice.
-2. Separate process alive, port listening, health response and model ready-for-inference.
-3. Measure cold-start/model-load/warmup recovery time after an intentional local restart.
-4. Teach graceful drain vs abrupt kill and in-flight request consequences.
-5. Add configuration/artifact identity checks so restart does not silently load a different model/runtime.
+1. Build safe upgrade/rollback slice.
+2. Join manifest, readiness, performance, quality and serving-SLO gates into one release decision.
+3. Separate runtime upgrade, model upgrade and configuration change as different semantic interventions.
+4. Define rollback triggers before candidate deployment.
+5. Verify rollback restores the previous binary/model/config identity and health.

@@ -1425,3 +1425,9 @@ URL: https://doi.org/10.1287/opre.9.3.383
 URL: https://doi.org/10.1287/opre.1110.0940
 用途：historical/practical context and broader use of Little's Law.
 可信度：author retrospective in Operations Research。
+
+
+### llama.cpp health readiness
+URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md
+用途：pinned /health 503-loading vs 200-ready semantics and public endpoint behavior.
+可信度：pinned upstream official repository documentation。

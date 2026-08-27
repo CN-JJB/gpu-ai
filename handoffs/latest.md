@@ -7,75 +7,72 @@
 
 ## Completed frontier
 
-Slices 01–38 are implemented.
-Experiments 01–71 exist.
+Slices 01–39 are implemented.
+Experiments 01–73 exist.
 
-## Slice 38 core
+## Slice 39 core
 
-Current pinned llama-server defaults/evidence:
-
-```
-host 127.0.0.1
-port 8080
-api key none
-metrics disabled
-slots enabled
-Web UI enabled
-```
-
-Trust-boundary model:
+Pinned `llama-server /health`:
 
 ```
-loopback
-→ broader interface
-→ authentication
-→ TLS path
-→ endpoint exposure
-→ logs/privacy
-→ host-action tools
+503 = Loading model
+200 = model loaded / ready
 ```
 
-Key distinctions:
+Operational states:
 
 ```
-auth != TLS != CORS != firewall
+process alive
+→ listener/HTTP
+→ readiness
+→ smoke inference
+→ warm steady state
 ```
 
-The real lab:
-- inventories listener sockets read-only;
-- probes only localhost/loopback;
-- never modifies firewall/NAT/router;
-- never prints an API key or endpoint body.
-
-## Active next slice — Operational Reliability / Recovery
-
-Build:
+Synthetic verified:
 
 ```
-process start
-→ port/listener
-→ health
-→ model loaded
-→ ready
-→ warm request
-→ serving
+cold:
+HTTP 400 ms
+ready 5000 ms
+first inference 5800 ms
+warm 150 ms
+
+restart:
+HTTP 450 ms
+ready 5100 ms
+first inference 6300 ms
+warm 160 ms
 ```
 
-Then failure/recovery:
+Real Experiment 73 is hardened:
+- forced 127.0.0.1;
+- only own child process managed;
+- LLAMA_ARG_* hidden overrides stripped;
+- model/network/auth/tools overrides rejected;
+- model/server SHA recorded.
+
+## Active next slice — Safe Upgrade / Rollback
+
+Build a release gate:
 
 ```
-intentional local stop
-→ request failure/drain behavior
-→ restart
-→ readiness recovery time
-→ first-request cold/warm latency
+baseline release
+→ candidate identity
+→ readiness
+→ smoke
+→ PP/TG
+→ quality
+→ serving SLO
+→ ACCEPT or ROLLBACK
 ```
+
+Define rollback triggers before candidate run.
 
 Teach:
-- liveness != readiness;
-- listening port != model ready;
-- crash/restart can lose warm caches;
-- configuration/model SHA must survive restart;
-- graceful drain is different from abrupt kill.
+- runtime upgrade != model upgrade != config change;
+- a new release may be faster but fail quality/SLO;
+- rollback means restoring exact previous artifact/config identity, not merely restarting;
+- rollback readiness must itself be verified.
 
-Real lab must only manipulate the user's own local test process and must not install system services or alter boot configuration.
+Real lab should remain local, use exact artifacts, and avoid system-service installation.

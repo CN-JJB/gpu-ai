@@ -134,3 +134,9 @@
 
 - 70 synthetic listener/auth/TLS/endpoint configuration linter
 - 71 read-only loopback/local service exposure audit
+
+
+### 72–73：Operational Reliability
+
+- 72 synthetic liveness/listener/readiness/warm-state timeline
+- 73 real loopback llama-server restart/readiness probe
