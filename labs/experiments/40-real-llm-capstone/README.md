@@ -212,3 +212,23 @@ Both pass if the experiment is controlled and explained.
 - A/B validator output
 - comparison output
 - CAPSTONE-CARD
+
+
+## Stricter manifest upgrade
+
+This Experiment 40 manifest remains a compact beginner A/B path.
+
+For later course work, prefer Experiment 61:
+
+```
+labs/experiments/61-real-benchmark-evidence-packet/
+```
+
+It extends this lab with:
+- prompt token identity;
+- quality-evaluation identity;
+- semantic variable blocks;
+- quantization-friendly model-artifact changes;
+- Evidence Packet hashes.
+
+Do not maintain two conflicting truths: Experiment 61 is the stricter reproducibility contract, while Experiment 40 remains the simpler controlled-A/B introduction.

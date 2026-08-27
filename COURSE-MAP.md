@@ -132,10 +132,11 @@ AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、
 | 30 | Sliding / Hybrid / Latent KV architecture |
 | 31 | Tokenizer / Chat Template / Sampling identity |
 | 32 | Quality Gate：Cross-Entropy / Perplexity / task regression |
+| 33 | Benchmark / Workload Manifest：one semantic variable + Evidence Packet |
 
 ### 当前下一主线
 
-模型结构主线已完成第一轮闭环。下一步建立统一 Benchmark/Workload Manifest，把模型、硬件、Prompt、Sampler、质量门连成一个可审计实验身份。
+模型结构与单机实验身份已经形成第一轮闭环。下一阶段转入 Serving workload / SLO：把 TTFT、ITL、吞吐、并发、请求长度分布和尾延迟统一起来。
 
 随后再继续补现代 attention / context 与系统专题：
 

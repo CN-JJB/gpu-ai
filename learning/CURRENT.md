@@ -397,6 +397,20 @@ Artifacts:
 
 L0 CE/PPL arithmetic verified. Real quality lab contains no fabricated model scores.
 
+### Slice 33 — Benchmark / Workload Manifest
+
+Fixed protocol + semantic variant blocks + audit records → one declared experimental intervention → validator → hashed Evidence Packet。
+
+Artifacts:
+- reference/system/benchmark-workload-manifest.md
+- lessons/33-benchmark-manifest/01-one-semantic-variable.html
+- labs/experiments/60-benchmark-manifest-validator/
+- labs/experiments/61-real-benchmark-evidence-packet/
+- examples/evidence/experiment-33-benchmark-workload-manifest.md
+- learning/records/2026-08-27-benchmark-workload-manifest.md
+
+Synthetic quant-block PASS and hidden prompt-change FAIL paths were self-checked.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -453,8 +467,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build a unified Benchmark / Workload Manifest.
-2. Freeze hardware, runtime, exact model SHA, prompt/token identity, sampler and quality-evaluation identity in one machine-readable file.
-3. Add a validator that rejects comparisons when undeclared workload identity changes.
-4. Generate an evidence packet index linking raw PP/TG, telemetry, prompt manifest and quality logs.
-5. Use the manifest as the reproducibility contract for all later optimization/serving projects.
+1. Build serving-workload/SLO slice.
+2. Separate TTFT, ITL, E2E latency, request throughput and aggregate token throughput.
+3. Model prompt/output length distributions rather than one fixed request shape.
+4. Teach percentile latency and tail behavior under concurrency/queueing.
+5. Extend the workload manifest for serving traces and SLO decisions.

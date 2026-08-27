@@ -41,10 +41,11 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 30 | `30-modern-kv/` | sliding / hybrid / latent KV |
 | 31 | `31-tokenizer-sampling/` | chat template / tokenizer / sampler |
 | 32 | `32-quality-gate/` | cross-entropy / perplexity / quality gate |
+| 33 | `33-benchmark-manifest/` | semantic A/B manifest / Evidence Packet |
 
 ## 使用方式
 
-不需要从 01 线性读到 32。
+不需要从 01 线性读到 33。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21

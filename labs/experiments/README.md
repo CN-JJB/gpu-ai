@@ -98,3 +98,9 @@
 - 57 real prompt/token identity packet
 - 58 cross-entropy/perplexity math model
 - 59 real quant/backend quality gate
+
+
+### 60–61：Benchmark Manifest
+
+- 60 semantic benchmark-manifest validator
+- 61 real benchmark/workload Evidence Packet

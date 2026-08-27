@@ -7,73 +7,64 @@
 
 ## Completed frontier
 
-Slices 01–32 are implemented.
-Experiments 01–59 exist.
+Slices 01–33 are implemented.
+Experiments 01–61 exist.
 
-Latest model/system chain:
+## Slice 33
 
-```
-24 decoder-only dataflow
-25 RMSNorm / residual / RoPE
-26 MHA / MQA / GQA
-27 SwiGLU / dense FFN
-28 MoE
-29 Model Architecture Dossier
-30 Sliding / Hybrid / Latent KV
-31 Tokenizer / Chat Template / Sampling
-32 Quality Gate
-```
-
-## Slice 32 core
-
-For a fixed tokenizer/corpus/evaluation:
+Unified benchmark identity:
 
 ```
-NLL = -ln p(correct token)
-CE = mean(NLL)
-PPL = exp(CE)
+fixed
++ variant
++ audit
 ```
 
-Lower PPL means better next-token fit **only on the same evaluation setup**.
+Only one declared path under `variant.*` may change.
 
-Do not use PPL as:
-- a universal chat-quality score;
-- a direct comparison across different tokenizers;
-- the only regression gate.
-
-Pair it with target-task fixtures.
-
-## Verified L0 toy
+Examples:
 
 ```
-baseline PPL = 3.363585661
-candidate PPL = 3.808736185
-ratio = 1.132344043×
+variant.execution.flash_attention
 ```
 
-Synthetic only.
-
-## Active next slice — Benchmark / Workload Manifest
-
-Create one machine-readable experiment identity:
+for a leaf A/B, or:
 
 ```
-hardware
-+ runtime/build
-+ model artifact SHA
-+ architecture dossier
-+ prompt/token artifact
-+ sampler
-+ PP/TG config
-+ quality corpus/fixtures
-+ telemetry mode
+variant.model
 ```
 
-Then:
-- hash the manifest;
-- validate baseline vs candidate;
-- reject undeclared identity changes;
-- allow exactly one declared experimental variable;
-- index all raw Evidence files.
+for a quantization block where artifact SHA/bytes/quant necessarily co-vary.
 
-This should supersede ad-hoc command screenshots and strengthen Experiment 40 rather than duplicate it.
+Validator synthetic self-check:
+- legal Q8→Q4 model block: PASS;
+- same change + hidden prompt-token hash mutation: FAIL.
+
+Experiment 61 is now the stricter manifest path; Experiment 40 remains the beginner controlled-A/B introduction.
+
+## Active next slice — Serving Workload / SLO
+
+Build:
+
+```
+request arrival
++ prompt length
++ output length
++ concurrency
+→ queue wait
+→ TTFT
+→ token cadence / ITL
+→ E2E
+→ request throughput
+→ aggregate token throughput
+→ percentiles / SLO
+```
+
+Need to teach:
+- averages hide tails;
+- p95/p99 are order statistics, not magic guarantees;
+- long prompts can hurt short-request TTFT through shared batching/queueing;
+- throughput-optimal concurrency may violate latency SLO;
+- workload distributions must be part of manifest identity.
+
+Reuse Slice 08 continuous batching and Slice 09 cache concepts rather than duplicating them.
