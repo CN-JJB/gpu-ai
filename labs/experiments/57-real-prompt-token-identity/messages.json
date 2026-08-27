@@ -1,0 +1,10 @@
+[
+  {
+    "role": "system",
+    "content": "Answer briefly."
+  },
+  {
+    "role": "user",
+    "content": "Explain why VRAM capacity and memory bandwidth are different."
+  }
+]

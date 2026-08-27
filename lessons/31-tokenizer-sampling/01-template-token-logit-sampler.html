@@ -1,0 +1,208 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 8：Tokenizer、Chat Template 与 Sampling</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 8 — 你输入一句话，模型实际看到了什么？</h1>
+
+<h2>1. UI 里的消息不是模型输入</h2>
+
+<p>你看到：</p>
+
+<pre>User: Hello!</pre>
+
+<p>模型可能真正收到：</p>
+
+<pre>&lt;system&gt;
+...
+&lt;end&gt;
+&lt;user&gt;
+Hello!
+&lt;end&gt;
+&lt;assistant&gt;</pre>
+
+<p>或者完全另一套控制格式。</p>
+
+<h2>2. 正确数据流</h2>
+
+<pre>messages
+→ chat template
+→ rendered prompt
+→ tokenizer
+→ token IDs
+→ model
+→ logits
+→ sampler
+→ next token ID
+→ decode text</pre>
+
+<div class="callout"><strong>Chat Template 是模型接口的一部分，不是换皮。</strong></div>
+
+<h2>3. 为什么模板错了会影响回答？</h2>
+
+<p>Instruction-tuned 模型是在特定控制 token / role 格式上训练的。</p>
+
+<p>你把：</p>
+
+<pre>&lt;|user|&gt;
+...
+&lt;|assistant|&gt;</pre>
+
+<p>换成模型没学过的格式，模型看到的 token 序列已经不同。</p>
+
+<h2>4. Special Token</h2>
+
+<p>常见：</p>
+
+<pre>BOS
+EOS
+system/user/assistant
+message start/end
+tool call
+image/video placeholder</pre>
+
+<p>这些 token 的字符串和 ID 都是模型/tokenizer-specific。</p>
+
+<h2>5. 双 BOS 陷阱</h2>
+
+<p>模板已经生成：</p>
+
+<pre>&lt;BOS&gt; ...</pre>
+
+<p>你又让 tokenizer：</p>
+
+<pre>add_special_tokens=True</pre>
+
+<p>可能变成：</p>
+
+<pre>&lt;BOS&gt; &lt;BOS&gt; ...</pre>
+
+<p>这不是“多一个无所谓”，而是模型输入变了。</p>
+
+<h2>6. add_generation_prompt</h2>
+
+<p>很多 chat 模型需要最后告诉它：</p>
+
+<pre>现在轮到 assistant 开始生成</pre>
+
+<p>比如追加一个 assistant header。</p>
+
+<p>漏掉它，prompt 结构可能不完整。</p>
+
+<h2>7. Token 数为什么和 GPU 有关系？</h2>
+
+<pre>template 更长
+→ token 数更多
+→ Prefill 更多
+→ KV 更多
+→ context 剩余更少
+→ TTFT 可能更长</pre>
+
+<p>所以“系统 prompt 只是几段文字”其实是硬件 workload。</p>
+
+<h2>8. Tools/RAG 更容易偷走 context</h2>
+
+<p>用户只问一句：</p>
+
+<pre>查一下天气</pre>
+
+<p>runtime 可能还塞进去：</p>
+
+<pre>20 个工具 schema
++ JSON 参数定义
++ system policy
++ conversation history</pre>
+
+<p>最终 prompt 可能远大于用户输入。</p>
+
+<h2>9. Benchmark 要 hash prompt</h2>
+
+<p>至少保存：</p>
+
+<pre>messages SHA
+template SHA
+rendered prompt SHA
+token IDs SHA
+token count</pre>
+
+<p>这样以后才能知道两次 benchmark 到底是不是同一个 workload。</p>
+
+<h2>10. 模型输出的不是文字</h2>
+
+<p>最后一层输出：</p>
+
+<pre>logits
+=
+每个 vocab token 的分数</pre>
+
+<p>Sampler 才决定选哪一个 token。</p>
+
+<h2>11. Greedy</h2>
+
+<pre>argmax(logits)</pre>
+
+<p>选择最高分 token。</p>
+
+<p>它不需要随机抽样，但不同 kernel 的微小数值差异在极接近的候选上仍可能改变 argmax。</p>
+
+<h2>12. Temperature</h2>
+
+<pre>pᵢ ∝ exp(logitᵢ / T)</pre>
+
+<ul>
+<li>T 小：更尖锐</li>
+<li>T 大：更平</li>
+</ul>
+
+<p>T=0 通常由 runtime 特殊处理成 greedy 语义，不是真的除以 0。</p>
+
+<h2>13. Top-k 与 Top-p 完全不同</h2>
+
+<p>Top-k：</p>
+
+<pre>只保留固定 k 个最高候选</pre>
+
+<p>Top-p：</p>
+
+<pre>按概率排序
+保留累计概率达到 p 的最小集合</pre>
+
+<p>所以 top-p 每一步留下多少 token 都可能不同。</p>
+
+<h2>14. Sampler 有顺序</h2>
+
+<pre>penalty
+→ top-k
+→ top-p
+→ temperature
+→ sample</pre>
+
+<p>只是一个例子。</p>
+
+<p>如果顺序变了，结果也可能变。</p>
+
+<h2>15. Seed 为什么不是万能复现键？</h2>
+
+<p>同 seed 要想复现，还需要：</p>
+
+<pre>same token input
+same logits
+same sampler implementation
+same sampler order
+same parameters</pre>
+
+<p>只写：</p>
+
+<pre>seed=42</pre>
+
+<p>不够。</p>
+
+<h2>16. 和前面所有 Slice 汇合</h2>
+
+<pre>Chat Template
+→ token count
+→ PP
+→ KV
+→ Prefix Cache identity
+→ TTFT
+→ Sampling
+→ end-to-end UX</pre>
+
+<p>这就是为什么部署模型时，“Prompt 怎么进模型”必须和 GPU/backend 一样被记录。</p>
+</body></html>
