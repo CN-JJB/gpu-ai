@@ -202,6 +202,18 @@ def main():
     assert "ASK-ONLY observations must not be presented as confirmed sale prices." in out
 
     out = run([
+        PY, str(HERE / "sold_marked_market.py"),
+        str(prod),
+    ])
+    assert "observations=9" in out
+    assert "hardware_groups=3" in out
+    assert "median_displayed=950 USD" in out
+    assert "median_displayed=700 USD" in out
+    assert "median_displayed=200 USD" in out
+    assert "confirmed_transaction_price=false" in out
+    assert "not a confirmed-sale median" in out
+
+    out = run([
         PY, str(HERE / "compatibility_matrix.py"),
         str(prod),
         "--model-id", "model:qwen:qwen3-8b",
@@ -265,6 +277,39 @@ def main():
             "--as-of", "2026-08-28",
         ], expect=2)
         assert "MEDIAN_ASK requires sample object" in out
+        assert "VALIDATION: FAIL" in out
+
+        sold_validation_catalog = td / "sold-validation"
+        sold_validation_catalog.mkdir()
+        for name in (
+            "hardware.jsonl",
+            "models.jsonl",
+            "runtimes.jsonl",
+            "market.jsonl",
+            "compatibility.jsonl",
+            "benchmarks.jsonl",
+        ):
+            shutil.copy2(prod / name, sold_validation_catalog / name)
+
+        sold_rows = [
+            json.loads(line)
+            for line in (sold_validation_catalog / "market.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        for row in sold_rows:
+            if row.get("price_state") == "SOLD_MARKED_LISTING_PRICE":
+                row["listing"]["confirmed_transaction_price"] = True
+                break
+        (sold_validation_catalog / "market.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in sold_rows) + "\n",
+            encoding="utf-8",
+        )
+        out = run([
+            PY, str(HERE / "validate_catalog.py"),
+            str(sold_validation_catalog),
+            "--as-of", "2026-08-28",
+        ], expect=2)
+        assert "confirmed_transaction_price must be false" in out
         assert "VALIDATION: FAIL" in out
 
         bad_packet = td / "bad-PACKET.json"
@@ -406,6 +451,8 @@ def main():
     print("- market matrix preserves one explicit GLOBAL-EBAY used MEDIAN_ASK cohort across three GPUs")
     print("- market evidence audit exposes ask-only semantics and 47/23/8 listing sample bands")
     print("- MEDIAN_ASK without sample metadata is rejected")
+    print("- sold-marked OfferUp pages stay distinct from confirmed transaction prices")
+    print("- SOLD_MARKED_LISTING_PRICE falsely claiming confirmed transaction is rejected")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
