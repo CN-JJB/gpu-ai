@@ -188,3 +188,13 @@
 
 - 88 synthetic PSU capacity/headroom + connector/cable gate model
 - 89 real non-invasive PSU label/cable-map/power-delivery dossier
+
+### 90–91：Whole-Machine System Integration
+
+- 90 synthetic whole-machine hard-gate feasibility model
+- 91 real Evidence-linked machine design dossier
+
+### 92–93：Graduation Machine Design Capstone
+
+- 92 synthetic graduation design-review consistency/completeness cases
+- 93 real final machine-design report + rubric + Evidence completeness validator
