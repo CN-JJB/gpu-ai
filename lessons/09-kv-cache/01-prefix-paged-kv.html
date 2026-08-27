@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为什么同一份长前缀，第二次可以快很多？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">KV Reuse · Lesson 09 · L0 + optional L1/L2</p>
+<h1>为什么同一份长前缀，第二次可以快很多？</h1>
+<p class="lead">长 system prompt、RAG 文档、多轮聊天历史经常会被一遍遍送进模型。Prefix Cache 的目标不是“把答案缓存下来”，而是把已经算过的 prompt KV 留下来，让后续请求跳过重复 prefill。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>我每次都把同一份 10K-token 文档发给模型，只换最后一句问题。为什么 server 不应该每次都把前 10K tokens 从头算一遍？</strong></p>
+</div>
+
+<h2>先分清四个“KV/cache”</h2>
+
+<table>
+<thead><tr><th>概念</th><th>复用什么</th><th>主要解决什么</th></tr></thead>
+<tbody>
+<tr><td>普通 KV cache</td><td>同一个 request 的过去 tokens</td><td>decode 不重算整段历史 K/V</td></tr>
+<tr><td>Prefix/Prompt cache</td><td>不同 request 的共同 prompt prefix</td><td>跳过重复 prefill</td></tr>
+<tr><td>Paged/Block KV</td><td>KV memory blocks/pages</td><td>动态 allocation / sharing / eviction</td></tr>
+<tr><td>Unified KV</td><td>runtime 的共享 KV buffer/manager</td><td>多 sequence KV 管理</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<p><strong>Paged KV、Unified KV、Prefix Cache 不是三个同义词。</strong></p>
+</div>
+
+<h2>1. 普通 KV cache 已经解决了什么？</h2>
+
+<p>同一个 autoregressive request：</p>
+
+<pre><code>prompt tokens
+→ prefill K/V
+→ generate token 1
+→ generate token 2
+→ generate token 3</code></pre>
+
+<p>生成 token 3 时，不需要重新算 prompt 和 token 1/2 的全部 K/V，因为它们已经在当前 request 的 KV cache。</p>
+
+<p>这是<strong>请求内部</strong>的复用。</p>
+
+<h2>2. Prefix Cache 多做一步：跨 request 复用</h2>
+
+<p>Request A：</p>
+
+<pre><code>[4000-token manual]
+[question A]</code></pre>
+
+<p>Request B：</p>
+
+<pre><code>[4000-token manual]
+[question B]</code></pre>
+
+<p>如果前 4000 tokens 的 tokenized prefix 完全匹配，并且对应 KV 仍在可复用 cache：</p>
+
+<div class="chain">
+<span class="node">4000 prefix KV</span><span class="arrow">→</span>
+<span class="node">reuse</span><span class="arrow">→</span>
+<span class="node">only process new suffix</span>
+</div>
+
+<p>Request B 不必重新做那 4000 tokens 的 prefill。</p>
+
+<h2>3. 它省的是 Prefill，不是 Decode</h2>
+
+<p>这条边界非常重要。</p>
+
+<pre><code>shared prefix 4000 tokens → can be reused
+new suffix 100 tokens     → still prefill
+new answer 500 tokens     → still decode 500 new tokens</code></pre>
+
+<div class="callout">
+<p><strong>Prefix Cache 主要降低 prompt processing / TTFT，不会让新生成的 500 个 token 消失。</strong></p>
+</div>
+
+<p>vLLM 官方也明确把它描述为 prefill optimization，而不是 decode acceleration。</p>
+
+<h2>4. llama-server 能直接告诉你复用了多少 prompt</h2>
+
+<p>current llama-server 的 response timings 示例包含：</p>
+
+<ul>
+<li><code>cache_n</code>：从 cache 复用的 prompt tokens；</li>
+<li><code>prompt_n</code>：这次真正重新处理的 prompt tokens；</li>
+<li><code>prompt_ms</code>；</li>
+<li><code>predicted_n</code> / <code>predicted_ms</code>。</li>
+</ul>
+
+<p>所以一个很漂亮的 warm-cache Evidence 是：</p>
+
+<pre><code>cold:
+cache_n  small
+prompt_n large
+prompt_ms large
+
+warm:
+cache_n  large
+prompt_n small
+prompt_ms small
+
+predicted work:
+still exists</code></pre>
+
+<h2>5. “看起来一样”为什么不保证 hit？</h2>
+
+<p>模型真正看到的不是你的肉眼字符串，而是经过：</p>
+
+<ul>
+<li>chat template；</li>
+<li>tokenization；</li>
+<li>system/tool formatting；</li>
+<li>可能的 multimodal inputs；</li>
+<li>adapter/LoRA context；</li>
+<li>runtime cache key。</li>
+</ul>
+
+<p>所以：</p>
+
+<div class="callout"><p><strong>visually same-ish prompt ≠ guaranteed identical cache prefix。</strong></p></div>
+
+<h2>6. Prefix 一旦分叉，后面为什么不能继续复用？</h2>
+
+<p>两个 token 序列：</p>
+
+<pre><code>A B C D E F
+A B C X Y Z</code></pre>
+
+<p>共同 state 只到：</p>
+
+<pre><code>A B C</code></pre>
+
+<p>从 X 开始，attention 历史已经不同。后面的 KV 不能假装还是第一条 request 的 state。</p>
+
+<p>真实 runtime 还可能按 block/match boundary 截断 reuse。</p>
+
+<h2>7. Paged/Block KV 在这里有什么价值？</h2>
+
+<p>如果 KV 是固定 block/page pool：</p>
+
+<div class="chain">
+<span class="node">KV block pool</span><span class="arrow">→</span>
+<span class="node">request references blocks</span><span class="arrow">→</span>
+<span class="node">reuse / free / evict</span>
+</div>
+
+<p>就更容易动态管理：</p>
+
+<ul>
+<li>不同长度 request；</li>
+<li>prefix sharing；</li>
+<li>fragmentation；</li>
+<li>eviction；</li>
+<li>offload。</li>
+</ul>
+
+<p>vLLM 与 TensorRT-LLM 都公开使用 block/page pool 思维。</p>
+
+<p>但：</p>
+
+<div class="callout"><p><strong>有 paged KV 不代表所有 request 自动 cache hit。</strong></p></div>
+
+<h2>8. llama.cpp Unified KV 为什么不能直接叫 PagedAttention？</h2>
+
+<p>current llama.cpp 有 unified KV 机制，让多个 sequences 使用共享 KV buffer/manager。</p>
+
+<p>这和 vLLM/TensorRT-LLM 的 block/page pool 都属于“多 sequence KV 管理”，但它们不是同一个具体数据结构。</p>
+
+<p>课程里必须写：</p>
+
+<pre><code>unified KV ≠ paged KV ≠ prefix cache</code></pre>
+
+<h2>9. Cache 不是免费硬盘：它占容量</h2>
+
+<p>每保留一个可复用 prefix，都意味着某些 KV state 还占着 memory。</p>
+
+<pre><code>cache more prefixes
+→ higher hit opportunity
+→ less free capacity for new active KV</code></pre>
+
+<p>容量紧张时，旧 reusable state 需要被 evict。</p>
+
+<p>vLLM 与 TensorRT-LLM 当前文档都描述有限 block pool 与 LRU-like eviction。</p>
+
+<h2>10. Hit rate 为什么会骗人？</h2>
+
+<p>比较：</p>
+
+<div class="grid">
+<div class="card">
+<h3>Cache A</h3>
+<p>90% hit。</p>
+<p>每次只复用 16 tokens。</p>
+</div>
+<div class="card">
+<h3>Cache B</h3>
+<p>40% hit。</p>
+<p>每次复用 4000 tokens。</p>
+</div>
+</div>
+
+<p>哪个更有价值？不能只看 hit rate。</p>
+
+<p>更应该看：</p>
+
+<ul>
+<li>reused prompt tokens；</li>
+<li>processed prompt tokens；</li>
+<li>saved prompt ms；</li>
+<li>TTFT；</li>
+<li>cache memory cost。</li>
+</ul>
+
+<h2>11. L0：容量 0 / 1 / 2 / 3 个 prefix，会发生什么？</h2>
+
+<p>请求序列：</p>
+
+<pre><code>A, B, A, C, A, B</code></pre>
+
+<p>每个 request：</p>
+
+<ul>
+<li>shared prefix = 1024 tokens；</li>
+<li>unique suffix = 64 tokens；</li>
+<li>new decode = 128 tokens。</li>
+</ul>
+
+<p>cache 采用 LRU-like 教学模型。</p>
+
+<table>
+<thead><tr><th>capacity</th><th>hits</th><th>evictions</th><th>prompt tokens processed</th><th>saved</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>0</td><td>0</td><td>6528</td><td>0</td></tr>
+<tr><td>1</td><td>0</td><td>5</td><td>6528</td><td>0</td></tr>
+<tr><td>2</td><td>2</td><td>2</td><td>4480</td><td>2048</td></tr>
+<tr><td>3</td><td>3</td><td>0</td><td>3456</td><td>3072</td></tr>
+</tbody>
+</table>
+
+<p>无论 cache capacity 是多少：</p>
+
+<pre><code>decode tokens total = 6 × 128 = 768</code></pre>
+
+<p>完全不变。</p>
+
+<div class="callout"><p><strong>这就是“prefix cache 省 prefill，不省新 token decode”的最小证据。</strong></p></div>
+
+<h2>12. capacity=1 为什么 hit rate 居然还是 0？</h2>
+
+<p>访问：</p>
+
+<pre><code>A → cache A
+B → evict A, cache B
+A → evict B, cache A
+C → evict A
+A → ...
+B → ...</code></pre>
+
+<p>这叫 working set 超过 cache capacity。</p>
+
+<p>“cache 已经开启”不代表你的 workload 会有 hit。</p>
+
+<h2>13. 并发为什么可能让 warm-up 没你想的有效？</h2>
+
+<p>如果 8 个相同长 prefix 请求同时第一次到达：</p>
+
+<p>第一个 request 的 prefix KV 可能还没成为可复用 state，另外 7 个已经开始 prefill。</p>
+
+<p>所以 benchmark 必须区分：</p>
+
+<ul>
+<li>cold；</li>
+<li>warm sequential；</li>
+<li>warm concurrent。</li>
+</ul>
+
+<p>TensorRT-LLM 官方专门提醒了这种 reuse timing。</p>
+
+<h2>14. Prefix cache 还有安全问题</h2>
+
+<p>在多人/多租户 service：</p>
+
+<pre><code>cache hit
+→ latency changes
+→ may reveal whether some prefix/state exists</code></pre>
+
+<p>vLLM current design 提供 cache salt 来隔离 reuse domain。</p>
+
+<p>本地单用户机器问题较小，但一旦把服务开放给别人：</p>
+
+<div class="callout"><p><strong>cache policy 也是 tenant isolation policy。</strong></p></div>
+
+<h2>实验</h2>
+
+<p><a href="../../labs/experiments/13-prefix-cache-capacity-model/README.md">Experiment 13 · L0：有限 Prefix Cache + LRU 模型</a></p>
+
+<p><a href="../../labs/experiments/14-llama-server-prefix-cache-probe/README.md">Experiment 14 · L1/L2：真实 llama-server Cold/Warm Prefix Probe</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>普通 KV cache 和 prefix cache 分别在哪个范围复用？</li>
+<li>为什么 prefix cache 更直接影响 TTFT，而不是 decode tok/s？</li>
+<li>为什么 Paged KV 不等于 Prefix Cache？</li>
+<li>为什么 llama.cpp Unified KV 不能直接叫 vLLM PagedAttention？</li>
+<li>hit rate 90% 为什么可能不如 40% 有价值？</li>
+<li>cache capacity 太小时，为什么开启 cache 仍然可能 0 hit？</li>
+<li>为什么同 prefix 的并发 cold requests 可能无法互相复用？</li>
+<li>多租户 prefix cache 为什么要考虑 isolation？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+
+<p>真实实验至少保存 cold/warm：</p>
+
+<ul>
+<li>cache_n；</li>
+<li>prompt_n；</li>
+<li>prompt_ms；</li>
+<li>prompt_per_second；</li>
+<li>predicted_n / predicted_ms；</li>
+<li>TTFT cold/warm proxy；</li>
+<li>server/model exact identity。</li>
+</ul>
+
+<p>最后回答：</p>
+
+<p><strong>如果 warm request 的 prompt_ms 从 800 ms 降到 40 ms，但 predicted_ms 几乎不变，这是不是 cache “失效”？为什么反而正符合 prefix cache 的设计目标？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md">llama.cpp — Server prompt cache / timings</a></li>
+<li><a href="https://docs.vllm.ai/en/latest/features/automatic_prefix_caching.html">vLLM — Automatic Prefix Caching</a></li>
+<li><a href="https://docs.vllm.ai/en/latest/design/prefix_caching/">vLLM — Prefix Caching design</a></li>
+<li><a href="https://nvidia.github.io/TensorRT-LLM/advanced/kv-cache-reuse.html">TensorRT-LLM — KV cache reuse</a></li>
+<li><a href="https://nvidia.github.io/TensorRT-LLM/features/kvcache.html">TensorRT-LLM — KV Cache System</a></li>
+</ul>
+
+<p class="small">硬件门槛：L0 无需 GPU；Experiment 14 CPU-only 也能观察 cache_n/prompt_n，GPU 只是让 timing 更接近常见服务。</p>
+</main>
+</body>
+</html>

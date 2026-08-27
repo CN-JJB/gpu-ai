@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为什么 TFLOPS 很高，LLM 还是可能跑不快？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">GPU Bandwidth & Roofline · Lesson 04 · L0 + optional L2</p>
+<h1>为什么 TFLOPS 很高，LLM 还是可能跑不快？</h1>
+<p class="lead">买二手卡时最常见的对比是：显存多少、带宽多少、TFLOPS 多少。问题是这三个数字回答的是三件完全不同的事。今天把它们压成一个能实际做判断的模型。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>两张卡：A 的算力高很多，B 的显存带宽高很多。跑本地 LLM 到底谁更快？</strong></p>
+<p>答案不能只看卡，要先问 workload 每搬一份数据会做多少计算。</p>
+</div>
+
+<h2>先把三个指标拆开</h2>
+<table>
+<thead><tr><th>指标</th><th>它回答什么</th></tr></thead>
+<tbody>
+<tr><td>VRAM/HBM capacity</td><td>模型、KV cache、context、buffers 能不能放下</td></tr>
+<tr><td>Memory bandwidth</td><td>每秒能把多少 bytes 喂给 GPU</td></tr>
+<tr><td>Compute throughput</td><td>每秒能做多少目标 datatype 的运算</td></tr>
+</tbody>
+</table>
+
+<p><strong>16 GB 显存</strong>说的是容量，不自动告诉你带宽；<strong>1 TB/s</strong>说的是搬运速度，也不自动告诉你 FP16/INT8/FP4 算力。</p>
+
+<h2>1. Theoretical bandwidth 和真实 bandwidth 不是一回事</h2>
+<p>厂商规格给的是 theoretical bandwidth。真实 kernel 只能拿到 achieved/effective bandwidth。</p>
+
+<p>最简单的 copy：</p>
+<div class="chain">
+<span class="node">read N bytes</span><span class="arrow">+</span>
+<span class="node">write N bytes</span><span class="arrow">=</span>
+<span class="node">2N useful bytes</span>
+</div>
+
+<p>如果耗时 t：</p>
+<div class="callout">
+<p><strong>effective bandwidth = 2N / t</strong></p>
+</div>
+
+<p>但 profiler 看到的 DRAM bytes 可能不同，因为 cache、coalescing、transaction granularity 都会改变真正下到显存的流量。</p>
+
+<h2>2. Arithmetic Intensity：每搬 1 byte，你做多少计算？</h2>
+<div class="callout">
+<p><strong>Arithmetic Intensity = FLOPs / bytes transferred</strong></p>
+</div>
+
+<p>比如：</p>
+<ul>
+<li>AI = 1 FLOP/B：搬 1 byte，只做 1 次浮点工作；</li>
+<li>AI = 100 FLOP/B：同样 1 byte，能支持大量重复计算。</li>
+</ul>
+
+<p>上一节的 tiling 为什么重要？因为它不改变 GEMM 的数学结果，却减少 global bytes：</p>
+
+<div class="chain">
+<span class="node">reuse ↑</span><span class="arrow">→</span>
+<span class="node">global bytes ↓</span><span class="arrow">→</span>
+<span class="node">AI ↑</span>
+</div>
+
+<h2>3. 最小 Roofline：性能有两块天花板</h2>
+
+<p>第一块是 memory roof：</p>
+<p><strong>memory-limited performance = memory bandwidth × AI</strong></p>
+
+<p>第二块是 compute roof：</p>
+<p><strong>compute-limited performance = compute throughput</strong></p>
+
+<p>所以真正的上限是：</p>
+
+<div class="callout">
+<p><strong>Performance ≤ min(compute roof, bandwidth × AI)</strong></p>
+</div>
+
+<h2>4. Ridge point：到底从什么时候开始“不缺带宽了”？</h2>
+
+<p>两条 roof 相交的位置：</p>
+
+<div class="callout">
+<p><strong>AI<sub>ridge</sub> = compute throughput / memory bandwidth</strong></p>
+</div>
+
+<p>假设一张抽象 GPU：</p>
+<ul>
+<li>20 TFLOP/s</li>
+<li>500 GB/s</li>
+</ul>
+
+<p>它的 ridge：</p>
+<p><strong>20 × 1000 / 500 = 40 FLOP/B</strong></p>
+
+<p>所以：</p>
+<ul>
+<li>AI &lt; 40：memory roof 更低；</li>
+<li>AI &gt; 40：compute roof 更低。</li>
+</ul>
+
+<h2>5. 为什么只加 TFLOPS 对低-AI workload 可能完全没用？</h2>
+
+<table>
+<thead><tr><th></th><th>GPU A</th><th>GPU B：算力×2</th><th>GPU C：带宽×2</th></tr></thead>
+<tbody>
+<tr><td>Compute</td><td>20 TFLOP/s</td><td>40</td><td>20</td></tr>
+<tr><td>Bandwidth</td><td>500 GB/s</td><td>500</td><td>1000</td></tr>
+<tr><td>Ridge</td><td>40 FLOP/B</td><td>80</td><td>20</td></tr>
+</tbody>
+</table>
+
+<p>看一个 AI=4 的 workload：</p>
+
+<ul>
+<li>GPU A：500 × 4 = 2 TFLOP/s</li>
+<li>GPU B：还是 500 × 4 = 2 TFLOP/s</li>
+<li>GPU C：1000 × 4 = 4 TFLOP/s</li>
+</ul>
+
+<div class="callout">
+<p><strong>算力翻倍，性能上限没动；带宽翻倍，性能上限翻倍。</strong></p>
+</div>
+
+<p>这就是“不能拿 TFLOPS 直接排所有 GPU workload”的数学原因。</p>
+
+<h2>6. 反过来：高 AI workload 更吃 compute</h2>
+
+<p>如果 AI=80：</p>
+<ul>
+<li>GPU A：被 20 TFLOP/s compute roof 卡住；</li>
+<li>GPU B：可以到 40 TFLOP/s；</li>
+<li>GPU C：带宽更高，但仍只有 20 TFLOP/s compute roof。</li>
+</ul>
+
+<p>所以不存在“带宽最重要”或“算力最重要”的万能结论。</p>
+
+<h2>7. Cache 怎么放进 Roofline？</h2>
+
+<p>真实 GPU 不只有 HBM/VRAM 一层。</p>
+<p>如果某个数据被 L2 命中：</p>
+
+<div class="chain">
+<span class="node">L2 hit</span><span class="arrow">→</span>
+<span class="node">HBM traffic ↓</span><span class="arrow">→</span>
+<span class="node">HBM-level AI ↑</span>
+</div>
+
+<p>但 L2 本身仍要提供带宽。</p>
+
+<p>所以高级 profiler 会画 hierarchical roofline：HBM、L2、L1、LDS 都可以有自己的 traffic 和 roof。AMD ROCm Compute Profiler 就明确支持这种分层分析。</p>
+
+<h2>8. Roofline 不是万能解释器</h2>
+
+<p>Roofline 只告诉你 throughput ceiling。</p>
+<p>如果 kernel 离两条 roof 都很远，原因可能是：</p>
+<ul>
+<li>resident warps 太少；</li>
+<li>dependency latency；</li>
+<li>divergence；</li>
+<li>bad coalescing；</li>
+<li>bank conflicts；</li>
+<li>launch overhead；</li>
+<li>软件/编译器根本没走目标硬件路径。</li>
+</ul>
+
+<p>所以前面的执行模型没有白学：</p>
+
+<div class="chain">
+<span class="node">scheduler / latency</span><span class="arrow">+</span>
+<span class="node">reuse / tiling</span><span class="arrow">+</span>
+<span class="node">Roofline</span>
+</div>
+
+<h2>9. 现在把它接回本地 LLM：Prefill vs Decode</h2>
+
+<div class="grid">
+<div class="card">
+<h3>Prefill</h3>
+<p>一次处理一批 input tokens，大 GEMM 更容易形成并行与 data reuse。</p>
+<p><strong>通常更偏 compute-bound。</strong></p>
+</div>
+<div class="card">
+<h3>Decode</h3>
+<p>token-by-token 生成，每一步都需要新的模型计算，并伴随 weights 与 KV state traffic。</p>
+<p><strong>通常更偏 memory-bandwidth-bound。</strong></p>
+</div>
+</div>
+
+<p>NVIDIA Dynamo 和 AMD Infera 都使用这个阶段划分。但它不是绝对规则：batch、concurrency、context、模型结构和 backend 会改变实际 bottleneck。</p>
+
+<h2>10. 为什么量化常常特别影响 decode？</h2>
+
+<p>假设 memory-bound 阶段主要在扫 weights。</p>
+<p>把每个 weight 的 bytes 降低：</p>
+
+<div class="chain">
+<span class="node">weight bytes ↓</span><span class="arrow">→</span>
+<span class="node">bytes/token ↓</span><span class="arrow">→</span>
+<span class="node">AI ↑</span><span class="arrow">→</span>
+<span class="node">same GB/s does more useful work</span>
+</div>
+
+<p>这不等于“4-bit 必然 4× 快”。还要付：</p>
+<ul>
+<li>dequantization；</li>
+<li>scale / metadata traffic；</li>
+<li>packing；</li>
+<li>kernel/backend 支持；</li>
+<li>quality。</li>
+</ul>
+
+<h2>11. KV cache：decode 的 bytes 不只来自 weights</h2>
+
+<p>随着 context 与 concurrency 增大，KV cache 的 capacity 和 traffic 也会进入瓶颈。</p>
+<p>这意味着两张同带宽 GPU，如果一个能把更多 active KV 留在高速本地 memory、另一个需要 offload，真实结果可能完全不同。</p>
+<p>KV 的精确 size 公式和 layout 后面单独讲。</p>
+
+<h2>垃圾佬现在应该怎么比较卡？</h2>
+
+<ol>
+<li>先问 model + KV 是否 fit。</li>
+<li>再判断你的使用是 decode-heavy 还是 prefill-heavy。</li>
+<li>查目标 precision 的真实 compute path，不只看一个通用 TFLOPS。</li>
+<li>查 raw memory bandwidth。</li>
+<li>看实际 backend/benchmark 的 achieved bandwidth 与 tokens/s。</li>
+<li>估算或 profile arithmetic intensity。</li>
+<li>找 ridge point。</li>
+<li>如果 kernel 离 roof 很远，再回头查 occupancy、scheduler、cache、coalescing、软件支持。</li>
+</ol>
+
+<h2>小实验</h2>
+<p><a href="../../labs/experiments/06-roofline-bottleneck-model/README.md">Experiment 06 · L0：算力翻倍和带宽翻倍，谁能加速你的 workload？</a></p>
+<p><a href="../../labs/experiments/07-real-gpu-roofline-probe/README.md">Experiment 07 · optional L2：真实 CUDA/HIP GPU 上做 memory→compute intensity sweep</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>显存容量和显存带宽分别解决什么问题？</li>
+<li>为什么 theoretical bandwidth 不能直接当 benchmark bandwidth？</li>
+<li>AI=4、GPU=20 TFLOP/s + 500 GB/s 时，Roofline 上限是多少？</li>
+<li>为什么把这张 GPU 改成 40 TFLOP/s + 500 GB/s 对这个 workload 没帮助？</li>
+<li>tiling 是怎么把一个 kernel 在 Roofline 图上向右推的？</li>
+<li>为什么 decode 通常比 prefill 更吃 memory bandwidth？什么情况可能改变这个结论？</li>
+<li>为什么量化既是 capacity 优化，也可能是 bandwidth 优化？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+<p>完成 L0 Experiment Card，并对两个抽象 workload 做购卡判断：</p>
+<ul>
+<li>Workload X：AI = 2 FLOP/B</li>
+<li>Workload Y：AI = 100 FLOP/B</li>
+</ul>
+<p>在“算力翻倍”和“带宽翻倍”之间分别选择，并解释 ridge point。</p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/">NVIDIA CUDA C++ Best Practices Guide — Bandwidth</a></li>
+<li><a href="https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html">NVIDIA Nsight Compute — Roofline Charts</a></li>
+<li><a href="https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html">NVIDIA GPU Performance Background</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/performance_optimization.html">AMD ROCm — Understanding GPU performance</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/rocprofiler-compute/en/latest/how-to/analyze/cli.html">AMD ROCm Compute Profiler — Roofline</a></li>
+<li><a href="https://docs.nvidia.com/dynamo/dev/knowledge-base/concepts/system-architecture/disaggregated-serving">NVIDIA Dynamo — Disaggregated Serving</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/infera/en/latest/reference/glossary.html">AMD Infera — Prefill / Decode glossary</a></li>
+</ul>
+
+<p class="small">L0 使用抽象 GPU，不代表任何真实型号。真实购卡结论必须进入 benchmark/intelligence 流程并记录软件版本与测试条件。</p>
+</main>
+</body>
+</html>

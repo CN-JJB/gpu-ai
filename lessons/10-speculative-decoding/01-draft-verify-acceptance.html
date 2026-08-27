@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为什么让小模型先猜，反而不会把大模型答案带偏？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">Decode Acceleration · Lesson 10 · L0 + optional L1/L2</p>
+<h1>为什么让小模型先猜，反而不会把大模型答案带偏？</h1>
+<p class="lead">Speculative Decoding 最容易被误解成“小模型先写答案，大模型偶尔检查”。真正的结构恰好相反：draft 只负责便宜地提案，target 仍然负责验证和最终采样。它优化的是 autoregressive decode 的串行等待。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>大模型本来一个 token 一个 token 地生成。如果让一个小模型先猜 4 个 token，再让大模型检查，为什么会更快？猜错了怎么办？会不会改变大模型质量？</strong></p>
+</div>
+
+<h2>先看原来的串行墙</h2>
+
+<pre><code>target(history)       → token 1
+target(history + 1)   → token 2
+target(history + 1,2) → token 3
+target(...)           → token 4</code></pre>
+
+<p>四个新 token，需要四次串行 target step。</p>
+
+<p>下一步必须等上一步 token，因为它会进入下一步的 history。</p>
+
+<h2>1. Speculation 插入一个便宜的 Proposer</h2>
+
+<div class="chain">
+<span class="node">history</span><span class="arrow">→</span>
+<span class="node">cheap proposer</span><span class="arrow">→</span>
+<span class="node">d1 d2 d3 d4</span>
+</div>
+
+<p>proposer 可以是：</p>
+
+<ul>
+<li>更小的 draft model；</li>
+<li>历史 n-gram lookup；</li>
+<li>MTP head；</li>
+<li>EAGLE-style learned proposer；</li>
+<li>其他更便宜的多-token predictor。</li>
+</ul>
+
+<p>共同要求只有一个：</p>
+
+<div class="callout">
+<p><strong>提案必须比 target 一个 token 一个 token 串行跑便宜很多，而且猜得够像 target。</strong></p>
+</div>
+
+<h2>2. Target 不是被替代，而是一次验证一段</h2>
+
+<p>draft 给出：</p>
+
+<pre><code>d1 d2 d3 d4</code></pre>
+
+<p>target 可以把这段 continuation 放进一个 batched verification forward 里一起评分。</p>
+
+<div class="chain">
+<span class="node">4 draft tokens</span><span class="arrow">→</span>
+<span class="node">1 target verify batch</span><span class="arrow">→</span>
+<span class="node">accept / reject</span>
+</div>
+
+<p>原始 speculative decoding/sampling 论文利用的正是：在低 batch、硬件利用不足时，target 并行评分几个位置的延迟，可能远小于串行跑几次 target。</p>
+
+<h2>3. Draft 猜错了怎么办？</h2>
+
+<p>用最容易理解的 greedy 类比：</p>
+
+<pre><code>draft : A B C D
+target: A B X ...</code></pre>
+
+<p>前两个 draft 和 target 一致，可以接受。</p>
+
+<p>到 C 发生 mismatch：</p>
+
+<pre><code>accept A B
+take target X
+discard old C D suffix</code></pre>
+
+<p>为什么 D 也不能继续？</p>
+
+<p>因为 D 是在 draft history <code>A B C</code> 上猜的；正确 history 已经变成 <code>A B X</code>。</p>
+
+<div class="callout">
+<p><strong>一旦历史分叉，旧 draft suffix 就不再属于正确 autoregressive chain。</strong></p>
+</div>
+
+<h2>4. 随机采样不是简单“token 相等就接受”</h2>
+
+<p>Temperature / top-p 等 stochastic sampling 下，正确 speculative sampling 会使用 acceptance/rejection/correction 规则。</p>
+
+<p>原始论文的关键保证不是：</p>
+
+<p><del>draft 输出质量足够好，所以大概和 target 一样。</del></p>
+
+<p>而是：</p>
+
+<div class="callout">
+<p><strong>在正确 verifier / rejection-sampling 算法下，最终样本保持 target distribution。</strong></p>
+</div>
+
+<p>现实 runtime 仍可能因为 floating-point、batching、随机种子和非确定性 kernel 出现逐字差异，所以不要把 lossless 理解成“每次输出 byte-identical”。</p>
+
+<h2>5. Acceptance Rate 是什么？</h2>
+
+<pre><code>acceptance rate
+= accepted draft tokens
+/ generated draft tokens</code></pre>
+
+<p>current llama.cpp 就会打印 generated / accepted draft token statistics。</p>
+
+<p>直觉：</p>
+
+<ul>
+<li>acceptance 高：draft 做的大部分工作被 target 留下；</li>
+<li>acceptance 低：大量 proposal 被丢掉。</li>
+</ul>
+
+<p>但 acceptance 不是最终成绩。</p>
+
+<h2>6. 为什么 90% acceptance 也不保证一定快？</h2>
+
+<p>Spec round 有成本：</p>
+
+<pre><code>draft generation
++ target verification
++ acceptance/correction
++ extra memory/state</code></pre>
+
+<p>如果 draft model 本身太重：</p>
+
+<pre><code>accepted tokens 很多
+但 draft cost 也很大
+→ total latency 仍可能没赢</code></pre>
+
+<p>所以真正比较：</p>
+
+<div class="callout">
+<p><strong>每单位 speculative-round 成本，最终能让 target sequence 前进多少 token？</strong></p>
+</div>
+
+<h2>7. 一个最小 Expected-Progress 模型</h2>
+
+<p>假设：</p>
+
+<ul>
+<li>每个 draft token 独立以概率 <code>p</code> 沿链被接受；</li>
+<li>draft length = <code>D</code>；</li>
+<li>一旦第一个失败，后续 draft suffix 作废。</li>
+</ul>
+
+<p>期望 accepted prefix：</p>
+
+<pre><code>E[accepted]
+= p + p² + ... + p^D</code></pre>
+
+<p>简化地把 mismatch 时 target 给出的 correction token 也算作前进一步：</p>
+
+<pre><code>E[progress]
+≈ 1 + p + p² + ... + p^D</code></pre>
+
+<p>这是教学模型，不是每个 runtime 的精确内部公式。</p>
+
+<h2>8. L0：draft 越长真的越好吗？</h2>
+
+<p>造一个抽象成本：</p>
+
+<pre><code>baseline target serial step = 1.00
+
+draft token cost = 0.08 each
+
+target batched verify cost
+= 1.08 + 0.04 × D</code></pre>
+
+<p>所以 spec-round cost：</p>
+
+<pre><code>0.08D + 1.08 + 0.04D</code></pre>
+
+<table>
+<thead>
+<tr><th>acceptance p</th><th>draft D</th><th>expected progress</th><th>spec round cost</th><th>speedup ceiling</th></tr>
+</thead>
+<tbody>
+<tr><td>0.30</td><td>1</td><td>1.300</td><td>1.20</td><td>1.083×</td></tr>
+<tr><td>0.30</td><td>2</td><td>1.390</td><td>1.32</td><td>1.053×</td></tr>
+<tr><td>0.30</td><td>4</td><td>1.425</td><td>1.56</td><td>0.914×</td></tr>
+<tr><td>0.30</td><td>8</td><td>1.429</td><td>2.04</td><td>0.700×</td></tr>
+<tr><td>0.60</td><td>1</td><td>1.600</td><td>1.20</td><td>1.333×</td></tr>
+<tr><td>0.60</td><td>2</td><td>1.960</td><td>1.32</td><td>1.485×</td></tr>
+<tr><td>0.60</td><td>4</td><td>2.306</td><td>1.56</td><td>1.478×</td></tr>
+<tr><td>0.60</td><td>8</td><td>2.475</td><td>2.04</td><td>1.213×</td></tr>
+<tr><td>0.90</td><td>1</td><td>1.900</td><td>1.20</td><td>1.583×</td></tr>
+<tr><td>0.90</td><td>2</td><td>2.710</td><td>1.32</td><td>2.053×</td></tr>
+<tr><td>0.90</td><td>4</td><td>4.095</td><td>1.56</td><td>2.625×</td></tr>
+<tr><td>0.90</td><td>8</td><td>6.126</td><td>2.04</td><td>3.003×</td></tr>
+</tbody>
+</table>
+
+<h2>9. 30% acceptance 时为什么长 draft 反而亏？</h2>
+
+<p><code>D=4</code> 以后，新增 proposal 大部分位于很后面。</p>
+
+<p>要活到第 4 个 draft token：</p>
+
+<pre><code>p^4 = 0.3^4 = 0.0081</code></pre>
+
+<p>只有 0.81% 的简化机会。</p>
+
+<p>但你每一轮仍然为：</p>
+
+<ul>
+<li>draft 4/8 个 token；</li>
+<li>更大的 verify batch；</li>
+<li>额外 state；</li>
+</ul>
+
+<p>付成本。</p>
+
+<div class="callout">
+<p><strong>acceptance 低时，long draft 的尾部往往是昂贵的废稿。</strong></p>
+</div>
+
+<h2>10. 60% acceptance 为什么 D=2 比 D=8 更好？</h2>
+
+<p>这就是 tuning 的意义。</p>
+
+<p>更长 draft 确实让 expected progress 继续增加：</p>
+
+<pre><code>D=2 → 1.96
+D=8 → 2.47</code></pre>
+
+<p>但 round cost 从：</p>
+
+<pre><code>1.32 → 2.04</code></pre>
+
+<p>涨得更多。</p>
+
+<p>所以 optimum 不一定在最大 D。</p>
+
+<h2>11. Draft model 也要占显存</h2>
+
+<p>two-model speculation 可能多出：</p>
+
+<ul>
+<li>draft weights；</li>
+<li>draft KV cache；</li>
+<li>draft runtime buffers；</li>
+<li>独立 offload placement。</li>
+</ul>
+
+<p>如果你的目标模型本来刚好塞进 GPU：</p>
+
+<pre><code>load draft
+→ VRAM headroom disappears
+→ target layers spill/offload
+→ target becomes slower</code></pre>
+
+<p>最后可能“spec 算法更聪明，整机反而更慢”。</p>
+
+<h2>12. N-gram proposer 为什么适合垃圾佬实验？</h2>
+
+<p>current llama.cpp 有不需要第二个模型的 history/n-gram proposer。</p>
+
+<p>它寻找：</p>
+
+<pre><code>previous token pattern
+→ likely repeated continuation
+→ cheap draft</code></pre>
+
+<p>优点：</p>
+
+<ul>
+<li>额外模型内存小；</li>
+<li>容易做 baseline vs spec；</li>
+<li>代码重写、重复文本可能 acceptance 很高。</li>
+</ul>
+
+<p>缺点：</p>
+
+<ul>
+<li>开放式新内容没模式可抄，acceptance 可能低；</li>
+<li>性能强烈依赖 workload。</li>
+</ul>
+
+<h2>13. 为什么 speculative decoding 更偏低 batch / 低 QPS？</h2>
+
+<p>上一节 continuous batching 已经让多个 active requests 一起跑。</p>
+
+<p>如果 target 在高并发时已经被喂得很饱：</p>
+
+<pre><code>baseline target utilization high
+→ batched verification advantage shrinks
+→ proposer overhead becomes more visible</code></pre>
+
+<p>vLLM 当前官方也把 speculative decoding 定位在 medium-to-low QPS、偏 memory-bound 的场景；TensorRT-LLM 同样强调 low batch size。</p>
+
+<div class="callout">
+<p><strong>单用户 2× speculative speedup，不能直接写成 8 用户 server 也 2×。</strong></p>
+</div>
+
+<h2>14. 三个优化终于可以摆在同一张表</h2>
+
+<table>
+<thead><tr><th>优化</th><th>它主要减少/改善什么</th></tr></thead>
+<tbody>
+<tr><td>Prefix Cache</td><td>重复 prompt 的 prefill</td></tr>
+<tr><td>Continuous Batching</td><td>多个 active requests 的硬件利用率/吞吐</td></tr>
+<tr><td>Speculative Decoding</td><td>新 token decode 的串行 target steps</td></tr>
+</tbody>
+</table>
+
+<p>它们可以同时开启，但实验时先单变量 A/B。</p>
+
+<h2>实验</h2>
+
+<p><a href="../../labs/experiments/15-speculative-acceptance-overhead-model/README.md">Experiment 15 · L0：Acceptance × Draft Length × Overhead</a></p>
+
+<p><a href="../../labs/experiments/16-llama-server-speculative-probe/README.md">Experiment 16 · L1/L2：真实 llama-server Baseline vs Speculation</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>为什么 draft model 不是最终 authority？</li>
+<li>greedy teaching example 中，第一个 mismatch 后为什么要丢弃后续 draft suffix？</li>
+<li>stochastic sampling 为什么不能只用“token 相等”解释 correctness？</li>
+<li>acceptance rate 高为什么仍不保证 speedup？</li>
+<li>为什么 draft length 有 optimum，而不是越大越好？</li>
+<li>two-model speculation 会增加哪些 memory pressure？</li>
+<li>为什么 n-gram speculation 对代码/重复文本可能比开放问答更有效？</li>
+<li>高 concurrency 为什么可能降低 speculation 的收益？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+
+<p>真实 A/B 至少记录：</p>
+
+<ul>
+<li>same target artifact/hash；</li>
+<li>baseline vs speculative config；</li>
+<li>proposer type/model；</li>
+<li>draft length；</li>
+<li>draft generated tokens；</li>
+<li>accepted tokens；</li>
+<li>acceptance rate；</li>
+<li>decode t/s；</li>
+<li>E2E latency；</li>
+<li>memory/offload difference；</li>
+<li>concurrency/workload category。</li>
+</ul>
+
+<p>最后回答：</p>
+
+<p><strong>如果 acceptance=85%，但 speculative run 比 baseline 慢 8%，这是否说明 target verifier 错了？还是更可能说明 proposer/verification/memory overhead 大于省下的 serial target steps？你会先查哪三项？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2211.17192">Leviathan et al. — Speculative Decoding</a></li>
+<li><a href="https://arxiv.org/abs/2302.01318">Chen et al. — Speculative Sampling</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/speculative.md">llama.cpp — Speculative Decoding</a></li>
+<li><a href="https://docs.vllm.ai/en/latest/features/speculative_decoding/">vLLM — Speculative Decoding</a></li>
+<li><a href="https://nvidia.github.io/TensorRT-LLM/1.3.0rc20/features/speculative-decoding.html">TensorRT-LLM — Speculative Decoding</a></li>
+</ul>
+
+<p class="small">硬件门槛：L0 无需 GPU。真实 speculation 可先用 n-gram/draftless path，two-model draft 是可选高阶路径。</p>
+</main>
+</body>
+</html>

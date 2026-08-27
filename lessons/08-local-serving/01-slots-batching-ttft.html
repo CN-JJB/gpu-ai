@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为什么单用户很快，八个人一起用却像卡住了？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">Local Serving · Lesson 08 · L0 + optional L1/L2</p>
+<h1>为什么单用户很快，八个人一起用却像卡住了？</h1>
+<p class="lead">上一节你测的是单机、单请求 backend baseline。服务器世界多了两个变量：谁能立刻进入模型执行，谁必须排队；以及多个 active sequence 能不能一起形成有效 batch。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>我的模型单用户能 30 tok/s。为什么开 8 个客户端以后，不是每人 30 tok/s，也不是总共 240 tok/s？</strong></p>
+</div>
+
+<h2>先画 server，而不是先看 GPU</h2>
+
+<div class="chain">
+<span class="node">clients</span><span class="arrow">→</span>
+<span class="node">queue</span><span class="arrow">→</span>
+<span class="node">slots</span><span class="arrow">→</span>
+<span class="node">active batch</span><span class="arrow">→</span>
+<span class="node">model</span>
+</div>
+
+<p>current llama-server 明确支持 multi-user parallel decoding 和 continuous batching。</p>
+
+<h2>1. Client concurrency 和 server slots 不是同一个数字</h2>
+
+<p>假设：</p>
+
+<pre><code>client concurrency = 8
+server slots = 4</code></pre>
+
+<p>客户端可以同时发 8 个请求，但 server 并不因此拥有 8 份独立 GPU。</p>
+
+<p>更可能看到：</p>
+
+<pre><code>4 requests processing
+4 requests deferred / waiting</code></pre>
+
+<p>current llama-server 的 metrics 里就有：</p>
+
+<ul>
+<li><code>requests_processing</code></li>
+<li><code>requests_deferred</code></li>
+</ul>
+
+<div class="callout"><p><strong>“有 8 个并发客户端”不是“GPU 正在做 batch=8”。</strong></p></div>
+
+<h2>2. Slot 到底是什么？</h2>
+
+<p>在这节里，把 slot 理解成：</p>
+
+<p><strong>server 可以同时维护一个 active request/sequence execution state 的容量单位。</strong></p>
+
+<p>它不是：</p>
+
+<ul>
+<li>一个 CUDA core；</li>
+<li>一个 SM；</li>
+<li>一个 warp；</li>
+<li>一个 CPU thread；</li>
+<li>一份完整模型副本。</li>
+</ul>
+
+<p>多个 slots 最终仍然共享同一个模型和同一套硬件资源。</p>
+
+<h2>3. Queue 为什么首先伤 TTFT？</h2>
+
+<p>用户点发送以后，到看到第一个有用输出，大致经历：</p>
+
+<div class="chain">
+<span class="node">queue</span><span class="arrow">+</span>
+<span class="node">prompt processing</span><span class="arrow">+</span>
+<span class="node">first decode</span><span class="arrow">=</span>
+<span class="node">TTFT</span>
+</div>
+
+<p>所以 slots 一满：</p>
+
+<div class="callout"><p><strong>即使 active request 的 decode t/s 没变，后排请求的 TTFT 也可以暴涨。</strong></p></div>
+
+<h2>4. 现在必须把三个 latency 指标分开</h2>
+
+<table>
+<thead><tr><th>指标</th><th>问的问题</th></tr></thead>
+<tbody>
+<tr><td>TTFT</td><td>多久开始说第一句话？</td></tr>
+<tr><td>ITL</td><td>开始说以后，相邻 token 间隔多久？</td></tr>
+<tr><td>E2E latency</td><td>整个请求多久结束？</td></tr>
+</tbody>
+</table>
+
+<p>一个系统完全可能：</p>
+
+<ul>
+<li>TTFT 很差，但开始生成后很流畅；</li>
+<li>TTFT 很好，但 token 一个一个蹦得很慢；</li>
+<li>总吞吐很高，但单个用户等得更久。</li>
+</ul>
+
+<h2>5. 为什么普通 streaming client 不能直接说“我测了精确 ITL”？</h2>
+
+<p>OpenAI-compatible streaming 返回的是 SSE chunks。</p>
+
+<p>一个 chunk：</p>
+
+<ul>
+<li>可能是空 delta；</li>
+<li>可能对应一个 token；</li>
+<li>也可能包含多个 token 对应的文本；</li>
+<li>还会受到 HTTP buffering 影响。</li>
+</ul>
+
+<p>所以 Experiment 12 会记录：</p>
+
+<pre><code>first non-empty stream delta → TTFT proxy
+mean non-empty stream gap     → client-visible cadence proxy</code></pre>
+
+<p>不把 chunk gap 冒充精确 token-level ITL。</p>
+
+<h2>6. Continuous batching 解决什么？</h2>
+
+<p>想象两个 active request：</p>
+
+<ul>
+<li>A 只剩 8 tokens；</li>
+<li>B 还要 32 tokens。</li>
+</ul>
+
+<p>如果是“整批一起开始、整批一起换下一批”的静态思路：</p>
+
+<pre><code>A finished
+B still running
+C waits
+slot is effectively wasted</code></pre>
+
+<p>continuous batching 的核心思想：</p>
+
+<pre><code>A finished
+→ C enters
+→ active set becomes B + C
+→ 不必等 B 完成</code></pre>
+
+<div class="callout"><p><strong>Continuous batching 的关键不是“batch 很大”，而是 active batch 可以动态换人。</strong></p></div>
+
+<h2>7. 为什么 batch 更多人，总吞吐可能上升？</h2>
+
+<p>decode 单请求常常要反复读取大量 weights，却只为一个 sequence 做当前 token 的工作。</p>
+
+<p>多个 sequence 一起跑时，模型执行更容易形成：</p>
+
+<div class="chain">
+<span class="node">same model step</span><span class="arrow">→</span>
+<span class="node">more sequences served</span><span class="arrow">→</span>
+<span class="node">aggregate work ↑</span>
+</div>
+
+<p>这和前面的 Roofline 思维一致：硬件利用率可能提高，aggregate tokens/s 可能上升。</p>
+
+<h2>8. 为什么每个人反而可能“说得更慢”？</h2>
+
+<p>因为 batch step 本身也更重。</p>
+
+<pre><code>active batch ↑
+→ one decode step takes longer
+→ each user's next token may arrive later</code></pre>
+
+<p>于是服务端出现经典 trade-off：</p>
+
+<div class="callout"><p><strong>aggregate throughput ↑，不代表 per-request latency ↓。</strong></p></div>
+
+<h2>9. L0：8 个请求同时来，slots 越多会发生什么？</h2>
+
+<p>我们造一个抽象 decode server：</p>
+
+<ul>
+<li>8 requests 同时到达；</li>
+<li>每个要生成 32 tokens；</li>
+<li>一次 decode step 给每个 active request 产生 1 token；</li>
+<li>active requests 越多，step time 会增长，但低于线性增长。</li>
+</ul>
+
+<p>模型使用：</p>
+
+<pre><code>step_time(batch) = 1 + 0.22 × (batch - 1)</code></pre>
+
+<table>
+<thead><tr><th>slots</th><th>active step</th><th>aggregate tok/unit</th><th>avg first-token wait proxy</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>1.00</td><td>1.000</td><td>113.00</td></tr>
+<tr><td>2</td><td>1.22</td><td>1.639</td><td>59.78</td></tr>
+<tr><td>4</td><td>1.66</td><td>2.410</td><td>28.22</td></tr>
+<tr><td>8</td><td>2.54</td><td>3.150</td><td>2.54</td></tr>
+</tbody>
+</table>
+
+<p>两个方向同时发生：</p>
+
+<ul>
+<li>更多 slots 减少 queue，首 token 等待下降；</li>
+<li>更多 active requests 让 step 变长，active-user cadence 变慢；</li>
+<li>aggregate throughput 因 batch amortization 上升。</li>
+</ul>
+
+<p>这三个指标不是同一个方向。</p>
+
+<h2>10. Continuous batching 的 L0 反例</h2>
+
+<p>6 个请求长度：</p>
+
+<pre><code>8, 32, 8, 32, 8, 32 tokens
+slots = 2</code></pre>
+
+<p>同一个抽象 step-time 模型：</p>
+
+<table>
+<thead><tr><th>策略</th><th>总完成时间</th><th>aggregate tok/unit</th><th>avg first-token wait</th></tr></thead>
+<tbody>
+<tr><td>static groups</td><td>101.28</td><td>1.185</td><td>34.98</td></tr>
+<tr><td>continuous admission</td><td>82.56</td><td>1.453</td><td>20.74</td></tr>
+</tbody>
+</table>
+
+<p>不是因为 continuous batching “让 GPU 变强”，而是因为短请求结束后，空 slot 更快被新请求填上。</p>
+
+<h2>11. Concurrency 还有一张账：KV</h2>
+
+<p>Slice 05 已经推导：</p>
+
+<pre><code>KV baseline ∝ active sequences × cached tokens</code></pre>
+
+<p>所以 slots 从 1 增到 8，不能只看 throughput。</p>
+
+<p>你同时增加了：</p>
+
+<ul>
+<li>live sequence state；</li>
+<li>KV capacity pressure；</li>
+<li>KV traffic；</li>
+<li>潜在 memory-bandwidth 压力。</li>
+</ul>
+
+<p>current llama-server 还有 unified KV、prompt cache 等机制，所以不能简单写成 <code>slots × ctx = real KV</code>。真实内存要测。</p>
+
+<h2>12. 哪些 metrics 真正能帮你判断 server？</h2>
+
+<p>current llama-server metrics 中特别有用：</p>
+
+<ul>
+<li><code>requests_processing</code>：现在多少请求在做；</li>
+<li><code>requests_deferred</code>：多少请求在等；</li>
+<li><code>n_busy_slots_per_decode</code>：一次 decode 平均有多少 busy slots；</li>
+<li><code>predicted_tokens_seconds</code>：server generation throughput；</li>
+<li><code>prompt_tokens_seconds</code>：prompt throughput。</li>
+</ul>
+
+<p>这使你可以区分：</p>
+
+<pre><code>client 发了很多请求
+vs
+server 真形成了有效 batch</code></pre>
+
+<h2>13. 实验怎么做？</h2>
+
+<p><a href="../../labs/experiments/11-server-slots-continuous-batching/README.md">Experiment 11 · L0：Slots / Queue / Continuous Batching 模型</a></p>
+
+<p><a href="../../labs/experiments/12-llama-server-concurrency-probe/README.md">Experiment 12 · L1/L2：真实 localhost llama-server 并发探针</a></p>
+
+<p>真实实验固定：</p>
+
+<pre><code>server slots = 4
+same model
+same context
+same KV type
+same offload
+continuous batching ON
+8 total requests</code></pre>
+
+<p>只扫 client concurrency：</p>
+
+<pre><code>1 → 2 → 4 → 8</code></pre>
+
+<p>然后看：</p>
+
+<ul>
+<li>TTFT mean / p95；</li>
+<li>E2E mean / p95；</li>
+<li>stream-gap proxy；</li>
+<li>aggregate predicted tokens / wall time；</li>
+<li>server predicted t/s；</li>
+<li>peak processing / deferred；</li>
+<li>busy slots/decode。</li>
+</ul>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>client concurrency=8、slots=4 时，为什么不能说 batch size=8？</li>
+<li>为什么 queueing 可以让 TTFT 变差，而 decode t/s 不变？</li>
+<li>continuous batching 和 static batching 的关键区别是什么？</li>
+<li>aggregate throughput 上升为什么可能伴随单用户 token cadence 变慢？</li>
+<li>为什么 stream chunk gap 不是精确 ITL？</li>
+<li>为什么增加 slots 后必须重新检查 KV memory？</li>
+<li>requests_deferred 和 n_busy_slots_per_decode 分别回答什么问题？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+
+<p>完成 L0，然后在真实 server 上至少跑 concurrency 1 / 2 / 4 / 8。</p>
+
+<p>最后回答：</p>
+
+<p><strong>当 concurrency 从 4 提到 8 时，如果 aggregate throughput 几乎不再涨，但 p95 TTFT 翻倍、requests_deferred 明显上升，你会把瓶颈描述成什么？下一步是加 slots，还是先检查 KV/headroom 与硬件 saturation？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md">llama.cpp — HTTP Server</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/bench/README.md">llama.cpp — Server benchmark</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/bench/speed-bench/README.md">llama.cpp — SPEED-Bench client</a></li>
+</ul>
+
+<p class="small">硬件门槛：L0 无需模型/GPU；真实 lab CPU-only 也可完成，GPU 路径用于更接近常见本地服务。Current CLI/metrics spelling 见 dated intelligence snapshot。</p>
+</main>
+</body>
+</html>

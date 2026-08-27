@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第一次跑本地 LLM，怎样证明它真的跑在你以为的硬件上？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">Local Inference · Lesson 07 · L0–L2</p>
+<h1>第一次跑本地 LLM，怎样证明它真的跑在你以为的硬件上？</h1>
+<p class="lead">看到模型吐出一句话，只证明“某个程序运行了”。课程真正要你证明的是：哪一个 backend、哪一份模型、哪条 CPU/GPU 路径、什么 context/offload 条件，以及结果能不能被别人复现。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>我已经能聊天了。但它到底用了 CPU、CUDA、HIP 还是 Metal？为什么别人同一张卡比我快两倍？</strong></p>
+</div>
+
+<h2>这次先收集四个身份证</h2>
+<div class="chain">
+<span class="node">runtime</span><span class="arrow">+</span>
+<span class="node">device</span><span class="arrow">+</span>
+<span class="node">model artifact</span><span class="arrow">+</span>
+<span class="node">run config</span>
+</div>
+
+<h2>1. Runtime identity：你跑的是哪一版 llama.cpp？</h2>
+<pre><code>llama-cli --version
+llama-cli --help</code></pre>
+<p>保存 build/version/commit。CLI 参数会演进，所以课程不要求你死背某个 flag，而要求你在实验当天先读当前 <code>--help</code>。</p>
+
+<h2>2. Device identity：编译了 GPU backend，不等于这次 run 真用了 GPU</h2>
+<pre><code>llama-cli --list-devices</code></pre>
+<p>然后再看 startup log 或 benchmark metadata。需要区分：</p>
+<ul>
+<li>binary 支持 CUDA/HIP/Metal；</li>
+<li>系统发现了 GPU；</li>
+<li>本次模型实际 offload 到了 GPU；</li>
+<li>对应 kernels 真正在运行。</li>
+</ul>
+
+<div class="callout"><p><strong>“CUDA build 成功”不是“GPU acceleration 已验证”。</strong></p></div>
+
+<h2>3. Model identity：模型名字不够，artifact 要能指纹识别</h2>
+<p>同一 model family 可以同时存在 FP16、多个 GGUF quant、不同 revision。Evidence 至少保存：</p>
+<ul>
+<li>repo + revision（若来自 Hub）；</li>
+<li>local filename；</li>
+<li>file bytes；</li>
+<li>SHA256；</li>
+<li>loader/benchmark 报出的 model/quant metadata。</li>
+</ul>
+
+<pre><code># Linux
+sha256sum model.gguf
+
+# macOS
+shasum -a 256 model.gguf</code></pre>
+
+<h2>4. CPU-only 不是失败路径</h2>
+<p>没有独显也可以完成第一次真实 LLM 实验。CPU baseline 能先证明：</p>
+<ul>
+<li>artifact 能加载；</li>
+<li>tokenizer/chat template 工作；</li>
+<li>runtime build 没问题；</li>
+<li>Evidence 流程可复现。</li>
+</ul>
+<p>之后 GPU 只是把 execution path 换成 CUDA/HIP/Metal，并比较同一模型的变化。</p>
+
+<h2>5. GPU layer offload：第一次理解 hybrid inference</h2>
+<p>llama.cpp 支持 CPU+GPU hybrid inference。概念上：</p>
+
+<div class="chain">
+<span class="node">0 GPU layers</span><span class="arrow">→</span>
+<span class="node">部分 offload</span><span class="arrow">→</span>
+<span class="node">更多/全部 GPU residency</span>
+</div>
+
+<p>offload 增加通常意味着：</p>
+<ul>
+<li>GPU/统一内存压力增加；</li>
+<li>CPU 端模型工作减少；</li>
+<li>CPU↔GPU 数据路径变化。</li>
+</ul>
+
+<p>但<strong>不是 GPU layers 越多一定越快</strong>。如果显存紧张、传输路径差、KV placement 或 backend kernel 不理想，曲线可以很复杂。</p>
+
+<h2>6. 第一次成功可以自动 fit；benchmark 不行</h2>
+<p>当前 llama.cpp CLI 提供自动 fit 机制，适合第一次“尽量别 OOM”。但自动策略可能根据设备内存改变未固定参数。</p>
+
+<div class="grid">
+<div class="card">
+<h3>First success</h3>
+<p>目标：加载、生成、不 OOM。</p>
+<p>允许 auto-fit。</p>
+</div>
+<div class="card">
+<h3>A/B Benchmark</h3>
+<p>目标：两个结果能比较。</p>
+<p>context、offload、threads、KV type 等必须固定并记录。</p>
+</div>
+</div>
+
+<h2>7. Context 是功能参数，也是容量参数</h2>
+<p>上一节已经推导：</p>
+<div class="callout"><p><strong>context ↑ → KV cache budget ↑</strong></p></div>
+<p>所以“GPU 层都塞进去了”不代表换成 32K context 后仍然能 fit。跑 benchmark 时必须记录实际 context。</p>
+
+<h2>8. Threads 也不是越多越好</h2>
+<p>CPU generation/prompt processing 的最佳 thread count 会受 physical cores、SMT、NUMA 与 memory bandwidth 影响。</p>
+<p>如果把 thread 数从 8 加到 32 反而变慢，不要先怀疑模型，先检查 oversubscription 与 memory bandwidth。</p>
+
+<h2>9. 第一次 benchmark 为什么要分 PP 和 TG？</h2>
+<p><code>llama-bench</code> 官方把测试拆成：</p>
+
+<div class="grid">
+<div class="card">
+<h3>PP · Prompt Processing</h3>
+<p>批量处理 prompt，更接近 prefill。</p>
+<p>通常更容易形成高并行、高 arithmetic intensity。</p>
+</div>
+<div class="card">
+<h3>TG · Text Generation</h3>
+<p>逐 token 生成，更接近 autoregressive decode。</p>
+<p>通常更受 weight/KV memory traffic 影响。</p>
+</div>
+</div>
+
+<p>这正好把前面的 Roofline 课程接到真实 LLM。</p>
+
+<h2>10. 为什么只报一个 tokens/s 还不够？</h2>
+<p><code>llama-bench</code> 的 pp/tg 是非常好的 backend baseline，但官方说明 benchmark timing 不包含 tokenization 和 sampling。</p>
+<p>真实交互体验还包括：</p>
+<ul>
+<li>model load time；</li>
+<li>time to first token；</li>
+<li>inter-token latency；</li>
+<li>sampling；</li>
+<li>server queueing/concurrency。</li>
+</ul>
+<p>所以这节只建立“可复现 backend baseline”，不假装完成了服务端 benchmark。</p>
+
+<h2>11. NVIDIA / AMD / Apple 怎么迁移？</h2>
+<table>
+<thead><tr><th>平台</th><th>llama.cpp 常见 backend</th><th>容量心智模型</th></tr></thead>
+<tbody>
+<tr><td>NVIDIA</td><td>CUDA</td><td>独显 VRAM + host RAM</td></tr>
+<tr><td>AMD</td><td>HIP/ROCm</td><td>独显 VRAM + host RAM</td></tr>
+<tr><td>Apple Silicon</td><td>Metal</td><td>CPU/GPU 共享 unified memory</td></tr>
+<tr><td>无 GPU</td><td>CPU</td><td>system RAM</td></tr>
+</tbody>
+</table>
+
+<p>Apple 不能把“VRAM”概念机械照搬：CPU/GPU 使用的是 unified memory。但你仍然要问 model + KV + runtime 是否有足够 headroom。</p>
+
+<h2>12. 第一次真正有用的 Evidence</h2>
+<p>至少保存：</p>
+<ul>
+<li>llama.cpp commit/version；</li>
+<li>OS / CPU / RAM / GPU；</li>
+<li>driver/backend；</li>
+<li>model repo/revision/file SHA256；</li>
+<li>quant/model size/parameter count；</li>
+<li>context；</li>
+<li>threads；</li>
+<li>GPU layers/offload；</li>
+<li>KV type；</li>
+<li>PP t/s ± stddev；</li>
+<li>TG t/s ± stddev；</li>
+<li>raw benchmark JSON。</li>
+</ul>
+
+<h2>实验</h2>
+<p><a href="../../labs/experiments/10-first-local-llm-run/README.md">Experiment 10 · 第一次可复现本地 LLM 运行</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>为什么“能生成文本”不能证明 GPU acceleration 正常？</li>
+<li>为什么模型名不能替代 SHA256/revision？</li>
+<li>CPU baseline 有什么价值？</li>
+<li>为什么 auto-fit 适合 first success，却不适合不加说明的 A/B benchmark？</li>
+<li>PP 和 TG 分别更接近 LLM 哪个阶段？</li>
+<li>为什么 llama-bench TG 不能直接等同完整聊天延迟？</li>
+<li>Apple unified memory 与独显 VRAM 心智模型有什么不同？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+<p>提交 Experiment Card + raw JSON。若有 GPU，再加一组 CPU baseline ↔ GPU/hybrid 对照，并解释：</p>
+<p><strong>加速来自算力、带宽、offload，还是只是两个 run 的 context/配置不同？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/README.md">llama.cpp README</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md">llama.cpp Build</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/models.md">llama.cpp Models / GGUF</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/cli/README.md">llama.cpp CLI</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md">llama-bench</a></li>
+</ul>
+<p class="small">CLI flag spelling 属于动态接口。实验当天以当前 <code>--help</code> 为准，稳定知识只保存参数含义。</p>
+</main>
+</body>
+</html>

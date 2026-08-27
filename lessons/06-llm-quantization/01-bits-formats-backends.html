@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>“4-bit 模型”到底是什么意思？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">LLM Quantization · Lesson 06 · L0</p>
+<h1>“4-bit 模型”到底是什么意思？</h1>
+<p class="lead">你会同时看到 FP16、AWQ、GPTQ、GGUF、Q4、EXL2、bitsandbytes。最危险的学法，是把它们全记成“压模型的格式”。它们其实分属不同层。</p>
+
+<h2>真实问题</h2>
+<div class="callout"><p><strong>两个都写“4-bit”的模型，一个是 GGUF Q4，一个写 AWQ。为什么一个 llama.cpp 能跑，另一个要别的 backend？它们不是都 4-bit 吗？</strong></p></div>
+
+<h2>先建立四层模型</h2>
+<div class="chain">
+<span class="node">数值表示</span><span class="arrow">→</span>
+<span class="node">量化方法</span><span class="arrow">→</span>
+<span class="node">序列化/容器</span><span class="arrow">→</span>
+<span class="node">backend + kernel</span>
+</div>
+
+<h2>1. Datatype：数到底用什么精度表示？</h2>
+<p>FP32、FP16、BF16、FP8、INT8、低-bit packed weights 都在回答这一层。</p>
+<div class="callout"><p><strong>W4A16</strong> 通常表示 4-bit weights + 16-bit activations。</p></div>
+<p>它不意味着 accumulator、softmax、normalization 或所有 tensors 都在 4 bit 运算。</p>
+
+<h2>2. Quantization method：怎么把高精度权重变成低 bit？</h2>
+<div class="grid">
+<div class="card"><h3>GPTQ</h3><p>post-training weight quantization 方法，核心是怎样控制低-bit 权重误差。</p></div>
+<div class="card"><h3>AWQ</h3><p>利用 activation statistics 识别重要 weight channels，再设计 weight-only quantization。</p></div>
+</div>
+<p><strong>GPTQ/AWQ 首先是“怎么量化”的方法，不是某种万能文件后缀。</strong></p>
+
+<h2>3. Container：文件这只箱子怎么装 tensor？</h2>
+<h3>Safetensors</h3>
+<p>它记录 tensor 名、dtype、shape、data offsets 等。<strong>Safetensors ≠ FP16，也 ≠ AWQ/GPTQ。</strong></p>
+
+<h3>GGUF</h3>
+<p>llama.cpp 的 GGUF 实现包含 metadata、tensor name/dimensions、每个 tensor 的 ggml type 与 data blob。</p>
+<div class="callout"><p><strong>GGUF 是箱子，不是“4-bit”的同义词。</strong></p></div>
+<p>一个 GGUF 可以装 F16，也可以装不同 quant types。</p>
+
+<h2>4. EXL2 为什么不好硬塞进一个格子？</h2>
+<p>ExLlamaV2 的 EXL2 是与该推理生态紧密结合的 quantized representation，还能在一个模型中混合不同 bit-width，去满足 target average bitrate。</p>
+<p>现实项目名词会跨层。四层模型的价值是让你继续追问，而不是强迫所有名字只属于一个盒子。</p>
+
+<h2>5. 为什么“4-bit”不等于 4.000 bpw？</h2>
+<p>想一个最简单的 group quantization：</p>
+<ul>
+<li>每个 weight code：4 bit</li>
+<li>每 G 个 weights 共用一个 FP16 scale：16 bit</li>
+</ul>
+<p>每个 weight 平均还要分摊 <strong>16 / G bits</strong> metadata。</p>
+
+<table>
+<thead><tr><th>group size</th><th>code</th><th>scale overhead</th><th>effective bpw</th></tr></thead>
+<tbody>
+<tr><td>32</td><td>4</td><td>0.5</td><td>4.5</td></tr>
+<tr><td>64</td><td>4</td><td>0.25</td><td>4.25</td></tr>
+<tr><td>128</td><td>4</td><td>0.125</td><td>4.125</td></tr>
+</tbody>
+</table>
+
+<h2>6. 只留 5% FP16 tensor，也能明显改变 overall bpw</h2>
+<pre><code>0.95 × 4.25
++ 0.05 × 16
+= 4.8375 bpw</code></pre>
+<div class="callout"><p><strong>“4-bit quant”可以描述主要 weight codes；显存预算要尽量拿 effective whole-model bpw。</strong></p></div>
+
+<h2>7. Backend：文件能读不代表 GPU 有高效 kernel</h2>
+<div class="chain">
+<span class="node">parser</span><span class="arrow">+</span>
+<span class="node">model support</span><span class="arrow">+</span>
+<span class="node">quant op</span><span class="arrow">+</span>
+<span class="node">hardware kernel</span>
+</div>
+<p>所以四个判断完全不同：能下载、能加载、能正确生成、能高效生成。</p>
+
+<h2>8. 现实反例：兼容性不能脱离 backend</h2>
+<p>当前 Hugging Face Transformers 和 vLLM 都维护自己的 quantization compatibility 信息，它们对某些 method/hardware 的支持范围并不相同；vLLM 还明确提醒兼容矩阵会变化。</p>
+<div class="callout">
+<p><strong>“AWQ 支持 AMD 吗？”不是完整问题。</strong></p>
+<p>完整问题是：哪个 backend、哪个版本、哪种 representation、哪代 AMD GPU？</p>
+</div>
+<p>易变支持快照放到 <code>intelligence/</code>，不写进稳定 Lesson。</p>
+
+<h2>9. GGUF 也不能脱离 runtime 讲性能</h2>
+<p>llama.cpp 把 GGUF 当原生模型 format，并有 CUDA/HIP/Metal 等后端。vLLM current docs 也有 GGUF path，但标记 experimental / under-optimized，并迁移到 plugin。</p>
+<p><strong>同一 GGUF artifact，在不同 runtime 上的 maturity、features、performance 可以不同。</strong></p>
+
+<h2>10. Apple 是最好的迁移练习</h2>
+<p>llama.cpp upstream 把 Metal / Apple Silicon 列为 backend。这不是因为“GGUF 是 Apple 格式”，而是：</p>
+<div class="chain">
+<span class="node">GGUF loader</span><span class="arrow">+</span>
+<span class="node">ggml quant types</span><span class="arrow">+</span>
+<span class="node">Metal backend</span><span class="arrow">→</span>
+<span class="node">Apple GPU</span>
+</div>
+<p>NVIDIA/AMD 也要经过各自 CUDA/HIP kernel path。</p>
+
+<h2>11. 选量化模型的正确顺序</h2>
+<ol>
+<li>先选 backend。</li>
+<li>再看 hardware。</li>
+<li>查 current compatibility。</li>
+<li>算 capacity。</li>
+<li>设质量底线。</li>
+<li>看 decode/prefill/context/concurrency workload。</li>
+<li>再 benchmark。</li>
+</ol>
+
+<h2>小实验</h2>
+<p><a href="../../labs/experiments/09-effective-bpw-metadata/README.md">Experiment 09 · L0：为什么 nominal 4-bit 会变成 4.1、4.5、甚至接近 5 bpw？</a></p>
+
+<h2>动态兼容情报</h2>
+<p><a href="../../intelligence/llm/quantization-backend-compatibility-2026-08-26.md">2026-08-26 backend compatibility snapshot</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>GGUF 和 Q4 分别描述什么层？</li>
+<li>为什么 Safetensors 不能和 FP16 画等号？</li>
+<li>AWQ/GPTQ 是方法还是通用 container？</li>
+<li>W4A16 为什么不是“整个网络都在 4 bit 运算”？</li>
+<li>4-bit + group32 + FP16 scale 为什么是 4.5 bpw？</li>
+<li>为什么同一个 GGUF 在不同 backend 上可能性能差很多？</li>
+<li>“支持 AMD”为什么一定要补 backend/version？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+<p>挑一个真实量化模型仓库，提交四层调查：datatype/scheme、quant method、container/representation、backend exact version + hardware support evidence。</p>
+<p><strong>最后回答：为什么“这是 4-bit，所以我的 6 GiB 卡一定能快速跑”至少跳过了四个必要判断？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://huggingface.co/docs/transformers/quantization/overview">Hugging Face Transformers — Quantization overview</a></li>
+<li><a href="https://arxiv.org/abs/2210.17323">GPTQ paper</a></li>
+<li><a href="https://arxiv.org/abs/2306.00978">AWQ paper</a></li>
+<li><a href="https://huggingface.co/docs/safetensors/metadata_parsing">Hugging Face Safetensors</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/ggml/include/gguf.h">llama.cpp — GGUF implementation</a></li>
+<li><a href="https://github.com/turboderp-org/exllamav2">ExLlamaV2 — EXL2</a></li>
+<li><a href="https://docs.vllm.ai/en/latest/features/quantization/">vLLM — Quantization</a></li>
+</ul>
+</main>
+</body>
+</html>

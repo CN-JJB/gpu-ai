@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为什么 GPU 要把数据搬到片上再算？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">GPU Memory & Tiling · Lesson 03 · L0 + optional L2</p>
+<h1>为什么 GPU 要把数据搬到片上再算？</h1>
+<p class="lead">上一节你看到 scheduler 靠很多 ready warp/wavefront 隐藏等待。这一节再往里走一步：如果同一份数据会被用很多次，最好的等待不是“藏起来”，而是尽量别反复去远处拿。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>LLM 明明做了海量矩阵乘，为什么高性能 kernel 还要费劲设计 tile、shared memory/LDS 和 register fragment？直接每个 thread 从显存读自己需要的数据不行吗？</strong></p>
+</div>
+
+<h2>今天只记一条主线</h2>
+<div class="chain">
+<span class="node">global VRAM/HBM</span><span class="arrow">→</span>
+<span class="node">shared memory / LDS</span><span class="arrow">→</span>
+<span class="node">registers</span><span class="arrow">→</span>
+<span class="node">math</span>
+</div>
+<p>这不是说数据永远必须按这条路走，而是高 reuse kernel 常用的层级：<strong>远处加载一次，近处使用很多次。</strong></p>
+
+<h2>1. Registers：最快的临时工作台，但每个人桌面都很小</h2>
+<p>一个 thread 的 accumulator、循环变量和中间结果通常放 registers。NVIDIA registers 在 SM 上，AMD 的 VGPR/SGPR 等也属于 CU 上的 register resources。</p>
+<p>好处很直接：结果留在 registers，就不用为了下一条乘加再去 shared/global memory 找回来。</p>
+
+<div class="callout">
+<p><strong>但 register file 是有限的。</strong>每 thread 占得越多，同一个 SM/CU 能同时容纳的 threads/warps/wavefronts 就可能越少。</p>
+</div>
+
+<p>这就是上一节的 occupancy trade-off 第一次变成“看得见的东西”。</p>
+
+<h2>2. 一个反直觉坑：少用 registers 不一定更好</h2>
+<p>你可能会想：那就强迫编译器少用 registers，换更高 occupancy。</p>
+<p>问题是装不下的值可能 <strong>spill</strong>。</p>
+<ul>
+<li>CUDA：spill 常进入 <code>local memory</code>。这里的 local 指 thread-local 作用域，不表示物理上就在芯片旁边；它走 device/global-memory 路径。</li>
+<li>AMD：类似压力可进入 private/scratch storage；ROCm profiler 甚至有 scratch-memory trace。</li>
+</ul>
+<p>所以“occupancy 提高了”同时可能发生“每个 thread 多了高延迟 memory traffic”。只盯 occupancy 会把优化方向带反。</p>
+
+<h2>3. Shared memory / LDS：一张 block 内共享的工作台</h2>
+<p>如果一群 threads 都需要同一批数据，就可以合作把它从 global memory 搬到片上的 shared memory / LDS。</p>
+
+<div class="chain">
+<span class="node">cooperative global load</span><span class="arrow">→</span>
+<span class="node">shared/LDS tile</span><span class="arrow">→</span>
+<span class="node">many reuses</span>
+</div>
+
+<p>NVIDIA Best Practices 直接用矩阵乘说明这个模式；AMD HIP performance guide 也把 tiled matrix multiplication 作为 shared memory/LDS data reuse 的典型用途。</p>
+
+<h2>4. Tiling：为什么一块数据可以“买”很多次计算？</h2>
+<p>考虑 C=A×B。最朴素的想法是：每个 output thread 自己沿 K 维循环，每次都从 global memory 拿一个 A 和一个 B。</p>
+<p>但一个 A 元素往往会被同一 output tile 的很多列使用；一个 B 元素也会被很多行使用。</p>
+
+<p>假设 tile width = 16：</p>
+<ul>
+<li>block 合作加载 16×16 的 A tile；</li>
+<li>再加载 16×16 的 B tile；</li>
+<li>这两块数据在 shared/LDS 里供 16×16 个 output threads 重复使用；</li>
+<li>每个 thread 在 register accumulator 里完成一段 dot product。</li>
+</ul>
+
+<p>概念上，一份 input tile 不再为每个 output 重复从 global 搬，而是<strong>搬一次、重用约 16 次</strong>。</p>
+
+<h2>5. L0：只数“要搬多少次”，先不碰真实 GPU</h2>
+<p>对 N=1024 的 FP32 方阵 GEMM，忽略 cache/broadcast，只数算法级 input-load requests：</p>
+
+<table>
+<thead>
+<tr><th>方案</th><th>threads/block</th><th>shared/block</th><th>input load requests</th><th>近似 AI</th></tr>
+</thead>
+<tbody>
+<tr><td>naive</td><td>—</td><td>0</td><td>2,147,483,648</td><td>0.250 FLOP/B</td></tr>
+<tr><td>tile 8</td><td>64</td><td>0.5 KiB</td><td>268,435,456</td><td>1.992 FLOP/B</td></tr>
+<tr><td>tile 16</td><td>256</td><td>2 KiB</td><td>134,217,728</td><td>3.969 FLOP/B</td></tr>
+<tr><td>tile 32</td><td>1024</td><td>8 KiB</td><td>67,108,864</td><td>7.877 FLOP/B</td></tr>
+</tbody>
+</table>
+
+<p>tile 16 在这个简化模型里把 input-load requests 降到 naive 的 1/16。</p>
+
+<div class="callout">
+<p><strong>这不是“真实显存读取量”。</strong>cache、broadcast、coalescing、prefetch 和编译器都会改变真实 transaction/DRAM bytes。这个实验只验证 reuse 的算法上限。</p>
+</div>
+
+<h2>6. 为什么不直接 tile 1024？</h2>
+<p>因为片上资源不是无限的。</p>
+
+<p>tile 变大通常让 reuse 变好，但同时会增加：</p>
+<ul>
+<li>threads per block，或者每 thread 的工作量；</li>
+<li>shared memory/LDS footprint；</li>
+<li>register accumulators；</li>
+<li>synchronization 与 layout 复杂度。</li>
+</ul>
+
+<p>结果可能是 resident blocks 变少、occupancy 下降，甚至整个 GPU 同时没有足够多 output tiles 可跑。</p>
+<p>NVIDIA 的 GEMM performance guide 把它概括成一个很实用的 trade-off：<strong>larger tile 更高效，但 smaller tile 可以提供更多 tile-level parallelism。</strong></p>
+
+<h2>7. Coalescing 和 Tiling 是两门不同的生意</h2>
+<div class="grid">
+<div class="card">
+<h3>Coalescing</h3>
+<p>问：一批相邻 threads 的 global addresses 能不能合成少量宽 transactions？</p>
+<p><strong>解决“每一次搬运划不划算”。</strong></p>
+</div>
+<div class="card">
+<h3>Tiling / reuse</h3>
+<p>问：同一份远端数据到底要搬回来几次？</p>
+<p><strong>解决“总共要搬多少次”。</strong></p>
+</div>
+</div>
+
+<p>一个 kernel 可以 coalescing 很漂亮，却仍然因为重复读取太多而 memory-bound；也可以 reuse 很高，但 cooperative load 地址很烂，把 bandwidth 浪费掉。</p>
+
+<h2>8. Shared memory/LDS 也会堵车：bank conflicts</h2>
+<p>shared memory/LDS 并不是一个“无限端口 SRAM”。它被组织成 banks，以便并行访问。</p>
+<p>如果一个 warp/wavefront 的多个访问撞到同一 bank 的不同地址，硬件可能需要序列化。</p>
+<p>所以：</p>
+<p><strong>global memory layout 要考虑 coalescing，shared/LDS layout 要考虑 bank conflicts。</strong></p>
+<p>具体 bank 数、映射和广播规则随架构变化，不能把 NVIDIA 某代规则硬套 AMD。</p>
+
+<h2>9. 现在可以解释高性能 GEMM 为什么 occupancy 不一定高了</h2>
+<p>CUTLASS 的 GEMM 层级非常有代表性：</p>
+
+<div class="chain">
+<span class="node">global tile</span><span class="arrow">→</span>
+<span class="node">threadblock shared tile</span><span class="arrow">→</span>
+<span class="node">warp fragment</span><span class="arrow">→</span>
+<span class="node">register accumulator</span>
+</div>
+
+<p>大的 accumulator 和 double buffering 会吃 registers/shared memory，所以这类 kernel 的 occupancy 可能并不高。</p>
+<p>但只要换来了更高 data reuse、更好的 ILP、software pipelining 和更少 global traffic，总性能仍可能更高。</p>
+
+<h2>这和本地 LLM 有什么关系？</h2>
+<ul>
+<li><strong>Linear / GEMM：</strong>weights 和 activations 被分 tile，尽量在片上重复使用后再丢弃。</li>
+<li><strong>Attention：</strong>tile 设计决定哪些 Q/K/V 或中间值能留在片上，而不是反复写回/读回 global memory。</li>
+<li><strong>Quantized kernels：</strong>packed weights、scale、dequantized fragments、accumulators 都会形成 register/shared/global trade-off。</li>
+<li><strong>Kernel fusion：</strong>价值之一就是让中间结果留在 registers/shared memory，更少往 global memory round-trip。</li>
+</ul>
+
+<h2>如何调查一个 kernel？</h2>
+<ol>
+<li>先看 global memory 中最贵的数据是什么。</li>
+<li>看一个 tile 被重复使用多少次。</li>
+<li>检查 loads/stores 是否 coalesced。</li>
+<li>看 shared memory/LDS per block。</li>
+<li>看 registers/VGPR/SGPR 与 spill/scratch。</li>
+<li>看 occupancy，但不要把它当成绩。</li>
+<li>检查 bank conflicts。</li>
+<li>最后只认真实 throughput + profiler evidence。</li>
+</ol>
+
+<h2>小实验</h2>
+<p><a href="../../labs/experiments/04-gemm-tile-reuse-model/README.md">Experiment 04 · L0：tile 为什么能把 global load requests 降下来？</a></p>
+<p><a href="../../labs/experiments/05-naive-vs-tiled-gemm/README.md">Experiment 05 · optional L2：真实 CUDA/HIP GPU 上比较 naive 与 tiled GEMM</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>为什么 CUDA <code>local memory</code> 这个名字容易误导？</li>
+<li>register 使用增加为什么既可能让 kernel 更快，也可能让它更慢？</li>
+<li>coalescing 和 tiling/reuse 分别解决什么问题？</li>
+<li>为什么 tile size 翻倍不代表性能一定翻倍？</li>
+<li>shared memory/LDS 为什么既能加速，也可能因为 bank conflict 变慢？</li>
+<li>一个 GEMM kernel occupancy 从 90% 降到 50%，但 global bytes 减半、GFLOP/s 上升，你会如何解释？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+<p>完成 L0 Experiment Card，并画出：</p>
+<p><strong>global → cooperative load → shared/LDS tile → register accumulator → math → output</strong></p>
+<p>然后回答：</p>
+<p><strong>如果把 tile 16 改成 tile 32，除了“global loads 更少”，你至少还要检查哪五项资源或 profiler 指标，才能判断它是不是更好的 kernel？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
+<li><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/">NVIDIA CUDA C++ Best Practices Guide</a></li>
+<li><a href="https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html">NVIDIA Matrix Multiplication Background</a></li>
+<li><a href="https://docs.nvidia.com/cutlass/latest/media/docs/cpp/efficient_gemm.html">NVIDIA CUTLASS — Efficient GEMM in CUDA</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD ROCm HIP — Programming model</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/how-to/performance_guidelines.html">AMD ROCm HIP — Performance guidelines</a></li>
+</ul>
+
+<p class="small">硬件门槛：Lesson 与 L0 无需独显；L2 是安全的可选真 GPU 实验。真实性能只记录带完整环境的 Evidence。</p>
+</main>
+</body>
+</html>

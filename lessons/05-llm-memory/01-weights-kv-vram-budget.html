@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>模型到底能不能塞进这张显卡？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">Local LLM Memory · Lesson 05 · L0</p>
+<h1>模型到底能不能塞进这张显卡？</h1>
+<p class="lead">垃圾佬买卡最危险的问题不是“这卡多少 TFLOPS”，而是模型下载完才发现：权重能塞，KV 塞不下；单用户能跑，一开长上下文或并发就 OOM。今天先学会在买卡之前粗算。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>我有一张 8 GiB 显卡。一个“7B 4-bit”模型文件看起来只有几 GB，是不是就稳稳能跑 32K context？</strong></p>
+</div>
+
+<p>不能这么判断。</p>
+
+<h2>第一条公式：显存不只有 weights</h2>
+
+<div class="chain">
+<span class="node">weights</span><span class="arrow">+</span>
+<span class="node">KV cache</span><span class="arrow">+</span>
+<span class="node">runtime/workspace</span><span class="arrow">≤</span>
+<span class="node">VRAM</span>
+</div>
+
+<p>这是 baseline，不是 runtime 保证。</p>
+
+<h2>1. 权重：参数量 × 每参数有效 bit 数</h2>
+
+<div class="callout">
+<p><strong>weight bytes ≈ parameter count × effective bits per weight / 8</strong></p>
+</div>
+
+<p>7B 参数如果真的每个参数只占：</p>
+
+<table>
+<thead><tr><th>bpw</th><th>纯 weight payload</th></tr></thead>
+<tbody>
+<tr><td>16</td><td>约 13.04 GiB</td></tr>
+<tr><td>8</td><td>约 6.52 GiB</td></tr>
+<tr><td>4</td><td>约 3.26 GiB</td></tr>
+</tbody>
+</table>
+
+<p>但真实的“4-bit”格式往往还有 scale、metadata、某些未量化 tensor、alignment，所以课程更愿意让你输入 <strong>effective bpw</strong>。</p>
+
+<h2>2. 三个数字千万别混</h2>
+
+<div class="grid">
+<div class="card">
+<h3>Checkpoint file</h3>
+<p>磁盘上的文件。受 serialization、shards、metadata、dtype mix 影响。</p>
+</div>
+<div class="card">
+<h3>Weight payload</h3>
+<p>参数真正的数据体积 baseline。</p>
+</div>
+<div class="card">
+<h3>Runtime VRAM</h3>
+<p>还要加 KV、activation/workspace、allocator、backend converted layout 等。</p>
+</div>
+</div>
+
+<p><strong>文件 5 GB ≠ 运行只需要 5 GB 显存。</strong></p>
+
+<h2>3. KV cache：为什么聊天越长，显存越吃越多？</h2>
+
+<p>autoregressive decode 每次只生成一个新 token。如果每一步都重新计算之前所有 token 的 K/V，会浪费大量计算。</p>
+
+<p>所以 inference 会缓存之前 token 的 key/value。</p>
+
+<p>Hugging Face 的基本 cache tensor 可以写成：</p>
+
+<pre><code>K: [batch, kv_heads, seq_len, head_dim]
+V: [batch, kv_heads, seq_len, head_dim]</code></pre>
+
+<p>有 K 和 V 两份，所以一个标准 attention layer：</p>
+
+<div class="callout">
+<p><strong>KV bytes = 2 × batch × seq × kv_heads × head_dim × bytes/element</strong></p>
+</div>
+
+<p>再乘所有需要 cache 的 layers。</p>
+
+<h2>4. 每增加一个 token，要付多少 KV？</h2>
+
+<p>把 batch=1、seq=1 留下来：</p>
+
+<div class="callout">
+<p><strong>KV bytes/token/sequence = 2 × layers × kv_heads × head_dim × bytes/element</strong></p>
+</div>
+
+<p>这条式子非常适合垃圾佬。</p>
+
+<p>因为你只要读一份 <code>config.json</code>，就能先估一大半。</p>
+
+<h2>5. MHA / GQA / MQA 为什么会影响显存？</h2>
+
+<p>假设：</p>
+<ul>
+<li>32 layers</li>
+<li>32 query heads</li>
+<li>head_dim = 128</li>
+<li>FP16 KV = 2 bytes</li>
+</ul>
+
+<table>
+<thead><tr><th>模式</th><th>KV heads</th><th>KV / token</th><th>4096 tokens</th></tr></thead>
+<tbody>
+<tr><td>MHA</td><td>32</td><td>512 KiB</td><td>2 GiB</td></tr>
+<tr><td>GQA</td><td>8</td><td>128 KiB</td><td>512 MiB</td></tr>
+<tr><td>MQA</td><td>1</td><td>16 KiB</td><td>64 MiB</td></tr>
+</tbody>
+</table>
+
+<p>Hugging Face LlamaConfig 就用 <code>num_key_value_heads</code> 区分这三类。</p>
+
+<div class="callout">
+<p><strong>所以看到“32 attention heads”还不够。一定还要查 KV heads。</strong></p>
+</div>
+
+<h2>6. Context 与 concurrency 是乘法，不是加法</h2>
+
+<p>普通 full-attention DynamicCache 下：</p>
+
+<div class="chain">
+<span class="node">KV/token</span><span class="arrow">×</span>
+<span class="node">context</span><span class="arrow">×</span>
+<span class="node">active sequences</span>
+</div>
+
+<p>context 从 4K 到 32K，是 8×。</p>
+<p>同时 concurrency 从 1 到 4，又是 4×。</p>
+<p>KV baseline 合起来就是 32×。</p>
+
+<h2>7. 做一个 7B-like 抽象预算</h2>
+
+<p>这不是某个真实模型，只用一组便于练习的参数：</p>
+
+<ul>
+<li>7B params</li>
+<li>effective 4.5 bpw</li>
+<li>32 layers</li>
+<li>8 KV heads</li>
+<li>head_dim 128</li>
+<li>FP16 KV</li>
+<li>4096-token context</li>
+</ul>
+
+<p>权重：</p>
+<p><strong>约 3.667 GiB</strong></p>
+
+<p>KV：</p>
+<p><strong>128 KiB/token/sequence → 512 MiB / 4K sequence</strong></p>
+
+<p>如果 4 个 active sequences：</p>
+<p><strong>2 GiB KV</strong></p>
+
+<p>再人为留 1.5 GiB runtime reserve：</p>
+
+<pre><code>3.667 GiB weights
++ 2.000 GiB KV
++ 1.500 GiB reserve
+= 7.167 GiB</code></pre>
+
+<p>对 8 GiB 卡而言，只剩约 0.833 GiB。</p>
+
+<p><strong>这不应该被写成“稳了”。</strong></p>
+
+<h2>8. 为什么公式算得对，运行还可能不一样？</h2>
+
+<p>因为现实 backend 还会改变 memory policy。</p>
+
+<ul>
+<li><strong>Static cache：</strong>可能按 max length 预分配，当前 token 少也占大空间。</li>
+<li><strong>Paged KV：</strong>runtime 管 block pool，reserved bytes 不等于当前 used bytes。</li>
+<li><strong>Sliding-window：</strong>某些层到窗口上限后不再继续线性增长。</li>
+<li><strong>Quantized KV：</strong>降低 cache bytes，但有计算/精度/支持代价。</li>
+<li><strong>Prefix reuse：</strong>多个请求可能共享已缓存的 prefix block。</li>
+<li><strong>Offload：</strong>把 KV/weights 放 RAM/NVMe/别的 GPU，但产生传输成本。</li>
+</ul>
+
+<p>TensorRT-LLM 就是很好的现实提醒：它的 runtime 可以主动把大量剩余 VRAM 管理成 paged KV pool。</p>
+
+<h2>9. 为什么必须留 Headroom？</h2>
+
+<p>你还没有数：</p>
+
+<ul>
+<li>runtime buffers</li>
+<li>temporary activations</li>
+<li>allocator fragmentation</li>
+<li>CUDA/ROCm context</li>
+<li>graph capture</li>
+<li>desktop/display</li>
+<li>其他进程</li>
+</ul>
+
+<div class="callout">
+<p><strong>“estimated = 7.9 GiB，VRAM = 8 GiB”不是 fit 结论，而是危险信号。</strong></p>
+</div>
+
+<h2>10. 真模型怎么调查？</h2>
+
+<ol>
+<li>先读 model card。</li>
+<li>打开 <code>config.json</code>。</li>
+<li>找 layers / attention heads / KV heads / head_dim。</li>
+<li>看有没有 sliding window、特殊 layer type、per-layer config。</li>
+<li>从 safetensors metadata 或仓库 metadata 查参数量与 dtype mix。</li>
+<li>确认你下载的究竟是哪种 quant format。</li>
+<li>查目标 backend 的 KV dtype、paged/static policy、offload、workspace。</li>
+<li>用 baseline calculator 做 preflight。</li>
+<li>最后才在真实 runtime 测 peak/steady VRAM。</li>
+</ol>
+
+<h2>11. 这和上一节 bandwidth 有什么关系？</h2>
+
+<p>容量问题解决“能不能放”。</p>
+<p>放下之后，decode 还要不断读取：</p>
+
+<div class="chain">
+<span class="node">weights</span><span class="arrow">+</span>
+<span class="node">KV state</span><span class="arrow">→</span>
+<span class="node">memory traffic/token</span>
+</div>
+
+<p>所以：</p>
+
+<p><strong>量化不仅减少容量，也可能减少 memory-bound decode 的 bytes/token。</strong></p>
+
+<p>而 offload 虽然扩容量，却可能把 PCIe/RAM/SSD 变成新的 bandwidth roof。</p>
+
+<h2>小实验</h2>
+
+<p><a href="../../labs/experiments/08-vram-capacity-budget/README.md">Experiment 08 · L0：Weights + KV + Headroom 预算器</a></p>
+
+<p>实验里还有一个 <code>inspect_config.py</code>：给它一个真实 Hugging Face 风格 <code>config.json</code>，它会先抽取 attention config 再做预算。</p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>为什么“7B × 4 bit”只是 weight payload baseline？</li>
+<li>checkpoint file size、weight payload、runtime VRAM 有什么区别？</li>
+<li>KV bytes/token 为什么要乘 2？</li>
+<li>为什么 GQA 的 KV 通常比 MHA 小？</li>
+<li>context 8×、concurrency 4× 时，full-attention Dynamic KV baseline 变多少倍？</li>
+<li>为什么 Static/Paged cache 会让 used KV 和 reserved VRAM 不一样？</li>
+<li>offload 为什么能解决 OOM，却可能让推理变慢？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+
+<p>提交一张完整预算表，至少包含：</p>
+
+<ul>
+<li>model / revision</li>
+<li>parameter count 来源</li>
+<li>effective bpw 假设</li>
+<li>layers</li>
+<li>attention heads</li>
+<li>KV heads</li>
+<li>head dim</li>
+<li>KV dtype</li>
+<li>context</li>
+<li>concurrency</li>
+<li>runtime reserve</li>
+<li>estimated total</li>
+<li>headroom</li>
+<li>所有已知“公式可能低估/高估”的因素</li>
+</ul>
+
+<p>最后回答：</p>
+<p><strong>同一个模型，为什么 24 GiB 卡“能跑 32K context”不能直接推出它能稳定服务 8 个 32K request？</strong></p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://huggingface.co/docs/transformers/en/cache_explanation">Hugging Face Transformers — Caching</a></li>
+<li><a href="https://huggingface.co/docs/transformers/en/kv_cache">Hugging Face Transformers — Cache strategies</a></li>
+<li><a href="https://huggingface.co/docs/transformers/model_doc/llama">Hugging Face — LlamaConfig</a></li>
+<li><a href="https://huggingface.co/docs/safetensors/metadata_parsing">Hugging Face Safetensors — Metadata parsing</a></li>
+<li><a href="https://nvidia.github.io/TensorRT-LLM/reference/memory.html">NVIDIA TensorRT-LLM — Memory Usage</a></li>
+<li><a href="https://nvidia.github.io/TensorRT-LLM/features/kvcache.html">NVIDIA TensorRT-LLM — KV cache system</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/infera/en/main/features/pd_disaggregation.html">AMD ROCm Infera — PD disaggregation</a></li>
+</ul>
+
+<p class="small">本 Lesson 的公式是 full-attention homogeneous-layer baseline。遇到 hybrid/sliding/chunked/heterogeneous attention 时必须按层修正。</p>
+</main>
+</body>
+</html>
