@@ -84,6 +84,16 @@ def main():
     assert "no automatic latest-price join" in out
 
     out = run([
+        PY, str(HERE / "tco_worksheet.py"),
+        str(fixture),
+        "--case", str(HERE / "fixtures" / "tco-case.json"),
+        "--include-synthetic",
+    ])
+    assert "ENERGY: 438.000 kWh" in out
+    assert "TCO: 1938.00 CNY" in out
+    assert "not a feasibility gate or purchase recommendation" in out
+
+    out = run([
         PY, str(HERE / "compatibility_preflight.py"),
         str(fixture),
         "--hardware-id", "hw:fixture:24g",
@@ -214,6 +224,7 @@ def main():
     print("- Hardware ↔ Model ↔ Benchmark bridge returns the fixture observation")
     print("- same artifact/workload observations form one descriptive comparison group")
     print("- explicit same-cohort market rows enable descriptive price/performance")
+    print("- evidence-linked TCO fixture reproduces the expected scenario arithmetic")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")\n    print("- Experiment 61 importer reproduces PP/TG")
     print("- broken canonical hardware reference is rejected")
 
