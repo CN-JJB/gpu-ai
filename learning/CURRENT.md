@@ -262,6 +262,21 @@ Artifacts:
 
 Current llama.cpp build/device entry points were verified against pinned upstream before writing. All vendor paths reuse Experiment 40.
 
+### Slice 24 — Decoder-only Transformer dataflow
+
+Token IDs → embedding → repeated pre-norm decoder blocks → final norm → LM head/logits；Prefill [B,T,d] 与 one-token Decode [B,1,d] + historical KV 被拆成两种 shape/workload regime。
+
+Artifacts:
+- research/llm/0007-decoder-only-transformer-dataflow.md
+- reference/llm/decoder-only-block-shapes.md
+- lessons/24-transformer-anatomy/01-decoder-only-prefill-decode.html
+- labs/experiments/42-decoder-transformer-shape-flow/
+- labs/experiments/43-real-model-config-anatomy/
+- examples/evidence/experiment-24-decoder-transformer-dataflow.md
+- learning/records/2026-08-27-decoder-transformer-dataflow.md
+
+L0 tensor/KV arithmetic verified. Real config inspector flags MoE/sliding/per-layer features instead of forcing a dense homogeneous baseline.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -318,8 +333,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Start the LLM architecture spine with decoder-only Transformer execution anatomy.
-2. Teach one-token decode and multi-token prefill as two dataflows through the same block.
-3. Add RMSNorm/residual, RoPE, MHA/MQA/GQA and SwiGLU with tensor-shape/memory consequences.
-4. Then add MoE routing/expert activation and explain why total parameters != active parameters != weight traffic.
-5. Tie every model-architecture lesson back to KV size, PP/TG, quantization and kernel behavior.
+1. Build RMSNorm + pre-norm residual + RoPE slice.
+2. Explain RMSNorm as vector normalization, not a large weight matrix.
+3. Explain RoPE as position-dependent rotation applied to Q/K and why cache position matters.
+4. Then build MHA/MQA/GQA as a separate KV-capacity/inference-bandwidth slice.
+5. Follow with SwiGLU/FFN and MoE.

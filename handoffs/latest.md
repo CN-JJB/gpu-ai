@@ -10,108 +10,78 @@
 Core ability stack:
 **会理解 → 会调查 → 会选择 → 会实践 → 会改造**
 
-Never fabricate benchmark, market, transaction or hardware-health data.
+Never fabricate benchmark, market, transaction or model-runtime data.
 
 ## Completed frontier
 
-Slices 01–22 are implemented.
+Slices 01–24 are implemented.
 
-Current end-to-end chain:
+Latest completed model-architecture slice:
+
+**24 — Decoder-only Transformer Dataflow**
 
 ```
-GPU fundamentals
-→ LLM memory/quant/runtime
-→ serving/cache/speculation/multi-GPU
-→ NVIDIA/AMD/Apple/Intel architecture
-→ cross-vendor purchase decision
-→ China secondhand market
-→ used-GPU acceptance
-→ max-buy-price/watchlist
-→ controlled real optimization capstone
+token ids
+→ embedding
+→ decoder blocks
+→ final norm
+→ LM head
+→ logits
 ```
 
-## Slice 22 — Capstone
+The core split:
+
+```
+Prefill:
+[B,T,d]
+→ large matrix regime
+→ build KV
+
+Decode:
+[B,1,d]
++ historical KV
+→ serial autoregressive regime
+→ append KV
+```
 
 Key files:
-- `research/system/0001-capstone-measure-diagnose-optimize.md`
-- `reference/system/capstone-bottleneck-decision-tree.md`
-- `lessons/22-capstone/01-measure-diagnose-one-variable.html`
-- `labs/experiments/39-capstone-bottleneck-diagnosis/`
-- `labs/experiments/40-real-llm-capstone/`
+- `research/llm/0007-decoder-only-transformer-dataflow.md`
+- `reference/llm/decoder-only-block-shapes.md`
+- `lessons/24-transformer-anatomy/`
+- `labs/experiments/42-decoder-transformer-shape-flow/`
+- `labs/experiments/43-real-model-config-anatomy/`
 
-Core loop:
+Experiment 42 synthetic arithmetic was verified.
+Experiment 43 inspects real model config and warns on non-homogeneous architecture features.
+
+## Active next slice — RMSNorm / residual / RoPE
+
+Build:
 
 ```
-profile
-→ baseline
-→ diagnose
-→ ONE semantic variable
-→ validate A/B
-→ compare
-→ explain
+pre-norm residual block
+→ RMSNorm math
+→ scale vector
+→ Q/K projection
+→ position-dependent RoPE rotation
+→ cached K position identity
+→ context extension / rope scaling boundary
 ```
 
-The real manifest validator checks frozen identity and rejects multi-variable experiments.
+Stable concepts first.
+Current runtime/model-specific RoPE scaling schemes should be kept separate when they are architecture/config specific.
 
-A build-time bug where command strings were counted as a second variable was fixed by separating:
-- semantic `config`;
-- audit-only `command_record`.
+## After
 
-No real benchmark results are prefilled.
+- MHA / MQA / GQA
+- SwiGLU / FFN
+- MoE
 
-## Active next slice — vendor capstone runbooks
-
-Create four practical paths:
-
-### NVIDIA
-```
-nvidia-smi / compute capability
-→ CUDA llama.cpp
-→ PP/TG
-→ memory/power telemetry
-→ evidence-selected optimization
-```
-
-### AMD
-```
-gfx target / ROCm
-→ HIP llama.cpp
-→ PP/TG
-→ amd-smi/RAS
-→ evidence-selected optimization
-```
-
-### Apple
-```
-unified-memory working set
-→ Metal/MLX identity
-→ PP/TG
-→ capacity/bandwidth interpretation
-→ evidence-selected optimization
-```
-
-### Intel
-```
-Level Zero/SYCL/XPU
-→ llama.cpp SYCL
-→ PP/TG
-→ dedicated/shared memory distinction
-→ evidence-selected optimization
-```
-
-Reuse Experiment 40. Do not create vendor-specific fake benchmark numbers.
-
-## Repository maintenance after runbooks
-
-Audit:
-- COURSE-MAP.md
-- lessons/README.md
-- labs/experiments/README.md
-- resources/RESOURCES.md
-- learning/CURRENT.md
-- handoffs/latest.md
-
-so recent slices are easy to navigate.
+Tie each to:
+- parameter count;
+- KV;
+- PP/TG;
+- kernel behavior.
 
 ## Matt Pocock skills
 

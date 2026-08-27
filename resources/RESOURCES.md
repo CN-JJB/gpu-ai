@@ -1287,3 +1287,27 @@ URL: https://github.com/GpuZelenograd/memtest_vulkan
 用途：optional cross-vendor Vulkan GPU memory test.
 可信度：open-source project / community tool。
 局限：not vendor certification; exact tested allocation and driver limitations must be recorded.
+
+
+## Transformer / modern decoder architecture
+
+### Attention Is All You Need
+URL: https://arxiv.org/abs/1706.03762
+用途：Transformer foundation, multi-head attention, feed-forward sublayers, residual/normalization.
+可信度：original research paper。
+局限：original encoder-decoder architecture is not identical to modern decoder-only LLM blocks.
+
+### LLaMA
+URL: https://arxiv.org/abs/2302.13971
+用途：modern decoder-only example; pre-normalization, RMSNorm, SwiGLU, RoPE.
+可信度：primary model paper。
+
+### Llama 2
+URL: https://arxiv.org/abs/2307.09288
+用途：modern autoregressive Transformer lineage and GQA inference-scalability example.
+可信度：primary model paper。
+
+### The Llama 3 Herd of Models
+URL: https://arxiv.org/abs/2407.21783
+用途：large modern dense decoder-only model family; current architecture comparison context.
+可信度：primary model paper。
