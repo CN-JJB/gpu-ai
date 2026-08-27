@@ -13,6 +13,9 @@ Phase 4 specs：
 - docs/specs/0006-intelligence-explicit-price-performance.md
 - docs/specs/0007-intelligence-tco-worksheet.md
 - docs/specs/0008-intelligence-real-benchmark-intake.md
+- docs/specs/0009-intelligence-cross-vendor-documented-coverage.md
+- docs/specs/0010-intelligence-compatibility-coverage-matrix.md
+- docs/specs/0011-intelligence-freshness-revalidation-queue.md
 
 Schema：
 - intelligence/schema/README.md
@@ -93,6 +96,44 @@ stale → STALE-REVALIDATE
 
 Exact measured Evidence only applies to the scope it actually proves.
 
+## Cross-vendor compatibility coverage
+
+Current production documented paths for Qwen3-8B + llama.cpp:
+
+~~~text
+NVIDIA RTX 3090 → CUDA  → NEEDS-TEST
+AMD RX 7900 XTX → HIP  → NEEDS-TEST
+Apple M4 Max    → Metal → NEEDS-TEST
+Intel Arc A770  → SYCL  → NEEDS-TEST
+~~~
+
+Query:
+
+~~~bash
+python3 tools/intelligence/compatibility_matrix.py intelligence/catalog   --model-id model:qwen:qwen3-8b   --runtime-id runtime:ggml-org:llama.cpp   --as-of 2026-08-28
+~~~
+
+Coverage is not a performance ranking.
+
+## Freshness / revalidation
+
+Dynamic observations with revalidate_after enter an operational refresh queue:
+
+~~~bash
+python3 tools/intelligence/freshness_report.py intelligence/catalog   --as-of YYYY-MM-DD   --within-days 30
+~~~
+
+States:
+
+~~~text
+STALE
+DUE-TODAY
+DUE-SOON
+FRESH
+~~~
+
+STALE means revalidate before a current decision; it does not automatically mean false.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -135,7 +176,7 @@ TCO does not override:
 
 ## Verification
 
-I01–I06 compile and end-to-end self-test:
+I01–I10 compile and end-to-end self-test:
 
 ~~~text
 SELFTEST: PASS
@@ -143,6 +184,9 @@ SELFTEST: PASS
 
 Evidence:
 - examples/evidence/intelligence-i01-i06-selftest-verification.md
+- examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
+- examples/evidence/intelligence-09-compatibility-coverage-matrix.md
+- examples/evidence/intelligence-10-freshness-revalidation.md
 
 ## Current production-data boundary
 
