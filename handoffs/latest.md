@@ -7,89 +7,76 @@
 
 ## Completed frontier
 
-Slices 01–43 are implemented.
-Experiments 01–81 exist.
+Slices 01–44 are implemented.
+Experiments 01–83 exist.
 
-## Slice 43 core
+## Slice 44 core
 
-Loading path:
-
-```
-GGUF bytes
-→ storage/filesystem
-→ page cache
-→ mmap/read/page faults
-→ host buffers
-→ device upload
-→ health ready
-→ first inference
-```
-
-Synthetic 20 GiB model:
+Linux:
 
 ```
-0.2 GiB/s source
-→ 102.667 s simple ready
-
-0.5 GiB/s
-→ 42.667 s
-
-3 GiB/s
-→ 9.333 s
-
-20 GiB/s page-cache-like
-→ 3.667 s
+MemFree
+!=
+MemAvailable
 ```
 
-All keep:
+File-backed cache and anonymous memory have different reclaim behavior.
+
+Synthetic verified:
 
 ```
-steady TG = 50 tok/s
+cache-heavy:
+free 2 GiB
+available proxy 16.4 GiB
+→ 8 GiB request fits after toy reclaim
+
+anonymous-heavy:
+free 2 GiB
+available proxy 4.4 GiB
+→ 3.6 GiB shortfall
 ```
 
-to teach:
+The proxy is explicitly NOT the Linux MemAvailable formula.
+
+Real Linux collector:
+- /proc/meminfo;
+- /proc/vmstat deltas;
+- optional /proc/PID status/smaps;
+- optional NVIDIA VRAM snapshot;
+- no stress allocation;
+- no swap/cache/sysctl changes.
+
+Memory domains:
 
 ```
-startup bottleneck
-!= steady decode bottleneck
+host RAM OOM
+!= discrete GPU VRAM OOM
 ```
 
-Real lab:
-- no global drop_caches;
-- default bounded 512 MiB reads;
-- optional raw Linux fincore evidence;
-- first run labeled UNKNOWN unless residency evidence exists;
-- reading/hashing is recognized as cache-changing.
+Apple silicon is handled as unified-memory special architecture.
 
-Current pinned llama.cpp load-mode dynamic details are isolated in:
-`intelligence/llm/llama-load-mode-2026-08-27.md`.
-
-## Active next slice — Host Memory Pressure / Swap / OOM
+## Active next slice — Thermal / Cooling / Sustained Performance
 
 Teach:
 
 ```
-physical RAM
-=
-anonymous/process memory
-+
-file-backed page cache
-+
-kernel/other
+workload duration
+→ power
+→ temperature
+→ clock behavior
+→ sustained tok/s
 ```
 
-with reclaimable-cache nuance.
+Need to distinguish:
+- short cold burst;
+- warm steady-state benchmark;
+- temperature vs vendor hotspot/junction fields;
+- clock drop correlated with TG/ITL drift;
+- airflow/case/fan/noise constraints.
 
-Separate:
-- free vs available memory;
-- page-cache reclaim;
-- swap/compression;
-- host OOM;
-- GPU VRAM OOM;
-- mmap model behavior under pressure.
-
-Real lab must be read-only by default:
-- /proc/meminfo / vmstat on Linux;
-- process RSS/maps where available;
-- server/GPU telemetry;
-- no memory stress allocation as a required course step.
+Real lab:
+- read-only vendor telemetry;
+- fixed repeated TG workload;
+- no overclock;
+- no power-limit changes;
+- no fan-control changes by default.

@@ -164,3 +164,9 @@
 
 - 80 synthetic storage/read/upload/startup stage model
 - 81 read-only file-cache / model-startup evidence packet
+
+
+### 82–83：Host Memory Pressure
+
+- 82 synthetic free/cache/anonymous reclaim intuition model
+- 83 read-only Linux/Windows memory-pressure evidence packet

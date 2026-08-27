@@ -562,6 +562,21 @@ Artifacts:
 
 Synthetic stage arithmetic verified. Real lab never auto-labels the first pass cold and never drops global page cache by default.
 
+### Slice 44 — Host Memory Pressure / Swap / OOM
+
+MemFree vs MemAvailable → file-cache reclaim vs anonymous memory → swap/major-fault deltas → host OOM vs discrete GPU VRAM OOM → Apple unified-memory exception。
+
+Artifacts:
+- research/llm/0026-host-memory-pressure-swap-oom.md
+- reference/llm/host-memory-pressure-swap-oom.md
+- lessons/44-host-memory/01-available-cache-swap-oom.html
+- labs/experiments/82-host-memory-reclaim-model/
+- labs/experiments/83-real-memory-pressure-evidence/
+- examples/evidence/experiment-44-host-memory-pressure-swap-oom.md
+- learning/records/2026-08-27-host-memory-pressure-swap-oom.md
+
+Synthetic reclaim cases verified. Real Linux collector was executed in a read-only window with no stress allocation/system changes.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -618,8 +633,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build host-memory pressure / swap / OOM slice.
-2. Separate free RAM, available RAM, page cache and anonymous/process memory.
-3. Explain why file-backed model pages can be reclaimed while active anonymous/KV/runtime buffers have different behavior.
-4. Separate host OOM/swap symptoms from GPU VRAM OOM.
-5. Add a read-only memory-pressure evidence packet with no synthetic stress by default.
+1. Build thermal/cooling/sustained-performance slice.
+2. Separate temperature, clocks, power and performance drift on one time axis.
+3. Teach why a short cold benchmark can overestimate sustained TG.
+4. Compare cooling/airflow/noise as system constraints without unsafe overclock/power tuning.
+5. Add a read-only sustained telemetry + repeated-TG evidence packet.

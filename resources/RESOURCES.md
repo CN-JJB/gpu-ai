@@ -1479,3 +1479,24 @@ URL: https://man7.org/linux/man-pages/man1/fincore.1.html
 URL: https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md
 用途：dated load-mode auto/none/mmap/mlock/mmap+mlock/dio CLI snapshot.
 可信度：pinned upstream repository documentation。
+
+
+### Linux /proc/meminfo
+URL: https://man7.org/linux/man-pages/man5/proc_meminfo.5.html
+用途：MemFree, MemAvailable, Cached, swap and system-memory field semantics.
+可信度：Linux man-pages documentation。
+
+### Linux /proc/vmstat
+URL: https://man7.org/linux/man-pages/man5/proc_vmstat.5.html
+用途：cumulative pswpin/pswpout/pgmajfault/workingset counters for window-delta analysis.
+可信度：Linux man-pages documentation。
+
+### Linux OOM handling
+URL: https://www.kernel.org/doc/html/v6.0/mm/oom.html
+用途：kernel out-of-memory handling boundary.
+可信度：official Linux kernel documentation。
+
+### Linux VM sysctl / OOM policy
+URL: https://cdn.kernel.org/doc/html/latest/admin-guide/sysctl/vm.html
+用途：OOM/paging policy context; course uses as reference only, not a tuning recipe.
+可信度：official Linux kernel documentation。
