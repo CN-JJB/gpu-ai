@@ -28,12 +28,18 @@ Status: validated
 - [x] Learning/build record
 
 ## Phase 3 — Mainline
-Status: active
+Status: v1 stable mainline complete
 
-Next: GPU execution model and latency hiding.
+Slices 01–49 now cover GPU/LLM foundations, serving, four GPU ecosystems, secondhand decision/validation, platform power/thermal/memory/storage, whole-machine feasibility and the graduation Machine Design Capstone.
+
+Next validation step: complete Experiment 93 against a real learner-owned target and feed only demonstrated gaps back into stable lessons.
 
 ## Phase 4 — Intelligence Stations
+Status: next major build frontier
+
 Hardware DB + Model DB + Benchmark bridge + rankings/recommendation/TCO tools.
+
+Dynamic prices, current compatibility, model releases and benchmark observations belong here rather than being written into stable lessons.
 
 ## Phase 5 — Challenge Labs
 Special hardware, repair, source-level optimization, distributed junkyard cluster, community contribution.
