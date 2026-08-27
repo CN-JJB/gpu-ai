@@ -1,0 +1,124 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PSU / Power Delivery</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
+<h1>PSU / Power Delivery — 1000W 电源为什么仍然可能带不了你的 GPU？</h1>
+
+<h2>1. 先拆掉第一个误区</h2>
+<pre>PSU = 1000W</pre>
+<p>不等于：</p>
+<pre>任意一根线都能给 GPU 1000W</pre>
+<div class="callout"><strong>总容量和具体供电路径是两个不同 gate。</strong></div>
+
+<h2>2. 先做系统功率算术</h2>
+<pre>GPU
++ CPU/platform
++ storage/fans
++ other devices
+= estimated DC load</pre>
+<p>例如：</p>
+<pre>300 + 180 + 70 = 550W</pre>
+<p>850W PSU 的算术余量：</p>
+<pre>300W
+≈35.3%</pre>
+
+<h2>3. 但 35.3% 也不是“证明安全”</h2>
+<p>因为还有：</p>
+<pre>transient / power excursion
+connector path
+cable compatibility
+PSU protection/rail design
+thermal condition</pre>
+
+<h2>4. 课程不教万能 20% 法则</h2>
+<p>余量是你的 policy 输入。</p>
+<p>不同：</p>
+<pre>PSU
+GPU
+multi-GPU
+upgrade plan
+workload</pre>
+<p>都可能需要不同策略。</p>
+
+<h2>5. 最危险的垃圾佬误区之一：模组线能插就能用</h2>
+<pre>PSU-side plug fits
+!= pinout compatible</pre>
+<p>Seasonic/Corsair 官方都明确要求检查具体 PSU/线材兼容性。</p>
+<p>不同品牌，甚至同品牌不同系列，都可能不兼容。</p>
+
+<h2>6. 所以 1000W 也能直接 REJECT</h2>
+<pre>1000W capacity
+600W estimated load
+but wrong modular cable
+→ REJECT / STOP</pre>
+<p>剩余 400W 没任何意义。</p>
+
+<h2>7. GPU 还有两条供电来源</h2>
+<pre>PCIe slot
++
+auxiliary GPU connector(s)</pre>
+<p>不要假设：</p>
+<pre>少插一根线
+→ 主板插槽会自动补回来</pre>
+
+<h2>8. 12V-2x6 是什么？</h2>
+<p>当前 PCI-SIG 资料里，12V-2x6 是 CEM 5.1 定义、替代 12VHPWR 的连接器方案。</p>
+<p>但：</p>
+<pre>看到 16-pin
+!= 可以随便按一个固定功率用</pre>
+<p>GPU、PSU、线材、sense/实现都要匹配。</p>
+
+<h2>9. Pigtail / daisy-chain 也没有一句万能答案</h2>
+<p>不要背：</p>
+<pre>一根双头永远可以
+or
+一根双头永远不可以</pre>
+<p>看 exact PSU + GPU manufacturer guidance。</p>
+
+<h2>10. 多 GPU 更容易把问题放大</h2>
+<pre>GPU0 300W
+GPU1 300W
+platform 220W
+= 820W</pre>
+<p>850W PSU 只剩：</p>
+<pre>30W
+≈3.5%</pre>
+<p>在一个要求更多 headroom 的 policy 下，应当 REVIEW。</p>
+
+<h2>11. Board power 和电表也不同</h2>
+<pre>nvidia-smi / vendor board power
+!= wall power</pre>
+<p>墙上电表还包含：</p>
+<pre>CPU/RAM/主板/风扇/PSU loss</pre>
+
+<h2>12. Real lab 最重要的是 cable map</h2>
+<pre>PSU port
+→ physical cable
+→ branch
+→ GPU connector</pre>
+<p>每根线写清楚型号/来源/兼容性证据。</p>
+
+<h2>13. 外观检查</h2>
+<p>关机、断开市电后，只检查外部可见部分：</p>
+<pre>是否完全插入
+烧蚀/变色
+熔化
+线材损伤
+异常弯折/拉力
+</pre>
+<p>看到烧蚀/电弧痕迹：</p>
+<pre>STOP USE</pre>
+
+<h2>14. 默认课程绝对不做</h2>
+<pre>拆 PSU 外壳
+测裸露市电
+短接/绕过保护
+故意过载
+自制高压测试</pre>
+<p>PSU 内部不是“垃圾佬低风险实验区”。</p>
+
+<h2>15. 最后决定</h2>
+<pre>capacity gate
++
+connector/cable gate
++
+ordinary workload evidence
+→ ACCEPT / REVIEW / REJECT</pre>
+</body></html>

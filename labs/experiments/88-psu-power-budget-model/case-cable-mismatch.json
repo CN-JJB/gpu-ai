@@ -1,0 +1,8 @@
+{
+  "case_id": "wattage-good-cable-bad",
+  "psu": {"rated_w": 1000, "exact_model_known": true},
+  "system": {"estimated_continuous_w": 600, "measured_wall_peak_w": null, "transient_compatibility_confirmed": true},
+  "cables": {"modular_compatibility": false, "required_gpu_power_paths": 2, "confirmed_compatible_paths": 2},
+  "visual": {"connector_heat_damage": false},
+  "policy": {"min_headroom_fraction": 0.15}
+}

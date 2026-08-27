@@ -1,0 +1,26 @@
+{
+  "case_id": "REPLACE",
+  "psu": {
+    "brand": "REPLACE",
+    "model": "REPLACE",
+    "rated_w": 0,
+    "exact_model_known": false
+  },
+  "system": {
+    "estimated_continuous_w": 0,
+    "measured_wall_peak_w": null,
+    "transient_compatibility_confirmed": null
+  },
+  "cables": {
+    "modular_compatibility": null,
+    "required_gpu_power_paths": 0,
+    "confirmed_compatible_paths": 0,
+    "compatibility_source": "REPLACE"
+  },
+  "visual": {
+    "connector_heat_damage": false
+  },
+  "policy": {
+    "min_headroom_fraction": 0.15
+  }
+}
