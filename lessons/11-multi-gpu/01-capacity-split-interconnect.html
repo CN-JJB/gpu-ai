@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 11 — 单机多 GPU：显存能合起来，速度为什么不能直接相加？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+body{max-width:980px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.7}
+pre,code{background:#f4f4f4;border-radius:6px} pre{padding:14px;overflow:auto}
+.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;text-align:left}
+</style>
+</head>
+<body>
+<h1>Slice 11 — 单机多 GPU：显存能合起来，速度为什么不能直接相加？</h1>
+
+<p><strong>真实问题：</strong>两张便宜的 12 GiB 显卡，能不能当成“一张 24 GiB 显卡”？如果模型确实能跨两卡加载，为什么 tokens/s 有时几乎不涨，甚至下降？</p>
+
+<div class="callout"><strong>本节目标：</strong>把三件经常被混在一起的目标拆开：<strong>装得下更大的模型、降低单请求延迟、提高多请求吞吐</strong>。</div>
+
+<h2>1. 先分清你到底想要什么</h2>
+<table>
+<tr><th>目标</th><th>典型方法</th><th>是否要求跨卡通信</th></tr>
+<tr><td>装下更大的单模型</td><td>layer/model split</td><td>通常需要</td></tr>
+<tr><td>降低一个请求的延迟</td><td>tensor/row parallel 类并行</td><td>高频需要</td></tr>
+<tr><td>同时服务更多独立请求</td><td>两张卡各放一份模型</td><td>可基本避免</td></tr>
+</table>
+
+<h2>2. 2×12 GiB 不是一块连续 24 GiB VRAM</h2>
+<pre>GPU0 local VRAM: 12 GiB
+GPU1 local VRAM: 12 GiB</pre>
+<p>要让一个 20 GiB 左右的模型跨两卡运行，runtime 必须把权重、KV 或其他状态按策略分到不同 GPU。每张卡仍有自己的本地显存分配，还要留给 KV、workspace、通信缓冲、重复状态和 allocator headroom。</p>
+<p>因此更准确的说法是：</p>
+<pre>aggregate capacity requires software partitioning
+usable model payload &lt; simple sum of advertised VRAM</pre>
+
+<h2>3. 三种最重要的拆分方式</h2>
+
+<h3>3.1 Replicas / Data Parallel 思路</h3>
+<pre>GPU0: whole model  → request A
+GPU1: whole model  → request B</pre>
+<p>它最擅长提高独立请求吞吐。缺点很直接：模型必须在每张卡上都装得下，所以它不能帮助“单个超大模型跨两张小卡”。</p>
+
+<h3>3.2 Layer / Pipeline Split</h3>
+<pre>layers 0..15  → GPU0
+layers 16..31 → GPU1
+
+one token:
+GPU0 compute → activation transfer → GPU1 compute</pre>
+<p>这类拆分的第一价值通常是<strong>容量聚合</strong>。对于单 token 路径，前半层算完后后半层才能继续，因此“层数各一半”并不等于“单请求延迟减半”。</p>
+
+<h3>3.3 Tensor / Row Parallel</h3>
+<pre>same layer:
+GPU0 computes shard A
+GPU1 computes shard B
+        ↓
+collect / reduce / merge
+        ↓
+next layer</pre>
+<p>这类方式确实能在同一层里并行更多计算，但代价是频繁的数据交换和同步，因此对 GPU↔GPU 互联更敏感。</p>
+
+<h2>4. 给 Roofline 再加一层：Interconnect Roof</h2>
+<p>前面我们已经学过 compute roof 和 memory-bandwidth roof。多 GPU 后，还要加入跨卡通信：</p>
+<pre>T_N ≈ T_compute / N
+    + bytes_on_critical_path / effective_link_bandwidth
+    + T_sync
+    + T_imbalance</pre>
+<p>Speedup 与扩展效率：</p>
+<pre>S_N = T_1 / T_N
+E_N = S_N / N</pre>
+<p>如果跨卡通信占比很高，GPU 数量继续增加时，计算部分虽然变短，但通信和同步不会按同样比例消失，于是 scaling efficiency 会掉下来。</p>
+
+<h2>5. 一个纯教学的双卡例子</h2>
+<p>假设单卡每 token 需要 10 ms；双卡理想计算部分降为 5 ms；每 token 的关键路径需要跨卡搬 64 MiB；同步固定 0.2 ms。</p>
+<table>
+<tr><th>有效 P2P 带宽</th><th>通信时间</th><th>双卡总时间</th><th>相对单卡 speedup</th></tr>
+<tr><td>8 GiB/s</td><td>7.81 ms</td><td>13.01 ms</td><td>0.77×</td></tr>
+<tr><td>16 GiB/s</td><td>3.91 ms</td><td>9.11 ms</td><td>1.10×</td></tr>
+<tr><td>32 GiB/s</td><td>1.95 ms</td><td>7.15 ms</td><td>1.40×</td></tr>
+<tr><td>64 GiB/s</td><td>0.98 ms</td><td>6.18 ms</td><td>1.62×</td></tr>
+<tr><td>128 GiB/s</td><td>0.49 ms</td><td>5.69 ms</td><td>1.76×</td></tr>
+</table>
+<p><strong>同样两张 GPU，互联不同，结论可以从“更慢”变成“明显更快”。</strong>这些数字是教学模型，不是任何真实显卡的 benchmark。</p>
+
+<h2>6. P2P：能互相看见，不等于能高效互传</h2>
+<p>多卡 runtime 能枚举两张 GPU，只能说明设备存在。真正需要问：</p>
+<ul>
+<li>GPU0 能否直接访问 GPU1 的显存？</li>
+<li>路径经过哪些 PCIe bridge / host bridge / NUMA 节点？</li>
+<li>单向和双向实际带宽多少？</li>
+<li>collective 通信表现怎样？</li>
+</ul>
+<p>如果没有有效的 direct P2P，某些实现会经过 host memory staging，性能会显著不同。</p>
+
+<h2>7. PCIe 插槽“看起来一样”也可能完全不同</h2>
+<p>物理 x16 长度不等于电气 x16。主板可能是 x16/x4、x8/x8，或者第二槽经过额外 bridge、另一 root complex，甚至另一 NUMA node。垃圾佬判断多卡价值前，必须把<strong>拓扑</strong>当成 Evidence，而不是看槽长度猜。</p>
+
+<h2>8. NVLink / xGMI 一类高速互联解决什么</h2>
+<p>它们能抬高 interconnect roof，减少跨 GPU 通信时间。但仍不能推出“线性扩展”：软件拆分策略、collective、同步、负载不均、GPU 型号差异依然存在。</p>
+
+<h2>9. 为什么 Prefill 和 Decode 要分开测</h2>
+<p>Prefill 往往有更大的矩阵计算，更容易摊薄一次通信成本；Decode 则是逐 token 的延迟敏感路径，通信/同步占比更容易放大。因此：</p>
+<pre>multi-GPU PP speedup ≠ multi-GPU TG speedup</pre>
+<p>真实实验必须同时记录 prompt processing 与 text generation。</p>
+
+<h2>10. 异构垃圾卡最容易踩的坑</h2>
+<p>Layer split 有时可以给强卡多放一些层、弱卡少放一些层；但同步式 tensor parallel 会让快卡等待慢卡或慢链路。混卡不是不能用，而是更需要测量。</p>
+
+<h2>11. 买第二张卡前的判断顺序</h2>
+<ol>
+<li>目标是容量、单请求延迟，还是多用户吞吐？</li>
+<li>模型是否本来就能放进一张卡？</li>
+<li>主板两个槽的实际 lane / root / NUMA 拓扑是什么？</li>
+<li>P2P 是否可用？实测带宽多少？</li>
+<li>runtime 支持哪种 split？</li>
+<li>单卡 PP/TG 基线是多少？</li>
+<li>双卡同配置 PP/TG 是多少？</li>
+<li>速度收益是否值得第二张卡的功耗、散热、插槽和电源成本？</li>
+</ol>
+
+<h2>12. 迁移到 Apple Silicon 时哪些概念保留</h2>
+<p>Apple Silicon 的统一内存 SoC 不能机械套用“两块独立 VRAM 经 PCIe P2P 相连”的模型。但可迁移的问题仍然成立：总容量、有效带宽、工作是否跨设备边界、并行策略和同步代价。</p>
+
+<div class="callout"><strong>结论：</strong>多 GPU 不是“把显存和算力做加法”，而是<strong>先分工作，再为跨设备边界付通信和同步成本</strong>。垃圾佬真正要买的不是“第二张卡”，而是一个经过拓扑、P2P 和 workload 验证的系统方案。</div>
+</body>
+</html>
