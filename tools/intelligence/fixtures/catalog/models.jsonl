@@ -1,0 +1,1 @@
+{"schema_version":1,"record_type":"model","record_id":"model:fixture:8b","model_id":"model:fixture:8b","canonical_name":"Synthetic 8B Model","repository":"fixture/synthetic-8b","architecture":"fixture-decoder","source":{"evidence_class":"SYNTHETIC","source_path":"tools/intelligence/fixtures/catalog/models.jsonl","observed_at":"2026-08-27"},"synthetic":true}
