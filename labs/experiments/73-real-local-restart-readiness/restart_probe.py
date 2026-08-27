@@ -10,9 +10,10 @@ import urllib.request
 from pathlib import Path
 
 FORBIDDEN_PREFIXES=(
+    "-m","--model","--model-url","--hf-repo","--hf-file",
     "--host","--port","--api-key","--api-key-file",
     "--ssl-key-file","--ssl-cert-file",
-    "--tools","--agent","--mcp-","--ui-mcp-proxy"
+    "--tools","--agent","-ag","--mcp-","--ui-mcp-proxy"
 )
 
 def sha256(path):
@@ -24,8 +25,23 @@ def sha256(path):
 
 def validate_extra(args):
     for x in args:
-        if any(x==p or x.startswith(p+"=") or (p.endswith("-") and x.startswith(p)) for p in FORBIDDEN_PREFIXES):
-            raise SystemExit(f"forbidden extra arg in loopback-only reliability lab: {x}")
+        blocked=False
+        for p in FORBIDDEN_PREFIXES:
+            if x==p or x.startswith(p+"="):
+                blocked=True
+            if p in ("--tools","--mcp-") and x.startswith(p):
+                blocked=True
+        if blocked:
+            raise SystemExit(
+                f"forbidden extra arg in loopback-only reliability lab: {x}"
+            )
+
+def sanitized_child_env():
+    env=os.environ.copy()
+    for key in list(env):
+        if key.startswith("LLAMA_ARG_") or key=="LLAMA_API_KEY":
+            del env[key]
+    return env
 
 def poll_health(proc,base,deadline,poll_s):
     t0=time.perf_counter()
@@ -110,7 +126,8 @@ def one_run(name,cmd,base,log_path,deadline,poll_s,prompt):
             cmd,
             stdout=log,
             stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL
+            stdin=subprocess.DEVNULL,
+            env=sanitized_child_env()
         )
         try:
             health=poll_health(proc,base,deadline,poll_s)
@@ -185,6 +202,7 @@ def main():
         "model_sha256_after":model_sha_after,
         "model_identity_unchanged":model_sha_before==model_sha_after,
         "command_without_secrets":cmd,
+        "child_env_policy":"all LLAMA_ARG_* and LLAMA_API_KEY removed",
         "runs":runs,
         "notes":[
             "health 200 is readiness, not proof of steady-state SLO",
