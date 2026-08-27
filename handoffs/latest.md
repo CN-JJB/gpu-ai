@@ -13,7 +13,7 @@ Experiments 01–93 exist
 Stable v1 mainline complete
 ```
 
-Stable machine-decision semantics remain:
+Stable decision semantics:
 
 ```text
 known required FAIL → REVISE
@@ -23,140 +23,134 @@ all required gates PASS → ACCEPT
 
 No weighted score may average away a hard gate.
 
-## Active Phase 4 frontier
+## Phase 4 frontier
 
-Verified:
+Implemented:
 
 ```text
 I01 catalog / benchmark bridge
 I02 compatibility preflight
-I03 exact measured compatibility ingestion
+I03 exact measured compatibility
 I04 comparable benchmark view
 I05 explicit price/performance
-I06 evidence-linked TCO
-I07 real benchmark intake gate
-I08 four-ecosystem documented compatibility
-I09 compatibility coverage matrix
-I10 freshness / revalidation queue
+I06 TCO
+I07 real benchmark intake
+I08 four-ecosystem documented coverage
+I09 compatibility matrix
+I10 freshness queue
+I11 real MEDIAN_ASK cohort
+I12 market evidence audit
 ```
-
-These are Intelligence Stations, not stable Lesson slices.
 
 ## Current compatibility coverage
 
-For `model:qwen:qwen3-8b` + `runtime:ggml-org:llama.cpp`:
-
 ```text
-RTX 3090 24GB / CUDA  → DOCUMENTED_SUPPORTED → NEEDS-TEST
-RX 7900 XTX / HIP     → DOCUMENTED_SUPPORTED → NEEDS-TEST
-M4 Max / Metal        → DOCUMENTED_SUPPORTED → NEEDS-TEST
-Arc A770 16GB / SYCL  → DOCUMENTED_SUPPORTED → NEEDS-TEST
+RTX 3090 / CUDA  → NEEDS-TEST
+RX 7900 XTX / HIP → NEEDS-TEST
+M4 Max / Metal → NEEDS-TEST
+Arc A770 / SYCL → NEEDS-TEST
 ```
 
-No production performance ranking exists.
+All are DOCUMENTED_SUPPORTED, not MEASURED_SUPPORTED.
 
-## Real benchmark gate
+## Real benchmark boundary
 
-Before production benchmark ingestion:
+Production benchmark catalog remains empty.
+
+Required future chain:
 
 ```text
 manifest
 + raw result
 + PACKET.json
 + canonical IDs
-→ verify_real_intake.py
-→ INTAKE: READY
+→ I07 READY
+→ ingest
+→ validate
+→ exact measured compatibility
 ```
 
-Then:
+Do not create production tok/s from prose or estimates.
+
+## Current market cohort
+
+Three current global used-GPU observations share:
 
 ```text
-ingest_llama_bench.py
-→ validate_catalog.py
-→ ingest_measured_compatibility.py
-→ validate_catalog.py
+GLOBAL-EBAY
+secondary-aggregated-ebay-active
+used-consumer
+used
+MEDIAN_ASK
+USD
 ```
 
-Repository search found no real Experiment 61-compatible bundle, so the production benchmark catalog remains empty by design.
-
-## Benchmark / market / TCO guardrails
-
-Comparable benchmark:
+Values:
 
 ```text
-same model + exact artifact + quant + workload
+RTX 3090      1499
+RX 7900 XTX   1020
+Arc A770 16G   330
 ```
 
-Price/performance:
-- explicit market record selection only;
-- same market cohort contract;
-- no automatic latest-price join.
+These are ask prices, not confirmed sales.
 
-TCO:
+## Market evidence audit
+
+Preserved source evidence:
 
 ```text
-purchase + platform + electricity + risk - resale
+RTX 3090      active=47  middle-half=1400–1520  BROAD-SAMPLE
+RX 7900 XTX   active=23  middle-half=997–1080   LIMITED-SAMPLE
+Arc A770 16G  active=8   middle-half=325–347    SMALL-SAMPLE
 ```
 
-TCO is not a feasibility gate.
+All have:
+
+```text
+confirmed_sale=false
+ASK-ONLY
+```
+
+MEDIAN_ASK now requires sample/method/export metadata in the production validator.
+
+## Verification status
+
+Full Python self-test:
+
+```text
+I01–I10 → SELFTEST: PASS
+```
+
+I11–I12:
+- exact latest-main blobs checked;
+- contract-equivalent execution passed;
+- self-test assertions present;
+- fresh full Python repository run not repeated because local execution timed out/rate-limited.
+
+Do not claim a fresh I11–I12 Python PASS until it is actually recorded.
 
 ## Freshness
 
-Tool:
-- tools/intelligence/freshness_report.py
-
-States:
-- STALE
-- DUE-TODAY
-- DUE-SOON
-- FRESH
-
-STALE means revalidate before current use; it does not automatically mean false.
-
-## Verification
-
-Exact-content local execution on 2026-08-28:
-
-```bash
-python -m py_compile tools/intelligence/*.py
-python tools/intelligence/selftest.py
-```
-
-Result:
+I10 remains authoritative:
 
 ```text
-SELFTEST: PASS
+STALE
+DUE-TODAY
+DUE-SOON
+FRESH
 ```
 
-Latest verified additions include:
-- I08 four vendor/backend production paths;
-- I09 `NEEDS-TEST=4` compatibility matrix;
-- I10 due-soon/stale revalidation cases.
+STALE means revalidate, not automatically false.
 
-Evidence:
-- examples/evidence/intelligence-07-real-benchmark-intake.md
-- examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
-- examples/evidence/intelligence-09-compatibility-coverage-matrix.md
-- examples/evidence/intelligence-10-freshness-revalidation.md
-
-GitHub Actions workflow exists at `.github/workflows/intelligence-selftest.yml`, but no run has surfaced through the connector; do not claim CI success.
-
-## Production data boundary
-
-```text
-hardware:      4
-models:        1
-runtimes:      1
-market:        1
-compatibility: 4
-benchmarks:    0 real rows
-```
+Current eBay ask rows use 7-day revalidation windows.
 
 ## Next work
 
-1. Strengthen normalized real market observations.
-2. Ingest the first real benchmark only after I07 READY.
-3. Refresh dynamic observations when I10 marks them due/stale.
-4. Delay recommendation/ranking until real comparable Evidence and quality/SLO gates exist.
+1. Add a separate, auditable local-market or confirmed-sale cohort if reliable evidence can be obtained.
+2. Ingest real benchmark Evidence only after I07 READY.
+3. Refresh due/stale records rather than overwriting history.
+4. Re-run full Python self-test when possible.
+5. Delay recommendation/ranking until real benchmark/quality/SLO/feasibility evidence exists.
 
-No auto-purchase or unsafe hardware modification is part of this workflow.
+No auto-purchase or unsafe hardware modification.
