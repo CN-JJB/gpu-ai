@@ -1,0 +1,22 @@
+[
+  {
+    "id": "A",
+    "summary": "卖家说个人自用非矿无修，发了半年前的GPU-Z截图。",
+    "expected": "C1"
+  },
+  {
+    "id": "B",
+    "summary": "卖家按当天要求录屏，展示GPU-Z/nvidia-smi、跑一次benchmark并展示温度，但没有序列号匹配和显存完整性测试。",
+    "expected": "C2"
+  },
+  {
+    "id": "C",
+    "summary": "视频中同屏展示订单备注、序列号、GPU/VRAM身份，完成显存测试、持续负载，记录温度/错误状态。",
+    "expected": "C3"
+  },
+  {
+    "id": "D",
+    "summary": "买家当面在自己的测试机上完成身份、显存、持续LLM、温度和错误日志验证。",
+    "expected": "C4"
+  }
+]
