@@ -161,8 +161,27 @@ def main():
         "--as-of", "2026-09-29",
         "--within-days", "30",
     ])
-    assert "STALE=6" in out
+    assert "market:cn:rtx3090:secondary:2026-08-22" in out
+    assert "compat:llama.cpp:cuda:rtx3090:qwen3-8b:2026-08-27" in out
     assert "FRESHNESS: STALE-REVALIDATION-REQUIRED" in out
+
+    out = run([
+        PY, str(HERE / "market_matrix.py"),
+        str(prod),
+        "--geography", "GLOBAL-EBAY",
+        "--channel", "secondary-aggregated-ebay-active",
+        "--cohort", "used-consumer",
+        "--condition", "used",
+        "--price-state", "MEDIAN_ASK",
+        "--currency", "USD",
+        "--as-of", "2026-08-28",
+    ])
+    assert "observations=3" in out
+    assert "contracts=1" in out
+    assert "value=1499 USD" in out
+    assert "value=1020 USD" in out
+    assert "value=330 USD" in out
+    assert "Market coverage is not a sale-price claim" in out
 
     out = run([
         PY, str(HERE / "compatibility_matrix.py"),
@@ -333,6 +352,7 @@ def main():
     print("- NVIDIA/CUDA, AMD/HIP, Apple/Metal and Intel/SYCL production paths all remain NEEDS-TEST")
     print("- compatibility coverage matrix reports four production NEEDS-TEST observations without ranking")
     print("- freshness queue surfaces due-soon and stale production observations")
+    print("- market matrix preserves one explicit GLOBAL-EBAY used MEDIAN_ASK cohort across three GPUs")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
