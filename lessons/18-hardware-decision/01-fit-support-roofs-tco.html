@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slice 18 — 跨生态垃圾佬买卡决策</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
+</head><body>
+<h1>Slice 18 — NVIDIA、AMD、Apple、Intel 最后怎么变成“买不买”</h1>
+
+<p>前面已经学完四个生态。现在停止背架构，开始做决策。</p>
+
+<h2>1. 第一件事不是看显卡，是写 workload</h2>
+<pre>model
+quant
+context
+KV
+concurrency
+runtime
+PP/TG goal</pre>
+
+<p>如果这些没写，所有“神卡推荐”都缺上下文。</p>
+
+<h2>2. 第一硬门槛：装得下吗？</h2>
+<p>单卡：</p>
+<pre>usable memory
+>= weights + KV + workspace + headroom</pre>
+
+<p>多卡：</p>
+<pre>not sum(VRAM)
+but per-device allocation + sharding</pre>
+
+<p>Apple：</p>
+<pre>not installed RAM
+but safe unified working-set budget</pre>
+
+<div class="callout"><strong>装不下的候选，不参加性能排名。</strong></div>
+
+<h2>3. 第二硬门槛：软件真的支持吗？</h2>
+<p>同一张卡至少要走完：</p>
+<pre>driver
+→ runtime
+→ backend
+→ model format
+→ kernels
+→ correctness</pre>
+
+<p>把“支持”分成：</p>
+<ul>
+<li>官方当前支持；</li>
+<li>官方旧版本固定栈；</li>
+<li>社区 patch/build；</li>
+<li>只能枚举；</li>
+<li>不可用。</li>
+</ul>
+
+<h2>4. 然后才看性能屋顶</h2>
+
+<h3>Decode</h3>
+<pre>rough TG roof
+≈ usable memory bandwidth
+ / bytes streamed per token</pre>
+
+<h3>Prefill</h3>
+<pre>PP roof
+≈ min(matrix compute × utilization,
+      bandwidth × arithmetic intensity)</pre>
+
+<h3>Multi-GPU</h3>
+<pre>+ communication/link
++ synchronization
++ imbalance</pre>
+
+<h2>5. 这时 architecture 才真正有用</h2>
+<p>架构不是答案，而是帮你解释 roof。</p>
+
+<table>
+<tr><th>观察</th><th>可能原因</th></tr>
+<tr><td>PP 很快，TG 普通</td><td>matrix compute 强，但 decode bandwidth roof 低</td></tr>
+<tr><td>大显存但双卡 TG 慢</td><td>capacity 赢，interconnect 输</td></tr>
+<tr><td>新卡 Q4 没预期快</td><td>backend 没走原生 low-bit matrix path</td></tr>
+<tr><td>Mac 装得下但 TG 不高</td><td>capacity roof 与 bandwidth roof 是两回事</td></tr>
+<tr><td>AMD/Intel 理论强但实测弱</td><td>软件/kernel maturity 可能是 roof</td></tr>
+</table>
+
+<h2>6. 买价只是 TCO 的一部分</h2>
+<pre>card price
++ PSU
++ platform
++ cooling
++ electricity
++ expected repair
+- resale</pre>
+
+<p>还有一个经常被忽略的成本：</p>
+<pre>driver / build / patch / maintenance time</pre>
+
+<h2>7. 二手卡风险怎么进决策？</h2>
+<p>不是“矿卡不能买”，而是：</p>
+<pre>higher risk
+→ require larger discount
+→ require stronger testing evidence</pre>
+
+<p>高风险：</p>
+<ul>
+<li>改 BIOS；</li>
+<li>显存改装；</li>
+<li>板修；</li>
+<li>工程样品；</li>
+<li>腐蚀；</li>
+<li>内存错误；</li>
+<li>卖家拒测。</li>
+</ul>
+
+<h2>8. 证据也要打等级</h2>
+<table>
+<tr><th>等级</th><th>例子</th></tr>
+<tr><td>E3</td><td>官方规格、当前 runtime docs、本机 raw benchmark</td></tr>
+<tr><td>E2</td><td>可复现社区测试、可靠技术媒体</td></tr>
+<tr><td>E1</td><td>单帖、卖家口述、无配置截图</td></tr>
+<tr><td>E0</td><td>未知</td></tr>
+</table>
+
+<p>如果 TG 只靠 E1：</p>
+<pre>decision = NEEDS EVIDENCE</pre>
+<p>而不是脑补。</p>
+
+<h2>9. 为什么我不推荐一个万能 100 分评分表？</h2>
+<p>因为：</p>
+<pre>7B single-user
+32B long-context
+4-user server
+hardware-learning lab</pre>
+<p>需要的是完全不同的权重。</p>
+
+<p>正确流程：</p>
+<pre>hard gates
+→ scenario
+→ scenario-specific weights
+→ decision</pre>
+
+<h2>10. 最终输出不是“第一名”，而是行动</h2>
+<ul>
+<li><strong>BUY</strong></li>
+<li><strong>BUY IF PRICE ≤ X</strong></li>
+<li><strong>KEEP CURRENT</strong></li>
+<li><strong>SKIP</strong></li>
+<li><strong>NEEDS EVIDENCE</strong></li>
+</ul>
+
+<h2>11. 垃圾佬真正的核心能力</h2>
+<pre>不是知道哪张卡最强
+
+而是能把
+硬件规格
++ 软件支持
++ workload
++ 实测
++ 二手风险
++ 成本
+变成一个可解释决策</pre>
+</body></html>
