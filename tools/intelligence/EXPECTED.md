@@ -19,6 +19,7 @@ SELFTEST: PASS
 - evidence-linked TCO fixture reproduces the expected scenario arithmetic
 - documented compatibility returns NEEDS-TEST, not measured PASS
 - explicit UNKNOWN remains valid and returns BLOCKED
+- real benchmark intake accepts an intact packet and rejects a tampered packet
 - Experiment 61 importer reproduces PP/TG
 - exact benchmark Evidence upgrades only the matching path to PASS-MEASURED
 - a different artifact falls back to NEEDS-TEST
