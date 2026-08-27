@@ -144,6 +144,18 @@ def main():
     ])
     assert "PREFLIGHT: NEEDS-TEST" in out
 
+    out = run([
+        PY, str(HERE / "compatibility_matrix.py"),
+        str(prod),
+        "--model-id", "model:qwen:qwen3-8b",
+        "--runtime-id", "runtime:ggml-org:llama.cpp",
+        "--as-of", "2026-08-28",
+    ])
+    assert "observations=4" in out
+    assert "NEEDS-TEST=4" in out
+    assert "COVERAGE: PRESENT" in out
+    assert "Coverage is not a performance ranking." in out
+
     for hardware_id, backend in (
         ("hw:amd:radeon-rx-7900-xtx:24g", "HIP"),
         ("hw:apple:mac-studio-m4-max-40gpu:64g", "METAL"),
@@ -299,6 +311,7 @@ def main():
     print("- evidence-linked TCO fixture reproduces the expected scenario arithmetic")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")
     print("- NVIDIA/CUDA, AMD/HIP, Apple/Metal and Intel/SYCL production paths all remain NEEDS-TEST")
+    print("- compatibility coverage matrix reports four production NEEDS-TEST observations without ranking")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
