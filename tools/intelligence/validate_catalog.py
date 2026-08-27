@@ -183,8 +183,10 @@ def main():
                     errors.append(f"{loc}: price.value must be > 0")
 
         elif t == "compatibility":
-            for f in ("hardware_id", "model_id", "runtime_id", "backend", "status", "observed_at"):
+            for f in ("hardware_id", "model_id", "runtime_id", "backend", "observed_at"):
                 req(r, f, errors)
+            if r.get("status") is None or str(r.get("status")).strip() == "":
+                errors.append(f"{loc}: missing status")
             if r.get("hardware_id") not in hardware:
                 errors.append(f"{loc}: unknown hardware_id {r.get('hardware_id')!r}")
             if r.get("model_id") not in models:
