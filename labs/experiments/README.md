@@ -176,3 +176,9 @@
 
 - 84 synthetic thermal-drift / hot-stable / other-limiter cases
 - 85 real repeated llama-bench TG + read-only thermal telemetry
+
+
+### 86–87：Used-GPU Validation / Purchase Acceptance
+
+- 86 synthetic ACCEPT / REVIEW / REJECT evidence model
+- 87 real read-only identity/PCIe/error + sustained LLM acceptance packet
