@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multi-Tenant Fairness / Quotas</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style>
+</head><body>
+<h1>Multi-Tenant Fairness — “每人两个请求”为什么一点都不公平？</h1>
+
+<h2>1. Request 不是统一成本单位</h2>
+
+<pre>
+Tenant A:
+2 requests × 1000 output tokens
+
+Tenant B:
+2 requests × 50 output tokens
+</pre>
+
+<p>HTTP 请求数一样。</p>
+
+<p>GPU 工作量完全不一样。</p>
+
+<div class="callout"><strong>公平应该先问：你要公平分什么资源？</strong></div>
+
+<h2>2. LLM 的资源至少有这些</h2>
+
+<pre>
+slot time
+prompt compute
+decode tokens
+KV memory
+context capacity
+queue time
+</pre>
+
+<h2>3. Toy：两 slots</h2>
+
+<pre>
+10 tok/s per slot
+</pre>
+
+<p>A：</p>
+
+<pre>
+A1 = 100 tokens
+A2 = 100 tokens
+</pre>
+
+<p>B：</p>
+
+<pre>
+B1..B4 = 10 tokens each
+</pre>
+
+<h2>4. 看请求数</h2>
+
+<pre>
+A = 2/6 = 33.3%
+B = 4/6 = 66.7%
+</pre>
+
+<p>似乎 B 请求更多。</p>
+
+<h2>5. 看 output work</h2>
+
+<pre>
+A = 200/240 = 83.3%
+B = 40/240  = 16.7%
+</pre>
+
+<p>完全反过来了。</p>
+
+<h2>6. Global FIFO</h2>
+
+<p>如果顺序：</p>
+
+<pre>
+A1 A2 B1 B2 B3 B4
+</pre>
+
+<p>两个 slots 先被：</p>
+
+<pre>
+A1 + A2
+</pre>
+
+<p>占满 10 秒。</p>
+
+<p>B：</p>
+
+<pre>
+mean wait = 10.5 s
+p95 wait  = 11 s
+</pre>
+
+<p>但 GPU slot utilization：</p>
+
+<pre>
+100%
+</pre>
+
+<p>吞吐很好，公平性很烂。</p>
+
+<h2>7. 每 tenant 最多 1 active</h2>
+
+<p>开始：</p>
+
+<pre>
+A1 + B1
+</pre>
+
+<p>B 很快跑完：</p>
+
+<pre>
+mean wait = 1.5 s
+p95 = 3 s
+last B done = 4 s
+</pre>
+
+<p>但 A2 必须等 A1 完成。</p>
+
+<p>结果：</p>
+
+<pre>
+makespan = 20 s
+slot utilization = 60%
+</pre>
+
+<p>公平了，但浪费硬件。</p>
+
+<h2>8. Work-conserving borrowing</h2>
+
+<p>规则：</p>
+
+<pre>
+A/B 都有等待：
+每人最多 1 slot
+
+B 已经没活：
+A 可以借空闲 slot
+</pre>
+
+<p>结果 B 仍然：</p>
+
+<pre>
+mean wait = 1.5 s
+</pre>
+
+<p>A2 可以在 4 秒开始：</p>
+
+<pre>
+makespan = 14 s
+utilization ≈ 85.7%
+</pre>
+
+<div class="callout"><strong>公平和高利用率不是只能二选一，但 scheduler 必须显式设计。</strong></div>
+
+<h2>9. 为什么 token quota 比 request quota 好一点？</h2>
+
+<p>例如：</p>
+
+<pre>
+每用户 max output = 512
+每天 100k generated tokens
+</pre>
+
+<p>至少比：</p>
+
+<pre>
+每天 100 requests
+</pre>
+
+<p>更接近真实资源。</p>
+
+<h2>10. 但 token 也不是完美成本</h2>
+
+<pre>
+1000 prompt tokens
+</pre>
+
+<p>和：</p>
+
+<pre>
+1000 decode tokens
+</pre>
+
+<p>硬件路径不一样。</p>
+
+<p>长 context 还会吃更多 KV。</p>
+
+<h2>11. 所以 quota 可以是多维的</h2>
+
+<pre>
+max concurrent
+max prompt
+max output
+max context
+token budget
+KV budget
+priority weight
+</pre>
+
+<h2>12. Priority 也有坑</h2>
+
+<p>如果：</p>
+
+<pre>
+high priority 永远优先
+</pre>
+
+<p>而 high priority 一直有请求：</p>
+
+<pre>
+low priority 永远跑不到
+</pre>
+
+<p>这叫 starvation。</p>
+
+<h2>13. 不能只看 global p95</h2>
+
+<p>整体：</p>
+
+<pre>
+p95 TTFT = 500 ms
+</pre>
+
+<p>可能隐藏：</p>
+
+<pre>
+Tenant A p95 = 200 ms
+Tenant B p95 = 8 s
+</pre>
+
+<p>所以共享服务必须做 per-tenant breakdown。</p>
+
+<h2>14. 最终 fairness report</h2>
+
+<pre>
+request share
+token share
+active time
+KV share
+TTFT/E2E per tenant
+reject rate
+</pre>
+
+<p>这样“公平”才是可测量的工程目标。</p>
+</body></html>
