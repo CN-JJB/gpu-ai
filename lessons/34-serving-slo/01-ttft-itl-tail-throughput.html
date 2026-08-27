@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Serving Workload / SLO</title><link rel="stylesheet" href="../../assets/course.css">
+<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style>
+</head><body>
+<h1>Serving Workload / SLO — 为什么 100 tok/s 仍然可能很难用？</h1>
+
+<h2>1. Server 不是一个 tokens/s</h2>
+
+<p>用户真正经历：</p>
+
+<pre>
+发请求
+→ 等
+→ 第一字出现
+→ 一直生成
+→ 完成
+</pre>
+
+<p>所以至少要看：</p>
+
+<pre>
+TTFT
+ITL
+E2E
+request throughput
+token throughput
+p95 / p99
+</pre>
+
+<h2>2. TTFT</h2>
+
+<pre>
+TTFT
+=
+first visible token
+-
+request arrival
+</pre>
+
+<p>里面可能混着：</p>
+
+<pre>
+queue
++ prompt processing
++ first decode/delivery
+</pre>
+
+<div class="callout"><strong>客户端 TTFT 不是纯 GPU Prefill 时间。</strong></div>
+
+<h2>3. ITL</h2>
+
+<p>第一 token 出来以后：</p>
+
+<pre>
+token1 → token2 → token3 ...
+</pre>
+
+<p>相邻 token 的间隔就是 ITL。</p>
+
+<p>但如果客户端只看到 SSE chunk：</p>
+
+<pre>
+一个 chunk
+可能包含多个 tokens
+</pre>
+
+<p>所以 chunk gap 只能叫 proxy，不能硬叫真正 token ITL。</p>
+
+<h2>4. 一个常见现象</h2>
+
+<pre>
+TTFT 很差
+ITL 很好
+</pre>
+
+<p>说明可能：</p>
+
+<pre>
+前面排队很久
+→ 一旦拿到 slot
+→ decode cadence 仍然健康
+</pre>
+
+<h2>5. Aggregate throughput 和用户速度也不是一回事</h2>
+
+<p>Continuous batching 可以让：</p>
+
+<pre>
+总 tokens/s ↑
+</pre>
+
+<p>但同时：</p>
+
+<pre>
+每个用户 ITL ↑
+</pre>
+
+<p>因为更多 active sequences 一起分享 GPU。</p>
+
+<h2>6. 为什么平均值会骗人？</h2>
+
+<p>12 个 synthetic TTFT：</p>
+
+<pre>
+100 105 110 115 120 125
+130 135 140 145 150 1200
+</pre>
+
+<p>平均：</p>
+
+<pre>
+214.6 ms
+</pre>
+
+<p>看起来很棒。</p>
+
+<p>但 nearest-rank p95：</p>
+
+<pre>
+1200 ms
+</pre>
+
+<p>尾部用户已经等了一秒多。</p>
+
+<h2>7. P95/P99 是什么？</h2>
+
+<p>粗略说：</p>
+
+<pre>
+p95
+≈
+95% observation 不超过这个值
+</pre>
+
+<p>但 percentile 有不同算法。</p>
+
+<p>本课程 L0 用：</p>
+
+<pre>
+nearest-rank
+ceil(p × N)
+</pre>
+
+<p>真实 Grafana/k6/Prometheus 报告时要记录工具算法。</p>
+
+<h2>8. SLO</h2>
+
+<p>比如你定义：</p>
+
+<pre>
+TTFT <= 500 ms
+ITL <= 80 ms
+至少 99% 请求满足
+</pre>
+
+<p>这才是真正的系统目标。</p>
+
+<p>不是：</p>
+
+<pre>
+平均 TTFT < 500
+</pre>
+
+<h2>9. 请求长度分布为什么必须记录？</h2>
+
+<table>
+<tr><th></th><th>短输出</th><th>长输出</th></tr>
+<tr><th>短 prompt</th><td>轻</td><td>长期占 slot</td></tr>
+<tr><th>长 prompt</th><td>Prefill 重</td><td>Prefill + Decode 都重</td></tr>
+</table>
+
+<p>同样 10 req/s，负载可以完全不同。</p>
+
+<h2>10. Cache 也属于 workload</h2>
+
+<pre>
+cold prompt
+vs
+warm prefix cache
+</pre>
+
+<p>TTFT 可以差很多。</p>
+
+<p>所以不能把两种状态的结果放一张图里假装同一实验。</p>
+
+<h2>11. 当前 llama-server 可以看到什么？</h2>
+
+<p>Pinned 版本的 <code>/metrics</code> 可以看到：</p>
+
+<pre>
+processed prompt tokens
+cached prompt tokens
+predicted tokens
+requests processing
+requests deferred
+busy slots/decode
+</pre>
+
+<p>客户端再记录 TTFT/E2E，就能把外部体验和内部状态对起来。</p>
+
+<h2>12. 最佳 concurrency 不是越高越好</h2>
+
+<p>真正目标：</p>
+
+<pre>
+maximize throughput
+subject to
+latency SLO
++
+quality
+</pre>
+
+<p>比如 concurrency 16 的总吞吐最高，但 p95 TTFT 爆炸，那它就不是交互式服务的最佳配置。</p>
+
+<h2>13. 从现在开始 Serving Benchmark 必须记录</h2>
+
+<pre>
+arrival distribution
+prompt token distribution
+output length distribution
+slots
+cache state
+continuous batching
+TTFT / ITL / E2E
+percentiles
+throughput
+quality
+</pre>
+
+<p>这样“我的 server 很快”才开始变成一个可验证命题。</p>
+</body></html>

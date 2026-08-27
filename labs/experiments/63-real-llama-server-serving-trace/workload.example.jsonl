@@ -1,0 +1,2 @@
+{"id":"r0","delay_ms":0,"prompt_file":"prompts/p0.txt","n_predict":64}
+{"id":"r1","delay_ms":100,"prompt_file":"prompts/p1.txt","n_predict":64}

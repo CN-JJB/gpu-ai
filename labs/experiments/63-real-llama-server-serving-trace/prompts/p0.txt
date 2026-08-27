@@ -1,0 +1,1 @@
+Explain in one paragraph why VRAM capacity and memory bandwidth are different.
