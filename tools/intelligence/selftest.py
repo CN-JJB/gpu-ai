@@ -87,6 +87,7 @@ def main():
             "--result", str(exp / "result.json"),
             "--hardware-id", "hw:fixture:24g",
             "--model-id", "model:fixture:8b",
+            "--runtime-id", "runtime:fixture",
             "--record-id", "bench:fixture:generated",
             "--observed-at", "2026-08-27",
             "--packet-source", "fixture:PACKET.json",
@@ -116,7 +117,6 @@ def main():
         run([
             PY, str(HERE / "ingest_measured_compatibility.py"),
             "--benchmark-record", str(generated),
-            "--runtime-id", "runtime:fixture",
             "--record-id", "compat:fixture:measured",
             "--out", str(measured),
             "--revalidate-after", "2026-09-27",
