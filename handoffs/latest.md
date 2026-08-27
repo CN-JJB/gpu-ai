@@ -7,73 +7,131 @@
 
 ## Completed frontier
 
-Slices 01–48 are implemented.
-Experiments 01–91 exist.
+~~~text
+Slices 01–49 implemented
+Experiments 01–93 exist
+~~~
 
-## Learning state
+The stable v1 mainline now reaches the graduation Machine Design Capstone.
 
-The previous long CURRENT state through Slice 45 is archived byte-for-byte at:
+## Slice 48 foundation
 
-```text
-learning/archive/CURRENT-through-slice45-2026-08-27.md
-```
+Whole-machine feasibility remains:
 
-`learning/CURRENT.md` is now intentionally concise and tracks the active frontier.
-
-## Slice 48 core — Whole-Machine System Integration Dossier
-
-Feasibility order:
-
-```text
+~~~text
 workload/model
 → hard gates
 → blocking unknowns
 → measured performance/quality/SLO
 → preferences/TCO
-→ decision
-```
+→ ACCEPT / REVISE / BLOCKED
+~~~
+
+Experiment 91 is the real machine dossier.
 
 Decision semantics:
 
-```text
-known hard FAIL → REVISE
-critical UNKNOWN → BLOCKED
+~~~text
+known required FAIL → REVISE
+critical UNKNOWN / missing required evidence → BLOCKED
 all required gates PASS → ACCEPT
-```
+~~~
 
-Synthetic verified:
+No weighted score may average away a hard failure.
 
-```text
-balanced machine → ACCEPT
-30 GiB required vs 24 GiB available → REVISE
-unknown modular PSU cable compatibility → BLOCKED
-```
+## Slice 49 core — Graduation Machine Design Capstone
 
-No weighted score is allowed to average away a hard failure.
+New final workflow:
 
-Real Experiment 91 requires source evidence for every required gate and links prior course packets rather than copying unverified numbers.
+~~~text
+freeze target
+→ link Experiment 91
+→ material-claim Evidence index
+→ architecture narrative
+→ benchmark / quality / SLO
+→ TCO / risk
+→ causal revision alternatives
+→ evidence-triggered upgrade roadmap
+→ explicit non-claims
+→ final rationale
+→ transfer check
+~~~
 
-## Active next slice — Graduation Machine Design Capstone
+Key distinction:
 
-Build the final learner deliverable:
+~~~text
+machine feasibility
+!=
+graduation packet completeness
+~~~
 
-```text
-goal/workload
-→ model dossier
-→ machine architecture
-→ hard-gate matrix
-→ measured benchmark/SLO/quality
-→ TCO/energy
-→ risks/unknowns
-→ revision alternatives
-→ upgrade roadmap
-→ final ACCEPT / REVISE / BLOCKED
-```
+A BLOCKED machine can still have a COMPLETE graduation packet if the learner correctly proves the blocker and resolution path.
 
-Need:
-- final report rubric;
-- evidence completeness validator;
-- two or three synthetic design-review cases;
-- real report skeleton linked to Experiment 91;
-- no auto-purchasing or hardware modification;
-- explicit statement of what the final evidence does NOT prove.
+An ACCEPT machine can still have an INCOMPLETE graduation packet if its material claims are not auditable.
+
+## New artifacts
+
+Research:
+- research/system/0004-graduation-machine-design-capstone.md
+
+Reference:
+- reference/system/graduation-machine-design-capstone.md
+
+Lesson:
+- lessons/49-graduation-capstone/01-evidence-to-design-review.html
+
+Synthetic lab:
+- labs/experiments/92-graduation-design-review/
+
+Real graduation lab:
+- labs/experiments/93-real-graduation-report/
+
+Evidence:
+- examples/evidence/experiment-49-graduation-machine-design-capstone.md
+
+Learning record:
+- learning/records/2026-08-27-graduation-machine-design-capstone.md
+
+## Experiment 92
+
+Synthetic cases cover:
+
+~~~text
+ACCEPT
+REVISE
+BLOCKED
+~~~
+
+Validator checks:
+- gate/decision consistency;
+- material-claim evidence presence and scope;
+- revision coverage for failed gates;
+- explicit non-claims;
+- evidence-triggered roadmap structure.
+
+## Experiment 93
+
+Contains:
+- CAPSTONE-REPORT-TEMPLATE.md;
+- RUBRIC.md;
+- capstone.template.json;
+- validate_capstone.py;
+- EXPECTED.md.
+
+The validator returns independently:
+
+~~~text
+MACHINE DECISION: ACCEPT / REVISE / BLOCKED
+CAPSTONE COMPLETENESS: COMPLETE / INCOMPLETE
+~~~
+
+## Active next work
+
+Do not extend the stable mainline by default.
+
+Next:
+1. run Experiment 93 on a real learner-owned target/machine;
+2. feed demonstrated gaps back into existing Lessons;
+3. otherwise begin Phase 4 Intelligence Stations for dynamic hardware/model/benchmark data.
+
+No auto-purchase or unsafe hardware modification is part of the graduation workflow.
