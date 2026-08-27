@@ -1,0 +1,197 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 7：Sliding / Hybrid Attention / MLA</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
+<h1>LLM 架构 7 — 不是每层都要保存完整 KV：Sliding、Hybrid 与 Latent KV</h1>
+
+<h2>1. 先复习旧公式</h2>
+
+<pre>KV
+=
+2 × L × Hkv × Dh × bytes × context</pre>
+
+<p>它隐含了一个大前提：</p>
+
+<pre>每一层
+都缓存
+整个 context
+的普通 K/V</pre>
+
+<p>现代模型可能不满足。</p>
+
+<h2>2. Sliding Window：这一层只直接看最近 W 个位置</h2>
+
+<pre>sequence length = S
+window = W
+
+cached positions
+≈ min(S,W)</pre>
+
+<p>当：</p>
+
+<pre>S >> W</pre>
+
+<p>local layer 的 rolling KV 不再随完整 S 线性增长。</p>
+
+<h2>3. 但这不等于“模型只能记 W token”</h2>
+
+<p>上一层的 token 表示本身已经混入了更早的信息。</p>
+
+<p>多层 local attention 可以逐层传播信息。</p>
+
+<p>Hybrid 模型还可以穿插 full/global attention。</p>
+
+<div class="callout"><strong>Direct window、effective context、KV cache size 是三件不同的事。</strong></div>
+
+<h2>4. Hybrid 怎么算？</h2>
+
+<p>假设 32 层：</p>
+
+<pre>8 full
+24 local
+window = 4096</pre>
+
+<p>KV：</p>
+
+<pre>2 × Hkv × Dh × bytes
+×
+[
+8×S
++
+24×min(S,4096)
+]</pre>
+
+<h2>5. 用 32k context 算</h2>
+
+<p>假设：</p>
+
+<pre>Hkv=8
+Dh=128
+FP16</pre>
+
+<table>
+<tr><th>结构</th><th>32k KV</th></tr>
+<tr><td>32 层全 full</td><td>4 GiB</td></tr>
+<tr><td>32 层全 local W=4k</td><td>0.5 GiB</td></tr>
+<tr><td>8 full + 24 local</td><td>1.375 GiB</td></tr>
+</table>
+
+<h2>6. 拉到 128k</h2>
+
+<table>
+<tr><th>结构</th><th>128k KV</th></tr>
+<tr><td>全 full</td><td>16 GiB</td></tr>
+<tr><td>全 local</td><td>0.5 GiB</td></tr>
+<tr><td>8 full + 24 local</td><td>4.375 GiB</td></tr>
+</table>
+
+<p>所以只看：</p>
+
+<pre>max_position_embeddings = 131072</pre>
+
+<p>根本不够判断显存。</p>
+
+<h2>7. Prefill compute 也变</h2>
+
+<p>Full attention：</p>
+
+<pre>O(T²)</pre>
+
+<p>Local attention：</p>
+
+<pre>O(TW)</pre>
+
+<p>概念上长 prompt 的 attention 工作也跟着下降。</p>
+
+<p>真实 kernel 仍要看 backend。</p>
+
+<h2>8. Decode 也少读历史</h2>
+
+<p>Full layer：</p>
+
+<pre>read S cached positions</pre>
+
+<p>Local layer：</p>
+
+<pre>read at most W</pre>
+
+<p>但是 FFN weights 还是照读。</p>
+
+<p>所以 KV/attention traffic 降低后，TG 可能更明显暴露 FFN weight bandwidth。</p>
+
+<h2>9. Hybrid 是现实里很重要的折中</h2>
+
+<p>例如 Gemma 2 就使用 local-global attention 交错的设计。</p>
+
+<p>思路是：</p>
+
+<pre>大多数层便宜地 local
++
+部分层保留 global access</pre>
+
+<p>具体 pattern 不能靠猜，要看 model config/paper。</p>
+
+<h2>10. MLA 又走另一条路</h2>
+
+<p>Sliding Window 减的是：</p>
+
+<pre>缓存多少 position</pre>
+
+<p>MLA 类方法减的是：</p>
+
+<pre>每个 position 缓存多宽</pre>
+
+<p>DeepSeek-V2 的 Multi-head Latent Attention 会把 KV 信息压到较小 latent state，再围绕 attention 做投影。</p>
+
+<h2>11. 所以通用 KV 心智模型升级成</h2>
+
+<pre>KV/state bytes
+=
+Σ layers
+(
+cached positions
+× cached state width
+× bytes
+)</pre>
+
+<p>这比背：</p>
+
+<pre>2 × L × Hkv × Dh × S</pre>
+
+<p>更通用。</p>
+
+<h2>12. DeepSeek-style config 里你可能看到</h2>
+
+<pre>kv_lora_rank
+qk_rope_head_dim</pre>
+
+<p>在确认是对应 MLA 实现后，可以把它们当 compressed state 的关键维度来研究。</p>
+
+<div class="callout"><strong>但绝不能把 <code>kv_lora_rank + qk_rope_head_dim</code> 当全世界所有 latent attention 的万能公式。</strong></div>
+
+<h2>13. 压缩 KV 不是免费午餐</h2>
+
+<p>你通常在做：</p>
+
+<pre>less cached bytes
+↔
+more projection/reconstruction work</pre>
+
+<p>这对 bandwidth-bound decode 很可能是好交易，但实际速度仍要 benchmark。</p>
+
+<h2>14. 以后 Model Dossier 怎么写？</h2>
+
+<pre>full attention
+→ ordinary formula
+
+confirmed local layers
+→ min(S,W)
+
+hybrid
+→ per-layer sum
+
+latent/compressed KV
+→ model-specific cached state width
+
+unknown
+→ KV EXACTNESS = UNKNOWN</pre>
+
+<p>宁可写 UNKNOWN，也不要套错公式。</p>
+</body></html>
