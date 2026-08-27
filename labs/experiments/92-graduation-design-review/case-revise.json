@@ -1,0 +1,48 @@
+{
+  "case_id": "graduation-revise",
+  "gates": {
+    "model_vram": {"required": true, "status": "FAIL", "source": "evidence/model-capacity.json#sha256-demo"},
+    "runtime": {"required": true, "status": "PASS", "source": "evidence/runtime-log.txt#sha256-demo"},
+    "psu_cables": {"required": true, "status": "PASS", "source": "evidence/psu-dossier.md#sha256-demo"}
+  },
+  "claims": [
+    {
+      "id": "C1",
+      "material": true,
+      "claim": "30 GiB target runtime capacity exceeds 24 GiB available",
+      "evidence": "evidence/model-capacity.json#sha256-demo",
+      "scope": "exact model/quant/context/concurrency target"
+    }
+  ],
+  "revisions": [
+    {
+      "change": "evaluate a smaller quant or smaller model first",
+      "addresses_gates": ["model_vram"],
+      "new_evidence_required": "new model dossier plus runtime VRAM and quality-gate packet",
+      "new_cost_risk": "possible quality regression"
+    },
+    {
+      "change": "evaluate multi-GPU only if the workload still requires the larger model",
+      "addresses_gates": ["model_vram"],
+      "new_evidence_required": "topology, split-mode and scaling evidence",
+      "new_cost_risk": "platform, power and interconnect complexity"
+    }
+  ],
+  "upgrade_roadmap": {
+    "now": [
+      {"action": "resolve model_vram failure before purchase"}
+    ],
+    "next": [
+      {"trigger": "smaller quant fails the quality gate", "action": "evaluate different GPU or multi-GPU design"}
+    ],
+    "later": [
+      {"trigger": "measured concurrency creates a new serving capacity failure", "action": "re-run capacity and SLO design"}
+    ]
+  },
+  "non_claims": [
+    "REVISE does not prove the current GPU is generally bad",
+    "the capacity failure does not identify one mandatory replacement",
+    "synthetic revision logic does not predict real multi-GPU scaling"
+  ],
+  "declared_decision": "REVISE"
+}
