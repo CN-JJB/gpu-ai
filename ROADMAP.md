@@ -55,13 +55,15 @@ Verified foundations:
 - [x] I11 explicit real used-GPU MEDIAN_ASK cohort
 - [x] I12 market sample/method evidence audit + MEDIAN_ASK validator gate
 - [x] I13 sold-marked listing cohort + transaction-certainty guardrail
+- [x] I14 explicit cross-market signal comparison
+- [x] I15 China SECONDARY_REPORTED watch signals + semantic validator
 - [x] I01–I10 Python compile + end-to-end self-test
-- [x] I11–I13 exact-main contract verification
+- [x] I11–I15 exact-main contract verification
 
 Next:
 - [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
 - [ ] pass it through I07 intake and derive exact MEASURED_SUPPORTED;
-- [ ] add stronger confirmed-sale or local-market observations without mixing cohorts;
+- [ ] add stronger direct-listing / confirmed-transaction evidence without mixing cohorts;
 - [ ] refresh observations when I10 marks them due/stale;
 - [ ] repeat the full Python self-test when a local/CI execution path is available;
 - [ ] recommendation views only after feasibility/support/quality gates and real comparable Evidence.
