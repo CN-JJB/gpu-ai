@@ -81,6 +81,22 @@ Artifacts:
 
 L0 online-softmax correctness verified; real backend probe contains no fabricated GPU timings.
 
+### Slice 13 — Matrix units / precision / TOPS
+
+storage format → matrix input datatype → accumulator datatype → matrix peak → utilization → memory roof → LLM PP/TG。
+
+Artifacts:
+- research/gpu/0007-matrix-units-precision-tops.md
+- reference/gpu/matrix-units-precision-tops.md
+- lessons/13-matrix-units/01-precision-accumulator-tops.html
+- labs/experiments/21-tops-vs-roofline-model/
+- labs/experiments/22-real-matmul-shape-precision/
+- examples/evidence/experiment-13-matrix-units-precision.md
+- intelligence/gpu/matrix-units-precision-2026-08-27.md
+- learning/records/2026-08-27-matrix-units-precision-slice.md
+
+L0 synthetic Roofline verified; real shape/precision probe is ready with no fake INT4 path.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -137,8 +153,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Enter matrix-unit/numerical-format architecture: Tensor Cores / MFMA-style matrix units / Apple matrix paths.
-2. Build the stable distinction between input datatype, accumulation datatype, advertised TOPS/TFLOPS and realized GEMM throughput.
-3. Connect FP16/BF16/TF32/FP8/INT8/INT4 to LLM quantization without conflating storage format with arithmetic.
-4. Add an L0 throughput/precision model before any real GPU benchmark.
-5. Keep exact generation/SKU feature matrices in dynamic intelligence.
+1. Start the detailed NVIDIA architecture-generation spine: Tesla/G80 → Fermi → Kepler → Maxwell → Pascal → Volta → Turing → Ampere → Ada → Hopper → Blackwell.
+2. For each generation, teach the problem it solved, SM/execution changes, memory/cache changes, matrix/AI changes and software consequences.
+3. Separate stable architecture history from current used-market value/driver/backend intelligence.
+4. Use NVIDIA as primary spine, then map AMD generations to the same questions.
+5. Add Apple as a separate unified-memory/Metal/ANE architecture section rather than forcing CUDA terminology onto it.

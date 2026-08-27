@@ -831,3 +831,84 @@ URL: https://rocm.docs.amd.com/projects/composable_kernel/en/develop/
 可信度：AMD ROCm official。
 适用：AMD migration/intelligence。
 局限：hardware/version support must be checked separately.
+
+
+## Matrix units / precision
+
+### NVIDIA Ampere Tuning Guide
+
+URL: https://docs.nvidia.com/cuda/ampere-tuning-guide/
+
+用途：
+- Volta/Turing/Ampere Tensor Core evolution
+- BF16/TF32/FP64 additions
+- input/accumulator type mapping
+
+可信度：NVIDIA official。
+适用：stable generation bridge。
+局限：exact SKU peak is separate.
+
+### CUDA Programming Guide — WMMA / alternate floating point
+
+URL: https://docs.nvidia.com/cuda/cuda-programming-guide/
+
+用途：
+- BF16
+- TF32
+- accumulator semantics
+- matrix fragment model
+
+可信度：NVIDIA official。
+适用：stable precision semantics。
+局限：API details evolve.
+
+### NVIDIA Transformer Engine
+
+URL: https://docs.nvidia.com/deeplearning/transformer-engine/
+
+用途：
+- FP8
+- scaling/amax
+- Hopper/Ada/Blackwell
+- MXFP8/NVFP4 current modes
+
+可信度：NVIDIA official。
+适用：current low-precision intelligence。
+局限：TE-specific runtime details are dynamic.
+
+### AMD HIP — Hardware implementation
+
+URL: https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html
+
+用途：
+- MFMA
+- matrix core mental model
+- FP16→FP32 accumulation example
+
+可信度：AMD ROCm official。
+适用：AMD stable mapping。
+局限：current exact architecture support is separate.
+
+### ROCm — Data types and precision support
+
+URL: https://rocm.docs.amd.com/en/latest/reference/precision-support.html
+
+用途：
+- CDNA/RDNA matrix-core datatype matrix
+- generation-specific FP8/FP16/BF16/INT8 support
+
+可信度：AMD official。
+适用：dynamic compatibility intelligence。
+局限：must revalidate as ROCm docs evolve.
+
+### PyTorch — float32 matmul precision
+
+URL: https://docs.pytorch.org/docs/main/generated/torch.set_float32_matmul_precision.html
+
+用途：
+- TF32/internal precision distinction
+- real GEMM probe control
+
+可信度：PyTorch official。
+适用：Experiment 22。
+局限：backend-specific dynamic behavior.
