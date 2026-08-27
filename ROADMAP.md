@@ -49,15 +49,17 @@ Verified foundations:
 - [x] I05 explicit same-cohort price/performance view
 - [x] I06 evidence-linked TCO scenario worksheet
 - [x] I07 real benchmark Evidence intake gate
-- [x] I01–I07 Python compile + end-to-end self-test
+- [x] I08 NVIDIA / AMD / Apple / Intel documented compatibility coverage
+- [x] I09 cross-vendor compatibility coverage matrix
+- [x] I10 freshness / revalidation queue
+- [x] I01–I10 Python compile + end-to-end self-test
 
 Next:
 - [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
-- [ ] pass it through I07 intake;
-- [ ] derive production MEASURED_SUPPORTED from that exact path;
-- [ ] expand current NVIDIA / AMD / Apple / Intel backend observations;
+- [ ] pass it through I07 intake and derive exact MEASURED_SUPPORTED;
 - [ ] collect stronger normalized direct-market observations;
-- [ ] recommendation views only after feasibility/support/quality gates.
+- [ ] refresh observations when I10 marks them due/stale;
+- [ ] recommendation views only after feasibility/support/quality gates and real comparable Evidence.
 
 Dynamic prices, current compatibility, model releases and benchmark observations belong here rather than being written into stable lessons.
 
