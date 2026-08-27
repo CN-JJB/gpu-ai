@@ -54,8 +54,9 @@ Verified foundations:
 - [x] I10 freshness / revalidation queue
 - [x] I11 explicit real used-GPU MEDIAN_ASK cohort
 - [x] I12 market sample/method evidence audit + MEDIAN_ASK validator gate
+- [x] I13 sold-marked listing cohort + transaction-certainty guardrail
 - [x] I01–I10 Python compile + end-to-end self-test
-- [x] I11–I12 exact-main contract verification
+- [x] I11–I13 exact-main contract verification
 
 Next:
 - [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
