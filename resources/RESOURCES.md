@@ -1203,3 +1203,60 @@ URL: https://www.intel.com/content/www/us/en/ark/products/series/240391/intel-ar
 URL: https://www.intel.com/content/www/us/en/ark/products/series/242616/intel-arc-pro-b-series-graphics.html
 用途：current 2026 workstation Xe2/32GB options.
 可信度：Intel official current product database。
+
+
+## China secondhand GPU market
+
+### Xianyu inspection-service buyer agreement
+URL: https://terms.alicdn.com/legal-agreement/terms/product/20221213134628952/20221213134628952.html
+用途：third-party inspection transaction flow, scope limits, buyer decision/return rules.
+可信度：official published Xianyu/Alibaba agreement。
+局限：inspection scope is category/service specific; not a GPU engineering test specification.
+
+### Xianyu community user agreement
+URL: https://terms.alicdn.com/legal-agreement/terms/suit_bu1_other/suit_bu1_other201708081618_51146.html
+用途：current platform agreement context.
+可信度：official current agreement。
+
+### August 2026 secondhand GPU market video
+URL: https://www.bilibili.com/video/BV1Q5GV6WEeP/
+用途：current Chinese secondhand-GPU market direction and recurring monthly observation.
+可信度：community secondary。
+局限：raw normalized item-level dataset not exposed in searchable page.
+
+### Mid-August 2026 market update
+URL: https://www.bilibili.com/video/BV1XgbD6zEYR
+用途：mid-month 黄鱼行情 direction.
+可信度：community secondary。
+局限：not direct sold-price evidence.
+
+### August local-AI / used-GPU price summary
+URL: https://post.smzdm.com/p/a825vp66/
+用途：current secondary price signals for 3060/4060Ti16/5060Ti16/3090/4090/5090.
+可信度：secondary market summary。
+局限：underlying item-level transaction dataset unavailable; grade M1.
+
+### Intel Arc August used-price summary
+URL: https://post.smzdm.com/p/agg4xrq3/
+用途：current A770/B570/B580 secondary ranges and buyer-risk discussion.
+可信度：secondary current article。
+局限：not direct normalized platform dataset.
+
+### A770 local-AI demand article
+URL: https://post.smzdm.com/p/axklwq32/
+用途：current A770 16G demand/price movement signal.
+可信度：secondary current article。
+
+### China AI hardware merchant market
+URL: https://www.cplight.com/
+Data-center GPU category:
+https://www.cplight.com/category/data-center-gpu-tesla
+用途：current merchant quotes for dismantled/datacenter/workstation GPUs.
+可信度：direct merchant quote source。
+局限：MERCHANT-QUOTE only; not peer-to-peer sold market.
+
+### Multi-SKU price-trap example
+URL: https://www.xing73.com/taobao-xl-AM5AzMh2Y5_ip5Lmo5MqL5.html
+用途：demonstrate why teaser/multi-SKU display prices must be rejected from exact-model samples.
+可信度：secondary aggregation。
+局限：do not use as fair-value data.

@@ -6,7 +6,7 @@
 - Branch: main
 - Working URL: https://github.com/CN-JJB/gpu-ai
 
-## Frozen course constraints
+## Frozen constraints
 
 Core ability stack:
 **会理解 → 会调查 → 会选择 → 会实践 → 会改造**
@@ -14,81 +14,88 @@ Core ability stack:
 Core teaching pattern:
 **真实问题 → 必要原理 → 小实验 → 可玩项目 → 结果分析 → 如何选择 → 如何迁移到其他平台/硬件**
 
-NVIDIA primary, AMD systematic secondary, Apple special section, Intel lighter.
-No CPU architecture course.
-Stable knowledge and dynamic intelligence remain separate.
-Never fabricate benchmark or market-price data.
+Stable knowledge and dated intelligence remain separate.
+Never fabricate benchmark, transaction or market-price data.
 
 ## Completed frontier
 
-Slices 01–18 are implemented.
+Slices 01–19 are implemented.
 
-Architecture coverage:
-- Slice 14 NVIDIA
-- Slice 15 AMD
-- Slice 16 Apple Silicon
-- Slice 17 Intel Xe/Arc
-
-Decision layer:
-- Slice 18 cross-vendor used-hardware decision framework
-
-Key Slice 18 files:
-- `research/hardware/0001-cross-vendor-used-hardware-decision-framework.md`
-- `reference/hardware/cross-vendor-decision-card.md`
-- `lessons/18-hardware-decision/01-fit-support-roofs-tco.html`
-- `labs/experiments/31-scenario-hardware-decision-model/`
-- `labs/experiments/32-real-used-hardware-candidate-dossier/`
-- `examples/evidence/experiment-18-cross-vendor-decision.md`
-
-Core decision sequence:
+Recent chain:
 
 ```
-workload
-→ FIT hard gate
-→ SOFTWARE hard gate
-→ PP/TG/interconnect roof
-→ comparable Evidence
-→ TCO
-→ secondhand risk
-→ BUY / BUY IF PRICE≤X / KEEP / SKIP / NEEDS EVIDENCE
+14 NVIDIA architecture
+15 AMD architecture
+16 Apple Silicon
+17 Intel Xe/Arc
+18 cross-vendor hardware decision
+19 China secondhand market methodology
 ```
 
-Do not create a universal hardware score.
+## Slice 19 core rule
 
-## Active next slice — China secondhand market
+Never treat a search result as a market price.
 
-Build stable methodology first:
+Normalize:
 
 ```
-search/listing capture
-→ exact-SKU normalization
-→ condition/risk normalization
-→ asking vs sold-price separation
-→ outlier handling
-→ confidence
-→ pre-payment testing
-→ price threshold
+exact model
++ exact VRAM
++ stock/mod/repair cohort
++ condition
++ price state
++ date/source
 ```
 
-Then create dated intelligence snapshots.
+Price states:
+- ASK
+- SOLD-CONFIRMED
+- DELISTED-ASSUMED
+- MERCHANT-QUOTE
+- BUYBACK
+- UNKNOWN
 
-Important:
-- asking price is not transaction price;
-- seller text is not verified condition;
-- modified VRAM/repaired PCB/ES/OEM/datacenter cards must be separate cohorts;
-- do not mix 8GB/12GB/16GB/24GB variants;
-- do not invent Xianyu sold prices if inaccessible;
-- snapshot must record date, source, sample size and limitations.
+Current dated intelligence:
+`intelligence/market/china-used-gpu-market-2026-08-27.md`
 
-## Market research target
+It contains only low/medium-confidence secondary consumer-market signals plus direct merchant quotes.
+It intentionally does **not** publish a direct Xianyu sold-price median.
 
-Primary learner context is China secondhand hardware.
+## Active next slice — GPU transaction / verification
 
-Use:
-- Chinese marketplace observations where accessible;
-- manufacturer/runtime official sources for identity/support;
-- reputable technical/community sources for failure modes;
-- exact candidate Evidence Card for purchase decisions.
+Build:
+
+```
+listing
+→ seller evidence request
+→ identity/serial
+→ remote proof
+→ payment/inspection path
+→ arrival unboxing evidence
+→ device identity
+→ VRAM/memory test
+→ sustained compute
+→ thermals/power
+→ accept / dispute
+```
+
+Separate:
+- retail gaming/workstation GPU;
+- datacenter passive/no-display GPU;
+- modified/repaired GPU.
+
+Do not give unsafe electrical/board-repair instructions.
+Testing should be read-only/non-destructive by default.
+
+## After verification slice
+
+Create a rolling candidate watchlist:
+- exact workload;
+- exact candidate;
+- max buy price;
+- current normalized ASK/SOLD evidence;
+- evidence gaps;
+- alert threshold.
 
 ## Matt Pocock skills
 

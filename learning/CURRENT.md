@@ -186,6 +186,22 @@ Artifacts:
 
 No universal score is used. Capacity/software are hard gates; ranking is scenario-specific.
 
+### Slice 19 — China secondhand GPU market methodology
+
+Raw listing → exact SKU/VRAM → condition/modification cohort → ASK/SOLD/QUOTE state → deduplicate/outlier cleanup → median/Q1-Q3 → evidence grade → candidate dossier。
+
+Artifacts:
+- research/market/0001-china-secondhand-gpu-market-methodology.md
+- reference/market/china-secondhand-gpu-sampling-card.md
+- lessons/19-secondhand-market/01-price-is-not-a-number.html
+- labs/experiments/33-secondhand-market-normalization/
+- labs/experiments/34-real-secondhand-market-snapshot/
+- examples/evidence/experiment-19-china-secondhand-market.md
+- intelligence/market/china-used-gpu-market-2026-08-27.md
+- learning/records/2026-08-27-china-secondhand-gpu-market.md
+
+Current snapshot intentionally does not claim a direct Xianyu sold median because the normalized item-level evidence is insufficient.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -242,8 +258,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build the China secondhand-market research methodology before publishing any dated price table.
-2. Separate asking price, observed sold price, seller claim and verified transaction evidence.
-3. Create normalization rules for exact SKU, VRAM modification, board repair, mining/datacenter history and missing accessories.
-4. Add a pre-payment verification checklist and a candidate price-threshold worksheet.
-5. Produce dated market snapshots only with explicit sample provenance and confidence.
+1. Build the pre-payment / post-arrival GPU verification slice.
+2. Create seller-message prompts that request identity, serial, BIOS, memory, sustained-load and temperature evidence without relying on vague "non-mining" claims.
+3. Create safe acceptance/dispute evidence packet templates.
+4. Add datacenter-card specific checks for cooling, power connector, ECC/error counters and no-display operation.
+5. Build a rolling candidate watchlist only after direct normalized market samples are captured.
