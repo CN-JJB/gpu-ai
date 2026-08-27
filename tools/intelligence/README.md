@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements and verifies I01–I06.
+Phase 4 tooling currently implements and verifies I01–I10.
 
 ## 1. Validate a catalog
 
@@ -111,7 +111,27 @@ This upgrades only the exact recorded artifact/build/device path.
 
 One successful benchmark does not create family-wide support.
 
-## 8. Comparable benchmark view
+## 8. Cross-vendor compatibility matrix
+
+~~~bash
+python3 compatibility_matrix.py ../../intelligence/catalog   --model-id model:qwen:qwen3-8b   --runtime-id runtime:ggml-org:llama.cpp   --as-of 2026-08-28
+~~~
+
+Current production coverage includes NVIDIA/CUDA, AMD/HIP, Apple/Metal and Intel/SYCL.
+
+The matrix reports evidence state and scope, not performance ranking.
+
+## 9. Freshness / revalidation queue
+
+~~~bash
+python3 freshness_report.py ../../intelligence/catalog   --as-of 2026-08-28   --within-days 30
+~~~
+
+Use --show-unscheduled to list records without revalidate_after.
+
+STALE means revalidate before a current decision; it does not automatically mean false.
+
+## 10. Comparable benchmark view
 
 ~~~bash
 python3 comparable_benchmarks.py fixtures/catalog \
@@ -129,7 +149,7 @@ Comparison grouping requires the same:
 
 Rows are descriptive system comparisons, not automatically causal A/B claims.
 
-## 9. Explicit price/performance
+## 11. Explicit price/performance
 
 ~~~bash
 python3 price_performance.py fixtures/catalog \
@@ -145,7 +165,7 @@ The tool never auto-selects a “latest price”.
 
 Selected market records must share the same geography/channel/cohort/condition/price-state/currency contract.
 
-## 10. TCO worksheet
+## 12. TCO worksheet
 
 ~~~bash
 python3 tco_worksheet.py fixtures/catalog \
@@ -164,7 +184,7 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 11. Self-test
+## 13. Self-test
 
 From repository root:
 
@@ -182,6 +202,9 @@ SELFTEST: PASS
 See:
 - tools/intelligence/EXPECTED.md
 - examples/evidence/intelligence-i01-i06-selftest-verification.md
+- examples/evidence/intelligence-08-cross-vendor-documented-coverage.md
+- examples/evidence/intelligence-09-compatibility-coverage-matrix.md
+- examples/evidence/intelligence-10-freshness-revalidation.md
 
 ## Non-goals
 
