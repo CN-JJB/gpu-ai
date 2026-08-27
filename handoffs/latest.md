@@ -7,68 +7,81 @@
 
 ## Completed frontier
 
-Slices 01–29 are implemented.
-Experiments 01–53 are indexed.
+Slices 01–30 are implemented.
 
-## Model architecture spine
+Latest model architecture chain:
 
 ```
-24 Decoder-only dataflow
+24 decoder-only dataflow
 25 RMSNorm / residual / RoPE
 26 MHA / MQA / GQA
 27 SwiGLU / dense FFN
 28 MoE
 29 Model Architecture Dossier
+30 Sliding / Hybrid / Latent KV
 ```
 
-## Slice 29 core rule
+## Slice 30 core
 
-Architecture inspection produces three evidence classes:
-
-```
-KNOWN
-DERIVED
-MUST MEASURE
-```
-
-Capacity lower-bound verdict:
+General cache accounting:
 
 ```
-lower bound > usable memory
-→ FAIL-WITHOUT-OFFLOAD
-
-lower bound <= usable memory
-→ POSSIBLE-NOT-PROVEN
+Σ_l
+(
+cached positions_l
+× cached state width_l
+× bytes
+)
 ```
 
-Never call the second case PASS without real runtime evidence.
+Ordinary full attention is a special case.
 
-## Active next slice
-
-Modern attention/context architectures:
+Verified synthetic hybrid:
 
 ```
-full attention
-vs
-sliding/local attention
-vs
-hybrid layer patterns
-vs
-compressed/latent KV families
+32 layers
+8 full
+24 local
+W=4096
+Hkv=8
+Dh=128
+FP16
+
+32k:
+full 4 GiB
+local 0.5 GiB
+hybrid 1.375 GiB
+
+128k:
+full 16 GiB
+local 0.5 GiB
+hybrid 4.375 GiB
 ```
 
-Teach why:
+DeepSeek-style MLA proxy is opt-in and architecture-specific.
+
+## Active next slice — Tokenization / Chat Template / Sampling Boundary
+
+Build:
 
 ```
-2 × L × Hkv × Dh × bytes × context
+raw user text
+→ chat template serialization
+→ special tokens
+→ tokenizer
+→ token IDs
+→ model logits
+→ sampling policy
+→ next token
+→ text decode
 ```
 
-is a homogeneous full-attention baseline, not a universal exact KV formula.
+Teach:
+- chat template is part of workload/model interface;
+- prompt token count changes PP/KV/context;
+- exact prompt serialization must be preserved for benchmarking;
+- logits are not sampled text;
+- deterministic/greedy vs stochastic sampling;
+- same random seed may still differ across runtimes/numerics.
 
-Need:
-- local window formula;
-- mixed full/local layer formula;
-- architecture caveats;
-- real config inspector extension.
-
-Do not generalize DeepSeek MLA implementation to all compressed-KV architectures.
+Then connect to serving TTFT and reproducible benchmarks.

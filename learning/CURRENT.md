@@ -352,6 +352,21 @@ Artifacts:
 
 Synthetic dense/MoE lower-bound cases checked. Formula fit is never upgraded to confirmed runtime fit.
 
+### Slice 30 — Sliding / hybrid / latent KV
+
+Homogeneous full KV → sliding/local rolling cache → hybrid per-layer sum → compressed/latent cached-state width → architecture-specific exactness。
+
+Artifacts:
+- research/llm/0013-modern-kv-attention-architectures.md
+- reference/llm/sliding-hybrid-latent-kv.md
+- lessons/30-modern-kv/01-sliding-hybrid-latent.html
+- labs/experiments/54-sliding-hybrid-kv-model/
+- labs/experiments/55-real-attention-kv-architecture/
+- examples/evidence/experiment-30-modern-kv-architectures.md
+- learning/records/2026-08-27-modern-kv-architectures.md
+
+Default L0 full/local/hybrid KV arithmetic verified at 32k and 128k.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -408,8 +423,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build sliding-window / hybrid-attention / compressed-KV architecture slice.
-2. Explain why not every layer necessarily caches the full context.
-3. Distinguish local-window memory scaling from full-attention/global layers.
-4. Introduce latent/compressed KV as an architecture family concept without forcing one formula onto all MLA variants.
-5. Update the dossier to mark/handle architecture-specific KV formulas rather than silently using homogeneous full attention.
+1. Build tokenizer / chat-template / special-token slice.
+2. Show that same user text can serialize to different token sequences under different templates.
+3. Connect token count directly to context budget, KV usage and PP.
+4. Separate model logits from sampling policy and text decoding.
+5. Add reproducible prompt-artifact hashing so benchmark prompts are part of workload identity.

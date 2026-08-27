@@ -1360,3 +1360,19 @@ URL: https://arxiv.org/abs/2401.06066
 URL: https://arxiv.org/abs/2412.19437
 用途：modern large-MoE example; 671B total / 37B activated parameter accounting context.
 可信度：primary technical report。
+
+
+### Mistral 7B
+URL: https://arxiv.org/abs/2310.06825
+用途：Grouped-Query Attention + Sliding Window Attention model example.
+可信度：primary model paper。
+
+### Gemma 2
+URL: https://arxiv.org/abs/2408.00118
+用途：interleaved local-global attention hybrid example.
+可信度：primary model report。
+
+### DeepSeek-V2
+URL: https://arxiv.org/abs/2405.04434
+用途：Multi-head Latent Attention / compressed KV and DeepSeekMoE.
+可信度：primary technical report。
