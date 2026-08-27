@@ -2,12 +2,18 @@
 
 动态情报与稳定课程内容物理分离。
 
-稳定原则见：
+稳定原则：
 - docs/adr/0002-separate-stable-knowledge-from-dynamic-intelligence.md
 
-机器可读契约：
+Phase 4 specs：
 - docs/specs/0002-intelligence-stations-data-contract.md
 - docs/specs/0003-intelligence-compatibility-preflight.md
+- docs/specs/0004-intelligence-measured-compatibility-ingestion.md
+- docs/specs/0005-intelligence-comparable-benchmark-view.md
+- docs/specs/0006-intelligence-explicit-price-performance.md
+- docs/specs/0007-intelligence-tco-worksheet.md
+
+Schema：
 - intelligence/schema/README.md
 
 ## Human-readable snapshots
@@ -44,14 +50,14 @@ Validate:
 python3 tools/intelligence/validate_catalog.py intelligence/catalog
 ~~~
 
-## Benchmark bridge
+## Benchmark Evidence bridge
 
-Benchmark intelligence must preserve:
+Benchmark intelligence preserves:
 
 ~~~text
-hardware
-+ model artifact
-+ runtime/backend/build
+hardware ID
++ model ID / exact artifact
++ runtime ID / backend / build
 + workload
 + metrics
 + raw Evidence
@@ -63,6 +69,8 @@ Preferred path:
 Experiment 61
 → tools/intelligence/ingest_llama_bench.py
 → benchmark observation
+→ tools/intelligence/ingest_measured_compatibility.py
+→ exact MEASURED_SUPPORTED observation
 ~~~
 
 Do not manually create a second tok/s truth source.
@@ -80,12 +88,63 @@ UNKNOWN → BLOCKED
 stale → STALE-REVALIDATE
 ~~~
 
-## Derived metrics
+Exact measured Evidence only applies to the scope it actually proves.
 
-Future tokens/s/元、VRAM/元、J/token、TCO views must:
-- explicitly select compatible observations;
-- preserve workload identity;
-- preserve price cohort/evidence state;
-- never average away a hard gate.
+## Comparable benchmark view
+
+~~~text
+same model
++ same artifact SHA
++ same quant
++ same workload
+→ descriptive comparison group
+~~~
+
+No cross-group tok/s leaderboard.
+
+## Price/performance
+
+Implemented only when:
+- one comparable benchmark group is selected;
+- exact market records are explicitly selected;
+- market contracts match.
+
+No automatic latest-price join.
+
+## TCO
+
+Implemented as an evidence-linked scenario:
+
+~~~text
+purchase
++ platform delta
++ electricity
++ risk reserve
+- resale estimate
+→ TCO
+~~~
+
+TCO does not override:
+- capacity;
+- compatibility;
+- safety;
+- quality/SLO hard gates.
+
+## Verification
+
+I01–I06 compile and end-to-end self-test:
+
+~~~text
+SELFTEST: PASS
+~~~
+
+Evidence:
+- examples/evidence/intelligence-i01-i06-selftest-verification.md
+
+## Current production-data boundary
+
+The production benchmark catalog is intentionally empty until a real Experiment 61 Evidence Packet is ingested.
+
+Missing Evidence stays missing; synthetic fixture results remain under tools/intelligence/fixtures/.
 
 任何动态条目都应记录来源、采集日期、版本/测试环境、可复现性与置信信息。
