@@ -91,9 +91,26 @@ Check:
 
 ## Decision
 
+Transaction-oriented outcome from Slice 20:
 - ACCEPT
 - ACCEPT WITH DISCLOSED DEFECT
 - DISPUTE / RETURN
+
+For the stricter hardware-evidence layer, continue to Slice 46:
+
+```text
+reference/gpu/used-gpu-purchase-acceptance.md
+labs/experiments/87-real-used-gpu-acceptance/
+```
+
+Slice 46 uses technical evidence states:
+- ACCEPT — purchase-critical claims match and defined tests pass;
+- REVIEW — incomplete/non-critical discrepancy or platform-limited evidence;
+- REJECT — material identity/VRAM/runtime/error/stability failure.
+
+These are not competing standards. Slice 20 answers the transaction/return workflow; Slice 46 deepens hardware identity, PCIe capability-vs-current state, ECC/RAS/XID-style evidence and sustained Local-LLM validation.
+
+A technical REJECT can support a dispute/return decision, but transaction/legal outcomes remain separate.
 
 ## Evidence packet
 
