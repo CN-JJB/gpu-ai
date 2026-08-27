@@ -112,6 +112,57 @@ def main():
         ])
         assert "VALIDATION: PASS" in out
 
+        measured = td / "measured-compatibility.jsonl"
+        run([
+            PY, str(HERE / "ingest_measured_compatibility.py"),
+            "--benchmark-record", str(generated),
+            "--runtime-id", "runtime:fixture",
+            "--record-id", "compat:fixture:measured",
+            "--out", str(measured),
+            "--revalidate-after", "2026-09-27",
+            "--synthetic",
+        ])
+
+        with (generated_catalog / "compatibility.jsonl").open("a", encoding="utf-8") as f:
+            f.write(measured.read_text(encoding="utf-8"))
+
+        out = run([
+            PY, str(HERE / "validate_catalog.py"),
+            str(generated_catalog),
+            "--allow-synthetic",
+            "--as-of", "2026-08-27",
+        ])
+        assert "VALIDATION: PASS" in out
+
+        out = run([
+            PY, str(HERE / "compatibility_preflight.py"),
+            str(generated_catalog),
+            "--hardware-id", "hw:fixture:24g",
+            "--model-id", "model:fixture:8b",
+            "--runtime-id", "runtime:fixture",
+            "--backend", "FIXTURE",
+            "--artifact-sha256", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "--runtime-build", "fixture-build",
+            "--as-of", "2026-08-27",
+            "--include-synthetic",
+        ])
+        assert "PREFLIGHT: PASS-MEASURED" in out
+        assert "specificity=5" in out
+
+        out = run([
+            PY, str(HERE / "compatibility_preflight.py"),
+            str(generated_catalog),
+            "--hardware-id", "hw:fixture:24g",
+            "--model-id", "model:fixture:8b",
+            "--runtime-id", "runtime:fixture",
+            "--backend", "FIXTURE",
+            "--artifact-sha256", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "--runtime-build", "fixture-build",
+            "--as-of", "2026-08-27",
+            "--include-synthetic",
+        ])
+        assert "PREFLIGHT: NEEDS-TEST" in out
+
         bad = json.loads(generated.read_text(encoding="utf-8"))
         bad["hardware_id"] = "hw:missing"
         (generated_catalog / "benchmarks.jsonl").write_text(
