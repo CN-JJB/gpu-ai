@@ -6,7 +6,22 @@ from pathlib import Path
 
 EVIDENCE_CLASSES = {"OFFICIAL", "MEASURED", "DERIVED", "SECONDARY", "SELLER", "SYNTHETIC"}
 PLACEHOLDERS = {"", "TODO", "TBD", "REPLACE", "UNKNOWN", "N/A"}
-FILES = ("hardware.jsonl", "models.jsonl", "runtimes.jsonl", "market.jsonl", "compatibility.jsonl", "benchmarks.jsonl")\nCOMPAT_STATUSES = {"MEASURED_SUPPORTED", "DOCUMENTED_SUPPORTED", "PARTIAL", "EXPERIMENTAL", "DOCUMENTED_UNSUPPORTED", "UNKNOWN"}
+FILES = (
+    "hardware.jsonl",
+    "models.jsonl",
+    "runtimes.jsonl",
+    "market.jsonl",
+    "compatibility.jsonl",
+    "benchmarks.jsonl",
+)
+COMPAT_STATUSES = {
+    "MEASURED_SUPPORTED",
+    "DOCUMENTED_SUPPORTED",
+    "PARTIAL",
+    "EXPERIMENTAL",
+    "DOCUMENTED_UNSUPPORTED",
+    "UNKNOWN",
+}
 
 
 def present(value):
@@ -111,6 +126,7 @@ def main():
 
     hardware = {}
     models = {}
+    runtimes = {}
 
     for r in records:
         t = r.get("record_type")
@@ -169,7 +185,6 @@ def main():
         elif t == "compatibility":
             for f in ("hardware_id", "model_id", "runtime_id", "backend", "status", "observed_at"):
                 req(r, f, errors)
-
             if r.get("hardware_id") not in hardware:
                 errors.append(f"{loc}: unknown hardware_id {r.get('hardware_id')!r}")
             if r.get("model_id") not in models:
