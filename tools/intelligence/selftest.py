@@ -184,6 +184,22 @@ def main():
     assert "Market coverage is not a sale-price claim" in out
 
     out = run([
+        PY, str(HERE / "market_matrix.py"),
+        str(prod),
+        "--geography", "CN",
+        "--channel", "secondary-summary",
+        "--cohort", "used-consumer",
+        "--condition", "working-unverified",
+        "--price-state", "SECONDARY_REPORTED",
+        "--currency", "CNY",
+        "--as-of", "2026-08-28",
+    ])
+    assert "observations=2" in out
+    assert "contracts=1" in out
+    assert "value=7400 CNY" in out
+    assert "value=1450 CNY" in out
+
+    out = run([
         PY, str(HERE / "market_evidence_audit.py"),
         str(prod),
         "--geography", "GLOBAL-EBAY",
@@ -305,6 +321,39 @@ def main():
             "--as-of", "2026-08-28",
         ], expect=2)
         assert "MEDIAN_ASK requires sample object" in out
+        assert "VALIDATION: FAIL" in out
+
+        secondary_validation_catalog = td / "secondary-validation"
+        secondary_validation_catalog.mkdir()
+        for name in (
+            "hardware.jsonl",
+            "models.jsonl",
+            "runtimes.jsonl",
+            "market.jsonl",
+            "compatibility.jsonl",
+            "benchmarks.jsonl",
+        ):
+            shutil.copy2(prod / name, secondary_validation_catalog / name)
+
+        secondary_rows = [
+            json.loads(line)
+            for line in (secondary_validation_catalog / "market.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        for row in secondary_rows:
+            if row.get("price_state") == "SECONDARY_REPORTED":
+                row["report"]["confirmed_sale"] = True
+                break
+        (secondary_validation_catalog / "market.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in secondary_rows) + "\n",
+            encoding="utf-8",
+        )
+        out = run([
+            PY, str(HERE / "validate_catalog.py"),
+            str(secondary_validation_catalog),
+            "--as-of", "2026-08-28",
+        ], expect=2)
+        assert "SECONDARY_REPORTED confirmed_sale must be false" in out
         assert "VALIDATION: FAIL" in out
 
         sold_validation_catalog = td / "sold-validation"
@@ -482,6 +531,8 @@ def main():
     print("- sold-marked OfferUp pages stay distinct from confirmed transaction prices")
     print("- SOLD_MARKED_LISTING_PRICE falsely claiming confirmed transaction is rejected")
     print("- cross-market comparison exposes eBay-ask vs OfferUp-sold-marked signal gaps without calling them discounts")
+    print("- China secondary watch contract preserves 3090/A770 reported signals without claiming direct samples or sales")
+    print("- SECONDARY_REPORTED falsely claiming confirmed sale is rejected")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
