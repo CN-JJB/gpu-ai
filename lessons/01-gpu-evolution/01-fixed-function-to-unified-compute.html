@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GPU 为什么从固定功能走向统一计算？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">GPU Evolution · Lesson 01 · L0</p>
+<h1>GPU 为什么从固定功能走向统一计算？</h1>
+<p class="lead">今天的 CUDA Core、warp、Tensor Core 并不是一夜出现的。先理解为什么 GPU 必须越来越可编程，后面的架构术语才会连成因果模型。</p>
+
+<h2>真实问题</h2>
+<div class="callout"><p><strong>为什么一块最初为画图而生的芯片，后来会成为 LLM 的主力计算平台？</strong></p></div>
+
+<h2>五个阶段</h2>
+<div class="chain">
+<span class="node">固定功能</span><span class="arrow">→</span>
+<span class="node">可编程 Shader</span><span class="arrow">→</span>
+<span class="node">Unified Shader</span><span class="arrow">→</span>
+<span class="node">GPGPU / CUDA</span><span class="arrow">→</span>
+<span class="node">Tensor / Matrix</span>
+</div>
+
+<h2>1. 固定功能：很快，但只能走设计好的路</h2>
+<p>早期 GPU 把 3D 渲染中的大量重复、并行工作做成专门流水线。对既定工作很高效，但硬件能表达的效果受到流水线限制。NVIDIA 当前 CUDA 文档也把 GPU 的早期形态概括为为实时 3D 图形服务的固定功能硬件。</p>
+
+<h2>2. 可编程 Shader：把做什么交给程序</h2>
+<p>2001 年 NVIDIA Research 对 GeForce3 的 user-programmable vertex engine 的描述很有代表性：它从高度优化的固定功能 pipeline 演进而来，让开发者能在顶点阶段运行自己的程序，同时还要保住图形工作所需的并行吞吐。</p>
+<p>真正值得记的是 GPU 开始从固定机器变成可编程并行机器。</p>
+
+<h2>3. Unified Shader：为什么不要把工位永久焊死？</h2>
+<p>假设芯片一半工位永远只做 Vertex，另一半永远只做 Pixel。如果某个 workload 突然 80% 都是 Vertex，Pixel 工位会闲着，而 Vertex 工位排队。统一执行池让可编程资源能随 workload 变化重新分配。</p>
+
+<section class="card" data-pipeline-sim>
+<h3>拖动 workload 比例</h3>
+<label>Vertex 比例：<input type="range" min="0" max="100" value="80"></label>
+<p>Vertex <strong data-vertex></strong> · Pixel <strong data-pixel></strong></p>
+<div class="grid">
+<div><p><strong>固定 50/50 分区</strong>：利用率 <span data-fixed-util></span></p><div class="meter"><span data-fixed-bar></span></div></div>
+<div><p><strong>统一 128-unit 池</strong>：利用率 <span data-unified-util></span></p><div class="meter"><span data-unified-bar></span></div><p class="small">概念模型故意加入 5% 通用化/调度开销。</p></div>
+</div>
+<p data-verdict></p>
+</section>
+
+<p><strong>纠偏：</strong>Unified 不代表整颗 GPU 变成同一种单元。纹理、ROP、内存控制器，以及后来的视频、光追、矩阵模块仍可高度专用。</p>
+
+<h2>4. CUDA/GPGPU：不用再假装自己在画图</h2>
+<p>GPU 有大量可编程执行资源后，还需要正常的计算编程模型。NVIDIA 在 2006 年推出 CUDA，把线程、block、shared memory、同步等概念直接暴露给通用计算。图形与计算仍然共存。</p>
+
+<h2>5. Tensor Core：历史又回到专用化</h2>
+<p>深度学习把矩阵乘加变成极高价值热点。Volta 把 Tensor Cores 加进 SM，用专门数据通路提高矩阵计算吞吐和能效；AMD CDNA 同样包含矩阵加速路径。</p>
+<div class="callout"><strong>现代 GPU = 大量通用并行执行资源 + 高价值热点专用单元 + 高带宽内存系统。</strong></div>
+
+<h2>这和本地 LLM 有什么关系？</h2>
+<ul>
+<li>LLM 大量计算落到矩阵/向量运算，所以矩阵硬件和低精度支持很重要。</li>
+<li>但有 Tensor Core 不等于一定快：kernel/backend、显存容量、带宽、数据类型都会改变结果。</li>
+<li>游戏和 LLM 都使用 GPU，但 workload 不同，不能只拿游戏 FPS 推导 LLM 价值。</li>
+</ul>
+
+<h2>小实验</h2>
+<p>运行 <a href="../../labs/experiments/01-unified-shader-load-balancing/README.md">Experiment 01：统一执行池负载平衡</a>。</p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>为什么可编程 Shader 比某代 GPU 更快更值得记？</li>
+<li>Unified Shader 解决哪一种资源浪费？它没有解决什么？</li>
+<li>为什么 Tensor Core 的出现不是对 Unified Shader 的否定？</li>
+<li>一张旧卡有很多通用算力但没有现代矩阵单元，还要查哪些信息才能判断它跑 LLM 是否值得？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+<p>提交 Experiment Card，并用自己的话画出：固定功能 → 可编程 → 统一执行池 → 通用计算 → 矩阵专用化。再把执行模型概念映射到 AMD 的 CU/wavefront/LDS。</p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/introduction.html">NVIDIA CUDA Programming Guide — Introduction</a></li>
+<li><a href="https://research.nvidia.com/publication/2001-08_user-programmable-vertex-engine">NVIDIA Research — A User-Programmable Vertex Engine</a></li>
+<li><a href="https://www.nvidia.com/en-us/drivers/geforce-8600-8500-tech-specs/">NVIDIA GeForce 8 Series — Unified Architecture</a></li>
+<li><a href="https://developer.nvidia.com/blog/cuda-refresher-getting-started-with-cuda/">NVIDIA — CUDA Refresher</a></li>
+<li><a href="https://www.nvidia.com/en-sg/data-center/volta-gpu-architecture/">NVIDIA Volta Architecture</a></li>
+<li><a href="https://rocmdocs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li>
+</ul>
+<p class="small">卡住时指出具体一步；导师应按 wait-what 思路补齐前提，而不是整课重复。</p>
+</main>
+<script src="../../assets/components/pipeline-balance.js"></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GPU 为什么要同时养很多 warp？</title>
+<link rel="stylesheet" href="../../assets/course.css">
+</head>
+<body>
+<main class="page">
+<p class="kicker">GPU Execution Model · Lesson 02 · L0 + optional L2</p>
+<h1>GPU 为什么要同时养很多 warp？</h1>
+<p class="lead">你已经知道 GPU 变成了高度可编程的并行机器。下一步不是背“CUDA Core 数量”，而是看清：逻辑 thread 怎样变成 warp/wavefront，block 怎样驻留到 SM/CU，scheduler 又怎样把等待藏在其他工作后面。</p>
+
+<h2>真实问题</h2>
+<div class="callout">
+<p><strong>显存访问很慢，为什么 GPU 还能保持很高吞吐？如果一个 warp 在等数据，SM/CU 难道就跟着一起发呆吗？</strong></p>
+</div>
+
+<h2>先记住这条链</h2>
+<div class="chain">
+<span class="node">thread</span><span class="arrow">→</span>
+<span class="node">warp / wavefront</span><span class="arrow">→</span>
+<span class="node">SM / CU residency</span><span class="arrow">→</span>
+<span class="node">scheduler</span><span class="arrow">→</span>
+<span class="node">latency hiding</span>
+</div>
+
+<h2>1. Thread：你写的是很多“逻辑小工人”</h2>
+<p>CUDA thread 或 HIP work-item 是程序员表达并行工作的基本单位。一个 thread 可以有自己的索引、寄存器状态和控制流。</p>
+<p>但别把它想成“一条 thread 对应一颗 CUDA Core”。GPU 会把大量逻辑 threads 组织成更大的执行组，再交给硬件调度。</p>
+
+<h2>2. Warp / Wavefront：scheduler 真正面对的是“组”</h2>
+<p>NVIDIA CUDA 把同一 block 内的 threads 划成 32-thread warp。AMD 对应概念通常叫 wavefront；HIP 也会使用 warp 这个兼容术语，但宽度依目标架构而变，不能把“AMD 永远 64”当成规则。</p>
+
+<div class="grid">
+<div class="card">
+<h3>NVIDIA</h3>
+<p><strong>warp = 32 threads</strong></p>
+<p class="small">性能上要考虑 divergence、memory coalescing 和 partial warp。</p>
+</div>
+<div class="card">
+<h3>AMD</h3>
+<p><strong>wavefront / warp = target-dependent</strong></p>
+<p class="small">CDNA/Instinct 常见 Wave64；现代 RDNA/HIP 常见 Wave32。可移植代码应查询 warpSize。</p>
+</div>
+</div>
+
+<h2>3. SM / CU：block 为什么必须“住在一起”？</h2>
+<p>一个 CUDA thread block 的全部 threads 在一个 SM 上执行；一个 HIP work-group 的 wavefronts 同样驻留在一个 CU 上。这样同组 threads 才能访问同一块 shared memory / LDS 并进行低成本同步。</p>
+<p>一个 SM/CU 往往能同时驻留多个 blocks，也就能同时保留很多 warp/wavefront 的执行状态。</p>
+
+<div class="callout">
+<strong>Resident 不是“这一拍正在算”。Resident 的意思是：它的执行上下文和所需资源已经占在 SM/CU 上，轮到它时可以继续。</strong>
+</div>
+
+<h2>4. Scheduler：一个组在等，就找另一个 ready 组</h2>
+<p>假设某 warp 发出 global-memory load，而下一条指令依赖这个结果。这个 warp 暂时不能继续。</p>
+<p>GPU 的关键技巧不是等它，而是让 scheduler 从其他 resident warp 中挑一个 ready 的继续发射。AMD 的 wavefront scheduler 也是同一个稳定思路。</p>
+<p>这和 CPU 操作系统线程切换很不一样：正常情况下 resident warp/wavefront 的程序计数器、寄存器等状态已经留在片上，不需要把整个上下文搬去内存再搬回来。</p>
+
+<h2>5. Latency hiding：没有消灭等待，只是别让流水线陪着等</h2>
+<p>下面的 L0 模型故意只保留一个机制：每个执行组做 4 条 compute instruction，然后发出一条长延迟 memory instruction，并等待 20 cycles。一个抽象 scheduler 每 cycle 最多发射一条指令。</p>
+
+<table>
+<thead><tr><th>resident groups</th><th>issue utilization</th><th>你该看到什么</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>20.8%</td><td>这个组一 stall，整个 scheduler 只能闲着</td></tr>
+<tr><td>8</td><td>76.4%</td><td>等待开始被别的 ready groups 覆盖</td></tr>
+<tr><td>16</td><td>94.4%</td><td>大部分等待已经被藏住</td></tr>
+<tr><td>32</td><td>100.0%</td><td>在这个抽象模型里达到饱和</td></tr>
+</tbody>
+</table>
+
+<p><strong>这不是任何真实 GPU 的周期模拟。</strong>它只验证“更多 ready resident groups 可以减少 scheduler idle cycles”这个因果关系。</p>
+
+<h2>6. Occupancy：为什么 registers 和 shared memory 会突然变重要？</h2>
+<p>想同时驻留更多 warp/wavefront，SM/CU 必须给它们留出执行状态和资源。问题是这些资源有限。</p>
+<ul>
+<li>NVIDIA：register file、shared memory、最大 resident blocks/warps 等共同限制 occupancy。</li>
+<li>AMD：VGPR、SGPR、LDS、warp slots/work-group limits 共同限制 occupancy。</li>
+</ul>
+<p>所以一个 kernel 如果每 thread 要很多 registers，或者每 block 要很大一块 shared memory/LDS，同一个 SM/CU 能同时“养”的 blocks 和 warps 就可能变少。</p>
+
+<h2>7. 纠偏：100% occupancy 不是性能目标</h2>
+<div class="callout">
+<p><strong>Occupancy 是“能同时驻留多少”的指标，不是“有多快”的分数。</strong></p>
+</div>
+<p>NVIDIA Best Practices 明确提醒：更高 occupancy 不总等于更高 performance。原因很现实：更多 registers 或更大的 shared-memory tile 可能让 occupancy 下降，却换来更高数据复用、更少 global-memory traffic 或更强 instruction-level parallelism。</p>
+<p>真正要问的是：当前 kernel 是不是因为没有足够 ready warps 而暴露了 latency？如果不是，继续追 occupancy 可能没有收益。</p>
+
+<h2>这和本地 LLM 有什么关系？</h2>
+<ul>
+<li><strong>GEMM：</strong>tile 越大，数据复用潜力越高，但 registers/shared memory/LDS 压力也可能更大。</li>
+<li><strong>Attention：</strong>Q/K/V tile、softmax 中间状态、shared-memory/LDS staging 都会占片上资源。</li>
+<li><strong>量化 kernel：</strong>反量化、打包格式、向量化和寄存器中的中间值会影响 resource pressure。</li>
+<li><strong>现代高性能 kernel：</strong>有时宁愿牺牲一部分 occupancy，也要换更好的 reuse、ILP、matrix-pipeline feeding 或更少内存流量。</li>
+</ul>
+
+<h2>如何选择 / 调查一张卡或一个 kernel？</h2>
+<ol>
+<li>不要用“CUDA Core 数量”直接推 thread 数或 LLM 性能。</li>
+<li>查目标架构的 warp/wavefront size、SM/CU 资源和支持的软件栈。</li>
+<li>看 kernel 的 block size、register usage、shared memory/LDS usage。</li>
+<li>用 profiler 和真实 workload 判断 stall 与 utilization，而不是只盯 theoretical occupancy。</li>
+<li>跨 NVIDIA/AMD 迁移时映射“作用”，不要把 SM 和 CU 的内部结构硬画等号。</li>
+</ol>
+
+<h2>小实验</h2>
+<p><a href="../../labs/experiments/02-latency-hiding-scheduler-model/README.md">Experiment 02 · L0：scheduler 如何用更多 resident groups 隐藏等待？</a></p>
+<p><a href="../../labs/experiments/03-real-gpu-latency-hiding/README.md">Experiment 03 · optional L2：真实 GPU 上改变片上资源占用，观察 occupancy sensitivity</a></p>
+
+<div class="quiz">
+<h2>Retrieval Practice</h2>
+<ol>
+<li>为什么“一个 CUDA thread 对应一个 CUDA Core”是错误模型？</li>
+<li>一个 warp 因 global-memory dependency stall 后，latency hiding 具体做了什么？又没有做什么？</li>
+<li>为什么 block/work-group 必须驻留在一个 SM/CU 上？</li>
+<li>register pressure 为什么可能降低 occupancy？</li>
+<li>为什么把 occupancy 从 70% 提到 100% 不保证 kernel 更快？</li>
+<li>如果一个 AMD HIP kernel 把 warpSize 写死为 64，迁移到 RDNA 时可能发生什么？</li>
+</ol>
+</div>
+
+<h2>完成证据</h2>
+<p>完成 L0 Experiment Card，并画出：</p>
+<p><strong>thread → warp/wavefront → block residency → SM/CU → ready/stalled → scheduler → latency hiding</strong></p>
+<p>再回答一个迁移题：如果某个 LLM GEMM kernel 为了更大的 tile 把 shared memory/LDS 使用翻倍，你会检查哪些指标，才能判断这是好交易还是坏交易？</p>
+
+<h2>Primary Sources</h2>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/programming-model.html">NVIDIA CUDA Programming Guide — Programming Model</a></li>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html">NVIDIA CUDA Programming Guide — Hardware Implementation / Hardware Multithreading</a></li>
+<li><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html">NVIDIA CUDA C++ Best Practices Guide</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD ROCm HIP — Programming model</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/how-to/performance_guidelines.html">AMD ROCm HIP — Performance guidelines</a></li>
+</ul>
+
+<p class="small">硬件门槛：Lesson 与 L0 实验不需要独显；L2 为可选真实 GPU 路径。卡住时应按 wait-what 思路补前提，不重复整节。</p>
+</main>
+</body>
+</html>
