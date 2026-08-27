@@ -15,6 +15,7 @@ SELFTEST: PASS
 - Hardware ↔ Model ↔ Benchmark bridge returns the fixture observation
 - same artifact/workload observations form one descriptive comparison group
 - explicit same-cohort market rows enable descriptive price/performance
+- evidence-linked TCO fixture reproduces the expected scenario arithmetic
 - documented compatibility returns NEEDS-TEST, not measured PASS
 - Experiment 61 importer reproduces PP/TG
 - exact benchmark Evidence upgrades only the matching path to PASS-MEASURED
