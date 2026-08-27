@@ -144,6 +144,23 @@ def main():
     ])
     assert "PREFLIGHT: NEEDS-TEST" in out
 
+    for hardware_id, backend in (
+        ("hw:amd:radeon-rx-7900-xtx:24g", "HIP"),
+        ("hw:apple:mac-studio-m4-max-40gpu:64g", "METAL"),
+        ("hw:intel:arc-a770:16g", "SYCL"),
+    ):
+        out = run([
+            PY, str(HERE / "compatibility_preflight.py"),
+            str(prod),
+            "--hardware-id", hardware_id,
+            "--model-id", "model:qwen:qwen3-8b",
+            "--runtime-id", "runtime:ggml-org:llama.cpp",
+            "--backend", backend,
+            "--as-of", "2026-08-28",
+        ])
+        assert "status=DOCUMENTED_SUPPORTED" in out
+        assert "PREFLIGHT: NEEDS-TEST" in out
+
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
         generated = td / "generated.jsonl"
@@ -281,6 +298,7 @@ def main():
     print("- explicit same-cohort market rows enable descriptive price/performance")
     print("- evidence-linked TCO fixture reproduces the expected scenario arithmetic")
     print("- documented compatibility returns NEEDS-TEST, not measured PASS")
+    print("- NVIDIA/CUDA, AMD/HIP, Apple/Metal and Intel/SYCL production paths all remain NEEDS-TEST")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
