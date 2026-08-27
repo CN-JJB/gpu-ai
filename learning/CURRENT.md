@@ -4,161 +4,214 @@
 
 - Repo: CN-JJB/gpu-ai
 - Branch: main
-- Course is independent; do not return to old fork history.
+- Stable course and dynamic intelligence are separate layers.
 
 ## Historical archive
 
-The previous long-form CURRENT state through Slice 45 is preserved byte-for-byte at:
+Stable-course history through Slice 45 is preserved at:
 
 ~~~text
 learning/archive/CURRENT-through-slice45-2026-08-27.md
 ~~~
 
-Detailed per-slice history remains in:
+Detailed records:
+- learning/records/
+- examples/evidence/
 
-~~~text
-learning/records/
-examples/evidence/
-~~~
-
-This file intentionally tracks only the active frontier.
-
-## Completed frontier
+## Stable course frontier
 
 ~~~text
 Slices 01–49 implemented
 Experiments 01–93 exist
+Stable v1 mainline complete
 ~~~
 
-The stable v1 mainline now spans:
-- GPU architecture / execution / memory / Roofline;
-- NVIDIA / AMD / Apple / Intel GPU ecosystems;
-- LLM memory, quantization, KV and modern model architecture;
-- reproducible local inference and serving;
-- multi-GPU / interconnect;
-- benchmark manifests, quality gates and Evidence Packets;
-- serving SLO/capacity/admission/fairness;
-- privacy/reliability/rollback/observability;
-- power/energy, storage, host RAM/OOM and thermal behavior;
-- secondhand market / purchase / used-GPU acceptance;
-- PSU / power-delivery integration;
+The stable course ends in:
 - whole-machine feasibility;
-- graduation Machine Design Capstone.
+- Graduation Machine Design Capstone;
+- ACCEPT / REVISE / BLOCKED evidence semantics;
+- packet completeness independent from machine feasibility.
 
-## Recent frontier
+Do not extend the stable mainline just to add volatile current data.
 
-### Slice 46 — Used-GPU Validation
+## Active frontier — Phase 4 Intelligence Stations
 
-Deep acceptance path:
+Verified implementation:
 
 ~~~text
-identity
-→ VRAM
-→ runtime recognition
-→ PCIe
-→ ECC/RAS/XID/error evidence
-→ sustained LLM
-→ ACCEPT / REVIEW / REJECT
+I01 catalog + benchmark bridge
+I02 compatibility preflight
+I03 exact measured compatibility ingestion
+I04 comparable benchmark view
+I05 explicit price/performance
+I06 evidence-linked TCO worksheet
 ~~~
 
-### Slice 47 — PSU / Power Delivery
+### I01 — Catalog foundation
 
-Independent gates:
+Machine-readable entities/observations:
 
 ~~~text
-capacity/headroom
+hardware
+model
+runtime
+market
+compatibility
+benchmark
+~~~
+
+Production files live under:
+
+~~~text
+intelligence/catalog/
+~~~
+
+Core rule:
+
+~~~text
+ENTITY
 +
-connector/cable compatibility
-+
-transient/documentation uncertainty
+dated/source-bound OBSERVATION
 ~~~
 
-No PSU opening, exposed-mains probing, protection bypass or intentional overload.
+Do not put volatile price/support/performance into stable hardware identity.
 
-### Slice 48 — Whole-Machine System Integration
+### I02 — Compatibility preflight
 
-Machine feasibility:
+Statuses:
 
 ~~~text
-known required FAIL → REVISE
-critical UNKNOWN → BLOCKED
-all required gates PASS → ACCEPT
+MEASURED_SUPPORTED
+DOCUMENTED_SUPPORTED
+PARTIAL
+EXPERIMENTAL
+DOCUMENTED_UNSUPPORTED
+UNKNOWN
 ~~~
 
-No weighted score may average away a hard failure.
-
-Experiment 91 is the real Evidence-linked machine dossier.
-
-### Slice 49 — Graduation Machine Design Capstone
-
-Final learner deliverable:
+Decision semantics:
 
 ~~~text
-goal/workload
-→ Experiment 91 dossier
-→ material-claim Evidence index
-→ architecture narrative
-→ benchmark/quality/SLO
-→ TCO/risk
-→ revision alternatives
-→ evidence-triggered upgrade roadmap
-→ explicit non-claims
-→ final rationale
-→ transfer check
+MEASURED_SUPPORTED → PASS-MEASURED
+DOCUMENTED_SUPPORTED → NEEDS-TEST
+PARTIAL / EXPERIMENTAL → REVIEW
+DOCUMENTED_UNSUPPORTED → FAIL
+UNKNOWN / no match → BLOCKED
+stale → STALE-REVALIDATE
 ~~~
 
-New stable distinction:
+Explicit UNKNOWN is a valid state.
+
+### I03 — Exact measured compatibility
+
+Preferred chain:
 
 ~~~text
-machine feasibility
-!=
-graduation packet completeness
+Experiment 61
+→ benchmark observation
+→ measured compatibility observation
 ~~~
 
-Therefore:
+One successful exact path does not prove family-wide compatibility.
+
+Exact artifact/build/device scope remains attached to the observation.
+
+### I04 — Comparable benchmarks
+
+Comparison requires:
 
 ~~~text
-MACHINE DECISION: BLOCKED
-CAPSTONE COMPLETENESS: COMPLETE
+same model_id
++ same artifact SHA
++ same quant
++ same workload
 ~~~
 
-can be a valid graduation result.
+Rows inside one group are descriptive system comparisons.
 
-Experiment 92 contains synthetic ACCEPT / REVISE / BLOCKED review cases.
+No cross-workload leaderboard.
 
-Experiment 93 contains the real final report template, rubric and completeness validator.
+### I05 — Price/performance
 
-## Stable design rule
+Requires:
+- one comparable benchmark group;
+- explicitly selected market records;
+- same geography/channel/cohort/condition/price-state/currency.
 
-Always evaluate in this order:
+No automatic latest-price join.
+
+### I06 — TCO
+
+Scenario:
 
 ~~~text
-workload/model identity
-→ feasibility hard gates
-→ blocking unknowns
-→ measured performance/quality/SLO
-→ preferences/TCO
-→ decision
-→ explicit limits
-→ revision / upgrade path
+purchase
++ platform delta
++ electricity
++ risk reserve
+- resale estimate
+→ TCO
 ~~~
 
-Do not let speed, price, prose quality or a weighted score erase:
-- insufficient VRAM;
-- unsupported runtime;
-- invalid power path;
-- unresolved purchase/safety evidence;
-- missing material-claim Evidence.
+Every material assumption requires an evidence/source note.
+
+TCO is not a feasibility gate and cannot override a hard failure.
+
+## Verification status
+
+On 2026-08-27 the latest I01–I06 scripts and catalog/fixture files were reconstructed into a local test tree and checked against main by Git blob SHA.
+
+Executed:
+
+~~~bash
+python -m py_compile tools/intelligence/*.py
+python tools/intelligence/selftest.py
+~~~
+
+Result:
+
+~~~text
+SELFTEST: PASS
+~~~
+
+Verification caught and fixed:
+- literal \n written into Python source;
+- missing runtime-index initialization;
+- legal UNKNOWN status incorrectly treated as a placeholder.
+
+Evidence:
+
+~~~text
+examples/evidence/intelligence-i01-i06-selftest-verification.md
+~~~
+
+A GitHub Actions self-test workflow exists, but the available connector did not surface a workflow run for this checkpoint. Do not claim CI success merely because the workflow file exists.
+
+## Production-data status
+
+Current production catalog contains:
+- one hardware seed;
+- one model seed;
+- one runtime seed;
+- one dated secondary market observation;
+- one documented compatibility observation;
+- zero real benchmark observations.
+
+The empty production benchmark file is intentional.
+
+~~~text
+no real Experiment 61 Evidence
+→ no production benchmark row
+~~~
 
 ## Next actions
 
-1. Complete Experiment 93 with a real learner-owned target/machine.
-2. Use that real graduation packet to identify actual curriculum gaps.
-3. Patch stable Lessons only when the real Evidence shows a gap.
-4. Otherwise move the major build frontier to Intelligence Stations:
-   - dynamic hardware data;
-   - current backend/model compatibility;
-   - market observations;
-   - benchmark bridge;
-   - recommendation/TCO tooling.
-5. Keep dynamic data out of stable Lessons unless it is converted into a durable reasoning rule.
+1. Search the repository for an existing real Experiment 61 / benchmark Evidence Packet that can be safely ingested.
+2. If none exists, prepare the exact real-ingestion contract and leave production benchmark data empty.
+3. When real benchmark Evidence exists:
+   - ingest benchmark;
+   - validate;
+   - derive exact MEASURED_SUPPORTED;
+   - re-run self-test/production validation.
+4. Expand current vendor/backend observations only from dated auditable sources.
+5. Build recommendation views only after feasibility, support and quality/SLO gates.
