@@ -54,6 +54,29 @@ def main():
     assert "TG=50.000" in out
     assert "NOTE: no cross-workload ranking" in out
 
+    out = run([
+        PY, str(HERE / "compatibility_preflight.py"),
+        str(fixture),
+        "--hardware-id", "hw:fixture:24g",
+        "--model-id", "model:fixture:8b",
+        "--runtime-id", "runtime:fixture",
+        "--backend", "FIXTURE",
+        "--as-of", "2026-08-27",
+        "--include-synthetic",
+    ])
+    assert "PREFLIGHT: NEEDS-TEST" in out
+
+    out = run([
+        PY, str(HERE / "compatibility_preflight.py"),
+        str(prod),
+        "--hardware-id", "hw:nvidia:geforce-rtx-3090:24g",
+        "--model-id", "model:qwen:qwen3-8b",
+        "--runtime-id", "runtime:ggml-org:llama.cpp",
+        "--backend", "CUDA",
+        "--as-of", "2026-08-27",
+    ])
+    assert "PREFLIGHT: NEEDS-TEST" in out
+
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
         generated = td / "generated.jsonl"
@@ -77,7 +100,7 @@ def main():
 
         generated_catalog = td / "catalog"
         generated_catalog.mkdir()
-        for name in ("hardware.jsonl", "models.jsonl", "market.jsonl"):
+        for name in ("hardware.jsonl", "models.jsonl", "runtimes.jsonl", "market.jsonl", "compatibility.jsonl"):
             shutil.copy2(fixture / name, generated_catalog / name)
         shutil.copy2(generated, generated_catalog / "benchmarks.jsonl")
 
@@ -109,7 +132,7 @@ def main():
     print("- production catalog validates")
     print("- synthetic catalog validates only with explicit allowance")
     print("- Hardware ↔ Model ↔ Benchmark bridge returns the fixture observation")
-    print("- Experiment 61 importer reproduces PP/TG")
+    print("- documented compatibility returns NEEDS-TEST, not measured PASS")\n    print("- Experiment 61 importer reproduces PP/TG")
     print("- broken canonical hardware reference is rejected")
 
 
