@@ -1,0 +1,1 @@
+{"schema_version":1,"record_type":"runtime","record_id":"runtime:ggml-org:llama.cpp","runtime_id":"runtime:ggml-org:llama.cpp","canonical_name":"llama.cpp","repository":"ggml-org/llama.cpp","source":{"evidence_class":"OFFICIAL","url":"https://github.com/ggml-org/llama.cpp","observed_at":"2026-08-27"},"revalidate_after":"2026-09-27"}
