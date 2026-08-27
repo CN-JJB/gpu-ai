@@ -180,8 +180,12 @@ goal/workload
 
 | ID | 内容 | 状态 |
 |---|---|---|
-| I01 | Hardware/Model entities + Market/Benchmark observations + Experiment 61 bridge | implemented |
-| I02 | Runtime entities + compatibility observations + documented-vs-measured preflight | implemented |
+| I01 | Hardware/Model entities + Market/Benchmark observations + Experiment 61 bridge | verified |
+| I02 | Runtime entities + compatibility observations + documented-vs-measured preflight | verified |
+| I03 | exact benchmark Evidence → exact MEASURED_SUPPORTED compatibility | verified |
+| I04 | same artifact/quant/workload descriptive benchmark comparison | verified |
+| I05 | explicit same-cohort market pairing → price/performance | verified |
+| I06 | evidence-linked TCO scenario worksheet | verified |
 
 当前稳定边界：
 
