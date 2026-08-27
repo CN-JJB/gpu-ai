@@ -6,7 +6,7 @@ from pathlib import Path
 
 EVIDENCE_CLASSES = {"OFFICIAL", "MEASURED", "DERIVED", "SECONDARY", "SELLER", "SYNTHETIC"}
 PLACEHOLDERS = {"", "TODO", "TBD", "REPLACE", "UNKNOWN", "N/A"}
-FILES = ("hardware.jsonl", "models.jsonl", "market.jsonl", "benchmarks.jsonl")
+FILES = ("hardware.jsonl", "models.jsonl", "runtimes.jsonl", "market.jsonl", "compatibility.jsonl", "benchmarks.jsonl")\nCOMPAT_STATUSES = {"MEASURED_SUPPORTED", "DOCUMENTED_SUPPORTED", "PARTIAL", "EXPERIMENTAL", "DOCUMENTED_UNSUPPORTED", "UNKNOWN"}
 
 
 def present(value):
@@ -136,6 +136,15 @@ def main():
             if mid:
                 models[mid] = r
 
+        elif t == "runtime":
+            for f in ("runtime_id", "canonical_name", "repository"):
+                req(r, f, errors)
+            rid = str(r.get("runtime_id", "")).strip()
+            if rid and rid != str(r.get("record_id", "")).strip():
+                errors.append(f"{loc}: runtime record_id must equal runtime_id")
+            if rid:
+                runtimes[rid] = r
+
     for r in records:
         t = r.get("record_type")
         loc = r["_location"]
@@ -156,6 +165,40 @@ def main():
                     errors.append(f"{loc}: price.currency missing")
                 if not positive_number(price.get("value")):
                     errors.append(f"{loc}: price.value must be > 0")
+
+        elif t == "compatibility":
+            for f in ("hardware_id", "model_id", "runtime_id", "backend", "status", "observed_at"):
+                req(r, f, errors)
+
+            if r.get("hardware_id") not in hardware:
+                errors.append(f"{loc}: unknown hardware_id {r.get('hardware_id')!r}")
+            if r.get("model_id") not in models:
+                errors.append(f"{loc}: unknown model_id {r.get('model_id')!r}")
+            if r.get("runtime_id") not in runtimes:
+                errors.append(f"{loc}: unknown runtime_id {r.get('runtime_id')!r}")
+
+            status = str(r.get("status", "")).upper()
+            if status not in COMPAT_STATUSES:
+                errors.append(f"{loc}: invalid compatibility status {status!r}")
+
+            if present(r.get("observed_at")):
+                parse_date(r.get("observed_at"), f"{loc} observed_at", errors)
+
+            scope = r.get("scope")
+            if not isinstance(scope, dict):
+                errors.append(f"{loc}: missing scope object")
+            elif "measurement_required" not in scope:
+                errors.append(f"{loc}: scope.measurement_required missing")
+
+            source_class = str((r.get("source") or {}).get("evidence_class", "")).upper()
+            if status in {"DOCUMENTED_SUPPORTED", "DOCUMENTED_UNSUPPORTED"} and source_class not in {"OFFICIAL", "SYNTHETIC"}:
+                errors.append(f"{loc}: documented compatibility status requires OFFICIAL evidence")
+            if status == "MEASURED_SUPPORTED":
+                if source_class not in {"MEASURED", "SYNTHETIC"}:
+                    errors.append(f"{loc}: MEASURED_SUPPORTED requires MEASURED evidence")
+                evidence = r.get("evidence")
+                if not isinstance(evidence, dict) or not present(evidence.get("run_source")):
+                    errors.append(f"{loc}: MEASURED_SUPPORTED requires evidence.run_source")
 
         elif t == "benchmark":
             req(r, "hardware_id", errors)
@@ -212,11 +255,11 @@ def main():
                 if not present(evidence.get("packet_source")):
                     warnings.append(f"{loc}: packet_source missing; Experiment 61 packet preferred")
 
-        elif t not in {"hardware", "model", "market", "benchmark"}:
+        elif t not in {"hardware", "model", "runtime", "market", "compatibility", "benchmark"}:
             errors.append(f"{loc}: unknown record_type {t!r}")
 
     print(f"CATALOG: {a.catalog}")
-    print(f"records={len(records)} hardware={len(hardware)} models={len(models)}")
+    print(f"records={len(records)} hardware={len(hardware)} models={len(models)} runtimes={len(runtimes)}")
     print("WARNINGS")
     for x in warnings:
         print("- " + x)
