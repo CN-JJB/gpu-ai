@@ -207,6 +207,18 @@ def main():
                 if not present(src.get("data_exported_at")):
                     errors.append(f"{loc}: MEDIAN_ASK source.data_exported_at missing")
 
+            if str(r.get("price_state", "")).upper() == "SECONDARY_REPORTED":
+                report = r.get("report")
+                if not isinstance(report, dict):
+                    errors.append(f"{loc}: SECONDARY_REPORTED requires report object")
+                else:
+                    if report.get("direct_listing_capture") is not False:
+                        errors.append(f"{loc}: SECONDARY_REPORTED direct_listing_capture must be false")
+                    if report.get("confirmed_sale") is not False:
+                        errors.append(f"{loc}: SECONDARY_REPORTED confirmed_sale must be false")
+                    if not present(report.get("reported_market")):
+                        errors.append(f"{loc}: SECONDARY_REPORTED report.reported_market missing")
+
             if str(r.get("price_state", "")).upper() == "SOLD_MARKED_LISTING_PRICE":
                 listing = r.get("listing")
                 if not isinstance(listing, dict):
