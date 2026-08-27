@@ -4,6 +4,15 @@ import json
 from datetime import date
 from pathlib import Path
 
+STATUS_RANK = {
+    "MEASURED_SUPPORTED": 6,
+    "DOCUMENTED_SUPPORTED": 5,
+    "PARTIAL": 4,
+    "EXPERIMENTAL": 3,
+    "UNKNOWN": 2,
+    "DOCUMENTED_UNSUPPORTED": 1,
+}
+
 
 def load(path):
     if not path.exists():
@@ -15,6 +24,30 @@ def load(path):
     ]
 
 
+def specificity(record, artifact_sha256, runtime_build):
+    scope = record.get("scope") or {}
+    score = 0
+
+    if artifact_sha256:
+        value = scope.get("artifact_sha256")
+        if value:
+            if str(value).lower() != artifact_sha256.lower():
+                return -1
+            score += 2
+
+    if runtime_build:
+        value = scope.get("runtime_build")
+        if value:
+            if str(value) != runtime_build:
+                return -1
+            score += 2
+
+    if scope.get("quant"):
+        score += 1
+
+    return score
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("catalog", type=Path)
@@ -22,6 +55,8 @@ def main():
     p.add_argument("--model-id", required=True)
     p.add_argument("--runtime-id", required=True)
     p.add_argument("--backend", required=True)
+    p.add_argument("--artifact-sha256")
+    p.add_argument("--runtime-build")
     p.add_argument("--as-of", default=date.today().isoformat())
     p.add_argument("--include-synthetic", action="store_true")
     a = p.parse_args()
@@ -49,33 +84,50 @@ def main():
             continue
         if x.get("synthetic", False) and not a.include_synthetic:
             continue
-        observations.append(x)
 
-    observations.sort(key=lambda x: str(x.get("observed_at", "")), reverse=True)
+        spec = specificity(x, a.artifact_sha256, a.runtime_build)
+        if spec < 0:
+            continue
+        observations.append((spec, x))
+
+    observations.sort(
+        key=lambda pair: (
+            pair[0],
+            STATUS_RANK.get(str(pair[1].get("status", "UNKNOWN")).upper(), 0),
+            str(pair[1].get("observed_at", "")),
+        ),
+        reverse=True,
+    )
 
     print("PATH")
     print(f"- hardware: {hardware[a.hardware_id]['canonical_name']}")
     print(f"- model: {models[a.model_id]['canonical_name']}")
     print(f"- runtime: {runtimes[a.runtime_id]['canonical_name']}")
     print(f"- backend: {a.backend.upper()}")
+    if a.artifact_sha256:
+        print(f"- artifact_sha256: {a.artifact_sha256}")
+    if a.runtime_build:
+        print(f"- runtime_build: {a.runtime_build}")
 
     if not observations:
         print("OBSERVATION: none")
         print("PREFLIGHT: BLOCKED")
-        print("Reason: no exact compatibility observation; do not guess support.")
+        print("Reason: no matching compatibility observation; do not guess support.")
         return
 
-    x = observations[0]
+    spec, x = observations[0]
     status = str(x.get("status", "UNKNOWN")).upper()
     stale = False
     if x.get("revalidate_after"):
         stale = date.fromisoformat(str(x["revalidate_after"])) < date.fromisoformat(a.as_of)
 
     print(f"OBSERVATION: {x.get('record_id')}")
+    print(f"specificity={spec}")
     print(f"status={status} observed={x.get('observed_at')} revalidate_after={x.get('revalidate_after')}")
     print(f"evidence={x.get('source', {}).get('evidence_class')}")
     scope = x.get("scope", {})
     print(f"representation={scope.get('representation')}")
+    print(f"quant={scope.get('quant')}")
     print(f"measurement_required={scope.get('measurement_required')}")
     print(f"notes={scope.get('notes')}")
 
@@ -93,7 +145,7 @@ def main():
         decision = "BLOCKED"
 
     print(f"PREFLIGHT: {decision}")
-    print("A documented support observation is not a measured deployment PASS.")
+    print("Compatibility applies only to the recorded scope; do not generalize exact-path Evidence.")
 
 
 if __name__ == "__main__":
