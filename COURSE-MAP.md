@@ -187,6 +187,9 @@ goal/workload
 | I05 | explicit same-cohort market pairing → price/performance | verified |
 | I06 | evidence-linked TCO scenario worksheet | verified |
 | I07 | real Experiment 61 Evidence Packet intake gate | verified |
+| I08 | NVIDIA/AMD/Apple/Intel documented compatibility coverage | verified |
+| I09 | compatibility coverage matrix with scope/freshness | verified |
+| I10 | freshness / revalidation queue | verified |
 
 当前稳定边界：
 
