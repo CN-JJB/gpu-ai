@@ -1322,3 +1322,14 @@ URL: https://arxiv.org/abs/1910.07467
 URL: https://arxiv.org/abs/2104.09864
 用途：rotary position embedding, paired rotations and relative-position attention structure.
 可信度：original research paper。
+
+
+### Multi-Query Attention — Fast Transformer Decoding
+URL: https://arxiv.org/abs/1911.02150
+用途：shared K/V heads, incremental-decoding KV memory-bandwidth motivation.
+可信度：original research paper。
+
+### Grouped-Query Attention
+URL: https://arxiv.org/abs/2305.13245
+用途：GQA as intermediate KV-head grouping between MHA and MQA.
+可信度：original research paper。

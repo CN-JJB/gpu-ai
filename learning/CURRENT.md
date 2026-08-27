@@ -292,6 +292,21 @@ Artifacts:
 
 L0 RMSNorm and RoPE numeric properties verified.
 
+### Slice 26 — MHA / MQA / GQA
+
+Hq query heads vs Hkv KV heads → projection widths → grouped sharing → KV bytes/token → long-context/concurrency/decode-bandwidth consequences。
+
+Artifacts:
+- research/llm/0009-mha-mqa-gqa.md
+- reference/llm/mha-mqa-gqa-kv.md
+- lessons/26-attention-heads/01-mha-mqa-gqa.html
+- labs/experiments/46-mha-gqa-mqa-kv-model/
+- labs/experiments/47-real-model-attention-config-compare/
+- examples/evidence/experiment-26-mha-mqa-gqa.md
+- learning/records/2026-08-27-mha-mqa-gqa.md
+
+Default L0 model verified: MHA/GQA-8/MQA 32k FP16 KV = 16/4/0.5 GiB.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -348,8 +363,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build MHA / MQA / GQA slice.
-2. Separate query-head count from KV-head count.
-3. Derive projection widths and KV cache directly from Hq/Hkv/head_dim.
-4. Show why reducing KV heads can improve incremental decode memory traffic/capacity.
-5. Then continue to SwiGLU/FFN and MoE.
+1. Build SwiGLU / dense FFN slice.
+2. Derive gate/up/down matrix parameter and byte costs.
+3. Show why FFN can dominate dense model weights even though attention gets more attention.
+4. Compare prefill large-GEMM and decode small-row weight-streaming behavior through the MLP.
+5. Then build MoE and distinguish total vs active parameters.
