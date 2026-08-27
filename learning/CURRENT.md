@@ -136,6 +136,24 @@ Artifacts:
 
 L0 terminology/lineage assertions verified 12/12. Real gfx-target/ROCm inventory path ready. ROCm support is kept dynamic and exact-SKU specific.
 
+### Slice 16 — Apple Silicon / Unified Memory / Metal / Neural Engine
+
+SoC → unified memory → Metal GPU SIMD/threadgroup → GPU vs Neural Engine → MLX → M1→M5 GPU evolution。
+
+Artifacts:
+- research/gpu/0010-apple-silicon-unified-memory-metal-ane.md
+- reference/gpu/apple-silicon-unified-memory-metal.md
+- lessons/16-apple-silicon/01-unified-memory-is-not-vram.html
+- lessons/16-apple-silicon/02-metal-gpu-simd-threadgroup.html
+- lessons/16-apple-silicon/03-m1-to-m5-gpu-ane-mlx.html
+- labs/experiments/27-apple-unified-memory-budget-model/
+- labs/experiments/28-real-apple-metal-mlx-inventory/
+- examples/evidence/experiment-16-apple-silicon.md
+- intelligence/gpu/apple-silicon-metal-mlx-2026-08-27.md
+- learning/records/2026-08-27-apple-silicon-slice.md
+
+L0 capacity/bandwidth roof verified. Real experiment directly queries Metal unified-memory and SIMD-group properties. M5 tensor-path integration remains dynamic intelligence.
+
 ## Experiment status
 
 L0 deterministic concept experiments verified:
@@ -192,9 +210,8 @@ Stable lesson complete; real two-GPU benchmark path is ready but contains no fab
 
 ## Next actions
 
-1. Build the Apple Silicon special architecture section.
-2. Explain unified memory without calling it "shared VRAM".
-3. Separate Metal GPU execution from Neural Engine and CPU/AMX-like matrix paths.
-4. Map Apple GPU SIMD-group/threadgroup memory concepts to the transferable execution/memory model.
-5. Add current MLX / llama.cpp Metal support as dynamic intelligence.
-6. Build L0 unified-memory bandwidth/capacity reasoning before any Mac-specific real benchmark.
+1. Add the lighter Intel GPU architecture section: Gen/EU → Xe-LP → Xe-HPG/Arc → Xe2.
+2. Explain EU/Xe-core/XMX without forcing NVIDIA terminology.
+3. Cover oneAPI/Level Zero/SYCL and current Arc local-LLM relevance.
+4. Add a small capability/backend inventory experiment rather than a huge Intel history branch.
+5. Then converge NVIDIA/AMD/Apple/Intel into a cross-vendor used-hardware decision framework.

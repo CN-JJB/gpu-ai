@@ -1081,3 +1081,79 @@ URL: https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html
 URL: https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html
 用途：current amd-smi version/list/static/topology/xgmi interfaces.
 可信度：AMD ROCm official current docs。
+
+
+## Apple Silicon / Metal / MLX
+
+### Apple M1
+URL: https://www.apple.com/newsroom/2020/11/apple-unleashes-m1/
+用途：Apple-Silicon Mac SoC baseline, Unified Memory Architecture.
+可信度：Apple official historical source。
+
+### Apple M2
+URL: https://www.apple.com/newsroom/2022/06/apple-unveils-m2-with-breakthrough-performance-and-capabilities/
+用途：M2 scale-up, official unified-memory bandwidth/capacity example.
+可信度：Apple official。
+局限：product numbers are dynamic, not stable architecture constants.
+
+### Apple M3 family
+URL: https://www.apple.com/newsroom/2023/10/apple-unveils-m3-m3-pro-and-m3-max-the-most-advanced-chips-for-a-personal-computer/
+用途：new GPU architecture, Dynamic Caching, hardware ray tracing/mesh shading.
+可信度：Apple official。
+
+### Apple M4
+URL: https://www.apple.com/newsroom/2024/05/apple-introduces-m4-chip/
+用途：M4 continues M3 GPU architecture, stronger Neural Engine/memory system.
+可信度：Apple official。
+
+### Apple M5
+URL: https://www.apple.com/newsroom/2025/10/apple-unleashes-m5-the-next-big-leap-in-ai-performance-for-apple-silicon/
+用途：GPU Neural Accelerator per core, Metal 4 Tensor APIs, 2nd-gen Dynamic Caching, separate Neural Engine.
+可信度：Apple official。
+
+### M5 Pro / M5 Max
+URL: https://www.apple.com/newsroom/2026/03/apple-introduces-macbook-pro-with-all-new-m5-pro-and-m5-max/
+用途：current Fusion Architecture, exact current memory capacity/bandwidth tiers.
+可信度：Apple official current product source。
+局限：do not generalize package/product numbers.
+
+### Metal storage modes
+URL: https://developer.apple.com/documentation/metal/setting-resource-storage-modes
+用途：Apple-Silicon shared default, private/shared semantics, synchronization.
+可信度：Apple Developer official。
+
+### Metal unified-memory properties
+URL: https://developer.apple.com/documentation/metal/mtldevice/hasunifiedmemory
+URL: https://developer.apple.com/documentation/metal/mtldevice/recommendedmaxworkingsetsize
+用途：real device unified-memory Evidence and recommended working-set budget.
+可信度：Apple Developer official。
+
+### Metal threads / SIMD groups
+URL: https://developer.apple.com/documentation/metal/creating-threads-and-threadgroups
+URL: https://developer.apple.com/documentation/apple-silicon/porting-your-metal-code-to-apple-silicon
+用途：threadgroup/SIMD group, divergence, runtime threadExecutionWidth.
+可信度：Apple Developer official。
+
+### Core ML compute units
+URL: https://developer.apple.com/documentation/coreml/mlcomputeunits
+用途：CPU/GPU/Neural Engine are distinct selectable compute-unit paths.
+可信度：Apple Developer official。
+
+### MLX
+URL: https://ml-explore.github.io/mlx/
+URL: https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html
+用途：Apple-Silicon unified-memory CPU/GPU framework model.
+可信度：Apple ML Research project docs。
+
+### Metal Performance Primitives / Tensor APIs
+URL: https://developer.apple.com/download/files/Metal-Performance-Primitives-Programming-Guide.pdf
+URL: https://developer.apple.com/documentation/metal/running-inline-ml-operations-in-a-shader-with-metal-4
+用途：M5 GPU Neural Accelerators, Metal 4 tensor resources/operations.
+可信度：Apple Developer official current docs。
+
+### llama.cpp M5 Metal tensor issue
+URL: https://github.com/ggml-org/llama.cpp/issues/27473
+Related PR: https://github.com/ggml-org/llama.cpp/pull/27461
+用途：current backend-integration case study: hardware capability != runtime readiness.
+可信度：canonical llama.cpp upstream issue/PR。
+局限：open/unconfirmed and rapidly changing; intelligence only.
