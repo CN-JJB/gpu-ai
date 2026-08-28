@@ -136,4 +136,15 @@ for this workload/build/hardware</pre>
 我知道下一步该测什么</pre>
 
 <p>这才是前面 21 个 Slice 最终汇合的能力。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Measure → Diagnose → One-variable A/B</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实硬件/市场只是增强。</p><p><strong>成本：</strong>0 元教学路径。</p><p><strong>风险：</strong>safe；涉及真实二手交易时课程只提供调查/验收方法，不替你自动购买。</p></div>
+<h3>能力目标</h3><ul><li>先测 baseline，再提出 bottleneck hypothesis，再只改一个语义变量</li><li>把 PP、TG、质量、功耗/温度和配置身份放进同一 Evidence Packet</li><li>失败实验也保留，因为它能排除假设</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/39-capstone-bottleneck-diagnosis/README.md">Experiment 39：bottleneck diagnosis</a>；有真实本地 LLM 时做 <a href="../../labs/experiments/40-real-llm-capstone/README.md">Experiment 40：real controlled A/B</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么一次同时改 quant、FA、context 后的 20% 提速几乎无法归因？</li><li>TG 低但 PP 正常时，你会先回看哪些课程概念？</li><li>一个 A/B 只有平均 tok/s，没有 raw runs 和 exact argv，缺了什么？</li><li>什么时候应该停止优化并接受当前配置？</li></ol>
+<h3>完成证据</h3><p>完成一张 baseline→hypothesis→single change→measurement→interpretation 卡；必须列出保持不变的变量和结果不能证明的内容。</p>
+<h3>如何选择 / 迁移</h3><p>今后任何 backend、GPU、模型或服务优化都重复这一闭环，而不是积累“玄学参数”。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md">llama.cpp — llama-bench</a></li><li><a href="https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html">NVIDIA Nsight Compute Profiling Guide</a></li><li><a href="https://rocm.docs.amd.com/projects/rocprofiler-compute/en/latest/how-to/analyze/cli.html">ROCm Compute Profiler</a></li></ul>
+</section>
 </body></html>

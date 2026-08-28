@@ -184,4 +184,15 @@ ECC/RAS
 <pre>每个关键结论
 都有证据
 </pre>
+
+<section class="student-closure">
+<h2>学生闭环 — 二手 GPU 付款前与到货验收</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实硬件/市场只是增强。</p><p><strong>成本：</strong>0 元教学路径。</p><p><strong>风险：</strong>safe；涉及真实二手交易时课程只提供调查/验收方法，不替你自动购买。</p></div>
+<h3>能力目标</h3><ul><li>把卖家 claim、外观证据、设备身份、显存/PCIe/错误、持续负载分层验证</li><li>知道什么问题适合付款前问，什么必须到货后自己测</li><li>用 ACCEPT / REVIEW / REJECT 而不是“能亮机就没问题”</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/35-seller-evidence-quality/README.md">Experiment 35：seller evidence quality</a>；有真实卡时做 <a href="../../labs/experiments/36-real-used-gpu-acceptance/README.md">Experiment 36：real used-GPU acceptance</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>GPU-Z/nvidia-smi 能识别型号，为什么仍不能证明显存完全健康？</li><li>短跑 benchmark PASS 为什么不能替代 sustained soak？</li><li>卖家说“无修无矿”和你能验证的事实之间差了什么？</li><li>发现 PCIe link 异常时为什么先排平台/插槽/负载状态，而不是马上判坏卡？</li></ol>
+<h3>完成证据</h3><p>写一份二手卡验收 SOP：付款前材料、到货身份、显存/错误、PCIe、温度功耗、持续 LLM workload、退货阈值，并为每项说明证据强度。</p>
+<h3>如何选择 / 迁移</h3><p>不同厂商命令会换，但验收逻辑不变：identity → integrity → link → sustained workload → decision boundary。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/dcgm-diagnostics.html">NVIDIA DCGM Diagnostics</a></li><li><a href="https://rocmdocs.amd.com/projects/amdsmi/en/latest/conceptual/ras.html">AMD SMI RAS</a></li><li><a href="../../reference/hardware/used-gpu-acceptance-checklist.md">Course Reference — Used GPU Acceptance Checklist</a></li></ul>
+</section>
 </body></html>
