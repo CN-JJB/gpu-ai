@@ -1,0 +1,11 @@
+{
+  "performance_target_policy_schema_version": 1,
+  "policy_id": "REPLACE",
+  "comparison_id": "REPLACE",
+  "requirements": {
+    "min_pp_tok_s": null,
+    "min_tg_tok_s": null,
+    "max_candidate_ppl": null,
+    "max_ppl_percent_change": null
+  }
+}
