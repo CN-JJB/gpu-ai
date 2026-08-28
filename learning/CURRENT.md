@@ -36,6 +36,7 @@ I16 stable M0–M3 market evidence selection gate
 I17 freshness-aware watchlist gate
 I18 append-only market refresh lineage
 I19 reusable market refresh helper + CI self-test
+I20 manifest ↔ raw llama-bench identity/config cross-check
 ~~~
 
 ## Benchmark boundary
@@ -170,10 +171,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #67
-run id 33154549739
-head 8ab1d5435e867570c2a5c2a48cc94d45c533179f
-job id 98794100639
+run #76
+run id 33155172914
+head 24f797883fc09c96b8dc8422ccfd4724c8e0b08a
+job id 98796127099
 conclusion success
 ~~~
 
@@ -184,21 +185,22 @@ SELFTEST: PASS
 ~~~
 
 Log/steps explicitly confirm:
-- the original full Intelligence self-test still passes;
-- the reusable market refresh helper compiles;
-- the dedicated market refresh self-test passes;
-- reciprocal lineage is created without deleting history;
-- already-superseded tails, cross-hardware links and non-newer dates are rejected.
+- every Intelligence Python tool compiles;
+- the full Intelligence self-test passes;
+- I20 selects the exact protocol PP/TG rows and cross-checks manifest identity/config against raw llama-bench fields;
+- a hash-consistent packet with a false manifest GPU identity is blocked;
+- the dedicated I19 market refresh self-test remains green.
 
 Evidence:
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
 - examples/evidence/intelligence-18-append-only-market-refresh.md
 - examples/evidence/intelligence-19-market-refresh-helper.md
+- examples/evidence/intelligence-20-real-benchmark-raw-identity.md
 
 ## Next
 
-1. Use market_refresh.py for future due/stale observation replacement instead of manual lineage edits.
-2. Refresh RTX 3090 China secondary evidence when a stronger/newer source is available; current public evidence remains M1 around 7400 CNY.
-3. Acquire the first real Experiment 61 Evidence Packet.
+1. Acquire the first learner-owned real Experiment 61 Evidence Packet through the strengthened I07/I20 gate.
+2. Reduce manual packet-capture friction without weakening Experiment 61 provenance or identity requirements.
+3. Use market_refresh.py for future due/stale observation replacement; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
