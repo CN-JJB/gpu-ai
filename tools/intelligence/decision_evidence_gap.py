@@ -13,6 +13,7 @@ from market_evidence_gate import (
 )
 from verify_tradeoff_route import verify_tradeoff_route
 from verify_used_gpu_acceptance import verify_used_gpu_acceptance_artifact
+from verify_performance_target import verify_performance_target_result
 
 
 def evaluate_real_benchmark(label, record):
@@ -365,6 +366,93 @@ def evaluate_used_gpu_acceptance_component(
     }
 
 
+def evaluate_performance_target_component(
+    result_path,
+    policy_path,
+    joint_tradeoff,
+    baseline_manifest,
+    candidate_manifest,
+    baseline_benchmark,
+    candidate_benchmark,
+    quality_comparison,
+    baseline_quality_dir,
+    candidate_quality_dir,
+    baseline_model_artifact,
+    candidate_model_artifact,
+    quality_corpus,
+    variable_contract,
+):
+    supplied = [result_path, policy_path]
+    if all(x is None for x in supplied):
+        return {
+            "status": "BLOCKED",
+            "reason": "no I46 performance target result/policy supplied",
+            "decision": "MISSING",
+        }
+    if any(x is None for x in supplied):
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "performance target bridge requires --performance-target-result "
+                "and --performance-target-policy together"
+            ),
+            "decision": "INCOMPLETE",
+        }
+
+    verified = verify_performance_target_result(
+        result_path,
+        policy_path,
+        joint_tradeoff,
+        baseline_manifest,
+        candidate_manifest,
+        baseline_benchmark,
+        candidate_benchmark,
+        quality_comparison,
+        baseline_quality_dir,
+        candidate_quality_dir,
+        baseline_model_artifact,
+        candidate_model_artifact,
+        quality_corpus,
+        variable_contract,
+    )
+    if verified["errors"]:
+        return {
+            "status": "BLOCKED",
+            "reason": "; ".join(verified["errors"]),
+            "decision": "INVALID",
+        }
+
+    result = verified["supplied"]
+    if result.get("synthetic_input", False):
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "synthetic performance target PASS is not production performance evidence"
+            ),
+            "decision": result.get("decision"),
+            "policy_id": result.get("policy_id"),
+        }
+    if result.get("decision") != "PASS":
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "explicit performance target policy did not pass; "
+                f"actual={result.get('decision')!r}"
+            ),
+            "decision": result.get("decision"),
+            "policy_id": result.get("policy_id"),
+        }
+
+    return {
+        "status": "PASS",
+        "reason": (
+            "real verified candidate metrics satisfy the explicit I46 hard-threshold policy"
+        ),
+        "decision": "PASS",
+        "policy_id": result.get("policy_id"),
+    }
+
+
 def main():
     p = argparse.ArgumentParser(
         description=(
@@ -390,6 +478,8 @@ def main():
     p.add_argument("--used-gpu-acceptance", type=Path)
     p.add_argument("--used-gpu-acceptance-case", type=Path)
     p.add_argument("--used-gpu-acceptance-packet", type=Path)
+    p.add_argument("--performance-target-result", type=Path)
+    p.add_argument("--performance-target-policy", type=Path)
     p.add_argument("--as-of", default=date.today().isoformat())
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
@@ -471,6 +561,23 @@ def main():
         candidate.get("hardware_id") if candidate else None,
     )
 
+    performance_target_component = evaluate_performance_target_component(
+        a.performance_target_result,
+        a.performance_target_policy,
+        a.joint_tradeoff,
+        a.baseline_manifest,
+        a.candidate_manifest,
+        a.baseline_benchmark,
+        a.candidate_benchmark,
+        a.quality_comparison,
+        a.baseline_quality_dir,
+        a.candidate_quality_dir,
+        a.baseline_model_artifact,
+        a.candidate_model_artifact,
+        a.quality_corpus,
+        a.variable_contract,
+    )
+
     unresolved = {
         "condition_acceptance": {
             "status": "BLOCKED",
@@ -480,14 +587,6 @@ def main():
                 "mapping remains undefined and is not inferred."
             ),
             "next_evidence": "stable explicit C0–C4 mapping contract",
-        },
-        "performance_target": {
-            "status": "BLOCKED",
-            "reason": (
-                "verified PP/TG/PPL comparison does not prove the candidate meets a "
-                "declared target performance/SLO threshold"
-            ),
-            "next_evidence": "explicit target/SLO policy tied to measured candidate metrics",
         },
         "price_ceiling": {
             "status": "BLOCKED",
@@ -506,6 +605,7 @@ def main():
         "current_market_evidence": market_component,
         "whole_machine_feasibility": feasibility_component,
         "used_gpu_acceptance": used_gpu_component,
+        "performance_target": performance_target_component,
         **unresolved,
     }
 
