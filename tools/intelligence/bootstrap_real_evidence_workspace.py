@@ -138,7 +138,7 @@ Those must come from real artifacts or real capture.
 Required before I53:
 
 ~~~text
-profile.txt
+profile.txt generated from the verified I54 bundle in step 3
 prompt-evidence/manifest.json
 real model GGUF at the path in real-session.json
 real quality corpus at the path in real-session.json
@@ -164,7 +164,25 @@ SEMANTIC SOURCE CAPTURE: READY-FOR-SEMANTIC-REVIEW
 
 Review the raw streams before filling semantic manifest fields.
 
-## 3. Materialize byte-derived identity (I53)
+## 3. Assemble the hardware profile from the verified I54 bundle
+
+~~~bash
+python3 "{tool_dir / 'assemble_hardware_profile.py'}" \
+  "{workspace / 'semantic-source-evidence' / 'bundle.json'}" \
+  --out "{workspace / 'profile.txt'}"
+~~~
+
+Require:
+
+~~~text
+HARDWARE PROFILE ASSEMBLER: READY
+~~~
+
+The assembler re-hashes every I54 stdout/stderr file and embeds the exact raw bytes as base64. It performs no device/runtime semantic inference.
+
+Now review the I54 evidence and deliberately fill the remaining semantic fields in `baseline-manifest.json`, `quality-identity.json`, and `real-session.json`.
+
+## 4. Materialize byte-derived identity (I53)
 
 ~~~bash
 python3 "{tool_dir / 'prepare_real_evidence_session.py'}" \
@@ -178,7 +196,7 @@ Require:
 REAL SESSION PREPARE: READY-TO-RUN-I52
 ~~~
 
-## 4. Execute and seal benchmark + quality (I52)
+## 5. Execute and seal benchmark + quality (I52)
 
 ~~~bash
 python3 "{tool_dir / 'run_real_evidence_session.py'}" \
@@ -192,7 +210,7 @@ Require:
 REAL SESSION: READY
 ~~~
 
-## 5. Human review remains mandatory
+## 6. Human review remains mandatory
 
 Do not ingest automatically. Review exact hardware/runtime/model/execution identity and raw benchmark/quality evidence first.
 
@@ -297,7 +315,7 @@ def main():
             "observed_at": a.observed_at,
         },
         "required_real_inputs_not_generated": [
-            "profile.txt",
+            "profile.txt (generated after I54 by assemble_hardware_profile.py)",
             "prompt-evidence/manifest.json",
             "real model GGUF",
             "real quality corpus",

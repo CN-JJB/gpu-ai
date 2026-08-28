@@ -90,6 +90,8 @@ jobs:
         run: python tools/intelligence/real_evidence_session_prepare_selftest.py
       - name: Run semantic source capture self-test
         run: python tools/intelligence/semantic_source_capture_selftest.py
+      - name: Run hardware profile assembler self-test
+        run: python tools/intelligence/hardware_profile_assembler_selftest.py
       - name: Run real workspace bootstrap self-test
         run: python tools/intelligence/real_workspace_bootstrap_selftest.py
       - name: Run market refresh self-test
