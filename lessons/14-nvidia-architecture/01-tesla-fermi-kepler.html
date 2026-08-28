@@ -1,182 +1,121 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NVIDIA 架构 1：Tesla、Fermi、Kepler</title>
-<link rel="stylesheet" href="../../assets/course.css">
-<style>
-body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
-pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
-.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
-table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
-</style>
-</head>
-<body>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 1：Tesla、Fermi、Kepler</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">NVIDIA Architecture · 1/5 · L0→L1</p>
+<h1>NVIDIA 架构主线（一）：Tesla / G80 → Fermi → Kepler</h1>
+<p class="lead">这三代建立了今天 NVIDIA GPU 编程最底层的语言：统一可编程执行、SIMT、warp/SM、shared memory、cache、latency hiding、warp 内通信与并发工作队列。目标不是背年代，而是看清“现代 CUDA 为什么长成这样”。</p>
 
-<h1>NVIDIA 架构 1 — Tesla / G80 → Fermi → Kepler</h1>
-<p><strong>这一节不是古董考古。</strong>今天 CUDA kernel 里最基本的 thread、warp、SM、shared memory、latency hiding，都从这一阶段长出来。</p>
+<h2>Prerequisite Check</h2>
+<ul><li>知道 GPU 从固定功能走向可编程/统一执行；如果不熟，先回到 Lesson 01。</li><li>不要求会 CUDA。看到 thread、warp、SM 时先把它们理解为“工作 → 成组调度 → 执行资源”的层级。</li></ul>
 
-<h2>1. Tesla/G80：真正的起点是“统一”</h2>
-<p>更早的 GPU 为不同图形阶段准备不同执行资源。问题是：像素很多时，vertex 单元不能自动变成 pixel 单元。</p>
-<pre>old:
-vertex hardware | pixel hardware | other fixed stages
+<h2>真实问题：为什么一张老 NVIDIA 卡不能只看 CUDA Core 数？</h2>
+<p>二手市场最常见的误判之一，是把不同年代的“核心数量”横向比较。架构改变了每个 SM 如何调度、如何访问片上存储、支持什么精度、能否并发、软件栈还能否使用。即使两个 SKU 的核心数接近，实际可用能力也可能属于完全不同的时代。</p>
 
-Tesla/G80:
-one programmable processor pool
-→ graphics shader work
-→ compute work</pre>
-<p>这就是 <strong>unified architecture</strong> 的关键。</p>
+<h2>1. Tesla / G80：从图形流水线跨到 throughput computer</h2>
+<p>G80/Tesla 的历史意义不在于今天还值得买，而在于统一可编程处理器把图形 shader 与通用并行计算放进同一类执行资源。CUDA 随后把这种硬件暴露成可直接编程的计算平台。</p>
+<pre>program view                 hardware view
+Grid                         GPU
+└─ Block                     └─ SM
+   └─ Threads                   └─ warps of threads</pre>
+<p><strong>SIMT</strong> 可以先粗略理解为：程序员写很多独立 thread，硬件把它们成组调度。这样既保留线程式编程表达，又用成组执行获得吞吐。</p>
 
-<div class="callout"><strong>第一次重要抽象：</strong>GPU 不再只是一条固定图形流水线，而是一台由大量轻量线程驱动的 throughput computer。</div>
+<h3>为什么 shared memory 从一开始就重要？</h3>
+<p>如果每个 thread 都不断去高延迟显存取同一批数据，大量并行核心会被数据等待拖住。block 内共享的低延迟片上存储，让线程可以先协作搬一块数据，再多次复用。</p>
+<pre>naive:
+thread → DRAM → compute → DRAM → compute
 
-<h3>CUDA 带来的编程模型</h3>
-<pre>grid
-  └─ thread block
-      └─ threads
+reuse:
+threads cooperate: DRAM → shared tile
+                    ↓
+              many calculations</pre>
+<p>今天 GEMM、attention、reduction 的高性能 kernel 仍然大量依赖“分块搬运 + 片上复用”这个思想。</p>
 
-hardware:
-GPU
-  └─ SM
-      └─ warps</pre>
-<p>shared memory 和 barrier 让同一个 block 的线程能做低延迟协作。这套基本结构一直延续到今天。</p>
+<h2>2. 第一代通用 GPU 的痛点：可编程不等于好用</h2>
+<p>有大量线程之后，科学计算和更复杂的通用 workload 很快暴露出几个问题：</p>
+<ul><li>不规则内存访问很昂贵；</li><li>cache hierarchy 还不够成熟；</li><li>双精度、IEEE 行为与可靠性需求更高；</li><li>多个 kernel/数据传输需要更好的重叠；</li><li>大规模计算需要更完整的地址空间与错误保护。</li></ul>
+<p>这告诉你一个长期有效的规律：<strong>“能执行 kernel”只是入场券；内存、调度、数值与可靠性共同决定计算平台成熟度。</strong></p>
 
-<h2>2. 为什么光有“很多线程”还不够？</h2>
-<p>第一代 CUDA GPU 很擅长规则、高并行工作，但科学计算很快暴露问题：</p>
-<ul>
-<li>不规则 global-memory access 很贵；</li>
-<li>缺少成熟 cache hierarchy；</li>
-<li>FP64 / IEEE 行为要更强；</li>
-<li>HPC 需要 ECC；</li>
-<li>多个 kernel/transfer 要更好重叠。</li>
-</ul>
-
-<h2>3. Fermi：把 GPU 当作 compute processor 重新设计</h2>
-<h3>Cache hierarchy</h3>
-<pre>SM
-├─ shared memory
-├─ L1
-└─ ...
-      ↓
+<h2>3. Fermi：把 GPU 按 general-purpose compute 重新设计</h2>
+<h3>片上存储层级更像一台真正的计算机</h3>
+<pre>registers
+   ↓
+shared memory / L1
+   ↓
 shared L2
-      ↓
-DRAM</pre>
-<p>Fermi 加入真正面向 general-purpose compute 的 L1/L2 hierarchy。L1 和 shared memory 共用一块可配置 on-chip storage，而 L2 服务整个 GPU。</p>
+   ↓
+GDDR DRAM</pre>
+<p>Fermi 引入更成熟的 cache hierarchy，并让 shared memory 与 L1 的片上容量可以按 workload 取舍。显式管理和硬件自动缓存开始共同工作。</p>
 
-<h3>为什么 cache 对 GPGPU 重要？</h3>
-<p>shared memory 要程序员自己安排；cache 可以接住程序无法完全显式管理的：</p>
-<ul>
-<li>irregular reuse；</li>
-<li>register spill；</li>
-<li>跨 SM 数据复用；</li>
-<li>复杂指针访问。</li>
-</ul>
+<h3>为什么 cache 不是 shared memory 的替代品？</h3>
+<table><tr><th>机制</th><th>优势</th><th>代价</th></tr><tr><td>shared memory</td><td>程序明确控制布局、复用与协作</td><td>要自己设计 tile、同步、避免冲突</td></tr><tr><td>cache</td><td>自动捕获局部性，对复杂访问更省心</td><td>命中与替换不完全由程序控制</td></tr></table>
+<p>高性能 kernel 往往不是二选一，而是让寄存器、shared、cache 各自承担适合的部分。</p>
 
-<h3>HPC 语义也变强</h3>
-<p>Fermi 带来更成熟的 FP64/FMA、64-bit addressing、ECC、concurrent kernels 等。</p>
+<h3>Fermi 为什么被 HPC 看重？</h3>
+<p>更成熟的 FP64、ECC、64-bit addressing、并发执行能力等，让 GPU 不再只是“便宜但语义弱的加速器”。对本地 LLM 初学者而言，重点不是去买 Fermi，而是理解：<strong>数据中心/计算架构经常会为了数值、可靠性和并发牺牲一部分纯图形性价比。</strong></p>
 
-<div class="callout"><strong>第二次重要抽象：</strong>GPU compute 从“你必须手动照顾所有数据”走向“显式 shared memory + 硬件 cache”共同工作。</div>
+<h2>4. Kepler：执行资源变宽以后，喂不饱怎么办？</h2>
+<p>Kepler 把单个 SMX 做得更宽。硬件有更多执行槽并不自动等于更高性能，因为 scheduler 还必须找到足够的可运行工作。</p>
+<pre>more execution resources
++ not enough ready work
+= idle slots</pre>
 
-<h2>4. Kepler：更宽的 SMX 需要更多“可调度的独立工作”</h2>
-<p>Kepler SMX 堆进更多 execution resources。硬件更宽以后，新问题出现：</p>
-<pre>更多执行槽
-≠ 自动更多性能
+<h3>TLP：用更多 warp 隐藏等待</h3>
+<p><strong>Thread-Level Parallelism</strong> 的直觉是：warp A 在等内存时，scheduler 切去运行 warp B/C/D。GPU 不一定让单个内存访问变快，而是通过大量可运行工作把等待藏起来。</p>
 
-如果没有 enough:
-- active warps
-- independent instructions
-- thread blocks
+<h3>ILP：同一个 thread/warp 也能提供独立工作</h3>
+<p><strong>Instruction-Level Parallelism</strong> 指同一条执行流里有互不依赖的指令。它解释了为什么 occupancy 不是越高越好：如果每个 warp 已经能提供很多独立工作，更低 occupancy 也可能获得很好吞吐。</p>
+<div class="callout"><strong>纠偏：</strong>Occupancy 是资源/调度状态指标，不是性能分数。100% occupancy 的 kernel 完全可能比 60% occupancy 更慢。</div>
 
-execution slots still idle</pre>
+<h2>5. Kepler 的 warp shuffle：为什么它影响到今天的 softmax/reduction？</h2>
+<p>warp 内线程如果想交换值，早期常借助 shared memory 并同步。shuffle 允许 lane 之间直接交换 register value。</p>
+<pre>shared path:
+reg → shared → sync → shared → reg
 
-<h3>TLP + ILP</h3>
-<p>Kepler tuning guide 特别强调两种并行：</p>
-<ul>
-<li><strong>TLP</strong>：更多 warp/thread；</li>
-<li><strong>ILP</strong>：同一线程/warp 中更多独立 instruction。</li>
-</ul>
-<p>这就是为什么“occupancy 100%”也不是唯一答案：有些 kernel 可以用更强 ILP 补偿 warp 数。</p>
+shuffle path:
+reg(lane A) ↔ reg(lane B)</pre>
+<p>这对 reduction、prefix 操作、warp-local 数据交换很有价值。现代 attention/softmax kernel 的具体实现早已更复杂，但“尽量让数据停留在更近的地方”仍是核心思想。</p>
 
-<h3>Warp Shuffle</h3>
-<p>Kepler 引入 warp shuffle，lane 之间可以直接交换 register value：</p>
-<pre>old reduction:
-register → shared → sync → shared → register
+<h2>6. Hyper-Q / Dynamic Parallelism：并发和表达能力不是免费性能</h2>
+<p>GK110 上的 Hyper-Q 增加独立工作队列，减少 host 侧不同 stream/process 被窄队列人为串行化的情况。Dynamic Parallelism 则允许 GPU kernel 发起新的 kernel 工作。</p>
+<p>两者都说明 NVIDIA 在解决“GPU 不只是运行一个巨大 kernel”的问题。但你必须记住：</p>
+<ul><li>更多队列只有 workload 真能并发时才有价值；</li><li>device-side launch 仍有开销；</li><li>更强表达能力不代表每个程序都会变快。</li></ul>
 
-shuffle:
-register lane A ↔ register lane B</pre>
-<p>它减少了某些 warp-local 算法对 shared memory 的依赖，是现代 reduction / softmax kernel 的祖先之一。</p>
+<h2>Worked Example：为什么同为 Kepler 也不能只写“Kepler 支持 X”</h2>
+<p>同一 architecture family 内可以有不同 die / SKU / 市场定位。某些功能只存在于特定芯片或计算产品线。以后读规格时应写成：</p>
+<pre>architecture family
+→ exact GPU chip / SKU
+→ exposed feature
+→ current driver/runtime support
+→ target application's backend support</pre>
+<p>而不是从一篇架构白皮书直接推导“所有同代消费卡都支持”。</p>
 
-<h3>Hyper-Q</h3>
-<p>在 GK110 上，Hyper-Q 增加独立工作队列，减少多个 CUDA stream / process 被一个窄 host queue 人为串行化的问题。</p>
+<h2>三代留下来的核心观念</h2>
+<table><tr><th>阶段</th><th>主要问题</th><th>留下来的机制</th><th>今天怎么用</th></tr><tr><td>Tesla/G80</td><td>图形执行资源过度固定</td><td>统一可编程 GPU + CUDA/SIMT</td><td>thread/warp/SM 是后续理解入口</td></tr><tr><td>Fermi</td><td>通用计算的内存/可靠性/并发不够成熟</td><td>L1/L2、可配片上存储、FP64/ECC 等</td><td>理解 GPU 也是完整 memory+compute system</td></tr><tr><td>Kepler</td><td>更宽执行资源需要更多 ready work</td><td>TLP/ILP、shuffle、更多并发队列</td><td>理解 latency hiding、warp-level primitives</td></tr></table>
 
-<h3>Dynamic Parallelism</h3>
-<p>GK110 允许 GPU kernel 再 launch kernel。</p>
-<pre>CPU launch parent
-        ↓
-GPU parent kernel
-        ↓
-GPU launches child grid</pre>
-<p>它提高表达能力，但不是“GPU 自己 launch 就一定快”。launch overhead、work granularity 仍需测。</p>
+<h2>Why it matters：和本地 LLM 的真正连接</h2>
+<ul><li><strong>GEMM/attention tile：</strong>shared memory 与寄存器复用思想直接延续。</li><li><strong>reduction/softmax：</strong>warp-level communication 仍是重要工具。</li><li><strong>decode：</strong>大量线程和调度并不能消除显存带宽/访存等待，只能在有足够并行工作时隐藏一部分延迟。</li><li><strong>旧卡判断：</strong>架构机制、显存容量、带宽和当前 CUDA/runtime 支持必须同时看。</li><li><strong>数据中心 vs 游戏卡：</strong>计算产品可能为了 ECC、FP64、容量/互联等做不同取舍。</li></ul>
 
-<h2>5. 不要把 Kepler 当成一张芯片</h2>
-<p>GK104 与 GK110 的目标/功能并不一样。Hyper-Q、Dynamic Parallelism 等关键 feature 需要具体到相应 variant。</p>
+<h2>常见误区</h2>
+<ul><li><strong>“Kepler 核心更多，所以一定比 Fermi 快很多”：</strong>要看 workload、时钟、带宽、资源利用和软件。</li><li><strong>“occupancy 越高越好”：</strong>它只是一个约束维度。</li><li><strong>“有 cache 就不用 shared memory”：</strong>显式可控复用仍有价值。</li><li><strong>“架构白皮书功能 = 所有 SKU 功能”：</strong>必须落到 exact SKU。</li></ul>
 
-<h2>6. 三代真正留下来的东西</h2>
-<table>
-<tr><th>代</th><th>留下来的核心观念</th></tr>
-<tr><td>Tesla</td><td>unified programmable GPU + SIMT</td></tr>
-<tr><td>Fermi</td><td>compute cache hierarchy + reliability + concurrency</td></tr>
-<tr><td>Kepler</td><td>wide SM needs TLP/ILP; warp-level communication; more work queues</td></tr>
-</table>
+<h2>小实验与预期观察</h2>
+<p>完成 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果有 NVIDIA GPU，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
+<p>本课不要求得到某个“正确性能数字”。你应该得到的是一张证据表：哪些能力属于 architecture claim，哪些属于 SKU fact，哪些属于当前 runtime observation。</p>
 
-<h2>7. 和今天 LLM kernel 的连接</h2>
-<pre>warp shuffle
-→ reduction / softmax
+<h2>无对应老卡怎么办？</h2>
+<p>不买老卡。L0 主路径使用白皮书、规格页和 capability inventory。历史硬件的学习目标是建立因果模型，不是收藏。手里只有现代卡时，照样可以观察它仍然暴露的 thread/warp/SM、shared memory、cache 等后代概念。</p>
 
-shared memory
-→ GEMM tile / attention tile
+<h2>排错思路</h2>
+<ul><li>工具显示的字段名与白皮书不同：先确认工具版本和字段语义，不做词面硬映射。</li><li>某功能在 architecture docs 出现，但你的卡/driver 看不到：检查 exact SKU、compute capability、driver/runtime support。</li><li>benchmark 没比预期快：先判断是 compute、memory、launch、同步还是 host bottleneck，不从“代际更先进”直接推性能。</li></ul>
 
-many active warps
-→ latency hiding
+<h2>Retrieval Practice</h2>
+<ol><li>Tesla/G80 的“统一”为什么比单纯核心数量更重要？</li><li>Fermi 的 cache hierarchy 为什么没有让 shared memory 失去价值？</li><li>用自己的话解释 GPU 如何用 TLP 隐藏内存延迟。</li><li>为什么 occupancy 100% 不是性能目标？ILP 在这里扮演什么角色？</li><li>warp shuffle 为什么可以减少部分 reduction 的 shared-memory 往返？</li><li>同为 Kepler，为什么不能从 family 名称直接推断某个 SKU 支持 Hyper-Q/Dynamic Parallelism？</li><li>如果你看到一张 Kepler 旧卡非常便宜，除了价格至少还要检查哪些“当前事实”？</li></ol>
 
-cache hierarchy
-→ irregular metadata / KV / weight reuse</pre>
-<p>你学的不是古董型号，而是现代 kernel 设计语言的来源。</p>
+<h2>Decision Rule</h2>
+<div class="callout"><p>你可以用 Tesla→Fermi→Kepler 解释现代 CUDA 执行/内存模型的来源；你不能因为某张旧卡具有这些历史机制就推断它今天适合本地 LLM。购买结论必须继续检查容量、带宽、precision/kernel、driver/runtime/backend、功耗和实际 benchmark。</p></div>
 
+<h2>Transfer</h2>
+<p>接下来学习 Maxwell/Pascal 时继续使用同一模板：<strong>前代哪里浪费资源？本代怎样重组执行/数据路径？新机制是普遍架构能力还是特定 SKU？今天的软件还能否用？</strong>。换到 AMD 时，把 SM/warp/shared 对应成 CU/wave/LDS，再比较差异而不是强行等同。</p>
 
-<section class="student-closure">
-<h2>学生闭环 — Tesla / Fermi / Kepler</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意 NVIDIA GPU 均可做 capability inventory）。</p>
-<p><strong>成本：</strong>0 元主路径；不要求为历史架构买卡。</p>
-<p><strong>风险：</strong>safe；只读资料、设备信息与 benchmark。</p>
-<p><strong>替代路径：</strong>没有对应年代 GPU 也能完成 Experiment 23；有 NVIDIA 卡才做 Experiment 24。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>从“上一代瓶颈 → 本代机制 → 今天 LLM 的影响”解释本页，而不是背型号。</li>
-<li>把 architecture family 与具体 SKU 的显存、带宽、互联、precision、功耗和软件生命周期分开。</li>
-<li>识别哪些是稳定架构事实，哪些必须在当前 driver/runtime 上重新验证。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果手里有 NVIDIA 卡，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>为什么 unified programmable GPU、cache/ECC/compute capability 与早期 GPGPU 生态比“核心数量”更重要？</li>
-<li>Tesla→Fermi→Kepler 中，哪一次变化最直接改变你今天读旧卡资料的方法？</li>
-<li>如果一张旧 NVIDIA 卡理论算力不错，但最新 runtime 不再支持，你的结论属于“架构能力”还是“当前可用性”？</li>
-<li>为什么“同一 architecture”也必须继续查 memory system、SKU cut-down、power 和 software support？</li>
-</ol>
-<h3>完成证据</h3>
-<p>做一张 Tesla / Fermi / Kepler 代际卡片：<strong>前代瓶颈 / 本代改变 / LLM 影响 / 二手价值可能受什么影响 / 当前软件支持仍需查什么</strong>。禁止写“某代一定更值”。</p>
-<h3>如何迁移</h3>
-<p>以后看到 NVIDIA 新架构时沿用同一模板：execution、data movement、numerics、memory/interconnect、software enablement；最后再落到具体 SKU。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
-<li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — NVIDIA primary-source index</a></li>
-</ul>
-</section>
-</body>
-</html>
+<h2>Primary Sources / Reference</h2>
+<ul><li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Course Resources — primary-source index</a></li></ul>
+</main></body></html>
