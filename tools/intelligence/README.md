@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I23. GitHub Actions run #91 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, I23 command-model binding, and I19 market-refresh self-tests.
+Phase 4 tooling currently implements I01–I24. GitHub Actions run #98 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, I23 command-model binding, I24 hardware-profile, and I19 market-refresh self-tests.
 
 ## 1. Validate a catalog
 
@@ -89,7 +89,7 @@ The helper:
 Before ingestion:
 
 ~~~bash
-python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --model-artifact /path/to/model.gguf   --command-record /path/to/command.json
+python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --hardware-profile /path/to/profile.txt   --model-artifact /path/to/model.gguf   --command-record /path/to/command.json
 ~~~
 
 Required result:
@@ -108,7 +108,7 @@ The verifier checks:
 
 A hash-consistent PACKET is not enough if the manifest disagrees with the raw benchmark rows.
 
-For non-synthetic intake, I22 requires `--model-artifact` and computes the local GGUF SHA256 + byte count. I23 additionally requires `--command-record`, requires that record to be PACKET-indexed, and reparses the exact `-m/--model` argv so the benchmark command points to the same admitted GGUF.
+For non-synthetic intake, I22 requires `--model-artifact`; I23 binds exact `-m/--model` argv through a PACKET-indexed command record; and I24 requires `--hardware-profile`, whose SHA256 must match `variant.hardware.profile_sha256` and whose bytes/hash must also be PACKET-indexed.
 
 Expected success now includes:
 
@@ -375,6 +375,7 @@ See:
 - examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 - examples/evidence/intelligence-22-real-model-artifact-gate.md
 - examples/evidence/intelligence-23-command-model-artifact-binding.md
+- examples/evidence/intelligence-24-hardware-profile-artifact-gate.md
 
 ## Non-goals
 
