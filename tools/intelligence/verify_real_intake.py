@@ -467,6 +467,7 @@ def main():
         )
         profile_status = "BLOCKED"
 
+    model_record = models.get(a.model_id)
     prompt_status = "NOT-CHECKED"
     prompt_obj = {}
     if a.prompt_manifest is not None:
@@ -513,7 +514,6 @@ def main():
         )
         prompt_status = "BLOCKED"
 
-    model_record = models.get(a.model_id)
     artifact_status = "NOT-CHECKED"
     artifact_actual_sha256 = None
     artifact_actual_bytes = None
