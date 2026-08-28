@@ -149,3 +149,58 @@ and list the exact evidence supporting the decision.
 Hash the packet using Experiment 61.
 
 Do not publish serials/UUIDs if you consider them private inventory identifiers; redact in the public copy while retaining local originals if needed.
+
+
+## 10. Machine-readable Intelligence bridge
+
+Copy:
+
+~~~bash
+cp acceptance-case.template.json acceptance-case.json
+~~~
+
+Fill the summary from the retained raw evidence and include that case in a PACKET with the supporting files.
+
+Build the Experiment 86-compatible machine decision:
+
+~~~bash
+python3 ../../../tools/intelligence/evaluate_used_gpu_acceptance.py \
+  --case acceptance-case.json \
+  --packet PACKET.json \
+  --out acceptance.json
+~~~
+
+Verify it independently:
+
+~~~bash
+python3 ../../../tools/intelligence/verify_used_gpu_acceptance.py \
+  --acceptance acceptance.json \
+  --case acceptance-case.json \
+  --packet PACKET.json
+~~~
+
+Then derive condition-evidence provenance:
+
+~~~bash
+python3 ../../../tools/intelligence/derive_condition_evidence_grade.py \
+  --acceptance acceptance.json \
+  --case acceptance-case.json \
+  --packet PACKET.json \
+  --out condition-evidence.json
+~~~
+
+For real non-synthetic evidence, this current path can produce C3 provenance.
+
+Important:
+
+~~~text
+C3
+!=
+ACCEPT
+~~~
+
+C3 means the evidence is learner-owned, PACKET-bound and independently reproducible.
+
+The separate technical decision may still be ACCEPT, REVIEW or REJECT.
+
+C4 is reserved and is not emitted by the current tooling.

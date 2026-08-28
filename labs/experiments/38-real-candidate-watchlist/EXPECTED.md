@@ -12,7 +12,7 @@ because:
 - condition is C0;
 - max sticker is unset/zero.
 
-A BUY-CANDIDATE requires:
+A BUY-CANDIDATE in the legacy CSV evaluator requires:
 - FIT PASS;
 - SOFTWARE PASS;
 - PERFORMANCE PASS;
@@ -20,6 +20,12 @@ A BUY-CANDIDATE requires:
 - condition evidence C3/C4;
 - current market evidence;
 - ask <= personal max sticker.
+
+Phase 4 now defines C0–C4 explicitly in `reference/hardware/condition-evidence-grades.md`.
+
+C3/C4 are evidence-provenance strength, not health outcomes.
+
+For the Intelligence path, a used card also needs a separate I44 ACCEPT result.
 
 Freshness is now a decision gate.
 

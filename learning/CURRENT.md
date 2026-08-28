@@ -17,19 +17,48 @@ Stable v1 mainline complete
 ## Active Phase 4 frontier
 
 ~~~text
-I01–I19 catalog / compatibility / market evidence / refresh
-I20–I27 benchmark + artifact + prompt + quality identity admission
-I28–I32 sealed quality execution + exact argv + machine PPL + mandatory metric
-I33 exact model-quality A/B
-I34 performance × quality model A/B binding
-I35 declared execution-variable quality contract
-I36 reproducible model-quality comparison artifact
-I37 mandatory I36 reproduction inside model joint tradeoff
-I38 reproducible model joint tradeoff artifact
-I39 reproducible execution-variable quality comparison artifact
-I40 execution-variable performance × quality binding
-I41 reproducible execution-variable joint tradeoff artifact
+I01–I19  catalog / compatibility / market evidence / refresh
+I20–I32  real benchmark + artifact + prompt + sealed quality admission
+I33–I41  reproducible model/execution performance × quality tradeoff paths
+I42       automatic verified tradeoff routing
+I43       decision evidence gap matrix
+I44–I45  packet-bound used-GPU acceptance + readiness bridge
+I46–I47  explicit performance-target policy + readiness bridge
+I48–I49  explicit personal price-ceiling policy + readiness bridge
+I50–I51  condition-evidence provenance grades + readiness bridge
 ~~~
+
+## Structural status
+
+All currently defined Experiment 38 / Intelligence decision-readiness domains now have machine contracts:
+
+~~~text
+verified tradeoff
+real benchmark provenance
+exact measured compatibility
+current market evidence
+whole-machine feasibility
+used-GPU technical acceptance
+explicit performance target
+explicit personal price ceiling
+condition-evidence provenance
+~~~
+
+I43 returns:
+
+~~~text
+READY-FOR-HUMAN-REVIEW
+~~~
+
+only when every component passes.
+
+It always records:
+
+~~~text
+automatic_purchase_decision = NOT-PERMITTED
+~~~
+
+No BUY action is automated.
 
 ## Benchmark boundary
 
@@ -39,63 +68,87 @@ real production benchmark rows = 0
 
 No synthetic PP/TG/PPL value is production evidence.
 
-Real non-synthetic intake still requires the strengthened chain:
+Real non-synthetic Experiment 61 intake still requires:
 
 ~~~text
-Experiment 61 manifest
-+ raw llama-bench result
+manifest
++ raw llama-bench
 + benchmark PACKET
 + canonical IDs
-+ local model artifact
++ exact model artifact
 + benchmark command record
 + hardware profile
 + prompt evidence
 + concrete quality corpus
-+ quality identity
++ quality identity schema v2
 + sealed quality command/raw streams
 + quality PACKET
-+ machine-readable quality metric
++ exact evaluation argv
++ machine-readable PPL metric
 → I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32 READY
-→ ingest
-→ validate
-→ exact MEASURED_SUPPORTED
 ~~~
 
-## Quality / tradeoff provenance
+## Tradeoff provenance
 
-### Model-artifact path
+### Model-artifact lane
 
 ~~~text
-I33 exact model-quality A/B
-→ I36 independently reproduce quality-comparison.json
-→ I37 bind reproduced PPL to Experiment 61 PP/TG
-→ I38 independently reproduce the full joint artifact
+I33 exact quality A/B
+→ I36 reproduce quality comparison
+→ I37 bind PP/TG × PPL
+→ I38 reproduce full joint artifact
 ~~~
 
-### Execution-variable path
+### Execution-variable lane
 
 ~~~text
-I35 explicit manifest-value ↔ quality-argv contract
-→ I39 independently reproduce execution-variable quality comparison
-→ I40 bind reproduced PPL to matching Experiment 61 PP/TG
-→ I41 independently reproduce the full execution joint artifact
+I35 explicit manifest-value ↔ quality argv contract
+→ I39 reproduce execution-variable quality comparison
+→ I40 bind PP/TG × PPL
+→ I41 reproduce full joint artifact
 ~~~
 
-Current I35/I39/I40/I41 scope:
-- only `variant.execution.*`;
-- same model artifact;
-- same quality executable;
-- explicit per-side evaluation argv;
-- declared argv semantics are auditable declarations, not independently proven upstream semantics.
+### Unified route
 
-Neither path emits:
-- significance;
-- a universal quality score;
-- weighted recommendation score;
-- ACCEPT/REJECT;
-- purchase recommendation.
+~~~text
+variant.model*      → I38
+variant.execution.* → I41
+other variables     → BLOCKED
+~~~
 
-## Market evidence grades
+I42 chooses the route from the validated manifests; callers cannot force it.
+
+## Decision-readiness lane
+
+~~~text
+I43 gap matrix
+I44 packet-bound ACCEPT / REVIEW / REJECT
+I45 acceptance bridge
+I46 explicit PP/TG/PPL hard thresholds
+I47 performance-target bridge
+I48 explicit max sticker + watch band
+I49 price bridge using the same market record
+I50 C0–C4 condition-evidence provenance contract
+I51 condition provenance bridge
+~~~
+
+Condition has two separate axes:
+
+~~~text
+evidence strength: C0 C1 C2 C3 C4
+technical health: ACCEPT REVIEW REJECT
+~~~
+
+Current production condition rule:
+- real, learner-owned, PACKET-bound, independently reproducible I44 evidence → C3 provenance;
+- synthetic evidence → C0;
+- C4 is reserved and not emitted.
+
+A C3 REJECT is strong evidence but still fails the separate used-GPU ACCEPT gate.
+
+## Market evidence
+
+Stable mapping:
 
 ~~~text
 SECONDARY_REPORTED        → M1
@@ -120,7 +173,7 @@ RTX 3090      1499 USD
 RX 7900 XTX   1020 USD
 Arc A770       330 USD
 
-OfferUp SOLD-marked displayed medians:
+OfferUp SOLD-marked displayed examples/medians:
 RTX 3090       950 USD
 RX 7900 XTX    700 USD
 Arc A770       200 USD
@@ -130,51 +183,45 @@ RTX 3090      7400 CNY
 Arc A770      1400 CNY
 ~~~
 
-OfferUp rows remain `confirmed_transaction_price=false`.
+OfferUp rows still preserve `confirmed_transaction_price=false`.
 
-The current China rows remain M1 secondary evidence, not confirmed transactions.
+China rows remain M1 secondary signals, not confirmed transactions.
 
-## Latest CI
-
-GitHub Actions:
+## Latest implementation CI
 
 ~~~text
 workflow: Intelligence Self-Test
-run #152
-run id 33171494742
-head 82b834197062216e33bde05c1ddc00f3fecd0027
-job id 98849501909
+run #165
+run id 33189475466
+head ba1ddf6a3c88d07721eefd30b7e452a8e93c42c6
+job id 98910975890
 conclusion success
 ~~~
 
-The successful job explicitly passed:
-- compile all Intelligence Python tools;
-- full historical Intelligence self-test;
-- benchmark capture / artifact / prompt / quality admission gates;
-- quality execution + exact argv;
-- quality metric extraction;
-- model-quality comparison + artifact reproduction;
-- model performance-quality binding + joint artifact reproduction;
-- execution-variable comparison + artifact reproduction;
-- execution performance-quality binding + joint artifact reproduction;
-- quality execution + metric intake;
-- market refresh.
+The complete suite passed through I51.
 
-## Evidence frontier
+## Newest evidence
 
-Newest evidence:
-- examples/evidence/intelligence-34-performance-quality-ab-binding.md
-- examples/evidence/intelligence-35-quality-execution-variable-contract.md
-- examples/evidence/intelligence-36-quality-comparison-artifact-verification.md
-- examples/evidence/intelligence-37-joint-tradeoff-quality-reproduction.md
-- examples/evidence/intelligence-38-joint-tradeoff-artifact-verification.md
-- examples/evidence/intelligence-39-quality-execution-variable-artifact-verification.md
-- examples/evidence/intelligence-40-execution-performance-quality-binding.md
-- examples/evidence/intelligence-41-execution-joint-tradeoff-artifact-verification.md
+- examples/evidence/intelligence-42-unified-tradeoff-routing.md
+- examples/evidence/intelligence-43-decision-evidence-gap-matrix.md
+- examples/evidence/intelligence-44-used-gpu-acceptance-artifact.md
+- examples/evidence/intelligence-45-used-gpu-acceptance-readiness-bridge.md
+- examples/evidence/intelligence-46-performance-target-policy.md
+- examples/evidence/intelligence-47-performance-target-readiness-bridge.md
+- examples/evidence/intelligence-48-price-ceiling-policy.md
+- examples/evidence/intelligence-49-price-ceiling-readiness-bridge.md
+- examples/evidence/intelligence-50-condition-evidence-grades.md
+- examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
 
 ## Next
 
-1. I42: add a unified tradeoff routing/admission gate that selects the verified model path (I38) or execution path (I41) from `intentional_variable`, and blocks unsupported runtime/hardware/system variables.
-2. Acquire the first learner-owned real Experiment 61 packet through the real intake chain.
-3. Refresh market evidence only when stronger/newer auditable provenance exists.
-4. Keep recommendation/ranking blocked until real benchmark + quality/SLO + feasibility evidence exists.
+1. Stop expanding decision gates by default.
+2. Acquire the first learner-owned real Experiment 61 benchmark + quality packet.
+3. Derive exact `MEASURED_SUPPORTED` compatibility from that real path.
+4. Acquire the first real Experiment 87 / I44 used-GPU acceptance packet for a candidate.
+5. Fill explicit I46 performance-target and I48 price-ceiling policies.
+6. Run I43 and inspect the remaining real blockers.
+7. Refresh market evidence only when stronger/newer auditable provenance exists.
+8. Keep ranking/recommendation blocked until real candidate evidence exists.
+
+No auto-purchase or unsafe hardware modification.

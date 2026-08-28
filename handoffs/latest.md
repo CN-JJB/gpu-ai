@@ -18,118 +18,147 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I41 implemented and CI verified
+I01–I51 implemented
+latest implementation CI: run #165 success
 ~~~
 
-## Latest CI
+CI identity:
 
 ~~~text
-workflow: Intelligence Self-Test
-run #152
-run id 33171494742
-head 82b834197062216e33bde05c1ddc00f3fecd0027
-job id 98849501909
-conclusion success
+run id 33189475466
+head ba1ddf6a3c88d07721eefd30b7e452a8e93c42c6
+job id 98910975890
 ~~~
 
-Every Intelligence Python tool compiled and every historical + I41 dedicated self-test passed.
-
-## Production evidence boundary
+## Production boundary
 
 ~~~text
 real production benchmark rows = 0
 ~~~
 
-Do not promote synthetic PP/TG/PPL fixtures into production evidence.
+Do not promote synthetic benchmark, PPL, market, acceptance, price-policy or readiness fixtures into production evidence.
 
-Current market evidence remains unchanged from I18/I19. RTX 3090 China remains M1 SECONDARY_REPORTED around 7400 CNY from the existing observation; no stronger direct/confirmed transaction evidence has been acquired.
-
-## Real intake chain
+## Real benchmark / quality admission
 
 Non-synthetic Experiment 61 admission requires:
 - manifest + raw result + benchmark PACKET;
 - canonical hardware/model/runtime IDs;
-- local exact model artifact;
-- benchmark command record bound to `-m/--model`;
+- exact local model artifact;
+- benchmark command record;
 - hardware profile;
 - Experiment 57 prompt evidence;
 - concrete quality corpus;
 - quality identity schema v2;
 - sealed quality execution command/raw streams + quality PACKET;
-- exact evaluation argv binding;
-- independently reproducible machine PPL metric.
+- exact evaluation argv;
+- independently reproducible PPL metric.
 
 Only then may `verify_real_intake.py` return `INTAKE: READY`.
 
-## Model-artifact A/B lane
+## Verified tradeoff lanes
 
 ~~~text
-I33
-exact tokenizer/corpus/fixture/evaluation argv/parser/executable contract
-→ descriptive PPL comparison
+model:
+I33 → I36 → I37 → I38
 
-I36
-quality-comparison.json independently rebuilt from sealed quality bundles
+execution variable:
+I35 → I39 → I40 → I41
 
-I37
-I36 reproduction required before binding PPL to Experiment 61 PP/TG
-
-I38
-entire model joint tradeoff independently rebuilt
+routing:
+I42
+variant.model* → I38
+variant.execution.* → I41
+other → BLOCKED
 ~~~
 
-Model joint tradeoff remains descriptive only.
+No tradeoff artifact is a recommendation.
 
-## Execution-variable A/B lane
+## Decision-readiness lane
+
+I43 independently checks:
+- verified tradeoff route;
+- real MEASURED benchmark provenance;
+- exact current MEASURED_SUPPORTED compatibility;
+- current M2/M3 market evidence;
+- Experiment 90 whole-machine feasibility;
+- I44 real used-GPU ACCEPT;
+- I46 explicit performance target PASS;
+- I48 explicit price result WITHIN-CEILING using the same market record;
+- I50 C3/C4 condition provenance.
+
+Output is only:
 
 ~~~text
-I35
-quality-variable-contract.json
-manifest value ↔ exact executed quality argv
-
-I39
-schema-v2 execution-variable quality comparison
-+ variable-contract SHA
-+ metric SHAs
-+ independent full reconstruction
-
-I40
-I39-reproduced PPL bound to matching Experiment 61 PP/TG
-
-I41
-entire execution joint tradeoff independently rebuilt
+BLOCKED
+or
+READY-FOR-HUMAN-REVIEW
 ~~~
 
-Current scope is `variant.execution.*` only.
+and always:
 
-The model artifact and quality executable must remain the same across the execution-variable quality A/B.
+~~~text
+automatic_purchase_decision = NOT-PERMITTED
+~~~
 
-The declared flag semantics are not independently inferred from upstream; they remain explicit auditable assumptions.
+## Condition evidence contract
 
-## Fail-closed properties
+I50 introduced the first stable C0–C4 definition because Experiment 38 previously referenced C3/C4 without defining them.
 
-The current lane blocks:
-- missing real evidence;
-- PACKET-only tampering;
-- model/corpus/identity/argv drift;
-- unsupported/ambiguous PPL raw output;
-- edited metric artifacts;
-- edited quality-comparison artifacts;
-- edited joint tradeoff artifacts;
-- undeclared Experiment 61 semantic drift;
-- using the model-quality path for execution-variable attribution;
-- changed executable in the execution-variable quality path.
+~~~text
+C0 no production-usable evidence / synthetic
+C1 seller/listing claim only
+C2 current external evidence without learner-owned reproducible acceptance
+C3 learner-owned PACKET-bound independently reproducible I44 evidence
+C4 reserved: C3 + independent corroborating inspection provenance
+~~~
 
-Even coherently recomputed delta/ratio/percent fields are blocked if they do not reproduce source evidence.
+Evidence strength is separate from technical health:
+
+~~~text
+C3 + ACCEPT → both condition-related gates can pass
+C3 + REJECT → strong evidence, but used_gpu_acceptance blocks
+~~~
+
+I50 does not emit C4.
+
+## Price policy contract
+
+I48 does not infer fair value.
+
+The learner supplies:
+- exact market record;
+- hardware ID;
+- currency;
+- personal max sticker;
+- watch band.
+
+Neutral outputs:
+
+~~~text
+WITHIN-CEILING
+WATCH-BAND
+ABOVE-BAND
+~~~
+
+Only real WITHIN-CEILING can satisfy the I49 price component. It is still not BUY.
+
+## Performance policy contract
+
+I46 uses only explicit hard thresholds:
+- min candidate PP;
+- min candidate TG;
+- optional max candidate PPL;
+- optional max PPL percent change.
+
+No weighted score is used.
 
 ## Next work
 
-1. I42: unified verified-tradeoff routing gate:
-   - `variant.model*` → I38;
-   - `variant.execution.*` → I41;
-   - runtime/hardware/system or unsupported variables → BLOCKED.
-2. Acquire the first learner-owned real Experiment 61 packet.
-3. Refresh market evidence only with auditable stronger/newer provenance.
-4. No recommendation leaderboard yet.
+1. Acquire first learner-owned real Experiment 61 packet.
+2. Acquire first real Experiment 87/I44 acceptance packet for the same candidate hardware.
+3. Create explicit I46 and I48 policies for the learner's workload/budget.
+4. Run I43 and close only evidence-specific blockers.
+5. Refresh market evidence when newer/stronger provenance exists.
+6. Do not build a recommendation leaderboard before real evidence exists.
 
-No auto-purchase or unsafe hardware modification.
+No auto-purchase, no unsafe hardware modification.

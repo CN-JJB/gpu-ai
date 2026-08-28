@@ -58,3 +58,67 @@ refresh within 24–48h
 ```
 
 when practical.
+
+## Intelligence decision-readiness path
+
+Experiment 38 now has machine-readable Phase 4 companions.
+
+### Performance target
+
+Copy:
+
+~~~text
+performance-target-policy.template.json
+~~~
+
+Then use I46/I47 to evaluate explicit PP/TG/PPL hard thresholds.
+
+No weighted score is used.
+
+### Personal price ceiling
+
+Copy:
+
+~~~text
+price-ceiling-policy.template.json
+~~~
+
+I48 preserves the existing max-sticker/watch-band arithmetic but uses neutral outputs:
+
+~~~text
+WITHIN-CEILING
+WATCH-BAND
+ABOVE-BAND
+~~~
+
+WITHIN-CEILING is not BUY.
+
+### Condition evidence
+
+Stable C-grade semantics now live in:
+
+~~~text
+reference/hardware/condition-evidence-grades.md
+~~~
+
+I50 defines C3 as learner-owned, PACKET-bound, independently reproducible I44 technical evidence.
+
+The evidence grade is separate from the card-health decision:
+
+~~~text
+C3 provenance
++
+I44 ACCEPT
+~~~
+
+are separate requirements.
+
+### Final evidence matrix
+
+I43 combines the independent evidence components and may return:
+
+~~~text
+READY-FOR-HUMAN-REVIEW
+~~~
+
+It never performs a purchase.

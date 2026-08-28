@@ -10,104 +10,110 @@ python tools/intelligence/selftest.py
 ## Current verified frontier
 
 ~~~text
-I01–I41
+I01–I51
 ~~~
 
-Latest complete verification:
+Latest implementation verification:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #152
-run id 33171494742
-head 82b834197062216e33bde05c1ddc00f3fecd0027
-job id 98849501909
+run #165
+run id 33189475466
+head ba1ddf6a3c88d07721eefd30b7e452a8e93c42c6
+job id 98910975890
 conclusion success
 Python 3.12
 Ubuntu 24.04
 ~~~
 
-The run explicitly passed:
+## Major verified chains
+
+### Real benchmark + quality intake
 
 ~~~text
-Compile intelligence tools
-Run intelligence self-test
-Run real benchmark capture self-test
-Run model artifact gate self-test
-Run command-model binding self-test
-Run hardware profile gate self-test
-Run prompt evidence gate self-test
-Run quality corpus gate self-test
-Run quality identity gate self-test
-Run quality execution self-test
-Run quality evaluation argv self-test
-Run quality metric self-test
-Run quality comparison self-test
-Run quality comparison artifact self-test
-Run reproducible performance-quality binding self-test
-Run joint tradeoff artifact self-test
-Run quality execution-variable self-test
-Run quality execution-variable artifact self-test
-Run execution performance-quality binding self-test
-Run execution joint tradeoff artifact self-test
-Run quality execution + metric intake self-test
-Run market refresh self-test
+I20–I32
+raw identity
+→ model artifact
+→ command binding
+→ hardware profile
+→ prompt evidence
+→ corpus
+→ quality identity
+→ sealed quality execution
+→ exact evaluation argv
+→ machine PPL
+→ mandatory non-synthetic admission
 ~~~
 
-## Provenance milestones
-
-### I20–I32 — real intake chain
-
-The suite proves fail-closed behavior for:
-- raw benchmark ↔ manifest identity/config;
-- local model artifact SHA/bytes;
-- exact benchmark argv ↔ model binding;
-- hardware profile;
-- Experiment 57 prompt evidence;
-- concrete quality corpus;
-- quality identity schema v2;
-- sealed quality execution;
-- exact evaluation argv;
-- narrow raw PPL extraction;
-- mandatory independently reproducible quality metric.
-
-### I33–I38 — model-artifact quality/tradeoff path
+### Model tradeoff
 
 ~~~text
-I33 exact quality A/B
-I36 independently reproduce comparison artifact
-I37 require I36 reproduction in PP/TG × PPL binding
-I38 independently reproduce full joint artifact
+I33 → I36 → I37 → I38
 ~~~
 
-Tampering remains blocked even when edited PPL or PP/TG values have internally coherent delta/ratio/percent arithmetic.
-
-### I35 / I39–I41 — execution-variable quality/tradeoff path
+### Execution-variable tradeoff
 
 ~~~text
-I35 explicit manifest-value ↔ quality-argv contract
-I39 schema-v2 reproducible execution-variable quality comparison
-I40 bind reproduced PPL to matching Experiment 61 PP/TG
-I41 independently reproduce full execution joint artifact
+I35 → I39 → I40 → I41
 ~~~
 
-The current execution-variable path requires:
-- `variant.execution.*`;
-- same model artifact;
-- same quality executable;
-- fixed tokenizer/corpus/fixture identity;
-- exact per-side evaluation argv from the declared variable contract.
+### Unified route + readiness
 
-The tooling authenticates the declared value ↔ argv relationship. It does not independently prove upstream flag semantics.
+~~~text
+I42 route
+→ I43 gap matrix
+→ I44/I45 used-GPU acceptance
+→ I46/I47 explicit performance target
+→ I48/I49 explicit price ceiling
+→ I50/I51 condition-evidence provenance
+~~~
+
+The complete run includes dedicated tests for every listed stage.
+
+## Decision boundary
+
+I43 can only emit:
+
+~~~text
+BLOCKED
+READY-FOR-HUMAN-REVIEW
+~~~
+
+It always records:
+
+~~~text
+automatic_purchase_decision = NOT-PERMITTED
+~~~
+
+No weighted recommendation score exists.
+
+## Condition contract
+
+~~~text
+C0 no production-usable evidence / synthetic
+C1 seller/listing claim only
+C2 current external evidence without learner-owned reproducible acceptance
+C3 learner-owned PACKET-bound independently reproducible I44 evidence
+C4 reserved
+~~~
+
+Health outcome remains separate:
+
+~~~text
+ACCEPT
+REVIEW
+REJECT
+~~~
 
 ## Synthetic fixture boundary
 
-All test PP/TG/PPL/price/TCO values are synthetic and prove tool behavior only.
+All synthetic PP/TG/PPL/market/acceptance/policy fixtures prove tool behavior only.
 
 They are not:
 - GPU performance claims;
 - model-quality claims;
-- confirmed transaction data;
-- causal conclusions;
+- market transaction evidence;
+- card-health certificates;
 - purchase recommendations.
 
 Production benchmark rows remain zero until learner-owned real evidence is admitted.

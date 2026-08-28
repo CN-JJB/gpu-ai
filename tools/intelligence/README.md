@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I41. GitHub Actions run #152 verifies the complete Intelligence suite, including reproducible model and execution-variable performance × quality evidence chains.
+Phase 4 tooling currently implements I01–I51. GitHub Actions run #165 verifies the complete suite, including verified tradeoff routing, decision-gap reporting, used-GPU acceptance, explicit performance/price policies, and condition-evidence provenance.
 
 ## 1. Validate a catalog
 
@@ -543,7 +543,47 @@ python3 verify_execution_joint_tradeoff.py \
 
 I41 requires exact full-object reproduction.
 
-## 28. Self-test
+## 28. Decision-readiness evidence lane
+
+I42–I51 add an evidence-only path toward human review.
+
+Key tools:
+
+~~~text
+verify_tradeoff_route.py
+decision_evidence_gap.py
+evaluate_used_gpu_acceptance.py
+verify_used_gpu_acceptance.py
+evaluate_performance_target.py
+verify_performance_target.py
+evaluate_price_ceiling.py
+verify_price_ceiling.py
+derive_condition_evidence_grade.py
+verify_condition_evidence_grade.py
+~~~
+
+The final matrix keeps independent components for:
+- verified performance × quality evidence;
+- real benchmark provenance;
+- exact measured compatibility;
+- current market evidence;
+- whole-machine feasibility;
+- used-GPU technical acceptance;
+- explicit performance target;
+- explicit personal price ceiling;
+- condition-evidence provenance.
+
+It can emit `READY-FOR-HUMAN-REVIEW`, never BUY.
+
+Condition provenance is defined in:
+
+~~~text
+reference/hardware/condition-evidence-grades.md
+~~~
+
+C3 means learner-owned, PACKET-bound, independently reproducible I44 technical evidence. ACCEPT/REVIEW/REJECT remains separate.
+
+## 29. Self-test
 
 From repository root:
 
@@ -555,7 +595,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #152
+run #165
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
@@ -568,6 +608,16 @@ QUALITY EXECUTION-VARIABLE SELFTEST: PASS
 QUALITY EXECUTION-VARIABLE ARTIFACT SELFTEST: PASS
 EXECUTION JOINT TRADEOFF SELFTEST: PASS
 EXECUTION JOINT TRADEOFF ARTIFACT SELFTEST: PASS
+UNIFIED TRADEOFF ROUTE SELFTEST: PASS
+DECISION EVIDENCE GAP SELFTEST: PASS
+USED GPU ACCEPTANCE SELFTEST: PASS
+USED GPU ACCEPTANCE READINESS BRIDGE SELFTEST: PASS
+PERFORMANCE TARGET SELFTEST: PASS
+PERFORMANCE TARGET READINESS BRIDGE SELFTEST: PASS
+PRICE CEILING SELFTEST: PASS
+PRICE CEILING READINESS BRIDGE SELFTEST: PASS
+CONDITION EVIDENCE GRADE SELFTEST: PASS
+CONDITION EVIDENCE READINESS BRIDGE SELFTEST: PASS
 QUALITY EXECUTION INTAKE SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
@@ -618,6 +668,26 @@ See:
 - examples/evidence/intelligence-40-execution-performance-quality-binding.md
 
 - examples/evidence/intelligence-41-execution-joint-tradeoff-artifact-verification.md
+
+- examples/evidence/intelligence-42-unified-tradeoff-routing.md
+
+- examples/evidence/intelligence-43-decision-evidence-gap-matrix.md
+
+- examples/evidence/intelligence-44-used-gpu-acceptance-artifact.md
+
+- examples/evidence/intelligence-45-used-gpu-acceptance-readiness-bridge.md
+
+- examples/evidence/intelligence-46-performance-target-policy.md
+
+- examples/evidence/intelligence-47-performance-target-readiness-bridge.md
+
+- examples/evidence/intelligence-48-price-ceiling-policy.md
+
+- examples/evidence/intelligence-49-price-ceiling-readiness-bridge.md
+
+- examples/evidence/intelligence-50-condition-evidence-grades.md
+
+- examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
 
 ## Non-goals
 

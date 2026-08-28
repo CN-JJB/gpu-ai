@@ -149,3 +149,28 @@ revalidate_after
 When present, Experiment 38 treats it as authoritative.
 
 A stale or due-today market record must not produce BUY-CANDIDATE.
+
+
+## Condition / performance / price companions
+
+The market bridge is only one component.
+
+For the remaining Phase 4 evidence:
+
+~~~text
+condition provenance:
+reference/hardware/condition-evidence-grades.md
+I44 → I50 → I51
+
+performance target:
+I46 → I47
+
+personal price ceiling:
+I48 → I49
+~~~
+
+I49 requires the exact same market record used by the market-evidence component.
+
+Do not use one market record for M2/M3 eligibility and another cheaper record for the price ceiling.
+
+I43 combines these domains and still emits only BLOCKED or READY-FOR-HUMAN-REVIEW.
