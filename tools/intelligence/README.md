@@ -338,7 +338,38 @@ The helper:
 
 After writing, run `validate_catalog.py` and the market views/gates before committing production data.
 
-## 20. Self-test
+## 20. Quality execution evidence
+
+Seal an actual quality command without guessing flags:
+
+~~~bash
+python3 capture_quality_eval.py \
+  --out-dir /tmp/quality-run \
+  --model-artifact /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --quality-manifest /path/to/quality-identity.json \
+  -- \
+  llama-perplexity -m /path/to/model.gguf -f /path/to/corpus.txt
+~~~
+
+Then verify the sealed evidence against the original artifacts:
+
+~~~bash
+python3 verify_quality_execution.py \
+  --quality-command-record /tmp/quality-run/quality-command.json \
+  --stdout /tmp/quality-run/stdout.txt \
+  --stderr /tmp/quality-run/stderr.txt \
+  --packet /tmp/quality-run/PACKET.json \
+  --model-artifact /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --quality-manifest /tmp/quality-run/quality-identity.json
+~~~
+
+The helper binds the exact -m/--model and -f/--file argv paths before launch, preserves both raw streams, and does not parse or invent a PPL metric.
+
+QUALITY EXECUTION: PASS is an evidence-binding result, not a quality or purchase claim.
+
+## 21. Self-test
 
 From repository root:
 
@@ -379,6 +410,7 @@ See:
 - examples/evidence/intelligence-25-prompt-evidence-manifest-gate.md
 - examples/evidence/intelligence-26-quality-corpus-artifact-gate.md
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
+- examples/evidence/intelligence-28-quality-execution-evidence.md
 
 ## Non-goals
 

@@ -163,6 +163,7 @@ For non-synthetic intake:
 - I25 requires an Experiment 57 prompt-evidence manifest and matches messages/template/rendered/token-ID hashes plus token count to `variant.prompt.*`;
 - I26 hashes the real quality corpus, matches `fixed.quality_eval.corpus_sha256`, and requires PACKET coverage;
 - I27 requires the Experiment 59 machine-readable quality identity manifest and matches tokenizer/corpus/fixture/evaluation identity to `fixed.quality_eval.*`.
+- I28 adds a companion quality-execution evidence gate: `capture_quality_eval.py` + `verify_quality_execution.py` bind the actual quality argv/result streams to the exact model, corpus and I27 identity artifact. I28 is not yet a required `verify_real_intake.py` argument, so run it before using quality evidence in a decision.
 
 Only the strengthened I07/I20/I22/I23/I24/I25/I26/I27 gate may return `INTAKE: READY`.
 

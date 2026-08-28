@@ -223,3 +223,20 @@ The dedicated quality-identity gate self-test confirms:
 
 Evidence:
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
+
+## I28 quality execution assertions
+
+The dedicated quality execution self-test confirms:
+- capture refuses a model/corpus argv path that differs from the explicitly supplied artifacts before launch;
+- quality-command.json records model, corpus and I27 identity SHA256 + bytes;
+- raw stdout/stderr and command evidence are PACKET-indexed;
+- verify_quality_execution.py independently reparses exact -m/--model and -f/--file argv;
+- argv tampering remains blocked after PACKET is recomputed;
+- identity-artifact tampering remains blocked after PACKET is recomputed;
+- non-zero quality execution remains auditable but returns QUALITY CAPTURE: BLOCKED.
+
+Evidence:
+- examples/evidence/intelligence-28-quality-execution-evidence.md
+
+I28 intentionally does not parse a PPL value. QUALITY EXECUTION: PASS is an execution-evidence consistency gate.
+

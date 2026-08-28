@@ -79,6 +79,37 @@ llama-perplexity -m "$CAND" -f "$CORPUS" | tee candidate-ppl.txt
 
 Use the same runtime/build and evaluation args.
 
+### Seal the quality execution evidence
+
+For an auditable run, prefer the Intelligence I28 helper instead of piping only through tee:
+
+~~~bash
+python3 ../../../tools/intelligence/capture_quality_eval.py \
+  --out-dir baseline-quality-run \
+  --model-artifact "$BASE" \
+  --quality-corpus "$CORPUS" \
+  --quality-manifest quality-identity.json \
+  -- \
+  llama-perplexity -m "$BASE" -f "$CORPUS"
+~~~
+
+Then verify the sealed command/result evidence:
+
+~~~bash
+python3 ../../../tools/intelligence/verify_quality_execution.py \
+  --quality-command-record baseline-quality-run/quality-command.json \
+  --stdout baseline-quality-run/stdout.txt \
+  --stderr baseline-quality-run/stderr.txt \
+  --packet baseline-quality-run/PACKET.json \
+  --model-artifact "$BASE" \
+  --quality-corpus "$CORPUS" \
+  --quality-manifest baseline-quality-run/quality-identity.json
+~~~
+
+I28 binds the exact model and corpus argv paths, hashes the model/corpus, binds the I27 quality identity artifact, and preserves both raw streams.
+
+It intentionally does not parse PPL. Keep the raw output for the later metric/interpretation gate.
+
 ## 2. Dataset
 
 llama.cpp contributors commonly use Wikitext-2 for quantization comparisons, but your own domain corpus can also be useful.
