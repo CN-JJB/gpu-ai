@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I18 on 2026-08-28 via GitHub Actions run #62:
+Full Python execution remains verified through I18, and I19 adds a dedicated market-refresh self-test. The I19 verification checkpoint is GitHub Actions run #67 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -29,7 +29,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-The latest full verification checked out head 373b2ff6dd78f7018fd026e76b9714519204fbbe on GitHub Actions, compiled every Intelligence Python tool, and executed the complete self-test.
+Run #67 checked out head 8ab1d5435e867570c2a5c2a48cc94d45c533179f, compiled every Intelligence Python tool, executed the complete existing self-test, and then executed the dedicated market refresh self-test.
 
 Detailed evidence:
 
@@ -55,9 +55,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #62
-run id 33137884125
-job id 98741901113
+workflow run #67
+run id 33154549739
+job id 98794100639
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -103,3 +103,15 @@ The successful log explicitly confirms:
 
 Evidence:
 - examples/evidence/intelligence-18-append-only-market-refresh.md
+
+## I19 assertions included in run #67
+
+The dedicated self-test confirms:
+- reciprocal append-only lineage is generated while keeping the old record;
+- the generated catalog still passes validate_catalog.py;
+- already-superseded history cannot fork;
+- cross-hardware lineage is rejected;
+- equal/older observations are rejected.
+
+Evidence:
+- examples/evidence/intelligence-19-market-refresh-helper.md
