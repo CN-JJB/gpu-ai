@@ -147,15 +147,17 @@ CAPTURE: SEALED
 Then run `verify_real_intake.py` with canonical IDs **and the local model artifact**:
 
 ```text
+--hardware-profile baseline-run/evidence/profile.txt
 --model-artifact /path/to/model.gguf
 --command-record baseline-run/command.json
 ```
 
 For non-synthetic intake:
 - I22 hashes the local GGUF and requires SHA256 + bytes to match the manifest;
-- I23 requires command.json to be PACKET-indexed and reparses exact `-m/--model` argv to the same local GGUF.
+- I23 requires command.json to be PACKET-indexed and reparses exact `-m/--model` argv to the same local GGUF;
+- I24 hashes the captured hardware profile, requires it to match `variant.hardware.profile_sha256`, and requires PACKET coverage.
 
-Only the strengthened I07/I20/I22/I23 gate may return `INTAKE: READY`.
+Only the strengthened I07/I20/I22/I23/I24 gate may return `INTAKE: READY`.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 
