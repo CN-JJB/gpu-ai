@@ -143,5 +143,40 @@ cache hierarchy
 → irregular metadata / KV / weight reuse</pre>
 <p>你学的不是古董型号，而是现代 kernel 设计语言的来源。</p>
 
+
+<section class="student-closure">
+<h2>学生闭环 — Tesla / Fermi / Kepler</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意 NVIDIA GPU 均可做 capability inventory）。</p>
+<p><strong>成本：</strong>0 元主路径；不要求为历史架构买卡。</p>
+<p><strong>风险：</strong>safe；只读资料、设备信息与 benchmark。</p>
+<p><strong>替代路径：</strong>没有对应年代 GPU 也能完成 Experiment 23；有 NVIDIA 卡才做 Experiment 24。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>从“上一代瓶颈 → 本代机制 → 今天 LLM 的影响”解释本页，而不是背型号。</li>
+<li>把 architecture family 与具体 SKU 的显存、带宽、互联、precision、功耗和软件生命周期分开。</li>
+<li>识别哪些是稳定架构事实，哪些必须在当前 driver/runtime 上重新验证。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>做 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果手里有 NVIDIA 卡，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 unified programmable GPU、cache/ECC/compute capability 与早期 GPGPU 生态比“核心数量”更重要？</li>
+<li>Tesla→Fermi→Kepler 中，哪一次变化最直接改变你今天读旧卡资料的方法？</li>
+<li>如果一张旧 NVIDIA 卡理论算力不错，但最新 runtime 不再支持，你的结论属于“架构能力”还是“当前可用性”？</li>
+<li>为什么“同一 architecture”也必须继续查 memory system、SKU cut-down、power 和 software support？</li>
+</ol>
+<h3>完成证据</h3>
+<p>做一张 Tesla / Fermi / Kepler 代际卡片：<strong>前代瓶颈 / 本代改变 / LLM 影响 / 二手价值可能受什么影响 / 当前软件支持仍需查什么</strong>。禁止写“某代一定更值”。</p>
+<h3>如何迁移</h3>
+<p>以后看到 NVIDIA 新架构时沿用同一模板：execution、data movement、numerics、memory/interconnect、software enablement；最后再落到具体 SKU。</p>
+<h3>Primary Sources / Reference</h3>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
+<li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li>
+<li><a href="../../resources/RESOURCES.md">Course Resources — NVIDIA primary-source index</a></li>
+</ul>
+</section>
 </body>
 </html>
