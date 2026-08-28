@@ -88,5 +88,7 @@ jobs:
         run: python tools/intelligence/real_evidence_session_selftest.py
       - name: Run real evidence session prepare self-test
         run: python tools/intelligence/real_evidence_session_prepare_selftest.py
+      - name: Run semantic source capture self-test
+        run: python tools/intelligence/semantic_source_capture_selftest.py
       - name: Run market refresh self-test
         run: python tools/intelligence/market_refresh_selftest.py

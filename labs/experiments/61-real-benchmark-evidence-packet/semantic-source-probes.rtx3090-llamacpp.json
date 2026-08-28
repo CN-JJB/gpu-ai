@@ -1,0 +1,58 @@
+{
+  "semantic_source_probe_schema_version": 1,
+  "working_directory": ".",
+  "probes": [
+    {
+      "probe_id": "llama-bench-version",
+      "purpose": "capture exact llama-bench runtime/build identity from the executable used for Experiment 61",
+      "argv": ["llama-bench", "--version"],
+      "required": true,
+      "accepted_returncodes": [0],
+      "timeout_seconds": 20
+    },
+    {
+      "probe_id": "llama-bench-help",
+      "purpose": "capture the flag semantics supported by this exact llama-bench build before constructing benchmark argv",
+      "argv": ["llama-bench", "--help"],
+      "required": true,
+      "accepted_returncodes": [0],
+      "timeout_seconds": 20
+    },
+    {
+      "probe_id": "llama-bench-list-devices",
+      "purpose": "capture device/backend identities visible to this exact llama-bench build",
+      "argv": ["llama-bench", "--list-devices"],
+      "required": true,
+      "accepted_returncodes": [0],
+      "timeout_seconds": 20
+    },
+    {
+      "probe_id": "llama-perplexity-help",
+      "purpose": "capture the quality-evaluation flags supported by the exact installed llama-perplexity build",
+      "argv": ["llama-perplexity", "--help"],
+      "required": true,
+      "accepted_returncodes": [0],
+      "timeout_seconds": 20
+    },
+    {
+      "probe_id": "nvidia-smi-list",
+      "purpose": "capture same-machine NVIDIA device identity immediately before the benchmark session",
+      "argv": ["nvidia-smi", "-L"],
+      "required": true,
+      "accepted_returncodes": [0],
+      "timeout_seconds": 20
+    },
+    {
+      "probe_id": "nvidia-smi-query",
+      "purpose": "capture same-machine GPU UUID, PCI bus identity, driver version, name, and total VRAM for review",
+      "argv": [
+        "nvidia-smi",
+        "--query-gpu=name,uuid,pci.bus_id,driver_version,memory.total",
+        "--format=csv,noheader,nounits"
+      ],
+      "required": true,
+      "accepted_returncodes": [0],
+      "timeout_seconds": 20
+    }
+  ]
+}
