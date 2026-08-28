@@ -22,6 +22,7 @@ Phase 4 specs：
 - docs/specs/0015-intelligence-cross-market-signal-comparison.md
 - docs/specs/0016-intelligence-cn-secondary-watch-signals.md
 - docs/specs/0017-intelligence-market-evidence-selection-gate.md
+- docs/specs/0018-intelligence-freshness-aware-watchlist-gate.md
 
 Schema：
 - intelligence/schema/README.md
@@ -309,6 +310,23 @@ M2/M3 → market-evidence sub-gate ELIGIBLE
 
 M3 remains claim-scoped. Current SOLD-marked M3 rows do not prove the negotiated transaction amount.
 
+## Freshness-aware purchase use
+
+Market grade and freshness are separate gates.
+
+~~~text
+CURRENT + M2/M3 → ELIGIBLE
+DUE-TODAY → REVALIDATE-NOW
+STALE → STALE-REVALIDATE
+UNSCHEDULED / INVALID → REVALIDATION-SCHEDULE-REQUIRED
+~~~
+
+Every real market observation must now carry revalidate_after.
+
+Experiment 38 also blocks due-today, stale, unknown and invalid market evidence from BUY-CANDIDATE.
+
+GitHub Actions run #54 verifies this behavior.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -351,11 +369,11 @@ TCO does not override:
 
 ## Verification
 
-I01–I16 GitHub Actions compile and end-to-end self-test:
+I01–I17 GitHub Actions compile and end-to-end self-test:
 
 ~~~text
-run #48
-head 097c8d4839314851e1f4b07267b3c7b2102d50e0
+run #54
+head bbf624e44579cbc765974bf8b5070330002f294e
 SELFTEST: PASS
 ~~~
 
@@ -371,6 +389,7 @@ Evidence:
 - examples/evidence/intelligence-15-cn-secondary-watch.md
 - examples/evidence/intelligence-16-market-evidence-selection-gate.md
 - examples/evidence/intelligence-i01-i16-ci-selftest.md
+- examples/evidence/intelligence-17-freshness-aware-watchlist.md
 
 The previous I11–I16 verification split is closed: GitHub Actions run #48 executed py_compile and the complete selftest successfully.
 
