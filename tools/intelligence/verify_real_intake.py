@@ -365,6 +365,7 @@ def main():
     p.add_argument("--model-artifact", type=Path, help="Local model artifact to hash/size-check against the manifest")
     p.add_argument("--hardware-profile", type=Path, help="Hardware profile artifact to SHA-check against manifest variant.hardware.profile_sha256")
     p.add_argument("--prompt-manifest", type=Path, help="Experiment 57 prompt evidence manifest to bind variant.prompt identity")
+    p.add_argument("--quality-corpus", type=Path, help="Quality-evaluation corpus to SHA-check against fixed.quality_eval.corpus_sha256")
     p.add_argument("--command-record", type=Path, help="I21 command.json to bind exact argv to the verified model artifact")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
@@ -468,6 +469,40 @@ def main():
         profile_status = "BLOCKED"
 
     model_record = models.get(a.model_id)
+    quality_corpus_status = "NOT-CHECKED"
+    quality_corpus_sha256 = None
+    quality_corpus_bytes = None
+    if a.quality_corpus is not None:
+        if not a.quality_corpus.is_file():
+            errors.append(f"quality corpus is not a file: {a.quality_corpus}")
+            quality_corpus_status = "BLOCKED"
+        else:
+            quality_corpus_bytes = a.quality_corpus.stat().st_size
+            quality_corpus_sha256 = sha256(a.quality_corpus)
+            expected_corpus_sha256 = str(
+                manifest.get("fixed", {})
+                .get("quality_eval", {})
+                .get("corpus_sha256", "")
+            ).strip().lower()
+
+            if expected_corpus_sha256 and quality_corpus_sha256.lower() != expected_corpus_sha256:
+                errors.append(
+                    "quality corpus SHA256 != manifest fixed.quality_eval.corpus_sha256: "
+                    f"{quality_corpus_sha256} vs {expected_corpus_sha256}"
+                )
+                quality_corpus_status = "BLOCKED"
+
+            if quality_corpus_status != "BLOCKED":
+                quality_corpus_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            quality_corpus_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic intake requires --quality-corpus so fixed.quality_eval.corpus_sha256 has a real artifact"
+        )
+        quality_corpus_status = "BLOCKED"
+
     prompt_status = "NOT-CHECKED"
     prompt_obj = {}
     if a.prompt_manifest is not None:
@@ -692,6 +727,8 @@ def main():
                 packet_paths.append(a.hardware_profile)
             if a.prompt_manifest is not None:
                 packet_paths.append(a.prompt_manifest)
+            if a.quality_corpus is not None:
+                packet_paths.append(a.quality_corpus)
             if a.command_record is not None:
                 packet_paths.append(a.command_record)
             for path in packet_paths:
@@ -718,6 +755,14 @@ def main():
         print(f"- bytes={profile_actual_bytes}")
     if profile_actual_sha256 is not None:
         print(f"- sha256={profile_actual_sha256}")
+    print("QUALITY CORPUS")
+    print(f"- status={quality_corpus_status}")
+    if a.quality_corpus is not None:
+        print(f"- path={a.quality_corpus}")
+    if quality_corpus_bytes is not None:
+        print(f"- bytes={quality_corpus_bytes}")
+    if quality_corpus_sha256 is not None:
+        print(f"- sha256={quality_corpus_sha256}")
     print("PROMPT EVIDENCE")
     print(f"- status={prompt_status}")
     if a.prompt_manifest is not None:
