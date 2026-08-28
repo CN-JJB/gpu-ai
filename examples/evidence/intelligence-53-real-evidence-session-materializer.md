@@ -34,3 +34,17 @@ Unresolved placeholders block before launch.
 I53 emits only `READY-TO-RUN-I52`.
 
 It emits no benchmark number, PPL, ranking or purchase recommendation.
+
+
+## CI verification
+
+~~~text
+workflow: Intelligence Self-Test
+run #172
+run id: 33193068222
+head: 0f40cc26466c21730bdea2e2b7e2a1e687b28612
+job id: 98923186654
+conclusion: success
+~~~
+
+The full I01–I53 suite passed, including the dedicated I53 materializer self-test.

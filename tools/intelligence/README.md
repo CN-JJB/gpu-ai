@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I52. GitHub Actions run #170 verifies the complete suite, including verified tradeoff routing, decision readiness, and the end-to-end real-evidence session runner.
+Phase 4 tooling currently implements I01–I53. GitHub Actions run #172 verifies the complete suite, including byte-derived real-session preparation and the end-to-end I52 evidence runner.
 
 ## 1. Validate a catalog
 
@@ -583,7 +583,41 @@ reference/hardware/condition-evidence-grades.md
 
 C3 means learner-owned, PACKET-bound, independently reproducible I44 technical evidence. ACCEPT/REVIEW/REJECT remains separate.
 
-## 29. Run one real evidence session
+## 29. Prepare one real evidence session
+
+After filling the semantic fields and source paths in a session JSON, materialize only byte-derived identity:
+
+~~~bash
+python3 tools/intelligence/prepare_real_evidence_session.py \
+  /path/to/real-session.json \
+  --out-dir /path/to/prepared-session
+~~~
+
+Required success:
+
+~~~text
+REAL SESSION PREPARE: READY-TO-RUN-I52
+~~~
+
+I53 computes/synchronizes:
+- exact GGUF SHA256 + bytes;
+- hardware-profile SHA256;
+- concrete quality-corpus SHA256;
+- Experiment 57 prompt identity;
+- quality identity corpus SHA;
+- Experiment 61 `fixed.quality_eval`.
+
+It never infers device identity, runtime/build/backend, quant/source revision, or execution semantics.
+
+Then use:
+
+~~~text
+/path/to/prepared-session/session.json
+~~~
+
+as the I52 input.
+
+## 30. Run one real evidence session
 
 Copy and fill:
 
@@ -624,7 +658,7 @@ The output also contains:
 
 Review the real evidence before ingestion. READY is not benchmark truth or purchase approval.
 
-## 30. Self-test
+## 31. Self-test
 
 From repository root:
 
@@ -636,7 +670,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #170
+run #172
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
@@ -661,6 +695,7 @@ CONDITION EVIDENCE GRADE SELFTEST: PASS
 CONDITION EVIDENCE READINESS BRIDGE SELFTEST: PASS
 QUALITY EXECUTION INTAKE SELFTEST: PASS
 REAL EVIDENCE SESSION SELFTEST: PASS
+REAL EVIDENCE SESSION PREPARE SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
 
@@ -732,6 +767,8 @@ See:
 - examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
 
 - examples/evidence/intelligence-52-real-evidence-session-runner.md
+
+- examples/evidence/intelligence-53-real-evidence-session-materializer.md
 
 ## Non-goals
 

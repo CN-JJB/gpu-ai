@@ -10,17 +10,17 @@ python tools/intelligence/selftest.py
 ## Current verified frontier
 
 ~~~text
-I01–I52
+I01–I53
 ~~~
 
 Latest implementation verification:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #170
-run id 33190099651
-head 29e23bca982989b31597de61eb3be43ec25c01f7
-job id 98913094544
+run #172
+run id 33193068222
+head 0f40cc26466c21730bdea2e2b7e2a1e687b28612
+job id 98923186654
 conclusion success
 Python 3.12
 Ubuntu 24.04
@@ -83,6 +83,25 @@ explicit session JSON
 The dedicated self-test proves the runner can reach `REAL SESSION: READY` through the existing gates, preserves failed-step evidence, never overwrites a non-empty output directory, and indexes profile/prompt/corpus/quality identity in the main benchmark PACKET.
 
 All I52 self-test metrics are synthetic fixtures only.
+
+### I53 — byte-derived session preparation
+
+~~~text
+explicit semantic session
++ local source bytes
+→ materialized manifest / quality identity
+→ READY-TO-RUN-I52
+~~~
+
+The dedicated self-test verifies:
+- GGUF SHA/bytes materialization;
+- profile/corpus SHA materialization;
+- prompt identity synchronization;
+- quality argv ↔ identity exactness;
+- source files are never modified in place;
+- unresolved runtime/device/model-source/execution placeholders block before launch.
+
+I53 produces no PP/TG/PPL values.
 
 ## Decision boundary
 

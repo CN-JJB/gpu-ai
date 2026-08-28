@@ -120,7 +120,44 @@ validator.txt
 Performance:
 - reuse Experiment 40.
 
-### One-session I52 path
+### Preferred I53 → I52 path
+
+Start with the real session template and fill:
+- canonical IDs;
+- exact source paths;
+- exact benchmark and quality argv;
+- explicit device identity;
+- explicit runtime/build/backend;
+- explicit model quant/source revision;
+- explicit execution semantics.
+
+Then materialize byte-derived identity into a new copy:
+
+~~~bash
+python3 ../../../tools/intelligence/prepare_real_evidence_session.py \
+  real-session.json \
+  --out-dir prepared-session
+~~~
+
+Required result:
+
+~~~text
+REAL SESSION PREPARE: READY-TO-RUN-I52
+~~~
+
+I53 safely computes only fields that are fixed by local bytes/machine-readable source artifacts.
+
+It will not guess runtime or execution semantics.
+
+Now run I52 using the prepared copy:
+
+~~~bash
+python3 ../../../tools/intelligence/run_real_evidence_session.py \
+  prepared-session/session.json \
+  --out-dir real-session-output
+~~~
+
+### Direct one-session I52 path
 
 For the first real packet, prefer the orchestrated path after all source artifacts and exact argv are ready:
 
@@ -281,6 +318,16 @@ Only list files that actually exist.
 
 Use:
 `RESULT-TEMPLATE.md`
+
+## Real acquisition checklist
+
+See:
+
+~~~text
+REAL-ACQUISITION.md
+~~~
+
+Use it on the actual benchmark machine before the first production ingestion.
 
 ## Important
 

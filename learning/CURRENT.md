@@ -27,6 +27,7 @@ I46–I47  explicit performance-target policy + readiness bridge
 I48–I49  explicit personal price-ceiling policy + readiness bridge
 I50–I51  condition-evidence provenance grades + readiness bridge
 I52       real Experiment 61 evidence session runner
+I53       byte-derived real-session materializer / preflight
 ~~~
 
 ## Structural status
@@ -192,14 +193,14 @@ China rows remain M1 secondary signals, not confirmed transactions.
 
 ~~~text
 workflow: Intelligence Self-Test
-run #170
-run id 33190099651
-head 29e23bca982989b31597de61eb3be43ec25c01f7
-job id 98913094544
+run #172
+run id 33193068222
+head 0f40cc26466c21730bdea2e2b7e2a1e687b28612
+job id 98923186654
 conclusion success
 ~~~
 
-The complete suite passed through I52, including the end-to-end real-evidence session orchestration self-test.
+The complete suite passed through I53, including byte-derived session preparation plus the end-to-end I52 orchestration path.
 
 ## Newest evidence
 
@@ -214,16 +215,17 @@ The complete suite passed through I52, including the end-to-end real-evidence se
 - examples/evidence/intelligence-50-condition-evidence-grades.md
 - examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
 - examples/evidence/intelligence-52-real-evidence-session-runner.md
+- examples/evidence/intelligence-53-real-evidence-session-materializer.md
 
 ## Next
 
 1. Stop expanding decision gates by default.
-2. On the learner's actual machine, copy and fill `labs/experiments/61-real-benchmark-evidence-packet/real-evidence-session.template.json`.
-3. Run `tools/intelligence/run_real_evidence_session.py`; require `REAL SESSION: READY`.
-4. Manually review the captured evidence before any catalog ingestion.
-5. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
-6. Acquire the first real Experiment 87 / I44 used-GPU acceptance packet for the same candidate hardware.
-7. Fill explicit I46 performance-target and I48 price-ceiling policies, then run I43.
+2. On the learner's actual machine, copy and fill `labs/experiments/61-real-benchmark-evidence-packet/real-evidence-session.template.json` plus the explicitly observed semantic manifest fields.
+3. Run `prepare_real_evidence_session.py`; require `READY-TO-RUN-I52`.
+4. Run I52 using the prepared session; require `REAL SESSION: READY`.
+5. Manually review the captured evidence before any catalog ingestion.
+6. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
+7. Acquire the first real Experiment 87 / I44 acceptance packet, then fill I46/I48 and run I43.
 8. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
 
 No auto-purchase or unsafe hardware modification.

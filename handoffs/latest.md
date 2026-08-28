@@ -18,16 +18,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I52 implemented
-latest implementation CI: run #170 success
+I01–I53 implemented
+latest implementation CI: run #172 success
 ~~~
 
 CI identity:
 
 ~~~text
-run id 33190099651
-head 29e23bca982989b31597de61eb3be43ec25c01f7
-job id 98913094544
+run id 33193068222
+head 0f40cc26466c21730bdea2e2b7e2a1e687b28612
+job id 98923186654
 ~~~
 
 ## Production boundary
@@ -176,13 +176,50 @@ On success it emits `REAL SESSION: READY`, `session-summary.json`, and `intake-a
 
 Do not ingest automatically. Review the real evidence first.
 
+## I53 real session materializer
+
+Before I52, prefer:
+
+~~~text
+tools/intelligence/prepare_real_evidence_session.py
+~~~
+
+I53 writes a new prepared copy and safely materializes only byte-derived fields:
+
+~~~text
+model SHA256 + bytes
+hardware profile SHA256
+quality corpus SHA256
+prompt identity
+quality identity corpus SHA256
+Experiment 61 fixed.quality_eval
+~~~
+
+It does not infer:
+- device identity;
+- runtime/build/backend;
+- model quant/source revision;
+- execution semantics.
+
+Those must already be explicitly filled or I53 blocks before any benchmark launch.
+
+Main acquisition order:
+
+~~~text
+explicit semantic inputs
+→ I53 READY-TO-RUN-I52
+→ I52 REAL SESSION: READY
+→ human evidence review
+→ deliberate ingestion
+~~~
+
 ## Next work
 
-1. Fill the I52 real-evidence session template on the actual benchmark machine.
-2. Run I52 and require `REAL SESSION: READY`; manually review before ingestion.
-3. After reviewed ingestion, derive exact measured compatibility.
-4. Acquire the first real Experiment 87/I44 acceptance packet for the same candidate hardware.
-5. Create explicit I46/I48 policies and run I43.
+1. Fill explicit device/runtime/model-source/execution semantics on the actual benchmark machine.
+2. Run I53 and require `READY-TO-RUN-I52`.
+3. Run the prepared session through I52 and require `REAL SESSION: READY`; manually review before ingestion.
+4. After reviewed ingestion, derive exact measured compatibility.
+5. Acquire real Experiment 87/I44 acceptance, create I46/I48 policies, and run I43.
 6. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
 
 No auto-purchase, no unsafe hardware modification.
