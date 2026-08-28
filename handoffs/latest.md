@@ -16,12 +16,22 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ```text
-I01–I15 implemented
+I01–I16 implemented and full-CI verified
 ```
 
-Verification split:
-- I01–I10: full Python SELFTEST PASS;
-- I11–I15: exact-main contract verified; fresh full Python rerun still owed.
+## CI
+
+GitHub Actions run #48:
+
+```text
+head 097c8d4839314851e1f4b07267b3c7b2102d50e0
+run id 33137329016
+job id 98740118394
+Python 3.12.14
+SELFTEST: PASS
+```
+
+The successful log includes all I11–I16 market assertions and negative validator cases.
 
 ## Compatibility
 
@@ -32,7 +42,7 @@ M4Max/Metal  → NEEDS-TEST
 A770/SYCL    → NEEDS-TEST
 ```
 
-No production benchmark Evidence yet.
+No real benchmark Evidence yet.
 
 ## Benchmark admission
 
@@ -46,77 +56,62 @@ manifest + raw result + PACKET + canonical IDs
 
 Production benchmark catalog remains empty.
 
-## Market evidence
-
-### Active eBay median asks
+## Market evidence states
 
 ```text
-3090 1499 USD
-7900 XTX 1020 USD
+SECONDARY_REPORTED        → M1
+MEDIAN_ASK                → M2
+SOLD_MARKED_LISTING_PRICE → M3
+```
+
+Current counts:
+
+```text
+M1=2
+M2=3
+M3=9
+```
+
+Experiment 38 market sub-gate:
+
+```text
+M0/M1 → NEEDS STRONGER
+M2/M3 → ELIGIBLE
+```
+
+M3 remains claim-scoped. Current OfferUp rows do not prove actual transaction amount.
+
+## Current market signals
+
+```text
+eBay asks:
+3090 1499
+7900 XTX 1020
 A770 330 USD
-```
 
-Ask-only; not confirmed sales.
-
-### Sample evidence
-
-```text
-3090 47 listings → BROAD-SAMPLE
-7900 XTX 23 → LIMITED-SAMPLE
-A770 8 → SMALL-SAMPLE
-```
-
-### OfferUp sold-marked listing pages
-
-Displayed-price medians:
-
-```text
-3090 950 USD
-7900 XTX 700 USD
+OfferUp SOLD-marked displayed medians:
+3090 950
+7900 XTX 700
 A770 200 USD
-```
 
-Pages are SOLD-marked, but actual transaction amount remains unknown.
-
-### Cross-contract gap
-
-```text
-3090 -36.6%
-7900 XTX -31.4%
-A770 -39.4%
-```
-
-Not a transaction discount.
-
-### China secondary watch
-
-```text
-3090 7400 CNY
+China secondary watch:
+3090 7400
 A770 1450 CNY
 ```
 
-Secondary reported only; no direct sample or confirmed sale.
+## Freshness gap discovered
 
-## Market semantic validator
+Experiment 38 currently prints stale age but its decision status is computed before freshness.
 
-Production validation now rejects:
-- MEDIAN_ASK without sample/method evidence;
-- MEDIAN_ASK claiming confirmed sale;
-- SOLD_MARKED_LISTING_PRICE without SOLD/listing evidence;
-- sold-marked row claiming confirmed transaction;
-- SECONDARY_REPORTED claiming direct capture or confirmed sale.
+Therefore a stale M2/M3 observation can still appear as BUY-CANDIDATE.
 
-## Freshness
-
-I10 remains authoritative.
-
-A770 China watch is DUE-TODAY on 2026-08-28.
+This is the active I17 defect to fix.
 
 ## Next work
 
-1. Obtain a complete repository execution path and rerun all intelligence Python tests.
-2. Add stronger direct/local transaction evidence if auditable.
+1. I17: freshness-aware watchlist market gate.
+2. Refresh due/stale dynamic observations.
 3. Ingest real benchmark only after I07 READY.
-4. Do not build a recommendation leaderboard yet.
+4. No recommendation leaderboard yet.
 
 No auto-purchase or unsafe hardware modification.
