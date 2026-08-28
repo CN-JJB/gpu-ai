@@ -1,14 +1,54 @@
 [
   {
-    "test": "pp512",
+    "build_commit": "fixture-build",
+    "build_number": 1,
+    "gpu_info": "Synthetic 24 GiB GPU",
+    "backends": "FIXTURE",
+    "model_filename": "fixture.gguf",
+    "model_size": 4294967296,
+    "n_threads": 8,
+    "type_k": "f16",
+    "type_v": "f16",
+    "n_gpu_layers": -1,
+    "split_mode": "none",
+    "flash_attn": true,
+    "tensor_split": "0.00",
     "n_prompt": 512,
     "n_gen": 0,
-    "avg_ts": 1000
+    "test_time": "2026-08-27T12:00:00Z",
+    "avg_ts": 1000,
+    "samples_ts": [
+      1000,
+      1000,
+      1000,
+      1000,
+      1000
+    ]
   },
   {
-    "test": "tg128",
+    "build_commit": "fixture-build",
+    "build_number": 1,
+    "gpu_info": "Synthetic 24 GiB GPU",
+    "backends": "FIXTURE",
+    "model_filename": "fixture.gguf",
+    "model_size": 4294967296,
+    "n_threads": 8,
+    "type_k": "f16",
+    "type_v": "f16",
+    "n_gpu_layers": -1,
+    "split_mode": "none",
+    "flash_attn": true,
+    "tensor_split": "0.00",
     "n_prompt": 0,
     "n_gen": 128,
-    "avg_ts": 50
+    "test_time": "2026-08-27T12:00:01Z",
+    "avg_ts": 50,
+    "samples_ts": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ]
   }
 ]
