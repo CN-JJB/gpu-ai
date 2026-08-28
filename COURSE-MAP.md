@@ -198,6 +198,7 @@ goal/workload
 | I16 | stable M0–M3 market evidence selection gate + Experiment 38 bridge | verified |
 | I17 | freshness-aware market evidence + Experiment 38 stale BUY-CANDIDATE fix | verified |
 | I18 | append-only A770 market refresh lineage + superseded active-view semantics | verified |
+| I19 | reusable append-only market refresh helper + lineage preflight/self-test | verified |
 
 当前稳定边界：
 
