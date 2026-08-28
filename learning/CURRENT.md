@@ -174,10 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #136
-run id 33159217898
-head 1651f040ff5e16a38102c33949525b3b991f5a69
-job id 98809329732
+run #138
+run id 33169307905
+head d976103ecdaf848cf72dc6d28b9b53babb3dfdee
+job id 98842259986
 conclusion success
 ~~~
 
@@ -190,9 +190,10 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21–I28 evidence capture/admission tests remain green;
-- I29 makes I28 quality execution evidence mandatory for non-synthetic intake;
-- a separate recomputed quality PACKET cannot hide semantic corpus-argv tampering;
+- I21–I29 evidence capture/admission tests remain green;
+- I30 upgrades quality identity/capture to schema v2 and binds exact evaluation argv tokens;
+- declared evaluation_args, recorded evaluation_args and argv-derived tokens must match exactly;
+- recomputed quality PACKET cannot hide evaluation-argv tampering;
 - the main benchmark PACKET and quality PACKET remain separate integrity domains;
 - the dedicated I19 market refresh self-test remains green.
 
@@ -210,11 +211,12 @@ Evidence:
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
 - examples/evidence/intelligence-28-quality-execution-evidence.md
 - examples/evidence/intelligence-29-quality-execution-intake-gate.md
+- examples/evidence/intelligence-30-quality-evaluation-argv-binding.md
 
 ## Next
 
-1. Bind the declared quality `evaluation_args` to the exact executed quality argv/config rather than leaving it as a free-form identity field (I30).
-2. Acquire the first learner-owned real Experiment 61 packet through I21 + I07/I20/I22/I23/I24/I25/I26/I27/I29.
+1. Add a fail-closed machine-readable quality metric extraction/admission layer over the sealed raw quality output (I31).
+2. Acquire the first learner-owned real Experiment 61 packet through I21 + I07/I20/I22/I23/I24/I25/I26/I27/I29/I30.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility evidence exists.

@@ -16,7 +16,7 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I27 implemented and CI verified
+I01–I30 implemented and CI verified
 ~~~
 
 ## Latest CI
@@ -265,10 +265,29 @@ The quality PACKET remains separate from the benchmark PACKET.
 
 Run #136 is green, including the new quality execution intake self-test and every prior Intelligence gate.
 
+## I30 exact evaluation argv binding
+
+Quality identity is now schema v2:
+
+~~~text
+evaluation_args = exact JSON argv-token list
+~~~
+
+Capture and verification independently remove only:
+- argv[0] executable;
+- exactly one model selector;
+- exactly one corpus selector.
+
+Every remaining token must match `evaluation_args` exactly and in order.
+
+Quality command records are schema v2 and store the derived evaluation token list.
+
+Run #138 is green, including the dedicated I30 self-test plus every prior Intelligence gate.
+
 ## Next work
 
-1. I30: bind the declared quality `evaluation_args` to the exact executed quality argv/config.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29.
+1. I31: add fail-closed machine-readable quality metric extraction/admission from sealed raw output.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29/I30.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
