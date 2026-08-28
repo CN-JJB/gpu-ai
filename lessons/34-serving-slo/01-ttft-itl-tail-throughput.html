@@ -229,4 +229,15 @@ quality
 </pre>
 
 <p>这样“我的 server 很快”才开始变成一个可验证命题。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Serving Workload / SLO</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模拟主路径；真实 server 增强 L1。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>默认 safe；涉及网络暴露时只在受控本地环境完成，先审计再开放。</p></div>
+<h3>能力目标</h3><ul><li>从“单机 benchmark”升级到“用户看到的服务行为”。</li><li>用 tail/SLO/capacity/fairness/exposure 约束系统，而不是只追总 tok/s。</li><li>能通过 trace/metrics 解释一个服务为什么好用或不好用。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/62-serving-tail-latency-trace/README.md">Experiment 62：tail-latency trace</a>；有 llama-server 时做 <a href="../../labs/experiments/63-real-llama-server-serving-trace/README.md">Experiment 63：real serving trace</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么 aggregate tokens/s 高不代表单个用户体验好？</li><li>TTFT 里可能混入哪些非-prefill 时间？</li><li>为什么 SSE chunk gap 不能无条件叫 token ITL？</li><li>平均延迟很好但 p95 爆炸时，你应该相信哪个与 SLO 更相关？</li></ol>
+<h3>完成证据</h3><p>定义一个真实 workload 的 arrival、prompt/output 长度分布、concurrency/cache state，并给出 TTFT/ITL/E2E/throughput 的 SLO 与 percentile 算法。</p>
+<h3>如何选择 / 迁移</h3><p>换 vLLM、llama-server 或其他 runtime 后，指标名字可以变，但仍围绕 <strong>latency / traffic / errors / saturation + workload contract + per-user SLO</strong> 做判断。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://sre.google/sre-book/monitoring-distributed-systems/">Google SRE — Monitoring Distributed Systems</a></li><li><a href="https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/bench/README.md">llama.cpp — Server Benchmark</a></li><li><a href="../../reference/llm/serving-workload-slo.md">Course Reference — Serving Workload / SLO</a></li></ul>
+</section>
 </body></html>

@@ -218,4 +218,15 @@ REVIEW
 </pre>
 
 <p>而不是直接复制一段“公网部署命令”。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Service Exposure / Privacy / Auth</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模拟主路径；真实 server 增强 L1。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>默认 safe；涉及网络暴露时只在受控本地环境完成，先审计再开放。</p></div>
+<h3>能力目标</h3><ul><li>从“单机 benchmark”升级到“用户看到的服务行为”。</li><li>用 tail/SLO/capacity/fairness/exposure 约束系统，而不是只追总 tok/s。</li><li>能通过 trace/metrics 解释一个服务为什么好用或不好用。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/70-service-exposure-config-linter/README.md">Experiment 70：service-exposure config linter</a>；真实服务做 <a href="../../labs/experiments/71-real-service-exposure-audit/README.md">Experiment 71：real exposure audit</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么 bind 0.0.0.0 与 bind 127.0.0.1 的风险面完全不同？</li><li>有 API key 是否就可以忽略 TLS？</li><li>日志里保存完整 prompt/response 会产生什么隐私边界？</li><li>health/metrics endpoint 为什么也要考虑暴露范围？</li></ol>
+<h3>完成证据</h3><p>提交一个 exposure diagram：监听地址、反向代理/TLS、认证、允许客户端、metrics/health、日志字段、秘密存储，并列出最小公开面。</p>
+<h3>如何选择 / 迁移</h3><p>换 vLLM、llama-server 或其他 runtime 后，指标名字可以变，但仍围绕 <strong>latency / traffic / errors / saturation + workload contract + per-user SLO</strong> 做判断。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md">llama.cpp Server Documentation</a></li><li><a href="../../reference/llm/service-exposure-privacy-auth.md">Course Reference — Service Exposure / Privacy / Auth</a></li></ul>
+</section>
 </body></html>

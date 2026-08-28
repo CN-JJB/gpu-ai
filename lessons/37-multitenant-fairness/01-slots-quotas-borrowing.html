@@ -244,4 +244,15 @@ reject rate
 </pre>
 
 <p>这样“公平”才是可测量的工程目标。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Multi-Tenant Fairness</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模拟主路径；真实 server 增强 L1。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>默认 safe；涉及网络暴露时只在受控本地环境完成，先审计再开放。</p></div>
+<h3>能力目标</h3><ul><li>从“单机 benchmark”升级到“用户看到的服务行为”。</li><li>用 tail/SLO/capacity/fairness/exposure 约束系统，而不是只追总 tok/s。</li><li>能通过 trace/metrics 解释一个服务为什么好用或不好用。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/68-multitenant-fairness-model/README.md">Experiment 68：fairness model</a>；有多用户服务时做 <a href="../../labs/experiments/69-real-tenant-serving-report/README.md">Experiment 69：real tenant report</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么只追求总 throughput 可能让一个 tenant 饿死？</li><li>硬配额与 work-conserving borrowing 各解决什么问题？</li><li>公平一定等于每人相同 slots 吗？</li><li>如何同时观察 per-tenant SLO 与整体 GPU 利用率？</li></ol>
+<h3>完成证据</h3><p>为两个不同 workload tenant 设计 quota/borrowing policy，输出 per-tenant TTFT/throughput/拒绝率，并解释资源空闲时是否允许借用。</p>
+<h3>如何选择 / 迁移</h3><p>换 vLLM、llama-server 或其他 runtime 后，指标名字可以变，但仍围绕 <strong>latency / traffic / errors / saturation + workload contract + per-user SLO</strong> 做判断。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://sre.google/sre-book/monitoring-distributed-systems/">Google SRE — Monitoring Distributed Systems</a></li><li><a href="../../reference/llm/multitenant-fairness-quotas.md">Course Reference — Multi-Tenant Fairness</a></li></ul>
+</section>
 </body></html>
