@@ -1,172 +1,27 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Apple Silicon 3：M1 到 M5、GPU vs ANE vs MLX</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>Apple Silicon 3 — M1 → M5：GPU、Neural Engine、MLX 到底谁在跑 LLM？</h1>
-
-<h2>1. M1：先建立 SoC + Unified Memory 世界</h2>
-<p>M1 的真正历史意义：</p>
-<pre>Mac
-→ Apple-designed SoC
-→ CPU + GPU + Neural Engine
-→ one unified memory architecture</pre>
-
-<p>从这一代开始，Mac 本地模型不再天然受一块小离散 VRAM 限制。</p>
-
-<h2>2. M2：主要是 scale-up</h2>
-<p>M2 增加 GPU / memory / media 能力，但没有改变最基本的软件执行抽象。</p>
-<p>所以课程不会为了“每年一章”硬凑一个新架构。</p>
-
-<h2>3. M3：GPU architecture 真正大改一次</h2>
-<p>Apple 把 M3 称为全新的 GPU architecture。</p>
-
-<h3>Dynamic Caching</h3>
-<p>传统资源分配容易出现：</p>
-<pre>reserve for worst case
-→ some local resource unused
-→ lower average utilization</pre>
-
-<p>M3 Dynamic Caching 的方向：</p>
-<pre>hardware dynamically assigns local memory
-based on actual workload demand</pre>
-
-<p>对课程最重要的不是 marketing speedup，而是：</p>
-
-<div class="callout"><strong>GPU local resource allocation 本身可以成为硬件动态调度问题。</strong></div>
-
-<h3>Ray tracing / mesh shading</h3>
-<p>它们是重要 graphics feature，但不要写：</p>
-<pre>ray tracing core
-→ faster llama.cpp</pre>
-
-<h2>4. M4：AI/memory scale 继续提高</h2>
-<p>M4 强化：</p>
-<ul>
-<li>GPU；</li>
-<li>Neural Engine；</li>
-<li>memory bandwidth；</li>
-<li>CPU ML capabilities。</li>
-</ul>
-
-<p>对本地 LLM，仍然需要具体看：</p>
-<pre>capacity
-bandwidth
-backend
-PP/TG</pre>
-
-<h2>5. M5：最容易被搞混的一代</h2>
-<p>M5 给每个 GPU core 加入：</p>
-<pre>Neural Accelerator</pre>
-
-<p>Apple 提供 Metal 4 Tensor APIs 让开发者直接利用这类 GPU neural hardware。</p>
-
-<h2>6. 但是 M5 同时还有独立 Neural Engine</h2>
-<pre>M5 SoC
-├─ GPU
-│  ├─ shader execution
-│  └─ Neural Accelerator per GPU core
-│
-└─ Neural Engine
-   └─ separate accelerator</pre>
-
-<div class="callout"><strong>M5 GPU Neural Accelerator ≠ Apple Neural Engine。</strong></div>
-
-<h2>7. Core ML 可以明确选择执行单元</h2>
-<p>Core ML API 有：</p>
-<pre>cpuOnly
-cpuAndGPU
-cpuAndNeuralEngine
-all</pre>
-
-<p>所以 Apple 自己的 API 都把 GPU 和 Neural Engine 当成不同 compute units。</p>
-
-<h2>8. MLX 又是哪条路？</h2>
-<p>MLX 的 Apple-Silicon 设计重点：</p>
-<pre>one unified-memory array
-→ CPU stream
-or
-→ GPU stream</pre>
-
-<p>当前 MLX 文档的标准 device 类型是 CPU 和 GPU。</p>
-
-<p>因此：</p>
-<pre>MLX GPU
-!= Neural Engine</pre>
-
-<h2>9. llama.cpp Metal 呢？</h2>
-<p>llama.cpp 的 Metal backend 主要是 GPU backend。</p>
-
-<p>即使 M5 硬件新增 GPU tensor acceleration，runtime 也必须：</p>
-<ol>
-<li>正确识别 hardware；</li>
-<li>用正确 Metal language/API 编译；</li>
-<li>正确映射 quant/matmul kernel；</li>
-<li>通过 correctness tests；</li>
-<li>实际 dispatch。</li>
-</ol>
-
-<p>所以：</p>
-<pre>new accelerator exists
-!=
-your current llama.cpp binary uses it</pre>
-
-<h2>10. 本地 LLM 怎么选 Apple 执行路径？</h2>
-
-<table>
-<tr><th>路径</th><th>适合问什么</th></tr>
-<tr><td>llama.cpp Metal</td><td>GGUF、本地推理、Metal GPU PP/TG</td></tr>
-<tr><td>MLX / MLX-LM</td><td>Apple-Silicon-native CPU/GPU unified-memory ML</td></tr>
-<tr><td>Core ML</td><td>Apple framework deployment, possible ANE/GPU/CPU selection</td></tr>
-<tr><td>CPU-only</td><td>baseline / small ops / compatibility</td></tr>
-</table>
-
-<h2>11. Apple 买机优先级</h2>
-<p>跑大型本地 LLM：</p>
-<ol>
-<li><strong>unified-memory capacity</strong>：先保证装得下；</li>
-<li><strong>memory bandwidth</strong>：decode 很关键；</li>
-<li><strong>runtime/backend</strong>：能不能用 GPU/new tensor path；</li>
-<li><strong>GPU compute</strong>：prefill/large GEMM；</li>
-<li><strong>thermal/power</strong>：持续负载；</li>
-<li><strong>价格/不可升级性</strong>：Apple RAM/GPU 后买基本不能升级。</li>
-</ol>
-
-<h2>12. 最后一句</h2>
-<pre>Apple Silicon 的优势不是
-"像独显一样但是显存更大"
-
-而是
-"把 CPU/GPU/accelerators 放进
-同一个高带宽统一内存 SoC，
-让软件重新设计数据和执行边界"</pre>
-
-<section class="student-closure">
-<h2>学生闭环 — M1→M5 / GPU / ANE / MLX</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1（Apple Silicon Mac）。</p>
-<p><strong>成本：</strong>0 元主路径；课程不要求购买对应平台。</p>
-<p><strong>风险：</strong>safe。</p>
-<p><strong>替代路径：</strong>没有 Mac 就完成统一内存预算与架构调查；有 Apple Silicon 再做 Metal/MLX inventory。</p>
-</div>
-<h3>能力目标</h3>
-<ul><li>解释 Apple Silicon 的 CPU/GPU 共享物理内存为什么改变传统 host RAM vs VRAM 边界。</li>
-<li>区分 GPU、Neural Engine、Metal、MLX/Core ML 的职责层。</li>
-<li>用 working-set / memory pressure，而不是只看总统一内存，判断本地 LLM 容量风险。</li></ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/27-apple-unified-memory-budget-model/README.md">Experiment 27：Apple unified-memory budget model</a>；有 Apple Silicon 时做 <a href="../../labs/experiments/28-real-apple-metal-mlx-inventory/README.md">Experiment 28：real Metal/MLX inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么 Neural Engine、GPU matrix/tensor 能力和 MLX/Metal runtime 是三层不同问题？</li>
-<li>为什么“CPU 和 GPU 共享内存”不意味着任何数据访问都零成本？</li>
-<li>模型能装进统一内存后，还要继续检查哪些带宽、working-set、backend 条件？</li>
-<li>某模型能用 MLX 跑，与它能用 llama.cpp Metal 跑，证明的是同一件事吗？</li></ol>
-<h3>完成证据</h3>
-<p>做一张 Apple 路径预算：总统一内存 → OS/应用余量 → 模型权重 → KV/context → runtime headroom，并把“已知/估算/待真机验证”分开。</p>
-<h3>如何迁移</h3>
-<p>Apple 的特殊性用来强化一个通用原则：<strong>逻辑内存模型、物理内存拓扑、runtime allocation policy</strong> 是三层，不要把营销容量直接等价成可用模型容量。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://developer.apple.com/documentation/coreml/mlcomputeunits">Apple Core ML — Compute Units</a></li>
-<li><a href="https://ml-explore.github.io/mlx/">Apple ML Research — MLX</a></li>
-<li><a href="../../reference/gpu/apple-silicon-unified-memory-metal.md">Course Reference — Apple Silicon / Metal</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Apple Silicon 3：M1 到 M5、GPU、ANE 与 MLX</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Apple Silicon · 3/3 · L0→L2</p><h1>Apple Silicon（三）：M1 → M5，GPU / ANE / MLX 到底怎样影响本地 LLM？</h1><p class="lead">Apple Silicon 的购买讨论经常把 CPU core、GPU core、Neural Engine TOPS、统一内存容量和带宽混成一个“芯片强不强”的问题。本节要把它们拆开，并建立不会被下一代 M 芯片打乱的阅读框架。</p>
+<h2>Prerequisite Check</h2><p>你应理解 unified memory 是整机共享资源，也能解释 Metal 的 threadgroup/SIMD-group。无需懂 Core ML 或 MLX API。</p>
+<h2>真实问题：为什么 M 系列芯片上的 Neural Engine 很强，很多本地 LLM 却主要跑 GPU？</h2><p>“芯片上有某个 AI accelerator”不代表任意 LLM runtime 都能把模型映射过去。运行路径取决于 framework、operator coverage、model format、dynamic shape、memory access 和公开 API。MLX 的核心定位是 Apple Silicon 上的机器学习 array framework，并可利用 GPU/Metal；MLX-LM 则在其上提供 LLM 生成与微调工具。ANE 通常通过 Core ML 等体系服务支持的模型图，而不是自动接管所有 llama.cpp/MLX workload。</p>
+<h2>1. M 系列应该拆成哪些规格？</h2><table><tr><th>维度</th><th>为什么单独看</th></tr><tr><td>CPU</td><td>tokenization、sampling、host scheduling、非 GPU operator</td></tr><tr><td>GPU</td><td>主要矩阵/向量 kernel、Metal compute</td></tr><tr><td>Unified memory capacity</td><td>模型 + KV + runtime + 系统是否 fit</td></tr><tr><td>Memory bandwidth</td><td>小 batch decode 的重要 roof 之一</td></tr><tr><td>ANE</td><td>Core ML/支持图中的神经网络专用加速</td></tr><tr><td>Media engines</td><td>视频 workload，与纯文本 LLM 不同</td></tr><tr><td>SoC power/thermal</td><td>持续性能、噪声、笔记本/桌面差异</td></tr></table>
+<h2>2. M1→M5：正确的代际阅读方法</h2><p>不要背“每代快百分之几”。新一代发布后，用固定模板重新填：</p><ol><li>可选 unified-memory 容量档位改变了吗？</li><li>对应 SKU 的 memory bandwidth 是多少？</li><li>GPU family/feature 与核心规模怎样变化？</li><li>ANE/AI feature 是否增加，但目标 runtime 能否使用？</li><li>封装/Ultra/Max/Pro 等 SKU 是否改变 memory/compute 规模？</li><li>目标 macOS/Metal/MLX 版本的 current support 怎样？</li><li>真实目标模型的 PP/TG/功耗/内存压力是多少？</li></ol><p>这样 M6/M7 出现时，教材仍然有效。</p>
+<h2>3. “GPU core 数”为什么不能跨 M 系列简单比较？</h2><p>GPU core 是产品规格的一部分，但每代 GPU family 的 datapath、cache、frequency、memory bandwidth 与 feature 可能变化。即使 core 数相同，实际吞吐也不是固定比例。</p><p>更重要的是，LLM 的瓶颈可能根本不在 shader arithmetic：当 decode 主要受 memory bandwidth 限制时，多 GPU core 的边际收益会下降。</p>
+<h2>4. ANE：把“AI TOPS”放回正确位置</h2><p>ANE 是 SoC 中的专用 neural accelerator。正确的问题不是“TOPS 有多少”，而是：</p><pre>target model
+→ can framework convert/partition it?
+→ are required operators supported?
+→ memory/layout constraints?
+→ does runtime actually schedule work on ANE?
+→ measured latency/energy?</pre><p>如果你使用的 LLM runtime 主要走 Metal GPU，那么 ANE 的峰值不应加入“GPU token/s 理论总分”。</p>
+<h2>5. MLX 为什么特别适合用来理解 Apple Silicon？</h2><p>MLX 由 Apple machine learning research 开发，目标是 Apple Silicon 上高效、灵活的机器学习 array framework。它强调统一内存体系下 CPU/GPU 数组共享、lazy computation、动态计算图与 composable transforms。</p><p>对本地 LLM 学生，它的价值有两层：</p><ul><li><strong>使用层：</strong>MLX-LM 可以运行/量化/微调 LLM；</li><li><strong>理解层：</strong>你可以观察 Apple 统一内存 + Metal GPU 怎样被高层 framework 使用。</li></ul>
+<h2>6. MLX 与 llama.cpp：不是“谁更好”，而是不同 runtime</h2><p>两者都可以在 Apple Silicon 上服务本地 LLM，但模型格式、kernel、量化、API、功能与版本演化不同。比较时必须固定：</p><ul><li>同一基础模型/尽量等价量化；</li><li>同一 prompt/token identity；</li><li>context/batch/threads 等协议；</li><li>相同测量定义（PP/TG/TTFT 等）；</li><li>质量 gate。</li></ul><p>不能拿一个 runtime 的“加载成功”与另一个 runtime 的“最佳调优 benchmark”横比。</p>
+<h2>Worked Example：买 36/48/64/96+ GB 档位该怎么想？</h2><p>不要从“越大越好”开始。先建立目标：</p><ol><li>最大模型/量化权重预算；</li><li>目标 context 下 KV；</li><li>并发数；</li><li>系统/应用 safety margin；</li><li>未来两年你愿意为 headroom 付多少钱。</li></ol><p>若目标 8B/14B 模型在较小内存就很宽裕，更大容量可能不会带来速度收益；若目标 70B 量化/长上下文，容量可能直接决定能否本地运行。Apple 内存不可后期升级，因此错误低估 headroom 的代价比普通台式机更高。</p>
+<h2>7. Max/Ultra 为什么不只看“更多 GPU core”？</h2><p>更高档 SoC/封装通常同时改变 GPU 规模、memory bandwidth、capacity option、功耗和价格。对大模型而言，增加 bandwidth/capacity 可能和增加 compute 一样重要。你要把它视为整机 memory-compute SKU，而不是只数 GPU core。</p>
+<h2>Why it matters</h2><ul><li>避免把 ANE TOPS 错算成本地 LLM GPU 性能。</li><li>避免把 unified-memory 容量档位当作纯速度升级。</li><li>建立 Apple 代际的长期比较模板，而不是追营销百分比。</li><li>理解 MLX/Metal 与 llama.cpp 等 runtime 的可比性要求。</li><li>在不可升级内存平台上，提前做 model+KV+headroom 规划。</li></ul>
+<h2>常见误区</h2><ul><li>“ANE 越强，MLX-LM 一定越快”——目标 runtime 未必使用 ANE。</li><li>“GPU core 数翻倍，token/s 翻倍”——memory/shape/kernel 可先饱和。</li><li>“更大 unified memory 会提高同一小模型速度”——容量不是吞吐。</li><li>“MLX 是苹果专用 llama.cpp”——framework/模型格式/执行模型不同。</li><li>“新 M 代际一定值得换”——必须以你的 workload、容量和实测决定。</li></ul>
+<h2>小实验与预期观察</h2><p>制作一张 Apple SoC decision card，不必填所有 M 型号。选择你真正可能购买的两个具体 SKU，记录 unified memory、bandwidth、GPU、价格、目标 runtime、model fit。给每项标注：stable spec / current software / measured。预期你会发现很多“AI”宣传无法直接进入购买分数。</p>
+<h2>无 Apple 硬件路径</h2><p>本课 L0 通过 Apple 规格页、Metal 文档与 MLX 文档完成。真实 MLX-LM vs llama.cpp 测试以后在你实际上课时执行。教材不填写虚构 token/s。</p>
+<h2>排错</h2><ul><li>MLX 安装/模型加载失败：确认 macOS/架构/包版本和模型兼容。</li><li>GPU 很闲：检查 lazy execution 是否已 materialize、workload 是否太小、CPU/tokenization 是否瓶颈。</li><li>内存不断上升：检查 KV/context、batch、缓存与模型复制；观察 memory pressure。</li><li>不同 runtime 结果差异巨大：先确认模型量化、prompt template 和测量协议是否真正等价。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 ANE TOPS 不能直接加入 MLX/llama.cpp GPU 性能？</li><li>比较两个 M 系列 SKU 时至少要拆哪七个维度？</li><li>为什么 GPU core 数跨代比较会失真？</li><li>MLX 的哪些设计与 Apple unified memory 特别契合？</li><li>为什么 MLX 与 llama.cpp 的 benchmark 必须固定模型/量化/prompt/protocol？</li><li>不可升级内存怎样改变你的购买风险模型？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>购买 Apple Silicon 做本地 LLM：先 model-fit + memory headroom，再 bandwidth/runtime/real performance，最后价格与整机价值。ANE/AI TOPS 只有在目标软件能证明使用相应路径时才进入性能证据。</p></div>
+<h2>Transfer</h2><p>把同样的“accelerator 是否被 software used”逻辑迁移到 NVIDIA Tensor Core、AMD AI accelerators、Intel XMX。硬件专用单元永远需要一个从 model format 到 kernel dispatch 的证据链。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="https://github.com/ml-explore/mlx">Apple ML Research — MLX</a></li><li><a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a></li><li><a href="../../reference/gpu/apple-silicon-spine.md">Apple Silicon Course Reference</a></li></ul>
+</main></body></html>
