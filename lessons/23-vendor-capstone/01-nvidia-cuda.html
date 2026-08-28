@@ -1,60 +1,51 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — NVIDIA CUDA</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
-<h1>Vendor Capstone 1 — NVIDIA CUDA</h1>
-<p>目标不是“CUDA 最快”，而是把 NVIDIA 的成熟软件栈变成一份可审计 baseline。</p>
-
-<h2>1. 先证明是哪张卡</h2>
-<pre>nvidia-smi -L
-nvidia-smi --query-gpu=name,compute_cap,driver_version,memory.total,pci.bus_id --format=csv</pre>
-
-<p>旧卡尤其要同时检查当前 CUDA/driver 生命周期。能被驱动看到，不代表最新工具链仍支持。</p>
-
-<h2>2. 当前 llama.cpp CUDA 构建</h2>
-<pre>cmake -B build -DGGML_CUDA=ON
-cmake --build build --config Release</pre>
-
-<p>然后：</p>
-<pre>./build/bin/llama-bench --version
-./build/bin/llama-bench --list-devices</pre>
-
-<div class="callout"><strong>backend 证据来自实际 build/device log，不来自“我装了 CUDA”。</strong></div>
-
-<h2>3. Baseline</h2>
-<p>进入 Experiment 40，固定 model SHA、PP/TG、offload、KV、FA、threads。</p>
-
-<h2>4. 看到什么再优化什么</h2>
-<ul>
-<li>TG 接近 bandwidth roof → 优先研究 weight bytes / quant / memory behavior。</li>
-<li>PP 弱、TG 正常 → 看 FA / matrix kernel。</li>
-<li>显存边缘化 → 看 KV/context/quant。</li>
-<li>双卡缩放差 → 回 Slice 11 看 P2P/topology/split。</li>
-</ul>
-
-<h2>5. CUDA 成熟也不能跳过实验</h2>
-<p>同一 NVIDIA 卡在不同 llama.cpp commit、quant、FA、context 下仍可能完全不同。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — NVIDIA CUDA</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0 preflight；有对应硬件时 L1/L2 做真机增强。</p>
-<p><strong>成本：</strong>0 元主路径，不要求集齐四个生态。</p>
-<p><strong>风险：</strong>safe；只做 build/device/runtime 检查和 benchmark。</p>
-<p><strong>替代路径：</strong>没有 NVIDIA CUDA 硬件就只做 Experiment 41 的 preflight，并用已有 Evidence/官方资料完成生态映射。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>把 hardware identity、driver/runtime、backend build、model artifact、execution config 分层记录。</li>
-<li>把同一 benchmark contract 迁移到 NVIDIA CUDA，只替换厂商特有的 discovery/build 命令。</li>
-<li>知道“能运行”与“使用预期加速路径”是两个不同结论。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/41-vendor-capstone-preflight/README.md">Experiment 41：vendor capstone preflight</a>。真机时再把对应厂商的 exact version / device / backend log 填进 Experiment Card。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么“装了 CUDA toolkit”不等于这次 llama.cpp run 使用 CUDA backend？</li><li>nvidia-smi 能证明 GPU 身份，但不能证明哪一层 kernel 路径？</li><li>PP 弱/TG 正常和 PP 正常/TG 弱分别更像哪类 bottleneck？</li><li>旧 NVIDIA 卡能被 driver 识别时，还要额外检查什么生命周期问题？</li></ol>
-<h3>完成证据</h3>
-<p>提交一张 NVIDIA CUDA evidence ladder：<strong>device identity → driver/runtime → backend build → model identity → exact argv → PP/TG/quality</strong>；每一层写“由什么命令或文件证明”。</p>
-<h3>如何迁移</h3>
-<p>四生态真正应该共用的是 Evidence 结构，而不是命令。换厂商后保持问题不变：<strong>我跑了谁、在哪跑、用什么路径、测了什么、什么仍未知</strong>。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li><li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md">llama.cpp Build Documentation</a></li><li><a href="../../reference/system/vendor-capstone-runbooks.md">Course Reference — Vendor Capstone Runbooks</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone：NVIDIA / CUDA</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Vendor Capstone · NVIDIA · L0→L2</p><h1>NVIDIA / CUDA 实战闭环：从“系统看到显卡”到“LLM 证明确实在 GPU 上跑”</h1><p class="lead">本页不是安装命令抄写。真正目标是让你能独立证明一条 NVIDIA 本地 LLM 路径：硬件身份正确、driver/runtime 正常、应用 backend 正确、模型真实 offload、性能与质量有可复现记录。</p>
+<h2>Prerequisite Check</h2><p>完成 NVIDIA 架构主线，知道 SM/warp/Tensor Core 只是能力；知道 VRAM fit 与 backend support 要先于性能。</p>
+<h2>真实问题：为什么“nvidia-smi 能看到卡”仍然不足以证明 CUDA LLM 正常？</h2><p><code>nvidia-smi</code> 只能证明驱动栈能识别设备并暴露部分状态。应用还可能：</p><ul><li>根本没编 CUDA backend；</li><li>CUDA runtime/library version 不匹配；</li><li>模型格式对应 kernel 不支持；</li><li>只有部分 layers offload；</li><li>因 OOM/配置 fallback 到 CPU；</li><li>GPU 在工作，但瓶颈在 CPU/tokenization/storage。</li></ul>
+<h2>1. 先画完整证据链</h2><pre>PCIe/device identity
+→ NVIDIA driver
+→ CUDA runtime/libraries
+→ application CUDA backend
+→ model/quant kernel
+→ GPU offload observed
+→ controlled benchmark
+→ quality check
+→ evidence packet</pre><p>任何一层失败，都不要跳到“这张卡性能不行”。</p>
+<h2>2. Hardware identity：先确认“这是哪张卡”</h2><p>记录至少：GPU name、UUID/PCI bus、VRAM total、driver version。多 GPU 系统还要确认目标进程使用的是哪一个 device。</p><p>为什么 UUID/PCI bus 重要？因为“GPU 0”的编号可能随环境变化，而 UUID/bus 更适合把 benchmark 与物理设备绑定。</p>
+<h2>3. Driver 与 CUDA runtime：两个版本概念不要混</h2><p>驱动提供设备支持，并声明可兼容的 CUDA runtime 范围；应用可能携带/链接自己的 CUDA runtime 与 libraries。看到版本号时要标注它来自：</p><ul><li>kernel/driver；</li><li>CUDA toolkit/compiler；</li><li>application bundled runtime/library；</li><li>PyTorch/other framework build。</li></ul><p>“系统装了 CUDA 12.x”不自动证明某应用按那个 toolkit 构建。</p>
+<h2>4. Application backend：怎样证明不是 CPU build？</h2><p>优先找应用自己的启动日志/build flags/device list。证据应回答：</p><ol><li>CUDA backend 是否编译进二进制？</li><li>检测到哪个 GPU？</li><li>加载模型时多少 layer/tensor offload？</li><li>是否出现 unsupported kernel/fallback 警告？</li><li>实际 allocation 与 VRAM 使用是否与模型规模相符？</li></ol>
+<h2>5. Model fit：别等 OOM 才做预算</h2><pre>VRAM need ≈
+weights
++ KV cache(context × concurrency)
++ runtime / compute buffers
++ temporary workspace
++ safety margin</pre><p>如果预算已经超过显存，不要靠“也许能塞进去”开始 benchmark。先降低 context/并发、换量化、部分 offload 或换硬件。</p>
+<h2>6. Tensor Core 是否使用：不要用 GPU utilization 猜</h2><p>高 GPU utilization 只能说明设备忙，不告诉你使用的是 general CUDA、Tensor Core 还是 memory stalls。真正需要时通过 profiler/kernel 名、library dispatch 与受控 dtype/shape 对比建立证据。</p><p>对于普通学生，本 capstone 不要求证明每条 Tensor instruction；只要求你不要把“有 Tensor Core”写成未验证的应用性能解释。</p>
+<h2>Worked Example：模型能跑但只有 3 token/s，怎么查？</h2><pre>1. confirm exact model / quant / context
+2. confirm GPU offload count
+3. watch CPU + GPU + VRAM
+4. inspect application logs for fallback
+5. run fixed tiny benchmark (PP and TG separate)
+6. check clocks / power / thermal
+7. compare with same build + same protocol baseline
+8. change ONE variable</pre><p>如果 CPU 100%、GPU 低，先查 fallback/tokenization；如果 VRAM 满且发生 host offload，查 fit；如果 GPU 高但 clocks 低，查 thermal/power；如果 PP 快 TG 慢，考虑不同 bottleneck。</p>
+<h2>7. 安装课为什么不能写死一条命令？</h2><p>OS、driver、CUDA、package manager、application release 会变。稳定教材应该规定<strong>验证点</strong>，而动态资源提供当前安装步骤。你以后学习时按目标软件官方文档安装，并把版本/来源写入 session record。</p>
+<h2>8. Benchmark protocol：至少分开 PP 与 TG</h2><p>Prefill/prompt processing 与 token generation 的算术强度、并行度和 memory behavior 不同。一个“总 token/s”很容易隐藏真实瓶颈。</p><p>固定：</p><ul><li>model artifact + SHA；</li><li>quant；</li><li>context / prompt token identity；</li><li>GPU layers / flash attention / KV types 等 execution settings；</li><li>runtime build；</li><li>repetitions/warmup；</li><li>thermal/power condition。</li></ul>
+<h2>9. Quality gate：快了不能默认质量没变</h2><p>更换 quant、KV type、kernel/backend 或 model artifact 后，性能比较最好配对质量检查。质量不需要万能评分，但至少要有固定 corpus/task、tokenizer identity 与可重复输出。</p>
+<h2>Why it matters</h2><ul><li>NVIDIA 生态成熟也不意味着配置错误不会 fallback。</li><li>把 driver/runtime/application build 分层，能大幅减少“玄学安装”。</li><li>真实 offload + fixed protocol 才让二手卡 benchmark 有意义。</li><li>PP/TG 分开能把 compute-heavy 与 bandwidth-heavy 阶段区分。</li><li>质量 gate 防止用“更快但不同模型/量化”的数字欺骗自己。</li></ul>
+<h2>常见误区</h2><ul><li>“nvidia-smi 有卡 = CUDA 程序一定用卡”——还缺应用 backend/offload。</li><li>“装了 CUDA toolkit = 所有应用都用这个版本”——很多 binary 自带依赖。</li><li>“GPU 99% = Tensor Core 99%”——utilization 口径不同。</li><li>“OOM 就把 swap 开大”——GPU VRAM 与 host swap 不是等价扩容。</li><li>“网上 benchmark = 我的卡应达到”——协议/模型/build/功耗可能不同。</li></ul>
+<h2>实践路径</h2><p>使用课程中 NVIDIA capability、Experiment 61 real evidence、quality gate 等实验。作者阶段不填写真实 token/s；你以后上课时在自己的卡上完成。</p>
+<h3>无 NVIDIA 卡</h3><p>完成 L0：用课程 fixtures/官方文档画出证据链，解释每层失败会有什么症状。拥有卡后再升级到 L1/L2。</p>
+<h2>排错最小树</h2><pre>device visible?
+ no → hardware/driver
+ yes → app CUDA backend visible?
+        no → build/runtime
+        yes → model offloaded?
+              no → fit/config/kernel
+              yes → performance abnormal?
+                    → PP vs TG / CPU / memory / thermal / power</pre>
+<h2>Retrieval Practice</h2><ol><li>为什么 nvidia-smi 成功只证明证据链的一部分？</li><li>driver、toolkit、application-bundled runtime 如何区分？</li><li>怎样从日志/VRAM/offload 信息证明模型主要在 GPU 上？</li><li>PP 与 TG 为什么应分开？</li><li>GPU 99% 为什么不能证明 Tensor Core 被使用？</li><li>如果更换 quant 让 TG 快 30%，为什么还要质量 gate？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>只有“exact device + runtime/build + explicit CUDA backend/offload + fixed benchmark + quality evidence”组成的链，才可用于性能与购买判断。单个截图、理论规格或他人 benchmark 都只是较弱证据。</p></div>
+<h2>Transfer</h2><p>把这条 capstone 迁移到 AMD/Apple/Intel：设备身份、runtime、application backend、真实执行路径、benchmark、quality 这六层不变，只换具体工具。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 Evidence Packet</a></li></ul>
+</main></body></html>
