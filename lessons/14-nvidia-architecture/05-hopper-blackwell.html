@@ -1,198 +1,33 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NVIDIA 架构 5：Hopper、Blackwell</title>
-<link rel="stylesheet" href="../../assets/course.css">
-<style>
-body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
-pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
-.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
-table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
-</style>
-</head>
-<body>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 5：Hopper 与 Blackwell</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">NVIDIA Architecture · 5/5 · L0→L2</p><h1>NVIDIA 架构主线（五）：Hopper → Blackwell</h1><p class="lead">这一节把视角从“单张消费显卡”抬到现代 AI system：更低精度、更大的 HBM、更强互联、异步数据搬运、Transformer 专用优化以及多 GPU 规模化。你不需要拥有这些昂贵硬件，但必须理解它们为什么会反过来影响消费 GPU 软件栈与 LLM 优化方向。</p>
+<h2>Prerequisite Check</h2><p>你应能区分 compute roof、memory roof、PCIe/VRAM 两类链路，并知道 Tensor Core 的收益依赖 dtype + kernel + workload。</p>
+<h2>真实问题：为什么数据中心 AI GPU 的“架构进步”越来越像系统工程，而不是只增加核心？</h2><p>当单颗 GPU 已经非常强，下一步瓶颈会不断转移：如何把数据提前搬到片上？如何让很多 GPU 高速交换？如何在更低精度下保持可用数值范围？如何减少大 Transformer 的通信与内存开销？因此现代 AI 架构越来越强调<strong>计算 + 内存 + 互联 + 软件协同</strong>。</p>
+<h2>1. Hopper：Transformer 时代的数据流优化</h2><p>Hopper 延续 Tensor Core 与低精度路线，并强化异步数据搬运和面向 Transformer workload 的专门机制。对学生最重要的不是记某个峰值，而是理解“让计算单元持续有数据可做”已成为一级设计目标。</p>
+<h3>异步 copy / Tensor Memory Accelerator 的思维</h3><p>传统写法里，线程花很多指令计算地址、搬 tile、同步，再开始算。更专门的数据搬运机制试图把“描述要搬哪一块”与“大块多维数据移动”交给硬件，让计算线程减少 bookkeeping。</p><pre>old mental model:
+threads calculate addresses
+→ many loads/stores
+→ barriers
+→ compute
 
-<h1>NVIDIA 架构 5 — Hopper → Blackwell：Transformer 开始反过来塑造 GPU</h1>
-
-<h2>1. 先纠正产品线直觉</h2>
-<pre>Ampere
-├─ datacenter
-└─ consumer
-
-2022:
-Hopper → mainly datacenter
-Ada    → RTX / workstation / inference products</pre>
-<p>所以不能画成：</p>
-<pre>Ampere → Hopper → Ada</pre>
-<p>它们是部分并行的市场分支。</p>
-
-<h2>2. Hopper：数据搬运本身变成专用硬件</h2>
-<p>Ampere 已经有 async global→shared。</p>
-<p>但线程还需要参与很多 address generation / copy orchestration。</p>
-
-<h3>TMA — Tensor Memory Accelerator</h3>
-<pre>tensor coordinates + descriptor
-→ TMA hardware
-→ large multidimensional global↔shared transfer</pre>
-<p>发起 copy 的线程很少，其他线程可以继续算。</p>
-
-<div class="callout"><strong>最重要的 Hopper 观念：</strong>当 Tensor Core 足够快，<strong>喂数据</strong>本身值得做成 accelerator。</div>
-
-<h2>3. Thread Block Cluster</h2>
-<p>传统 CUDA locality：</p>
-<pre>thread block
-→ scheduled on one SM
-→ shared memory local to that block/SM</pre>
-<p>Hopper 增加 cluster：</p>
-<pre>multiple blocks
-→ co-scheduled nearby SMs
-→ hardware-assisted cooperation</pre>
-
-<h3>Distributed Shared Memory</h3>
-<p>cluster 内 block 可以访问其他 block 的 shared-memory region，建立更大的 cooperative locality。</p>
-
-<h2>4. FP8 + Transformer Engine</h2>
-<p>Hopper 第四代 Tensor Core 支持 FP8，并加入 Transformer Engine 去管理 transformer layer 的 scaling/precision。</p>
-<p>这代表 AI accelerator 从：</p>
-<pre>"support low precision"
-</pre>
-<p>进一步变成：</p>
-<pre>"manage when/how to use low precision"
-</pre>
-
-<h2>5. 为什么这些设计和 FlashAttention / modern GEMM 很像？</h2>
-<p>因为软件和硬件在向同一个方向收敛：</p>
-<pre>producer warp
-→ move tile
-
-consumer warp
-→ MMA
-
-async barriers
-→ overlap stages
-
-larger cooperative scope
-→ reuse across more work</pre>
-
-<h2>6. Blackwell：先分 datacenter 和 RTX</h2>
-<p>Blackwell 是一个 architecture family，不是一个固定 package。</p>
-
-<h3>Datacenter Blackwell</h3>
-<p>重点在：</p>
-<ul>
-<li>large-scale transformer；</li>
-<li>HBM / scale-up interconnect；</li>
-<li>第二代 Transformer Engine；</li>
-<li>更低 precision；</li>
-<li>部分旗舰产品采用 multi-die/package 设计。</li>
-</ul>
-
-<h3>RTX Blackwell</h3>
-<p>NVIDIA RTX Blackwell whitepaper显示：</p>
-<ul>
-<li>5th Generation Tensor Cores；</li>
-<li>FP4 support；</li>
-<li>128 KB L1 Data Cache / Shared Memory in documented SM；</li>
-<li>GDDR7 generation；</li>
-<li>4th Generation RT Core。</li>
-</ul>
-
-<p>RTX Blackwell 不能因为名字相同就被当成 B200/GB200 的小号：</p>
-<pre>same architecture lineage
-!= same die topology
-!= same memory system
-!= same interconnect
-</pre>
-
-<h2>7. FP4 对 LLM 是什么机会？</h2>
-<p>理论上：</p>
-<pre>FP16 → FP4
-can reduce:
-- storage
-- memory traffic
-and increase:
-- native matrix throughput</pre>
-
-<p>但是 Slice 13 的四层模型仍然成立：</p>
-<pre>model file quant
-→ packed representation
-→ runtime kernel
-→ matrix instruction
-→ accumulator</pre>
-
-<div class="callout"><strong>千万别写：</strong>“RTX 50 支持 FP4，所以任何 Q4_K_M GGUF 都自动跑 FP4 Tensor Core。”这在格式和 kernel 层面没有逻辑必然性。</div>
-
-<h2>8. 从 Tesla 到 Blackwell，主线其实只有三条</h2>
-
-<h3>Execution</h3>
-<pre>unified shader
-→ wider SM
-→ partitioned SM
-→ specialized FP/INT
-→ matrix units
-→ warp specialization / cluster</pre>
-
-<h3>Memory/data movement</h3>
-<pre>explicit DRAM/shared
-→ L1/L2
-→ larger caches
-→ async copy
-→ TMA / cluster locality</pre>
-
-<h3>Numerics</h3>
-<pre>FP32/FP64
-→ FP16/INT8
-→ Tensor FP16
-→ INT8/INT4
-→ BF16/TF32
-→ FP8
-→ FP4</pre>
-
-<h2>9. 最终买卡公式</h2>
-<pre>architecture capability
-× exact SKU implementation
-× software support
-× workload bottleneck
-× price / power / risk
-= real value</pre>
-<p>少任何一项，都不能从 architecture 名字直接推导“垃圾佬神卡”。</p>
-
-
-<section class="student-closure">
-<h2>学生闭环 — Hopper / Blackwell</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意 NVIDIA GPU 均可做 capability inventory）。</p>
-<p><strong>成本：</strong>0 元主路径；不要求为历史架构买卡。</p>
-<p><strong>风险：</strong>safe；只读资料、设备信息与 benchmark。</p>
-<p><strong>替代路径：</strong>没有对应年代 GPU 也能完成 Experiment 23；有 NVIDIA 卡才做 Experiment 24。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>从“上一代瓶颈 → 本代机制 → 今天 LLM 的影响”解释本页，而不是背型号。</li>
-<li>把 architecture family 与具体 SKU 的显存、带宽、互联、precision、功耗和软件生命周期分开。</li>
-<li>识别哪些是稳定架构事实，哪些必须在当前 driver/runtime 上重新验证。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果手里有 NVIDIA 卡，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>TMA、cluster、Transformer Engine、FP8/FP4 为什么说明“喂数据与管理精度”本身已成为硬件设计对象？</li>
-<li>为什么 RTX Blackwell 不能被当作 B200/GB200 的缩小版？</li>
-<li>如果一张旧 NVIDIA 卡理论算力不错，但最新 runtime 不再支持，你的结论属于“架构能力”还是“当前可用性”？</li>
-<li>为什么“同一 architecture”也必须继续查 memory system、SKU cut-down、power 和 software support？</li>
-</ol>
-<h3>完成证据</h3>
-<p>做一张 Hopper / Blackwell 代际卡片：<strong>前代瓶颈 / 本代改变 / LLM 影响 / 二手价值可能受什么影响 / 当前软件支持仍需查什么</strong>。禁止写“某代一定更值”。</p>
-<h3>如何迁移</h3>
-<p>以后看到 NVIDIA 新架构时沿用同一模板：execution、data movement、numerics、memory/interconnect、software enablement；最后再落到具体 SKU。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
-<li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — NVIDIA primary-source index</a></li>
-</ul>
-</section>
-</body>
-</html>
+more asynchronous model:
+describe tensor tile transfer
+→ transfer engine moves data
+→ producer/consumer synchronization
+→ compute overlaps movement</pre><p>这和本地 LLM kernel 的共同主题仍然是：<strong>不要让昂贵矩阵单元等数据。</strong></p>
+<h2>2. FP8：低精度不是“位数越少越好”</h2><p>FP8 等更低精度格式的价值来自更少存储/带宽与更高潜在吞吐，但代价是动态范围和精度更难管理。真正的工程问题包括 scaling、格式选择、累加、校准/训练策略与 kernel support。</p><div class="callout"><strong>纠偏：</strong>8-bit floating point、8-bit integer quantization、GGUF 的各种 8-bit/低位量化不是同一种东西。位宽相同不代表数值语义、布局或 kernel 相同。</div>
+<h2>3. Transformer Engine：为什么“自动选精度”也需要软件参与？</h2><p>现代 AI 加速越来越依赖硬件与库共同管理数值格式。硬件提供 datapath，但软件需要追踪统计、选择 scaling、安排 kernel、决定何时使用更高精度。这再次说明：架构 feature 只有被 runtime/library 正确启用后才是应用能力。</p>
+<h2>4. NVLink / NVSwitch：多 GPU 为什么不能只把显存相加？</h2><p>单卡放不下模型时，多 GPU 可以切权重、激活或 KV，但每一步都可能引入通信。</p><pre>GPU0 compute ── communication ── GPU1 compute
+      ↑                              ↓
+      └──────── synchronization ─────┘</pre><p>如果跨 GPU 需要频繁交换数据，互联 bandwidth/latency 与拓扑会直接进入瓶颈。NVLink/NVSwitch 的价值就在于提供比普通 host-oriented 链路更适合 GPU-to-GPU 的高带宽互联。</p><p>这并不意味着“有 NVLink 就线性翻倍”。切分策略、通信比例、kernel overlap、batch 和软件实现都会影响 scaling efficiency。</p>
+<h2>5. Blackwell：继续把 AI 计算推向更低精度与更大系统</h2><p>Blackwell 时代继续强调新一代 Tensor Core 数值能力、Transformer/AI workload、HBM 与高速互联，以及大规模系统形态。对于本课程，稳定知识不是某个今日营销数字，而是以下方向：</p><ul><li>更低精度格式越来越多，但格式与累加语义必须具体看；</li><li>模型规模推动更大的 memory capacity/bandwidth；</li><li>单 GPU 性能与多 GPU/system scaling 同等重要；</li><li>硬件 feature 与编译器/runtime/library 的协同越来越深。</li></ul>
+<h2>6. 为什么数据中心架构不能直接变成家用购买建议？</h2><p>H100/B200 类硬件的 HBM、互联、散热、形态、供电、驱动许可/部署环境与消费 RTX 完全不同。它们很适合教你“技术方向”，但不能拿它们的峰值指标去推导一张 GeForce 的性价比。</p><table><tr><th>数据中心关注</th><th>家用本地 LLM 还必须问</th></tr><tr><td>HBM capacity/bandwidth</td><td>我能买到的 SKU 实际 VRAM 是多少？</td></tr><tr><td>NVLink/NVSwitch scaling</td><td>我的主板/PCIe/机箱/PSU 支持几张卡？</td></tr><tr><td>FP8/新数值格式</td><td>llama.cpp/vLLM/MLX 等目标 runtime 是否使用？</td></tr><tr><td>rack-scale cooling</td><td>家用噪声、热量、电路预算是否可接受？</td></tr></table>
+<h2>Worked Example：单卡 24 GB 与多卡 2×24 GB 为什么不是“48 GB 一张卡”？</h2><p>如果模型被 tensor-split 到两张 GPU：</p><ol><li>总权重可以分开放，因此 capacity 可能从“放不下”变成“放得下”；</li><li>但每层/每 token 可能需要跨 GPU 协作；</li><li>两张卡的 memory bandwidth 不会自动变成一个无通信成本的统一 48 GB memory pool；</li><li>PCIe/NVLink 拓扑和软件 split 策略会决定额外开销。</li></ol><p>因此多 GPU 首先解决的是<strong>容量与并行映射</strong>，性能收益必须实测。</p>
+<h2>Why it matters</h2><ul><li>帮助你理解为什么现代 AI 优化越来越强调 data movement，而不是只看 FLOPS。</li><li>解释低精度格式为什么需要数值与软件协同。</li><li>为多 GPU、distributed junkyard cluster 课程建立通信成本直觉。</li><li>让你知道数据中心白皮书哪些思想能迁移到消费卡，哪些规格不能。</li><li>帮助识别“未来 feature”与“我现在 runtime 能用的 feature”之间的差距。</li></ul>
+<h2>常见误区</h2><ul><li>“FP8 就是 8-bit 量化”——数值语义不同。</li><li>“2 张 24 GB 就等于一张 48 GB”——地址空间、通信与 split 语义不同。</li><li>“NVLink 会让双卡线性翻倍”——scaling 取决于通信/计算比例。</li><li>“数据中心新 feature 很强，所以消费卡同代一定都有”——必须 exact SKU。</li><li>“Blackwell/Hopper 的峰值可以直接预测本地 GGUF”——runtime/kernel/format 可能完全不同。</li></ul>
+<h2>小实验与无硬件路径</h2><p>制作一个“AI system feature → 本地 LLM 可迁移问题”的两列表：FP8、异步 tensor copy、HBM、NVLink/NVSwitch、Transformer-specific optimization。每项写出：它解决的瓶颈；在消费 GPU 上你应寻找的对应证据。</p><p>L0 不需要任何 Hopper/Blackwell 硬件。后续多 GPU 实验可在你真正有两张卡时执行；教材现在只给完整方法和预期模式，不编造 scaling 数字。</p>
+<h2>排错</h2><ul><li>新 dtype runtime 报 unsupported：区分硬件 capability、driver/runtime、library build、model format。</li><li>多 GPU 比单 GPU 慢：检查 split 方式、通信量、拓扑、PCIe link width、同步与 batch。</li><li>峰值很高利用率却低：判断是否 memory/communication/shape/launch bound。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么现代 AI GPU 设计越来越强调数据搬运？</li><li>FP8 与 INT8/GGUF 8-bit 量化为什么不能互换概念？</li><li>Transformer Engine 类机制为什么说明“硬件 feature 需要软件共同完成”？</li><li>2×24 GB 为什么不是零成本的 48 GB 单一显存池？</li><li>NVLink 能解决哪些问题？不能保证什么？</li><li>从 Hopper/Blackwell 白皮书学到的哪些是稳定架构方向，哪些今日可用性必须动态查询？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>把 Hopper/Blackwell 用作“现代 AI system 设计方向”的教材，不把数据中心峰值当作消费卡购买分数。任何本地 LLM 结论必须重新落到 exact SKU、model fit、runtime/kernel、memory/communication 与整机约束。</p></div>
+<h2>Transfer</h2><p>学完 NVIDIA 主线后，你应能用同一五维框架读 AMD CDNA、Intel XMX 或 Apple GPU：execution、numerics、data movement、memory/interconnect、software enablement。厂商名不同，系统瓶颈不会消失。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
