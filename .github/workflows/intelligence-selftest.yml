@@ -26,3 +26,5 @@ jobs:
         run: python -m py_compile tools/intelligence/*.py
       - name: Run intelligence self-test
         run: python tools/intelligence/selftest.py
+      - name: Run market refresh self-test
+        run: python tools/intelligence/market_refresh_selftest.py
