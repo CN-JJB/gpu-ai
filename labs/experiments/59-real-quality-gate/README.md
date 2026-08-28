@@ -22,6 +22,25 @@ Record:
 - llama.cpp commit;
 - exact command args.
 
+Also copy:
+
+```bash
+cp quality-identity.template.json quality-identity.json
+```
+
+Fill the machine-readable identity fields:
+
+```text
+tokenizer_identity
+corpus_sha256
+fixture_revision
+evaluation_args
+```
+
+Experiment 61 / Intelligence I27 requires this small identity artifact to be PACKET-indexed.
+
+I26 separately hashes the actual corpus file, so `corpus_sha256` is not accepted as a standalone self-reported value.
+
 Do not compare unrelated model/tokenizer PPL.
 
 ## 1. Current llama.cpp perplexity path
