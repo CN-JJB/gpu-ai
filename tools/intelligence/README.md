@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I24. GitHub Actions run #98 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, I23 command-model binding, I24 hardware-profile, and I19 market-refresh self-tests.
+Phase 4 tooling currently implements I01–I25. GitHub Actions run #108 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, I23 command-model binding, I24 hardware-profile, I25 prompt-evidence, and I19 market-refresh self-tests.
 
 ## 1. Validate a catalog
 
@@ -89,7 +89,7 @@ The helper:
 Before ingestion:
 
 ~~~bash
-python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --hardware-profile /path/to/profile.txt   --model-artifact /path/to/model.gguf   --command-record /path/to/command.json
+python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --hardware-profile /path/to/profile.txt   --prompt-manifest /path/to/prompt-evidence/manifest.json   --model-artifact /path/to/model.gguf   --command-record /path/to/command.json
 ~~~
 
 Required result:
@@ -108,7 +108,7 @@ The verifier checks:
 
 A hash-consistent PACKET is not enough if the manifest disagrees with the raw benchmark rows.
 
-For non-synthetic intake, I22 requires `--model-artifact`; I23 binds exact `-m/--model` argv through a PACKET-indexed command record; and I24 requires `--hardware-profile`, whose SHA256 must match `variant.hardware.profile_sha256` and whose bytes/hash must also be PACKET-indexed.
+For non-synthetic intake, I22 requires `--model-artifact`; I23 binds exact `-m/--model` argv through a PACKET-indexed command record; I24 authenticates the hardware profile artifact; and I25 requires an Experiment 57-style `--prompt-manifest` whose messages/template/rendered/token-ID hashes and token count exactly match `variant.prompt.*`.
 
 Expected success now includes:
 
@@ -376,6 +376,7 @@ See:
 - examples/evidence/intelligence-22-real-model-artifact-gate.md
 - examples/evidence/intelligence-23-command-model-artifact-binding.md
 - examples/evidence/intelligence-24-hardware-profile-artifact-gate.md
+- examples/evidence/intelligence-25-prompt-evidence-manifest-gate.md
 
 ## Non-goals
 
