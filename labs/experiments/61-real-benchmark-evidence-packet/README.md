@@ -128,6 +128,7 @@ After the manifest is filled, prefer the Intelligence capture helper for the raw
 python3 ../../../tools/intelligence/capture_real_benchmark.py \
   --manifest baseline-manifest.json \
   --out-dir baseline-run \
+  --model-artifact /path/to/model.gguf \
   --include profile.txt \
   -- \
   llama-bench -m /path/to/model.gguf -p 512 -n 128 -r 5 ... -o json
@@ -147,11 +148,14 @@ Then run `verify_real_intake.py` with canonical IDs **and the local model artifa
 
 ```text
 --model-artifact /path/to/model.gguf
+--command-record baseline-run/command.json
 ```
 
-For non-synthetic intake, I22 hashes the local GGUF and requires its SHA256 + bytes to match the manifest before READY.
+For non-synthetic intake:
+- I22 hashes the local GGUF and requires SHA256 + bytes to match the manifest;
+- I23 requires command.json to be PACKET-indexed and reparses exact `-m/--model` argv to the same local GGUF.
 
-Only the strengthened I07/I20/I22 gate may return `INTAKE: READY`.
+Only the strengthened I07/I20/I22/I23 gate may return `INTAKE: READY`.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 
