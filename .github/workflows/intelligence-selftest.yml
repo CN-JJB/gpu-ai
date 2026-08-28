@@ -86,5 +86,7 @@ jobs:
         run: python tools/intelligence/quality_execution_intake_selftest.py
       - name: Run real evidence session self-test
         run: python tools/intelligence/real_evidence_session_selftest.py
+      - name: Run real evidence session prepare self-test
+        run: python tools/intelligence/real_evidence_session_prepare_selftest.py
       - name: Run market refresh self-test
         run: python tools/intelligence/market_refresh_selftest.py
