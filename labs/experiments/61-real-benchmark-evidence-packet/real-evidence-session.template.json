@@ -1,0 +1,36 @@
+{
+  "real_evidence_session_schema_version": 1,
+  "working_directory": ".",
+  "catalog": "../../../intelligence/catalog",
+  "manifest": "baseline-manifest.json",
+  "model_artifact": "/absolute/path/to/model.gguf",
+  "hardware_profile": "profile.txt",
+  "prompt_manifest": "prompt-evidence/manifest.json",
+  "quality_corpus": "/absolute/path/to/quality-corpus.txt",
+  "quality_identity": "quality-identity.json",
+  "hardware_id": "hw:REPLACE",
+  "model_id": "model:REPLACE",
+  "runtime_id": "runtime:REPLACE",
+  "observed_at": "YYYY-MM-DD",
+  "benchmark_argv": [
+    "llama-bench",
+    "-m",
+    "/absolute/path/to/model.gguf",
+    "-p",
+    "512",
+    "-n",
+    "128",
+    "-r",
+    "5",
+    "...",
+    "-o",
+    "json"
+  ],
+  "quality_argv": [
+    "llama-perplexity",
+    "-m",
+    "/absolute/path/to/model.gguf",
+    "-f",
+    "/absolute/path/to/quality-corpus.txt"
+  ]
+}
