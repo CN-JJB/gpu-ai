@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I23. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, and I23 binds exact benchmark argv to that admitted model artifact. The I23 implementation checkpoint is GitHub Actions run #91 on 2026-08-28:
+Full Python execution is verified through I24. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv to that artifact, and I24 verifies the hardware-profile artifact SHA256 + PACKET coverage. The I24 implementation checkpoint is GitHub Actions run #98 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #91 checked out head b875a4f76a5ec306b9a1764cc6caa2bde1b2e823, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, command-model binding, and market refresh self-tests.
+Run #98 checked out head 536fcf7b5857639a3c3530bdc76b294551bab222, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, command-model binding, hardware profile gate, and market refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #91
-run id 33155944603
-job id 98798617756
+workflow run #98
+run id 33156607865
+job id 98800758535
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -176,3 +176,14 @@ The dedicated command-model binding self-test confirms:
 
 Evidence:
 - examples/evidence/intelligence-23-command-model-artifact-binding.md
+
+
+## I24 assertions included in run #98
+
+The dedicated hardware-profile gate self-test confirms:
+- non-synthetic intake without a concrete hardware profile is blocked;
+- matching profile SHA256 plus PACKET coverage pass;
+- a same-size wrong profile remains blocked after PACKET is recomputed.
+
+Evidence:
+- examples/evidence/intelligence-24-hardware-profile-artifact-gate.md
