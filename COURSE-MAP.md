@@ -206,6 +206,7 @@ goal/workload
 | I24 | hardware profile SHA256 artifact + PACKET admission gate | verified |
 | I25 | Experiment 57 prompt evidence manifest ↔ Experiment 61 prompt identity gate | verified |
 | I26 | real quality corpus SHA256 artifact ↔ fixed quality-eval corpus gate | verified |
+| I27 | Experiment 59 quality identity manifest ↔ fixed quality-eval identity gate | verified |
 
 当前稳定边界：
 
