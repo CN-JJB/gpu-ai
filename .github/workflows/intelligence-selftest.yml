@@ -46,6 +46,8 @@ jobs:
         run: python tools/intelligence/quality_evaluation_args_selftest.py
       - name: Run quality metric self-test
         run: python tools/intelligence/quality_metric_selftest.py
+      - name: Run quality comparison self-test
+        run: python tools/intelligence/quality_comparison_selftest.py
       - name: Run quality execution + metric intake self-test
         run: python tools/intelligence/quality_execution_intake_selftest.py
       - name: Run market refresh self-test
