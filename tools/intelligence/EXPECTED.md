@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I17 on 2026-08-28 via GitHub Actions run #54:
+Full Python execution is verified through I18 on 2026-08-28 via GitHub Actions run #62:
 
 ~~~text
 SELFTEST: PASS
@@ -29,7 +29,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-The latest full verification checked out head bbf624e44579cbc765974bf8b5070330002f294e on GitHub Actions, compiled every Intelligence Python tool, and executed the complete self-test.
+The latest full verification checked out head 373b2ff6dd78f7018fd026e76b9714519204fbbe on GitHub Actions, compiled every Intelligence Python tool, and executed the complete self-test.
 
 Detailed evidence:
 
@@ -55,9 +55,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #54
-run id 33137613634
-job id 98741045301
+workflow run #62
+run id 33137884125
+job id 98741901113
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -92,3 +92,14 @@ The successful log explicitly confirms:
 
 Evidence:
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
+
+
+## I18 assertions included in run #62
+
+The successful log explicitly confirms:
+- append-only A770 refresh supersedes the old observation without deleting audit history;
+- superseded observations leave active market/freshness/watchlist views by default;
+- broken market refresh lineage is rejected.
+
+Evidence:
+- examples/evidence/intelligence-18-append-only-market-refresh.md
