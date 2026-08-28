@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I25. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv to that artifact, I24 verifies hardware-profile evidence, and I25 verifies Experiment 57 prompt identity evidence. The I25 implementation checkpoint is GitHub Actions run #108 on 2026-08-28:
+Full Python execution is verified through I26. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv, I24 verifies hardware-profile evidence, I25 verifies prompt identity evidence, and I26 verifies the real quality corpus artifact. The I26 implementation checkpoint is GitHub Actions run #120 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #108 checked out head 195ffb4fd583d6f7df0b5136a27b340c5ce4c812, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, command-model binding, hardware profile gate, prompt evidence gate, and market refresh self-tests.
+Run #120 checked out head ecc41744bbbf464af88cbc9a67388cca868afc7c, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact, command-model, hardware-profile, prompt-evidence, quality-corpus and market-refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #108
-run id 33156832189
-job id 98801504416
+workflow run #120
+run id 33157154448
+job id 98802553888
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -199,3 +199,15 @@ The dedicated prompt evidence self-test confirms:
 
 Evidence:
 - examples/evidence/intelligence-25-prompt-evidence-manifest-gate.md
+
+
+## I26 assertions included in run #120
+
+The dedicated quality-corpus gate self-test confirms:
+- non-synthetic intake requires a concrete quality corpus;
+- the corpus SHA256 must match `fixed.quality_eval.corpus_sha256`;
+- the corpus must be PACKET-indexed;
+- a same-size wrong corpus remains blocked after PACKET is recomputed.
+
+Evidence:
+- examples/evidence/intelligence-26-quality-corpus-artifact-gate.md
