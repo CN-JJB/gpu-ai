@@ -31,13 +31,25 @@ GPU 历史与架构演进
 
 > **模型需要什么 ↔ 硬件能提供什么 ↔ 部署策略是什么**
 
-## 支撑能力
+## 支撑能力 — Just in Time，不设前置课墙
 
-- Linux：驱动、Shell、SSH、systemd、日志、权限、Docker、监控
-- Python/脚本：JSON/CSV、subprocess、API、自动 Benchmark、数据清洗
-- 数学：矩阵、softmax、数值表示、复杂度、显存/带宽/算力估算
-- 整机平台：PCIe、lane、bifurcation、RAM/NUMA、PSU、散热、SSD、网络
-- 安全与 License：本地隐私、服务暴露、访问控制、模型许可证
+学生入口：[curriculum/README.md](curriculum/README.md)
+
+Foundations：
+- Shell / 路径 / 进程；
+- Python / JSON / SHA256；
+- 数学 / 单位 / 估算；
+- Git / GitHub / 一手资料；
+- 安全 / 实验纪律。
+
+原则：不先修完整 Linux/Python/数学课程。遇到 Lesson 需要时补最小前提，再回主线。
+
+主线继续按需覆盖：
+- Linux：驱动、Shell、SSH、systemd、日志、权限、监控；
+- Python/脚本：JSON/CSV、subprocess、API、Benchmark、数据清洗；
+- 数学：矩阵 shape、softmax、数值表示、复杂度、显存/带宽/算力估算；
+- 整机平台：PCIe、lane、RAM/NUMA、PSU、散热、SSD、网络；
+- 安全与 License：本地隐私、服务暴露、访问控制、模型/数据许可。
 
 ## 主线里程碑
 
@@ -52,9 +64,24 @@ GPU 历史与架构演进
 9. M09 单机多 GPU 与扩展效率分析
 10. M10 毕业项目：我的本地 LLM 机器设计报告
 
-## Challenge Lab
+## Challenge Lab — 12 个选修出口
 
-AMD/老计算卡、特殊 OEM/工程卡、VBIOS、显存扩容、板级维修、Triton、FlashAttention 源码、多机集群、LoRA/QLoRA、RAG、Tool Calling、社区 PR 等。
+详见 [labs/challenges/README.md](labs/challenges/README.md)。
+
+1. 老计算卡 / 特殊 GPU 兼容性考古
+2. VBIOS / OEM / 工程卡只读取证
+3. 显存扩容 / 板级维修理论与止损
+4. Triton kernel first principles
+5. FlashAttention 源码考古
+6. 定向 backend patch / 可维护 fork
+7. 多机垃圾佬集群 / network roof
+8. LoRA / QLoRA 低成本适配
+9. Local RAG / retrieval Evidence
+10. Tool Calling / Agent 最小权限执行
+11. Upstream Issue / Test / PR
+12. 本地多模态
+
+Challenge 不是主线毕业硬门槛。高风险硬件内容的完成标准允许是 BLOCKED/ESCALATE；真实刷写、BGA/显存返修、开放网络 RPC、任意 shell agent 都不是课程必做。
 
 ## 实践门槛
 
