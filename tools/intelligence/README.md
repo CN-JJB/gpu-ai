@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I18. GitHub Actions run #62 verifies the full Python self-test through I18.
+Phase 4 tooling currently implements I01–I19. GitHub Actions run #67 verifies the existing full Python self-test plus the dedicated I19 market-refresh self-test.
 
 ## 1. Validate a catalog
 
@@ -273,7 +273,31 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 19. Self-test
+## 19. Append-only market refresh helper
+
+Prepare one complete new market observation JSON object, then preflight it against the current active observation:
+
+~~~bash
+python3 market_refresh.py ../../intelligence/catalog \
+  --old-record-id market:cn:rtx3090:secondary:2026-08-22 \
+  --candidate /path/to/new-observation.json \
+  --out /tmp/market.refreshed.jsonl \
+  --check-only
+~~~
+
+When the candidate is reviewed, omit `--check-only` to write the refreshed JSONL.
+
+The helper:
+- preserves the old record;
+- creates reciprocal `superseded_by` / `supersedes`;
+- rejects already-superseded forks;
+- rejects cross-hardware lineage;
+- rejects non-newer observation dates;
+- does not invent source, price, grade, or provenance.
+
+After writing, run `validate_catalog.py` and the market views/gates before committing production data.
+
+## 20. Self-test
 
 From repository root:
 
@@ -285,8 +309,9 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #62
+run #67
 SELFTEST: PASS
+MARKET REFRESH SELFTEST: PASS
 ~~~
 
 See:
@@ -304,6 +329,7 @@ See:
 - examples/evidence/intelligence-i01-i16-ci-selftest.md
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
 - examples/evidence/intelligence-18-append-only-market-refresh.md
+- examples/evidence/intelligence-19-market-refresh-helper.md
 
 ## Non-goals
 
