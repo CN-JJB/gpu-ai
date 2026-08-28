@@ -16,16 +16,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I20 implemented and CI verified
+I01–I21 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #76
-run id 33155172914
-head 24f797883fc09c96b8dc8422ccfd4724c8e0b08a
-job id 98796127099
+run #81
+run id 33155511018
+head f145d272d7288ab977f6b2066340f74f2f2cc89e
+job id 98797214814
 full SELFTEST: PASS
 market refresh SELFTEST: PASS
 ~~~
@@ -151,11 +151,28 @@ The verifier now blocks a recomputed, hash-consistent packet when the manifest c
 Implementation checkpoint: run #74.  
 Final documented head: run #76, success.
 
+## I21 capture/seal helper
+
+```text
+capture_real_benchmark.py
+→ explicit argv, shell=False
+→ stdout + stderr + command identity + exit code
+→ optional evidence copies
+→ PACKET.json
+→ CAPTURE: SEALED
+```
+
+`SEALED` is not admission.
+
+The sealed bundle must still pass I07/I20.
+
+CI run #81 keeps the full suite, I21 capture self-test and I19 refresh self-test green.
+
 ## Next work
 
-1. Acquire the first learner-owned real Experiment 61 packet through I07/I20.
-2. Reduce manual capture friction without weakening provenance.
-3. Use the market refresh helper for due/stale evidence and find stronger RTX 3090 China evidence when auditable.
+1. Add local GGUF SHA/byte verification to real intake; raw llama-bench does not emit the artifact SHA.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20.
+3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
 No auto-purchase or unsafe hardware modification.
