@@ -1,138 +1,35 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NVIDIA 架构 3：Volta、Turing</title>
-<link rel="stylesheet" href="../../assets/course.css">
-<style>
-body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
-pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
-.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
-table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
-</style>
-</head>
-<body>
-
-<h1>NVIDIA 架构 3 — Volta → Turing：AI 硬件正式进入 SM</h1>
-
-<h2>1. Volta 的历史转折：Tensor Core</h2>
-<p>在 Volta 之前，低精度 AI 主要利用普通 CUDA execution datapath / packed primitives。</p>
-<p>Volta 把 matrix multiply-accumulate 变成专门硬件：</p>
-<pre>warp
-→ matrix fragments
-→ Tensor Core MMA
-→ accumulator</pre>
-<p>这不是“CUDA core 更快”，而是增加新的 execution unit 类型。</p>
-
-<h2>2. 为什么 matrix unit 有意义？</h2>
-<p>神经网络最重的工作有大量规则 GEMM：</p>
-<pre>[M×K] × [K×N]</pre>
-<p>如果硬件直接针对 tile MMA 设计，就能：</p>
-<ul>
-<li>提高每条 instruction 表达的 MAC 数；</li>
-<li>复用 operands；</li>
-<li>减少 scheduler/control overhead；</li>
-<li>高效使用低精度。</li>
-</ul>
-
-<h2>3. 但 Volta 更深的变化是 Independent Thread Scheduling</h2>
-<p>旧 CUDA 程序常写出这种隐含假设：</p>
-<pre>"反正一个 warp 是 lockstep，
-所以 lane 之间不用显式 sync"</pre>
-<p>Volta 以后这个假设不安全。</p>
-
-<h3>新的规则</h3>
-<ul>
-<li>warp intrinsics 使用带 mask 的 <code>*_sync</code> 版本；</li>
-<li>需要 memory exchange 时显式 <code>__syncwarp()</code>；</li>
-<li>不要把 warp-synchronous behavior 当隐式 barrier。</li>
-</ul>
-
-<div class="callout"><strong>第四次重要抽象：</strong>warp 仍是 scheduler 的核心单位，但<strong>线程同步语义</strong>不等于“永远严格锁步”。</div>
-
-<h2>4. Volta 的 unified on-chip data cache</h2>
-<p>GV100 将 L1、texture、shared backing 组织成大的 unified data-cache structure，并允许 shared-memory carveout。</p>
-<p>这让 on-chip memory tuning 更灵活，也降低某些 direct-global/load spill 的成本。</p>
-
-<h2>5. Turing：把 Volta 的现代 compute 思想带进 RTX</h2>
-<p>Turing 不是“Volta + RT Core”这么简单。</p>
-
-<h3>Dedicated FP32 + INT32</h3>
-<pre>FP pipe: math
-INT pipe: address/pointer/integer math
-→ can make progress concurrently</pre>
-<p>现代 kernel 中 address generation 很多。如果整数地址计算总阻塞 FP pipeline，会浪费吞吐。</p>
-
-<h3>Independent Thread Scheduling</h3>
-<p>Turing 继承 Volta 的现代 warp synchronization model，这使新 CUDA semantics 进入 mainstream RTX。</p>
-
-<h3>Second-generation Tensor Core / inference types</h3>
-<p>Turing MMA 支持扩展到：</p>
-<ul>
-<li>FP16；</li>
-<li>INT8；</li>
-<li>INT4；</li>
-<li>更低位 binary path。</li>
-</ul>
-<p>这使 Turing 成为 inference-oriented AI hardware 的重要节点。</p>
-
-<h2>6. RT Core 为什么只轻讲？</h2>
-<p>RT Core 是 Turing 的标志，但本课程不做完整图形学。</p>
-<p>我们只抽取一个长期趋势：</p>
-<pre>GPU
-= programmable SM
-+ workload-specific accelerators</pre>
-<p>后面 Tensor Core、TMA、AI control hardware 都属于这类“专用单元越来越多”的方向。</p>
-
-<h2>7. Turing unified L1/shared</h2>
-<p>Turing 的 compute workload 可在统一 96 KB L1/shared 资源中选择 carveout。</p>
-<p>这延续 Volta 的统一 on-chip memory 方向。</p>
-
-<h2>8. 为什么 Turing 对本地 AI 特别重要？</h2>
-<p>从架构层面，它同时具备：</p>
-<ul>
-<li>modern CUDA synchronization；</li>
-<li>Tensor Core inference formats；</li>
-<li>独立 FP/INT datapath；</li>
-<li>较现代 cache/shared hierarchy。</li>
-</ul>
-<p>从 2026 软件层面，它又刚好处在“当前 CUDA 支持线”的老端；这个结论会放在 dynamic intelligence，而不是历史 Lesson。</p>
-
-
-<section class="student-closure">
-<h2>学生闭环 — Volta / Turing</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意 NVIDIA GPU 均可做 capability inventory）。</p>
-<p><strong>成本：</strong>0 元主路径；不要求为历史架构买卡。</p>
-<p><strong>风险：</strong>safe；只读资料、设备信息与 benchmark。</p>
-<p><strong>替代路径：</strong>没有对应年代 GPU 也能完成 Experiment 23；有 NVIDIA 卡才做 Experiment 24。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>从“上一代瓶颈 → 本代机制 → 今天 LLM 的影响”解释本页，而不是背型号。</li>
-<li>把 architecture family 与具体 SKU 的显存、带宽、互联、precision、功耗和软件生命周期分开。</li>
-<li>识别哪些是稳定架构事实，哪些必须在当前 driver/runtime 上重新验证。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果手里有 NVIDIA 卡，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>Tensor Core 与独立 INT/FP 路径怎样改变 AI/图形工作负载的执行资源？</li>
-<li>为什么 Volta/Turing 是理解现代 LLM GPU 的关键分水岭？</li>
-<li>如果一张旧 NVIDIA 卡理论算力不错，但最新 runtime 不再支持，你的结论属于“架构能力”还是“当前可用性”？</li>
-<li>为什么“同一 architecture”也必须继续查 memory system、SKU cut-down、power 和 software support？</li>
-</ol>
-<h3>完成证据</h3>
-<p>做一张 Volta / Turing 代际卡片：<strong>前代瓶颈 / 本代改变 / LLM 影响 / 二手价值可能受什么影响 / 当前软件支持仍需查什么</strong>。禁止写“某代一定更值”。</p>
-<h3>如何迁移</h3>
-<p>以后看到 NVIDIA 新架构时沿用同一模板：execution、data movement、numerics、memory/interconnect、software enablement；最后再落到具体 SKU。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
-<li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — NVIDIA primary-source index</a></li>
-</ul>
-</section>
-</body>
-</html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 3：Volta 与 Turing</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">NVIDIA Architecture · 3/5 · L0→L1</p><h1>NVIDIA 架构主线（三）：Volta → Turing</h1><p class="lead">从这一段开始，现代 AI GPU 的轮廓真正清晰：通用 CUDA 路径继续演化，同时加入专门的矩阵数据通路；图形产品又加入 RT 路径。理解这里，你才能正确阅读“Tensor Core”“混合精度”“INT8/INT4”“AI TOPS”这些后来被大量营销化的词。</p>
+<h2>Prerequisite Check</h2><p>你应能区分“数据格式”“理论吞吐”“应用是否有 kernel 命中”。如果不确定，回看 Maxwell/Pascal 的低精度部分。</p>
+<h2>真实问题：为什么 CUDA Core 很强还要另外做 Tensor Core？</h2><p>矩阵乘法由大量规则的乘加组成。通用执行资源能做，但如果一个 workload 长期、海量地重复同一种局部结构，就值得设计专门 datapath，用更少控制开销和更高数据复用完成更多乘加。</p><div class="callout"><strong>核心原则：</strong>Tensor Core 不是“另一块 GPU”，而是 SM 内针对矩阵乘加热点设计的专用执行路径。GPU 仍需要通用核心处理控制、非矩阵操作、地址计算、归约和大量辅助工作。</div>
+<h2>1. Volta：Tensor Core 把混合精度矩阵计算变成一等公民</h2><p>Volta 的突破是把 Tensor Core 作为明确的矩阵乘加资源加入 SM。学习时不要死背某个 tile 尺寸，而要理解数据流：</p><pre>lower-precision inputs
+        ↓
+matrix multiply-accumulate datapath
+        ↓
+higher/appropriate accumulator
+        ↓
+result</pre><p>所谓“混合精度”不是一句“FP16 比 FP32 快”，而是输入、乘法、累加和输出可能使用不同格式，以速度、范围、精度和稳定性做折中。</p>
+<h3>为什么累加格式值得单独看？</h3><p>大量小误差在长归约中会累积。即使乘法输入较低精度，使用更高精度或更大动态范围的 accumulator 也可能显著改善数值行为。因此硬件规格里“支持某 dtype”远远不够，你还要知道计算模式。</p>
+<h2>2. Volta 的 Independent Thread Scheduling：SIMT 不是永远锁步的简单机器</h2><p>现代 SIMT 的线程控制比“32 个线程永远做完全相同事情”复杂。Volta 改进线程调度语义，使 warp 内线程在控制流与同步上有更细粒度能力。对学生最重要的结论不是去写 tricky warp code，而是：</p><ul><li>不要把 warp 当作不可分割的单线程；</li><li>也不要假设传统隐式 lockstep 行为永远安全；</li><li>warp-level algorithm 应使用明确的同步/协作原语。</li></ul>
+<h2>3. Turing：把 Tensor Core 带到更广的产品，同时扩展整数/低精度路线</h2><p>Turing 让 Tensor Core 与 RT Core 一起进入新的消费图形架构语境。对本地 LLM 而言，RT Core 不是核心关注点，重要的是矩阵/低精度能力继续扩展。</p>
+<h3>INT8 / INT4 为什么值得注意但不能直接等同 LLM 量化？</h3><p>“硬件支持 INT4”与“某个 GGUF Q4 模型能高效运行”之间隔着很多层：</p><pre>model quantization format
+→ packed weight layout
+→ dequant / scale scheme
+→ kernel implementation
+→ hardware instruction path
+→ runtime/backend dispatch</pre><p>因此看到规格表的 INT4 TOPS，不能直接拿来预测 llama.cpp 某个量化的 token/s。</p>
+<h2>4. CUDA Core 路径也在演化：专用单元没有取代通用计算</h2><p>Turing 等架构仍然持续优化通用整数/浮点、调度、cache/shared 组织。真实 LLM inference 是多个 kernel 和阶段组成的程序，不会永远待在 Tensor Core 上。</p><table><tr><th>工作</th><th>可能更依赖</th></tr><tr><td>大矩阵乘法</td><td>Tensor/matrix path + memory</td></tr><tr><td>layernorm/RMSNorm</td><td>vector/reduction/general CUDA</td></tr><tr><td>sampling</td><td>general compute + memory + CPU interaction</td></tr><tr><td>tokenization</td><td>常主要在 CPU/host</td></tr><tr><td>KV movement</td><td>memory system</td></tr></table>
+<h2>Worked Example：为什么“Tensor Core 世代”仍可能 decode 不快？</h2><p>设模型已经量化并完全放入显存。生成一个 token 时，如果每层都要从显存读取大量权重，而可并行 batch 很小，那么内存流量可能比矩阵单元峰值更先到上限。</p><p>粗略思路：</p><pre>每 token 需要读取的有效权重字节 ≈ B
+显存可持续带宽 ≈ BW
+理想 memory roof ≈ BW / B token/s</pre><p>这不是完整性能公式，但它解释了：即使 Tensor Core 峰值暴涨，decode 的实际 token/s 也可能主要被 bandwidth roof 限制。后续 bandwidth/roofline 课会正式展开。</p>
+<h2>5. RT Core 为什么仍值得知道？</h2><p>不是为了 LLM，而是为了学会识别“同一 GPU 上的专用单元”。RT Core 针对光追几何工作；Tensor Core 针对矩阵工作。它们提醒你：营销中的“AI/RT/Shader 性能”属于不同数据路径，不能混成一个总分。</p>
+<h2>Why it matters</h2><ul><li>Volta 是理解现代 Tensor Core/mixed precision 的起点。</li><li>Turing 让你学会把“硬件低精度能力”和“具体模型量化 backend”分层。</li><li>decode 的 memory-bound 特性提醒你：矩阵峰值不是唯一上限。</li><li>专用单元 coexistence 训练你阅读复杂 GPU 方框图，而不是把所有 TOPS 加在一起。</li><li>旧 Tesla/Turing 二手卡的现实价值还取决于显存、功耗、driver、runtime、kernel 与价格。</li></ul>
+<h2>常见误区</h2><ul><li>“Tensor Core 就是专门跑神经网络的万能核心”——它更准确地说是矩阵计算 datapath。</li><li>“INT4 TOPS 高，所以 Q4 GGUF 一定飞快”——格式和 kernel 路径可能完全不同。</li><li>“有 Tensor Core 就不再需要 CUDA Core”——大量辅助/非矩阵工作仍依赖通用资源。</li><li>“AI 峰值比上一代高 2 倍，token/s 就高 2 倍”——memory/launch/shape/batch 均可改变瓶颈。</li></ul>
+<h2>小实验与预期观察</h2><p>在 generation feature trap 表中新加四列：matrix unit、supported numeric modes（仅记录可靠来源明确宣称的）、memory bandwidth、current runtime/backend status。选一张 Pascal 与一张 Turing 卡比较。你应该观察到“新增 Tensor Core”只是能力矩阵中的一列，不足以单独决定购买。</p>
+<h2>无硬件路径</h2><p>本节 L0 可完全通过架构图、产品规格和课程 worksheet 完成。不要为了验证 Tensor Core 买老卡。真机 L1 只做安全的 capability/benchmark inventory，不做超压。</p>
+<h2>排错</h2><ul><li>benchmark 看不到 Tensor Core 利用：确认数据类型、矩阵 shape、library/kernel 与实际 dispatch。</li><li>量化模型速度异常：检查是否发生 CPU fallback、部分 layer offload、unsupported quant kernel。</li><li>理论带宽很高但吞吐低：检查实际 memory clocks、power/thermal、数据复用、host transfer 和 batch/shape。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么专门矩阵 datapath 在统一可编程 GPU 之后仍然合理？</li><li>混合精度里为什么要区分 input、multiply、accumulate、output？</li><li>为什么硬件 INT4 支持不能直接证明 GGUF Q4 性能？</li><li>给出一个 Tensor Core 很强但 decode 仍 memory-bound 的解释。</li><li>RT Core 的存在如何帮助你理解“同一 GPU 有多类互不等价的峰值指标”？</li><li>如果 Turing 二手卡价格便宜，哪些当前软件事实仍必须重新验证？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>可以把 Volta/Turing 的 Tensor Core 当成“可被特定 kernel 利用的矩阵上限”；不能把 AI TOPS 或某种低精度峰值直接换算成模型 token/s。购买和优化必须证明目标 runtime + model format + kernel 真的命中该路径。</p></div>
+<h2>Transfer</h2><p>到 Ampere/Ada 时继续把能力拆成：general compute、matrix numerics、memory hierarchy、memory capacity/bandwidth、software enablement。以后遇到 AMD Matrix Core、Intel XMX、Apple matrix/ML paths，也用同一分层方法。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
