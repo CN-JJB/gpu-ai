@@ -1,194 +1,48 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 3：MHA / MQA / GQA</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
-<h1>LLM 架构 3 — MHA / MQA / GQA：为什么 KV Heads 比你想象中重要</h1>
-
-<h2>1. Query heads 和 KV heads 是两个数字</h2>
-
-<p>很多人看到：</p>
-
-<pre>32 attention heads</pre>
-
-<p>就默认 KV 也有 32 heads。</p>
-
-<p>现代模型未必。</p>
-
-<pre>Hq = query heads
-Hkv = key/value heads</pre>
-
-<h2>2. MHA</h2>
-
-<pre>Hq = 32
-Hkv = 32</pre>
-
-<p>每个 query head 有自己的 K/V head。</p>
-
-<h2>3. MQA</h2>
-
-<pre>Hq = 32
-Hkv = 1</pre>
-
-<p>不是“只有一个 attention head”。</p>
-
-<p>是：</p>
-
-<pre>32 Q heads
-share
-1 K head + 1 V head</pre>
-
-<div class="callout"><strong>MQA 仍然可以有很多 Query heads。</strong></div>
-
-<h2>4. GQA</h2>
-
-<p>取中间：</p>
-
-<pre>Hq = 32
-Hkv = 8</pre>
-
-<p>每 4 个 query heads 共用一组 K/V。</p>
-
-<pre>Q0 Q1 Q2 Q3 → KV0
-Q4 Q5 Q6 Q7 → KV1
-...</pre>
-
-<h2>5. 为什么这首先改变 KV Cache？</h2>
-
-<p>缓存 shape 是：</p>
-
-<pre>K [B,Hkv,S,Dh]
-V [B,Hkv,S,Dh]</pre>
-
-<p>所以每 token：</p>
-
-<pre>2 × layers × Hkv × Dh × bytes</pre>
-
-<p>公式里没有 Hq。</p>
-
-<h2>6. 用真实量级算</h2>
-
-<p>假设：</p>
-
-<pre>32 layers
-32 query heads
-head_dim 128
-FP16 KV</pre>
-
-<table>
-<tr><th>类型</th><th>KV heads</th><th>KV/token</th><th>32k context</th></tr>
-<tr><td>MHA</td><td>32</td><td>512 KiB</td><td>16 GiB</td></tr>
-<tr><td>GQA</td><td>8</td><td>128 KiB</td><td>4 GiB</td></tr>
-<tr><td>MQA</td><td>1</td><td>16 KiB</td><td>0.5 GiB</td></tr>
-</table>
-
-<p>同样 32 层、同样 query heads、同样 head_dim，只改 KV heads。</p>
-
-<h2>7. 这对垃圾佬为什么比“8B”更有用？</h2>
-
-<p>两个都写 8B 的模型：</p>
-
-<pre>Model A: Hkv=32
-Model B: Hkv=8</pre>
-
-<p>权重文件可能差不太多，但 32k context 的 KV 可以差 4 倍。</p>
-
-<p>所以：</p>
-
-<pre>same parameter count
-!=
-same context VRAM</pre>
-
-<h2>8. GQA 也改 attention projection weights</h2>
-
-<p>Q projection：</p>
-
-<pre>d → Hq×Dh</pre>
-
-<p>K/V：</p>
-
-<pre>d → Hkv×Dh</pre>
-
-<p>Hkv 变小，Wk/Wv 也变窄。</p>
-
-<p>但 Wq/Wo 仍然大，所以整个模型参数不会按 KV 缩减倍数一起缩。</p>
-
-<h2>9. Decode 为什么更吃这个红利？</h2>
-
-<p>每生成一个 token，都要 attention 到历史 K/V。</p>
-
-<pre>current Q
-→ read historical K/V length S</pre>
-
-<p>K/V 更少：</p>
-<ul>
-<li>cache 更小；</li>
-<li>memory traffic 更少；</li>
-<li>concurrency 更容易；</li>
-<li>长 context 更容易 fit。</li>
-</ul>
-
-<h2>10. 为什么不所有模型都用 MQA？</h2>
-
-<p>因为独立 K/V 表达能力和模型质量也是设计目标。</p>
-
-<p>可以理解为：</p>
-
-<pre>MHA
-more KV capacity
-
-MQA
-maximum sharing
-
-GQA
-middle ground</pre>
-
-<p>GQA 论文就是在做这个质量/效率折中。</p>
-
-<h2>11. 不是 runtime 开关</h2>
-
-<p>不能拿一个训练好的 MHA 模型，在 llama.cpp 里写：</p>
-
-<pre>--gqa 8</pre>
-
-<p>就自动变成正确 GQA。</p>
-
-<p>这些 K/V projection weights 是模型训练出来的结构。</p>
-
-<h2>12. GQA 和 KV 量化可以叠加</h2>
-
-<pre>architecture:
-Hkv 32 → 8
-
-runtime:
-KV FP16 → Q8</pre>
-
-<p>两个维度都会减少 KV bytes。</p>
-
-<p>但是：</p>
-
-<pre>GQA = architecture
-KV quant = representation</pre>
-
-<p>不要混。</p>
-
-<h2>13. 以后选模型先查这几个字段</h2>
-
-<pre>num_hidden_layers
-num_attention_heads
-num_key_value_heads
-head_dim
-KV dtype
-context
-concurrency</pre>
-
-<p>然后你自己就能算，不需要等别人说“这个模型吃显存”。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — MHA / MQA / GQA</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0；真实模型 config 只需要本地文件或公开 config，不要求 GPU。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3>
-<ul><li>把公式/shape 连接到显存容量、带宽或矩阵工作量。</li><li>能从真实 config 验证结构，而不是凭模型名字猜。</li><li>遇到陌生模型时能迁移同一套分析步骤。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/46-mha-gqa-mqa-kv-model/README.md">Experiment 46：MHA/GQA/MQA KV model</a>；再做 <a href="../../labs/experiments/47-real-model-attention-config-compare/README.md">Experiment 47：real config compare</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>Hq 与 Hkv 分别控制什么？</li><li>为什么 GQA 能显著降低 KV bytes，却不按同样比例减少所有模型权重？</li><li>MQA 是 Hkv=1，那么 query heads 还可以很多吗？</li><li>比较两个模型长上下文容量时，为什么必须看 head_dim、layers、Hkv、KV dtype？</li></ol>
-<h3>完成证据</h3><p>选两个真实模型，计算每 token KV bytes 和指定 context/concurrency 下的 KV 总量；解释差异来自哪些 config 字段。</p>
-<h3>如何选择 / 迁移</h3><p>把结构字段转换成 <strong>resident bytes、KV bytes、per-token traffic、matrix shape</strong>，再回到 Slice 04/05 的 Roofline 与显存预算；不要用参数量一个数字替代结构分析。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://arxiv.org/abs/1911.02150">Multi-Query Attention</a></li><li><a href="https://arxiv.org/abs/2305.13245">Grouped-Query Attention</a></li><li><a href="../../reference/llm/mha-mqa-gqa-kv.md">Course Reference — MHA / MQA / GQA</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MHA、MQA、GQA 与 KV Cache</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Transformer Anatomy · L0→L1</p><h1>MHA → MQA → GQA：为什么减少 KV heads 能直接改变显存与 Decode 成本？</h1><p class="lead">Attention head 数不是模型配置表里的装饰。Query heads 与 KV heads 的关系会直接决定 KV cache 的尺寸、decode 时读多少历史数据，以及模型如何在质量和推理效率之间取舍。</p>
+<h2>Prerequisite Check</h2><p>你应知道 decode 每生成一个 token，会为新位置生成 Q/K/V，并读取历史 KV cache。</p>
+<h2>真实问题：两个参数量接近的模型，为什么同样 32k context，一个 KV cache 明显更小？</h2><p>其中一个重要原因可能是 KV head 数不同。MHA 通常每个 query head 都有自己的 K/V；MQA 让多个 query heads 共用一组 K/V；GQA 介于两者之间，让一组 query heads 共享一个 KV head。</p>
+<h2>1. Multi-Head Attention：为什么需要多个 head？</h2><p>把 hidden representation 投影成多个较小的 Q/K/V head，可以让模型在不同子空间学习不同关系。粗略写：</p><pre>Q = X Wq
+K = X Wk
+V = X Wv
+
+head_i = softmax(Q_i K_i^T / sqrt(d)) V_i
+</pre><p>最后多个 head 拼接/投影回 hidden size。</p>
+<h2>2. MHA 的 KV cache 成本</h2><p>decode 时历史 query 不需要保存，但历史 K/V 需要保存。因此 KV bytes 的主要结构可以写成：</p><pre>KV bytes ≈
+2 (K and V)
+× layers
+× context_tokens
+× kv_heads
+× head_dim
+× bytes_per_element
+× concurrent_sequences
+</pre><p>这里最关键的是 <strong>kv_heads</strong>，不是 query heads。</p>
+<h2>3. MQA：所有 query heads 共享一组 K/V</h2><pre>many Q heads
+  ↓ ↓ ↓ ↓
+ one shared K head
+ one shared V head
+</pre><p>这样 KV cache 可以大幅减少，decode 每 token 读取的 KV 数据也更少。代价是模型表达能力/训练行为可能变化，因此这是模型架构设计，不是推理时随便开一个开关。</p>
+<h2>4. GQA：在 MHA 与 MQA 之间折中</h2><p>Grouped-Query Attention 让若干 query heads 共享一个 KV head：</p><pre>Q Q Q Q | Q Q Q Q | Q Q Q Q
+  share K/V   share K/V   share K/V
+</pre><p>它保留多个 KV groups，比单一 MQA 更有表达容量，同时显著减少相对 MHA 的 KV cache。</p>
+<h2>Worked Example：同一 hidden/head_dim，KV heads 从 32 降到 8</h2><p>假设其他都相同：</p><pre>MHA: kv_heads = 32
+GQA: kv_heads = 8
+
+KV cache ratio = 8 / 32 = 1/4
+</pre><p>仅从结构公式看，KV cache 对应部分约降到四分之一。真实总显存不会也变四分之一，因为模型权重、runtime buffer 等不变。</p>
+<h2>5. 为什么 GQA 对长 context/并发尤其重要？</h2><p>KV cache 随 context 和并发近似线性增长。减少 KV heads 的节省会被长上下文和多 slot 放大。</p><pre>single 4k chat → KV may be modest
+32k × several sessions → KV becomes major capacity budget
+</pre><p>这也是为什么服务端模型架构越来越关注 KV efficiency。</p>
+<h2>6. Decode memory traffic</h2><p>每个新 query 要与历史 K/V 交互。更少 KV heads 除了节省容量，也可能减少需要从 memory hierarchy 读取的 KV 字节。具体 kernel 能节省多少取决于 layout、cache、fusion 与实现。</p>
+<h2>7. 为什么不能在两个不同模型之间说“GQA 一定更快”？</h2><p>如果模型 hidden size、层数、参数量、quant、runtime 都不同，GQA 只是多个变量中的一个。要证明 GQA 因果收益，需要可比较模型或明确实验设计；否则只能说“该模型的 KV structure 更节省”。</p>
+<h2>8. 从 config 里读什么？</h2><p>常见字段思想：</p><ul><li>hidden size；</li><li>num attention heads；</li><li>num key-value heads；</li><li>head dimension（有时可由 hidden/heads 推出，但不要对所有新架构强推）；</li><li>layers；</li><li>context / rope / sliding behavior。</li></ul><p>用这些字段先做 KV hypothesis，再去 runtime 实测 allocation。</p>
+<h2>Why it matters</h2><ul><li>直接影响长 context 和并发的内存预算。</li><li>解释参数量相似模型为什么实际 serving capacity 不同。</li><li>帮助你读模型 config，而不是只看“7B/14B/70B”。</li><li>为 paged KV、KV quant、sliding attention 与 serving capacity 打基础。</li></ul>
+<h2>常见误区</h2><ul><li>“attention heads 越多 KV 一定越大”——要看 KV heads。</li><li>“GQA 是 runtime 优化开关”——通常是模型架构的一部分。</li><li>“KV 省 4 倍，总显存就省 4 倍”——权重等其他部分不变。</li><li>“MQA/GQA 一定不掉质量/一定更快”——模型设计与 kernel 决定。</li></ul>
+<h2>小实验</h2><p>选择两个公开模型 config，手算每 token 每层的 K/V 元素数量，再按 4k/32k context 和 1/4 并发做比例预算。只比较结构，不填虚构 runtime allocation。</p><p><strong>预期观察：</strong>KV heads 的差异会在线性 context/concurrency 维度被放大。</p>
+<h2>无 GPU 路径</h2><p>本课纯计算即可。以后真机再用 runtime memory logs 验证公式与实际 overhead 的差距。</p>
+<h2>排错</h2><ul><li>公式与实际显存不符：确认 KV dtype、padding/alignment、paged allocation、runtime buffer、sliding window。</li><li>config 没有显式 head_dim：查模型架构文档，不盲推。</li><li>长 context OOM：分别拆 weights、KV、buffers，不只降 quant。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 KV cache 主要取决于 KV heads 而不是 query heads？</li><li>MHA、MQA、GQA 三者的共享关系是什么？</li><li>KV heads 从 32 到 8 为什么只说明 KV 部分约四分之一，而不是总显存？</li><li>为什么 GQA 节省在长 context/高并发更重要？</li><li>从模型 config 做 KV 预算至少需要哪些字段？</li><li>为什么跨两个完全不同模型不能把速度差直接归因给 GQA？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>在模型容量/服务规划时，用 exact layers × KV heads × head dim × context × dtype × concurrency 估算 KV；不要从总 attention heads 或参数量猜。模型间性能差异只有在控制其他变量后才可归因 GQA/MQA。</p></div>
+<h2>Transfer</h2><p>下一步学习 sliding/hybrid/latent attention 时，继续问两个问题：历史状态到底保存什么？每个新 token 必须读取多少历史字节？</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/2305.13245">GQA: Training Generalized Multi-Query Transformer Models</a></li><li><a href="https://arxiv.org/abs/1911.02150">Fast Transformer Decoding: One Write-Head is All You Need</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
+</main></body></html>
