@@ -1,6 +1,6 @@
 # Spec 0026 — Prompt Evidence Manifest Admission Gate
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -93,3 +93,21 @@ I25 does not prove:
 - thermal equivalence;
 - causal validity;
 - purchase suitability.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #108
+run id 33156832189
+head 195ffb4fd583d6f7df0b5136a27b340c5ce4c812
+job id 98801504416
+conclusion success
+```
+
+The dedicated I25 self-test proves:
+- non-synthetic intake without `--prompt-manifest` is blocked;
+- matching Experiment 57 prompt hashes/token count plus PACKET coverage pass;
+- a semantic prompt mismatch remains blocked after PACKET is freshly recomputed.
+
+Runs #102–#107 were intermediate migration/fix heads. #108 is the accepted I25 checkpoint.
