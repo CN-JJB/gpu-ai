@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I16 on 2026-08-28 via GitHub Actions run #48:
+Full Python execution is verified through I17 on 2026-08-28 via GitHub Actions run #54:
 
 ~~~text
 SELFTEST: PASS
@@ -29,7 +29,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-The latest full verification checked out head 097c8d4839314851e1f4b07267b3c7b2102d50e0 on GitHub Actions, compiled every Intelligence Python tool, and executed the complete self-test.
+The latest full verification checked out head bbf624e44579cbc765974bf8b5070330002f294e on GitHub Actions, compiled every Intelligence Python tool, and executed the complete self-test.
 
 Detailed evidence:
 
@@ -55,9 +55,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #48
-run id 33137329016
-job id 98740118394
+workflow run #54
+run id 33137613634
+job id 98741045301
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -81,3 +81,14 @@ The successful log explicitly includes:
 
 Evidence:
 - examples/evidence/intelligence-i01-i16-ci-selftest.md
+
+
+## I17 assertions included in run #54
+
+The successful log explicitly confirms:
+- market evidence eligibility is freshness-aware;
+- every real market row requires a revalidation date;
+- Experiment 38 blocks due-today, stale and invalid market evidence from BUY-CANDIDATE.
+
+Evidence:
+- examples/evidence/intelligence-17-freshness-aware-watchlist.md
