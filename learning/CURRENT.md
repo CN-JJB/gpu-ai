@@ -39,6 +39,7 @@ I19 reusable market refresh helper + CI self-test
 I20 manifest ↔ raw llama-bench identity/config cross-check
 I21 explicit-argv real benchmark capture/seal helper
 I22 non-synthetic local model artifact SHA256/bytes admission gate
+I23 exact benchmark argv ↔ verified model artifact binding
 ~~~
 
 ## Benchmark boundary
@@ -173,10 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #86
-run id 33155742355
-head 99dc1d9326e2daca9095a249cf5fe06c4e25c542
-job id 98797950974
+run #93
+run id 33156449183
+head 19f67777035f90aec7062f9fb205729ddb568b0b
+job id 98800246711
 conclusion success
 ~~~
 
@@ -189,8 +190,8 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- the dedicated I21 capture self-test passes;
-- the dedicated I22 model artifact gate requires local SHA256/bytes for non-synthetic intake and rejects same-size wrong-content artifacts;
+- I21 capture and I22 local-artifact tests remain green;
+- I23 binds exact benchmark -m/--model argv to the same locally verified artifact and blocks hash-consistent argv tampering;
 - the dedicated I19 market refresh self-test remains green.
 
 Evidence:
@@ -200,11 +201,12 @@ Evidence:
 - examples/evidence/intelligence-20-real-benchmark-raw-identity.md
 - examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 - examples/evidence/intelligence-22-real-model-artifact-gate.md
+- examples/evidence/intelligence-23-command-model-artifact-binding.md
 
 ## Next
 
-1. Bind I21 exact command evidence to the I22-verified local GGUF, so the benchmark argv is proven to reference the admitted artifact.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22 admission.
+1. Verify the real hardware profile artifact against manifest.variant.hardware.profile_sha256 and require PACKET coverage.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23 admission.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
