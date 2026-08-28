@@ -1,6 +1,6 @@
 # Spec 0028 — Quality Identity Manifest Admission Gate
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -83,3 +83,21 @@ Block non-synthetic intake when:
 - the artifact is not PACKET-indexed.
 
 A recomputed PACKET does not override a semantic identity mismatch.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #131
+run id 33157420701
+head bed49fe2878c314ee08a215e7fc8d4c31516ae35
+job id 98803423115
+conclusion success
+```
+
+The dedicated I27 self-test proves:
+- non-synthetic intake without `--quality-manifest` is blocked;
+- exact tokenizer/corpus/fixture/evaluation identity plus PACKET coverage pass;
+- semantic quality identity mismatch remains blocked after PACKET recomputation.
+
+Runs #124–#128 were intermediate migration heads. #129 restored the prior suite, #130 verified the dedicated gate, and #131 is the accepted I27 checkpoint.
