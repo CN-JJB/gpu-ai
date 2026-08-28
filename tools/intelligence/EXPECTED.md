@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I22. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, and I22 requires local model-artifact SHA256/bytes for non-synthetic intake. The I22 implementation checkpoint is GitHub Actions run #84 on 2026-08-28:
+Full Python execution is verified through I23. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, and I23 binds exact benchmark argv to that admitted model artifact. The I23 implementation checkpoint is GitHub Actions run #91 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #84 checked out head 233414410c5b3a20ca9a873f411a54e830ef39b1, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, and market refresh self-tests.
+Run #91 checked out head b875a4f76a5ec306b9a1764cc6caa2bde1b2e823, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, command-model binding, and market refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #84
-run id 33155656857
-job id 98797675678
+workflow run #91
+run id 33155944603
+job id 98798617756
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -163,3 +163,16 @@ Evidence:
 - examples/evidence/intelligence-22-real-model-artifact-gate.md
 
 The GGUF is hashed locally and is not copied into PACKET.json.
+
+
+## I23 assertions included in run #91
+
+The dedicated command-model binding self-test confirms:
+- capture refuses a supplied model artifact that differs from exact `-m/--model` argv before launch;
+- command.json records the bound artifact SHA256 + bytes;
+- intake independently reparses argv from command.json;
+- command.json itself must be indexed by PACKET SHA256 + bytes;
+- a tampered argv pointing to another same-size file remains blocked even after PACKET is recomputed.
+
+Evidence:
+- examples/evidence/intelligence-23-command-model-artifact-binding.md
