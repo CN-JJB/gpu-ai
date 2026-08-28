@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I22. GitHub Actions run #84 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, and I19 market-refresh self-tests.
+Phase 4 tooling currently implements I01–I23. GitHub Actions run #91 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, I23 command-model binding, and I19 market-refresh self-tests.
 
 ## 1. Validate a catalog
 
@@ -89,7 +89,7 @@ The helper:
 Before ingestion:
 
 ~~~bash
-python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --model-artifact /path/to/model.gguf
+python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --model-artifact /path/to/model.gguf   --command-record /path/to/command.json
 ~~~
 
 Required result:
@@ -108,7 +108,7 @@ The verifier checks:
 
 A hash-consistent PACKET is not enough if the manifest disagrees with the raw benchmark rows.
 
-For non-synthetic intake, I22 also requires `--model-artifact` and computes the local GGUF SHA256 + byte count. Both must match the manifest; raw `model_size` must already agree through I20.
+For non-synthetic intake, I22 requires `--model-artifact` and computes the local GGUF SHA256 + byte count. I23 additionally requires `--command-record`, requires that record to be PACKET-indexed, and reparses the exact `-m/--model` argv so the benchmark command points to the same admitted GGUF.
 
 Expected success now includes:
 
@@ -374,6 +374,7 @@ See:
 - examples/evidence/intelligence-20-real-benchmark-raw-identity.md
 - examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 - examples/evidence/intelligence-22-real-model-artifact-gate.md
+- examples/evidence/intelligence-23-command-model-artifact-binding.md
 
 ## Non-goals
 
