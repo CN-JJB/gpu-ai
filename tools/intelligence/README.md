@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I17. GitHub Actions run #54 verifies the full Python self-test through I17.
+Phase 4 tooling currently implements I01–I18. GitHub Actions run #62 verifies the full Python self-test through I18.
 
 ## 1. Validate a catalog
 
@@ -132,6 +132,16 @@ Use --show-unscheduled to list records without revalidate_after.
 STALE means revalidate before a current decision; it does not automatically mean false.
 
 ## 10. Market cohort matrix
+
+Superseded observations are hidden by default.
+
+Use:
+
+~~~text
+--include-superseded
+~~~
+
+to inspect audit history.
 
 ~~~bash
 python3 market_matrix.py ../../intelligence/catalog   --geography GLOBAL-EBAY   --channel secondary-aggregated-ebay-active   --cohort used-consumer   --condition used   --price-state MEDIAN_ASK   --currency USD   --as-of 2026-08-28
@@ -275,7 +285,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #54
+run #62
 SELFTEST: PASS
 ~~~
 
@@ -293,6 +303,7 @@ See:
 - examples/evidence/intelligence-16-market-evidence-selection-gate.md
 - examples/evidence/intelligence-i01-i16-ci-selftest.md
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
+- examples/evidence/intelligence-18-append-only-market-refresh.md
 
 ## Non-goals
 
