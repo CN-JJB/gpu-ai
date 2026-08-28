@@ -28,6 +28,17 @@ Maintain a manual, auditable watchlist for actual used-hardware candidates.
 5. Run evaluator.
 6. Refresh stale price observations before paying.
 
+## Intelligence bridge
+
+If the candidate price comes from the Phase 4 Intelligence catalog, use:
+
+- `INTELLIGENCE-BRIDGE.md`
+- `tools/intelligence/market_evidence_gate.py`
+
+Copy the catalog's claim-scoped `market_evidence_grade` into this lab's `market_evidence` field.
+
+Do not infer a stronger grade from words such as "SOLD".
+
 ## No scraping requirement
 
 Manual entries are acceptable and often safer than brittle scraping.
