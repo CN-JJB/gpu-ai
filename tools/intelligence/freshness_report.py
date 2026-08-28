@@ -46,6 +46,20 @@ def main():
                 continue
 
             rid = r.get("record_id", "<missing>")
+
+            if r.get("superseded_by"):
+                scheduled.append({
+                    "state": "SUPERSEDED",
+                    "days": None,
+                    "revalidate_after": r.get("revalidate_after"),
+                    "record_id": rid,
+                    "record_type": r.get("record_type"),
+                    "source_file": name,
+                    "observed_at": r.get("observed_at") or (r.get("source") or {}).get("observed_at"),
+                    "superseded_by": r.get("superseded_by"),
+                })
+                continue
+
             revalidate = r.get("revalidate_after")
             if not revalidate:
                 unscheduled.append((name, r))
@@ -70,13 +84,20 @@ def main():
                 "record_type": r.get("record_type"),
                 "source_file": name,
                 "observed_at": r.get("observed_at") or (r.get("source") or {}).get("observed_at"),
+                "superseded_by": None,
             })
 
-    state_order = {"STALE": 0, "DUE-TODAY": 1, "DUE-SOON": 2, "FRESH": 3}
+    state_order = {
+        "STALE": 0,
+        "DUE-TODAY": 1,
+        "DUE-SOON": 2,
+        "FRESH": 3,
+        "SUPERSEDED": 4,
+    }
     scheduled.sort(
         key=lambda x: (
             state_order.get(x["state"], 9),
-            x["revalidate_after"],
+            str(x.get("revalidate_after") or ""),
             x["record_id"],
         )
     )
@@ -92,18 +113,27 @@ def main():
     print(f"unscheduled={len(unscheduled)}")
 
     print("STATE COUNTS")
-    for state in ("STALE", "DUE-TODAY", "DUE-SOON", "FRESH"):
+    for state in ("STALE", "DUE-TODAY", "DUE-SOON", "FRESH", "SUPERSEDED"):
         print(f"- {state}={counts.get(state, 0)}")
 
     print("REVALIDATION QUEUE")
     for x in scheduled:
-        if x["state"] == "FRESH":
+        if x["state"] in {"FRESH", "SUPERSEDED"}:
             continue
         print(
             f"- state={x['state']} | days={x['days']} | "
             f"revalidate_after={x['revalidate_after']} | "
             f"type={x['record_type']} | record={x['record_id']} | "
             f"observed={x['observed_at']} | file={x['source_file']}"
+        )
+
+    print("SUPERSEDED")
+    for x in scheduled:
+        if x["state"] != "SUPERSEDED":
+            continue
+        print(
+            f"- record={x['record_id']} | observed={x['observed_at']} | "
+            f"superseded_by={x['superseded_by']} | file={x['source_file']}"
         )
 
     if a.show_unscheduled:
@@ -122,6 +152,7 @@ def main():
         print("FRESHNESS: CURRENT-WITHIN-WINDOW")
 
     print("Stale means revalidation is required; it does not automatically mean the old observation is false.")
+    print("Superseded means a newer observation exists; the historical record remains audit evidence but leaves the active refresh queue.")
 
 
 if __name__ == "__main__":
