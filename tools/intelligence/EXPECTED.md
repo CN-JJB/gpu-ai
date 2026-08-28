@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I21. I19 retains its dedicated market-refresh self-test, I20 strengthens real benchmark intake identity, and I21 adds an evidence-preserving explicit-argv capture/seal helper. The I21 implementation checkpoint is GitHub Actions run #79 on 2026-08-28:
+Full Python execution is verified through I22. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, and I22 requires local model-artifact SHA256/bytes for non-synthetic intake. The I22 implementation checkpoint is GitHub Actions run #84 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #79 checked out head 628418be644caee5255eb65dfa5331802b40f729, compiled every Intelligence Python tool, executed the complete Intelligence self-test, executed the dedicated real benchmark capture self-test, and then executed the dedicated market refresh self-test.
+Run #84 checked out head 233414410c5b3a20ca9a873f411a54e830ef39b1, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, and market refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #79
-run id 33155422668
-job id 98796936578
+workflow run #84
+run id 33155656857
+job id 98797675678
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -149,3 +149,17 @@ Evidence:
 - examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 
 `CAPTURE: SEALED` is not `INTAKE: READY`.
+
+
+## I22 assertions included in run #84
+
+The dedicated model artifact gate self-test confirms:
+- non-synthetic intake without a local model artifact is blocked;
+- matching local SHA256 and bytes pass;
+- the local artifact bytes agree with the manifest, while I20 separately ties raw llama-bench model_size to the same manifest bytes;
+- a same-size but different-content artifact is rejected by SHA256.
+
+Evidence:
+- examples/evidence/intelligence-22-real-model-artifact-gate.md
+
+The GGUF is hashed locally and is not copied into PACKET.json.
