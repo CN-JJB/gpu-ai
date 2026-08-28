@@ -1,225 +1,31 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 质量门：PPL 与优化安全</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
-<h1>LLM 质量门 — 快了，不代表优化成功</h1>
-
-<h2>1. GPU 教程为什么必须讲质量？</h2>
-
-<p>因为你会不断做：</p>
-
-<pre>FP16 → Q8 → Q4
-KV FP16 → Q8
-old backend → new backend
-FA off → on</pre>
-
-<p>如果只记录 tokens/s：</p>
-
-<pre>更快
-=
-成功</pre>
-
-<p>这个结论不成立。</p>
-
-<div class="callout"><strong>优化目标必须同时有性能和质量。</strong></div>
-
-<h2>2. 模型每一步都在猜“下一个 token”</h2>
-
-<p>真实下一个 token 是 y。</p>
-
-<p>模型给它的概率：</p>
-
-<pre>p(y | prefix)</pre>
-
-<p>概率越高，说明模型越不意外。</p>
-
-<h2>3. 为什么用 -log？</h2>
-
-<pre>NLL = -ln p</pre>
-
-<table>
-<tr><th>正确 token 概率</th><th>NLL</th></tr>
-<tr><td>1.0</td><td>0</td></tr>
-<tr><td>0.5</td><td>~0.693</td></tr>
-<tr><td>0.01</td><td>~4.605</td></tr>
-</table>
-
-<p>很自信地给正确答案极低概率，会被重罚。</p>
-
-<h2>4. 一段文本取平均</h2>
-
-<pre>Cross Entropy
-=
-mean(-ln p(correct token))</pre>
-
-<p>然后：</p>
-
-<pre>Perplexity
-=
-exp(Cross Entropy)</pre>
-
-<p>同一测试条件下：</p>
-
-<pre>越低越好</pre>
-
-<h2>5. 小例子</h2>
-
-<pre>correct-token probabilities:
-0.5
-0.25
-0.125
-0.5</pre>
-
-<p>得到：</p>
-
-<pre>CE ≈ 1.2130
-PPL ≈ 3.3636</pre>
-
-<p>如果量化后变成：</p>
-
-<pre>0.48
-0.22
-0.10
-0.45</pre>
-
-<p>则：</p>
-
-<pre>CE ≈ 1.3373
-PPL ≈ 3.8087</pre>
-
-<p>这个 synthetic 例子里 candidate 预测变差。</p>
-
-<h2>6. 最危险的错误：跨 tokenizer 比 PPL</h2>
-
-<p>Tokenizer A：</p>
-
-<pre>一句话 → 8 tokens</pre>
-
-<p>Tokenizer B：</p>
-
-<pre>一句话 → 13 tokens</pre>
-
-<p>概率分解已经不是同一个问题。</p>
-
-<p>所以不能简单说：</p>
-
-<pre>A PPL 5
-B PPL 6
-→ A 模型一定更强</pre>
-
-<h2>7. PPL 也不是 ChatGPT 式“好不好用”</h2>
-
-<p>Instruction finetune 可能：</p>
-
-<ul>
-<li>更会听指令；</li>
-<li>更会聊天；</li>
-<li>但普通文本 PPL 反而高一点。</li>
-</ul>
-
-<p>所以：</p>
-
-<pre>PPL = predictive-fit instrument
-not universal assistant score</pre>
-
-<h2>8. 它为什么特别适合比较量化？</h2>
-
-<p>因为你可以固定：</p>
-
-<pre>同一个 source model
-同一个 tokenizer
-同一个 corpus
-同一个 runtime
-只换 quant</pre>
-
-<p>这就是非常干净的 A/B。</p>
-
-<h2>9. KL 又是什么？</h2>
-
-<p>PPL 看正确 token。</p>
-
-<p>KL 可以更细地比较整个 token distribution。</p>
-
-<pre>KL = 0
-→ 两个 distribution 完全相同</pre>
-
-<p>llama.cpp 当前 perplexity 工具就有用高精度 logits 做量化 KL 比较的路径。</p>
-
-<p>但日志文件可能巨大，不要无脑开启。</p>
-
-<h2>10. 为什么还需要自己的 Task Fixtures？</h2>
-
-<p>你的目标可能是：</p>
-
-<pre>写代码
-中文问答
-JSON 输出
-RAG
-tool calling
-长上下文找信息</pre>
-
-<p>Wikitext PPL 不会替你回答这些。</p>
-
-<p>所以还要有自己的回归集。</p>
-
-<h2>11. Fixture 怎么设计？</h2>
-
-<p>可以是：</p>
-
-<pre>exact
-contains
-regex
-JSON schema
-multiple choice
-domain-specific test</pre>
-
-<p>版本化保存。</p>
-
-<h2>12. Stochastic sampling 不适合当唯一质量证据</h2>
-
-<p>两次输出文字不同，可能只是随机路径不同。</p>
-
-<p>更好的比较：</p>
-
-<pre>teacher-forced PPL/logprob
-+
-greedy/controlled fixtures</pre>
-
-<h2>13. 没有万能 ΔPPL 阈值</h2>
-
-<p>不要背：</p>
-
-<pre>ΔPPL < 0.1 一定安全</pre>
-
-<p>正确做法：</p>
-
-<pre>我的 workload
-允许多少 quality loss
-换多少速度/显存收益？</pre>
-
-<h2>14. 最终 Capstone 变成</h2>
-
-<pre>Baseline
-├─ PP/TG
-├─ VRAM
-└─ Quality
-
-change ONE variable
-
-Candidate
-├─ PP/TG
-├─ VRAM
-└─ Quality
-
-→ ACCEPT / REJECT</pre>
-
-<p>这样“优化”才完整。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — Quality Gate / Cross-Entropy / Perplexity</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实模型/硬件只用于增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3><ul><li>把“模型/输入/质量/benchmark 身份”变成可审计对象。</li><li>能指出公式或配置的适用边界，不把近似写成事实。</li><li>为后续硬件选择提供可重复的 workload contract。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/58-perplexity-math-model/README.md">Experiment 58：perplexity math model</a>；再做 <a href="../../labs/experiments/59-real-quality-gate/README.md">Experiment 59：real quality gate</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>为什么 PPL 只能在相同 tokenizer/corpus/eval protocol 下比较？</li><li>PPL 更低是否自动意味着中文聊天、代码、JSON 都更好？</li><li>quant 性能提升但 PPL 变差时，谁来决定可接受阈值？</li><li>为什么 task fixture 与 PPL 应该并存，而不是互相替代？</li></ol>
-<h3>完成证据</h3><p>为一次 quant/backend A/B 写 quality protocol：corpus hash、tokenizer identity、exact eval argv、PPL、至少一个目标任务 fixture，并预先定义 fail threshold。</p>
-<h3>如何选择 / 迁移</h3><p>遇到新模型或新 backend 时，优先冻结 <strong>身份 + 输入 + protocol</strong>，再谈性能或质量；不可比的数据宁可 BLOCKED，也不要硬排排行榜。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/perplexity/README.md">llama.cpp — Perplexity</a></li><li><a href="../../reference/llm/quality-gate-card.md">Course Reference — Quality Gate</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>质量 Gate：Cross-Entropy 与 Perplexity</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Quality Gate · L0→L1</p><h1>Cross-Entropy 与 Perplexity：为什么“更快”必须配一个质量 Gate？</h1><p class="lead">量化、backend、KV 精度或 kernel 变化可能让模型更快，也可能改变输出质量。Perplexity（PPL）不是万能智能分数，但它提供一种可重复、机器可读的语言建模质量信号，特别适合检查“同一模型家族/同一 corpus 下，改动是否明显伤害预测分布”。</p>
+<h2>Prerequisite Check</h2><p>你应知道模型每个位置输出 next-token logits/probabilities，也知道 tokenizer/corpus identity 必须固定。</p>
+<h2>真实问题：Q4 比 Q6 快 20%，我们能直接说 Q4 更好吗？</h2><p>不能。性能只是 tradeoff 一轴。更低位量化可能引入误差；不同 backend/kernel 也可能有数值差异。你至少需要一个固定质量 signal，加上目标任务 fixture，才能判断速度收益是否可接受。</p>
+<h2>1. Cross-Entropy 的直觉</h2><p>对于 corpus 中每个真实 next token，模型给它一个概率 <code>p</code>。如果模型很确定正确 token，p 较高；如果很意外，p 很低。</p><p>单 token 的 negative log-likelihood：</p><pre>loss = -log(p_true_token)</pre><p>对很多 token 取平均，就是 cross-entropy loss 的核心直觉。</p>
+<h2>2. Perplexity 是什么？</h2><p>Perplexity 通常是平均 cross-entropy 的指数：</p><pre>PPL = exp(mean_cross_entropy)</pre><p>直觉上可以粗略理解为模型面对文本时的“有效困惑程度”。在<strong>同 tokenizer、同 corpus、同预处理、同 evaluation method</strong>下，更低通常表示对该 corpus 的 next-token prediction 更好。</p>
+<h2>3. 为什么 PPL 不能跨任意模型直接排行？</h2><p>因为 tokenizer 会改变 tokenization，corpus/preprocessing 会改变评估对象，context/evaluation implementation 也可能改变值。特别是不同 vocabulary/tokenizer 的模型，PPL 的直接可比性很弱。</p><div class="callout"><strong>规则：</strong>PPL 最适合做“受控 A/B”，不是全互联网统一智商榜。</div>
+<h2>4. PPL 适合检查什么？</h2><ul><li>同 base model 的不同 quant artifact；</li><li>同模型同 corpus 的 backend/build 数值回归；</li><li>KV dtype/部分执行变量对质量的明显影响；</li><li>模型 conversion 是否出现异常。</li></ul><p>前提是 evaluation identity/argv 与 tokenizer/corpus 全部固定。</p>
+<h2>5. PPL 不擅长检查什么？</h2><ul><li>instruction following；</li><li>代码可执行性；</li><li>中文写作偏好；</li><li>RAG 引用正确性；</li><li>工具调用/JSON schema；</li><li>长上下文检索能力。</li></ul><p>这些需要目标任务 fixture。课程质量 gate 因此是：</p><pre>PPL / distribution signal
++ target deterministic tasks
++ human review where needed
+</pre>
+<h2>Worked Example：Q6 vs Q4</h2><p>固定同一 base revision、tokenizer、quality corpus、runtime、evaluation argv。得到：</p><pre>baseline Q6: PPL = P6
+candidate Q4: PPL = P4
+performance: PP/TG measured separately
+</pre><p>解释时计算 PPL delta/ratio，但不自动设“0.5% 一定可接受”。阈值由你的任务目标决定。再跑 JSON、中文、coding 等目标 fixture，才能形成完整 tradeoff。</p>
+<h2>6. Corpus identity：文件内容必须真的固定</h2><p>只记录文件名不够。保存 corpus SHA256、bytes、fixture revision。哪怕只改一个换行/预处理，严格实验里也已经是新 corpus。</p>
+<h2>7. Tokenizer identity：为什么最容易被忽略？</h2><p>PPL 是按 token 计算。换 tokenizer 等于改变评估单位和概率空间。必须固定 tokenizer revision/identity，不能把两个不同 tokenizer 的 PPL 小数做简单高低比较。</p>
+<h2>8. Evaluation argv：一个 flag 也可能改变语义</h2><p>context/chunk、BOS、stride、batch 或工具版本都可能改变 evaluation。课程 I30 要求 quality identity 与实际 argv token-for-token 绑定，正是为了避免“同 corpus 但评法变了”。</p>
+<h2>9. 机器可读 metric 与原始输出</h2><p>不要只把终端里 PPL 数字手抄进表。保存：</p><ul><li>quality command record；</li><li>stdout/stderr；</li><li>executable/build identity；</li><li>corpus/identity hashes；</li><li>机器提取的 PPL value/uncertainty（若工具提供）；</li><li>PACKET integrity。</li></ul><p>这样以后可以重新验证数字是否来自原始输出。</p>
+<h2>10. PPL 变化的统计/实际意义</h2><p>非常小的 PPL 差异可能来自数值噪声或对实际任务无意义。课程不会把 PPL 差直接变成“质量下降 X%”。把它当描述性信号，并结合任务 fixture。</p>
+<h2>Why it matters</h2><ul><li>防止只追 token/s，把量化质量损失藏起来。</li><li>提供机器可重复的 regression signal。</li><li>训练你固定 tokenizer/corpus/evaluation identity。</li><li>让性能×质量 tradeoff 可以被审计。</li></ul>
+<h2>常见误区</h2><ul><li>“PPL 低 = 聊天一定更聪明”——任务覆盖有限。</li><li>“不同 tokenizer PPL 可以直接比”——评估单位不同。</li><li>“同文件名 corpus 就相同”——要 hash。</li><li>“PPL 高 2% = 质量差 2%”——不是这种线性语义。</li><li>“随机聊天几次没感觉差，就不用 quality gate”——证据太弱。</li></ul>
+<h2>小实验</h2><p>先做 L0：给三组 toy next-token probabilities 手算 negative log loss 和相对 PPL。然后设计一份 quality identity：tokenizer、corpus hash、fixture revision、evaluation argv。</p><p>真机阶段再用 Experiment 59/61 采真实 PPL，不在教材里填虚构值。</p>
+<h2>无 GPU 路径</h2><p>数学直觉与 identity 设计全部可在 L0 完成。</p>
+<h2>排错</h2><ul><li>PPL 差异异常巨大：先查 tokenizer/corpus/model identity 和 BOS/context，不先归因量化。</li><li>工具输出多个 Final/metric：不要猜，明确 parser 支持范围或人工 review。</li><li>跨 runtime PPL 不一致：固定 evaluation semantics，再调查数值/kernel。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>Cross-entropy 如何惩罚模型给真实 token 很低概率？</li><li>PPL 为什么最适合受控 A/B 而不是万能排行榜？</li><li>为什么 tokenizer identity 是 PPL 可比性的 hard condition？</li><li>PPL 不能覆盖哪些实际 LLM 能力？</li><li>quality corpus 为什么要 hash？</li><li>为什么性能提升必须与 PPL/target-task evidence 配对？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>任何 quant/backend/execution 优化只有性能证据没有质量证据时，只能说“更快”，不能说“更好”。PPL 只在固定 tokenizer/corpus/evaluation identity 下做描述性比较，并与目标任务 fixture 联合判断。</p></div>
+<h2>Transfer</h2><p>以后换成 KL、task score、exact-match 或 human eval，同样先固定 evaluation identity、原始 evidence 和解释边界。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="../../labs/experiments/59-real-quality-gate/README.md">Experiment 59 — Quality Gate</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61</a></li><li><a href="../../tools/intelligence/README.md">Quality evidence tooling</a></li></ul>
+</main></body></html>
