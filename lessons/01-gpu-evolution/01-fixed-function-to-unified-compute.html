@@ -10,72 +10,194 @@
 <main class="page">
 <p class="kicker">GPU Evolution · Lesson 01 · L0</p>
 <h1>GPU 为什么从固定功能走向统一计算？</h1>
-<p class="lead">今天的 CUDA Core、warp、Tensor Core 并不是一夜出现的。先理解为什么 GPU 必须越来越可编程，后面的架构术语才会连成因果模型。</p>
+<p class="lead">这不是一节“显卡历史课”。它要给你建立整门课程的第一条因果链：为什么 GPU 会从只能按规定画图的专用流水线，逐步变成可以运行 CUDA、HIP、Metal kernel，最后又加入 Tensor / Matrix 单元的高吞吐计算机。</p>
 
-<h2>真实问题</h2>
-<div class="callout"><p><strong>为什么一块最初为画图而生的芯片，后来会成为 LLM 的主力计算平台？</strong></p></div>
-
-<h2>五个阶段</h2>
-<div class="chain">
-<span class="node">固定功能</span><span class="arrow">→</span>
-<span class="node">可编程 Shader</span><span class="arrow">→</span>
-<span class="node">Unified Shader</span><span class="arrow">→</span>
-<span class="node">GPGPU / CUDA</span><span class="arrow">→</span>
-<span class="node">Tensor / Matrix</span>
+<h2>Prerequisite Check</h2>
+<div class="callout">
+<p>本课没有技术前置要求。你只需要知道 CPU 和 GPU 都是会执行指令、搬运数据的芯片，但它们为不同类型的工作做了不同取舍。</p>
+<p>如果你现在连“线程、显存、矩阵”都不熟也没关系：本课只要求你先学会问三个问题——<strong>工作能不能并行？硬件能不能被程序控制？专用单元是否刚好匹配热点？</strong></p>
 </div>
 
-<h2>1. 固定功能：很快，但只能走设计好的路</h2>
-<p>早期 GPU 把 3D 渲染中的大量重复、并行工作做成专门流水线。对既定工作很高效，但硬件能表达的效果受到流水线限制。NVIDIA 当前 CUDA 文档也把 GPU 的早期形态概括为为实时 3D 图形服务的固定功能硬件。</p>
+<h2>真实问题：为什么“游戏卡”后来会成为 LLM 主力硬件？</h2>
+<p>如果你第一次看本地 LLM 配置，会遇到一个很奇怪的事实：我们谈的是语言模型，却在比较 RTX、Radeon、Arc、Apple GPU；会谈显存、CUDA Core、Tensor Core、Metal、ROCm。为什么负责画三角形的硬件会跑到语言模型中心？</p>
+<p>错误回答是：“因为 GPU 核心多。”核心数量只是结果之一。更完整的答案是：</p>
+<div class="chain">
+<span class="node">图形工作天然并行</span><span class="arrow">→</span>
+<span class="node">大量并行执行资源</span><span class="arrow">→</span>
+<span class="node">执行资源越来越可编程</span><span class="arrow">→</span>
+<span class="node">形成通用计算生态</span><span class="arrow">→</span>
+<span class="node">AI 热点再专用化</span>
+</div>
 
-<h2>2. 可编程 Shader：把做什么交给程序</h2>
-<p>2001 年 NVIDIA Research 对 GeForce3 的 user-programmable vertex engine 的描述很有代表性：它从高度优化的固定功能 pipeline 演进而来，让开发者能在顶点阶段运行自己的程序，同时还要保住图形工作所需的并行吞吐。</p>
-<p>真正值得记的是 GPU 开始从固定机器变成可编程并行机器。</p>
+<h2>第一阶段：固定功能——快，但只能走设计好的路</h2>
+<p>想象一家流水线工厂：第一个工位永远切材料，第二个永远喷漆，第三个永远包装。只要产品永远按同一流程生产，这种设计非常高效，因为每个工位都能针对单一任务做得很快。</p>
+<p>早期 3D GPU 很像这种工厂。图形流水线中的变换、光照、纹理、光栅化等工作有大量重复并行计算，因此把步骤直接固化进硬件可以获得很高吞吐。</p>
+<p>问题也显而易见：<strong>当你想做硬件没有预先设计好的效果时，你几乎无路可走。</strong>固定功能提供速度，却牺牲表达能力。</p>
 
-<h2>3. Unified Shader：为什么不要把工位永久焊死？</h2>
-<p>假设芯片一半工位永远只做 Vertex，另一半永远只做 Pixel。如果某个 workload 突然 80% 都是 Vertex，Pixel 工位会闲着，而 Vertex 工位排队。统一执行池让可编程资源能随 workload 变化重新分配。</p>
+<h3>一个很重要的工程规律</h3>
+<div class="callout">
+<p><strong>专用硬件通常在目标任务上更高效，但越专用，就越依赖“未来工作仍然像设计时预想的那样”。</strong></p>
+</div>
+<p>这个规律以后会反复出现：固定图形单元、Tensor Core、视频编解码器、NPU 都是在“通用性”和“专用效率”之间做取舍。</p>
+
+<h2>第二阶段：可编程 Shader——把“做什么”交给程序</h2>
+<p>当图形需求越来越复杂，开发者需要的不只是若干开关，而是写自己的小程序。可编程 vertex / pixel shader 的出现意味着 GPU 的一部分开始从“固定机器”变成“可编程并行执行器”。</p>
+<p>这里不要急着背 shader 语法。你只要抓住一个变化：</p>
+<pre>固定功能：硬件设计者决定算法
+
+可编程 Shader：
+硬件仍为图形吞吐优化
+但程序员开始决定一部分算法</pre>
+<p>这是 GPU 通往通用计算的关键一步。因为一旦执行资源能接收程序，问题就从“它能不能做某件事”变成“编程模型是否方便、内存系统是否支持、软件工具是否成熟”。</p>
+
+<h2>第三阶段：Unified Shader——不要把执行工位永久焊死</h2>
+<p>假设一颗 GPU 有 128 个可编程执行单元，但 64 个永久服务 vertex shader，另外 64 个永久服务 pixel shader。</p>
+<p>如果某个场景恰好需要 80% vertex 工作和 20% pixel 工作，那么 pixel 那一侧可能闲着，而 vertex 一侧排队。总资源很多，却不能灵活调度。</p>
+<p>Unified Shader 的核心思想，是让一组更统一的可编程执行资源根据当前 workload 承担不同 shader 工作。这提高了硬件利用率，也让执行资源进一步具备“通用并行机器”的味道。</p>
 
 <section class="card" data-pipeline-sim>
-<h3>拖动 workload 比例</h3>
+<h3>概念模拟：固定分区 vs 统一执行池</h3>
 <label>Vertex 比例：<input type="range" min="0" max="100" value="80"></label>
 <p>Vertex <strong data-vertex></strong> · Pixel <strong data-pixel></strong></p>
 <div class="grid">
 <div><p><strong>固定 50/50 分区</strong>：利用率 <span data-fixed-util></span></p><div class="meter"><span data-fixed-bar></span></div></div>
-<div><p><strong>统一 128-unit 池</strong>：利用率 <span data-unified-util></span></p><div class="meter"><span data-unified-bar></span></div><p class="small">概念模型故意加入 5% 通用化/调度开销。</p></div>
+<div><p><strong>统一 128-unit 池</strong>：利用率 <span data-unified-util></span></p><div class="meter"><span data-unified-bar></span></div><p class="small">这是教学模型，故意加入少量通用化/调度开销；不要把百分比当作真实 GPU benchmark。</p></div>
 </div>
 <p data-verdict></p>
 </section>
 
-<p><strong>纠偏：</strong>Unified 不代表整颗 GPU 变成同一种单元。纹理、ROP、内存控制器，以及后来的视频、光追、矩阵模块仍可高度专用。</p>
+<h3>Unified 不等于“整颗 GPU 全都一样”</h3>
+<p>这是初学者最容易形成的错误印象。Unified 主要说的是可编程 shader 执行资源统一化；纹理单元、ROP、内存控制器、视频引擎，以及后来出现的 RT Core、Tensor / Matrix 单元，仍然可以高度专用。</p>
+<p>现代 GPU 的典型结构恰恰是：</p>
+<pre>通用并行执行资源
++ 高价值热点专用单元
++ 多层片上存储 / cache
++ 高带宽外部内存
++ 调度与软件栈</pre>
 
-<h2>4. CUDA/GPGPU：不用再假装自己在画图</h2>
-<p>GPU 有大量可编程执行资源后，还需要正常的计算编程模型。NVIDIA 在 2006 年推出 CUDA，把线程、block、shared memory、同步等概念直接暴露给通用计算。图形与计算仍然共存。</p>
+<h2>第四阶段：GPGPU / CUDA——不用再假装自己在画图</h2>
+<p>早期想利用 GPU 做非图形计算时，开发者常常要把问题“伪装”成纹理和 shader 工作。这说明硬件已经有计算潜力，但软件抽象还没跟上。</p>
+<p>CUDA 等通用 GPU 计算平台的价值，不只是提供一个编译器，而是把 GPU 计算直接表达成更自然的概念：线程、线程块、网格、共享内存、同步、设备内存、kernel launch。</p>
+<pre>以前：
+我要做通用计算
+→ 想办法塞进图形 API / shader 表达
 
-<h2>5. Tensor Core：历史又回到专用化</h2>
-<p>深度学习把矩阵乘加变成极高价值热点。Volta 把 Tensor Cores 加进 SM，用专门数据通路提高矩阵计算吞吐和能效；AMD CDNA 同样包含矩阵加速路径。</p>
-<div class="callout"><strong>现代 GPU = 大量通用并行执行资源 + 高价值热点专用单元 + 高带宽内存系统。</strong></div>
+后来：
+我要做通用计算
+→ 写 kernel
+→ 显式组织并行工作与数据</pre>
+<p>从这一刻开始，GPU 不再只是“可以被黑出来做计算的图形芯片”，而成为有完整编程模型、工具链、库和开发者生态的计算平台。</p>
 
-<h2>这和本地 LLM 有什么关系？</h2>
+<h2>第五阶段：Tensor / Matrix 单元——历史为什么又回到专用化？</h2>
+<p>既然统一可编程这么好，为什么后来又出现 Tensor Core、Matrix Core、XMX 等专用矩阵路径？因为“统一”和“专用”并不是非此即彼。</p>
+<p>深度学习把矩阵乘加变成极高频热点。对这类规则操作，专门的数据通路可以在单位面积、单位功耗内完成更多工作。所以现代 GPU 又把部分晶体管投入专用矩阵计算。</p>
+<div class="callout">
+<p><strong>统一执行解决的是“很多不同工作都要能做”；矩阵单元解决的是“其中一个特别重要的热点要做得更高效”。</strong></p>
+</div>
+<p>这和早期固定功能最大的区别是：现代 GPU 并没有因此退回“只能干一种事”。它仍然保留通用可编程核心，只是在热点旁边增加专用加速路径。</p>
+
+<h2>从这段历史抽出一个可复用的 GPU 阅读框架</h2>
+<p>以后看到任何一代 NVIDIA、AMD、Apple、Intel GPU，不要先数“多少核心”。先用下面五个问题拆：</p>
+<table>
+<thead><tr><th>问题</th><th>你在查什么</th><th>和本地 LLM 的关系</th></tr></thead>
+<tbody>
+<tr><td>1. 执行资源是什么？</td><td>SM/CU/Xe-core、SIMT/SIMD、warp/wave/threadgroup</td><td>kernel 如何获得并行吞吐</td></tr>
+<tr><td>2. 数据放哪里？</td><td>register、shared/LDS/threadgroup、cache、VRAM/unified memory</td><td>模型能否放下、数据搬运是否昂贵</td></tr>
+<tr><td>3. 哪些热点被专用化？</td><td>Tensor/Matrix/XMX、视频、光追等</td><td>特定 dtype / kernel 能否利用硬件</td></tr>
+<tr><td>4. 内存系统多强？</td><td>容量、带宽、cache、互联</td><td>decode 常受带宽与工作集约束</td></tr>
+<tr><td>5. 软件能否把硬件用起来？</td><td>CUDA/ROCm/Metal/oneAPI、驱动、runtime、backend</td><td>纸面能力不等于当前可运行能力</td></tr>
+</tbody>
+</table>
+
+<h2>Worked Example：两张“纸面算力都不错”的旧卡怎么想？</h2>
+<p>假设你在二手市场看到两张旧卡。A 卡有更高理论 FP32，B 卡理论 FP32 稍低，但显存更大、带宽更高、当前 llama.cpp backend 支持更完整。</p>
+<p>本课之后，你不应该再说“核心多/TFLOPS 高，所以 A 必赢”。你应该先拆成：</p>
+<ol>
+<li>目标模型权重 + KV + runtime buffer 能否放入显存？</li>
+<li>decode 是算力受限还是内存带宽受限？</li>
+<li>目标量化格式是否有高效 kernel？</li>
+<li>驱动与 runtime 是否仍支持这张卡？</li>
+<li>目标程序是否真的走 GPU backend，而不是悄悄 fallback 到 CPU？</li>
+</ol>
+<p>这就是从“看参数表”转向“建系统模型”的第一步。</p>
+
+<h2>Why it matters：为什么这节会影响你以后买卡？</h2>
 <ul>
-<li>LLM 大量计算落到矩阵/向量运算，所以矩阵硬件和低精度支持很重要。</li>
-<li>但有 Tensor Core 不等于一定快：kernel/backend、显存容量、带宽、数据类型都会改变结果。</li>
-<li>游戏和 LLM 都使用 GPU，但 workload 不同，不能只拿游戏 FPS 推导 LLM 价值。</li>
+<li><strong>避免把游戏 FPS 当 LLM 排名。</strong>两类 workload 使用同一颗 GPU，但瓶颈、数据类型、kernel 和内存行为不同。</li>
+<li><strong>避免迷信单一规格。</strong>核心数、TOPS、TFLOPS 都只是某种条件下的上限，不是应用性能。</li>
+<li><strong>理解软件生态为什么值钱。</strong>可编程硬件必须通过编译器、runtime、库和 backend 才能变成可用能力。</li>
+<li><strong>理解旧卡价值为什么会突然变化。</strong>硬件不会变，但驱动、runtime、backend 支持会变化。</li>
+<li><strong>理解现代 GPU 为什么“又通用又专用”。</strong>这会帮助你读 Tensor Core、Matrix Core、XMX、ANE 等营销词时不迷路。</li>
 </ul>
 
-<h2>小实验</h2>
+<h2>常见误区纠偏</h2>
+<table>
+<thead><tr><th>误区</th><th>为什么错</th><th>更好的问法</th></tr></thead>
+<tbody>
+<tr><td>GPU 核心多，所以一定比 CPU 快</td><td>并行度、数据搬运、kernel、任务规模都可能限制利用率</td><td>这个 workload 能暴露多少并行工作，瓶颈在哪里？</td></tr>
+<tr><td>Unified 以后所有单元都一样</td><td>大量专用 fixed-function/accelerator 单元仍存在</td><td>哪些资源通用，哪些仍专用？</td></tr>
+<tr><td>有 Tensor Core 就一定适合 LLM</td><td>模型是否能放下、dtype/kernel/backend 是否命中都更关键</td><td>目标 runtime 是否真的使用相应矩阵路径？</td></tr>
+<tr><td>新架构一定比旧架构更值</td><td>价格、容量、功耗、软件支持、整机成本共同决定价值</td><td>对我的模型和预算，约束条件是什么？</td></tr>
+</tbody>
+</table>
+
+<h2>小实验：Experiment 01</h2>
 <p>运行 <a href="../../labs/experiments/01-unified-shader-load-balancing/README.md">Experiment 01：统一执行池负载平衡</a>。</p>
+<h3>你真正要观察什么</h3>
+<ul>
+<li>当 workload 极度偏向某一类工作时，固定分区为什么浪费资源；</li>
+<li>当 workload 比例变化时，统一池为什么更容易维持利用率；</li>
+<li>为什么统一池也可能付出调度、控制或通用化成本；</li>
+<li>为什么这个实验只能证明“资源可重分配”的直觉，不能代表真实某代 GPU 性能。</li>
+</ul>
+
+<h2>没有 GPU 怎么办？</h2>
+<p>本课是 L0。页面里的概念模拟和 Experiment 01 的计算/图示路径就足够完成学习目标。你现在不需要购买 GPU，也不需要安装 CUDA。</p>
+<p>以后有真机时，可以把这个模型迁移到“实际 GPU 利用率为什么上不去”的诊断，但不要倒过来用一张卡的瞬时 utilization 数字证明架构历史。</p>
+
+<h2>排错：如果你觉得这些词还是混在一起</h2>
+<ul>
+<li><strong>Shader vs CUDA kernel：</strong>都属于程序控制的 GPU 工作，但所属 API、目的和编程模型不同。</li>
+<li><strong>Core vs SM/CU：</strong>不要先把营销中的“core”理解成 CPU core；后面会专门学 SM、warp、scheduler。</li>
+<li><strong>Unified Shader vs Unified Memory：</strong>完全不是一个概念。前者谈执行资源，后者谈内存体系/地址与物理存储关系。</li>
+<li><strong>Tensor Core vs GPU：</strong>Tensor Core 是 GPU 内的一类专用执行资源，不是一块独立显卡。</li>
+</ul>
 
 <div class="quiz">
 <h2>Retrieval Practice</h2>
 <ol>
-<li>为什么可编程 Shader 比某代 GPU 更快更值得记？</li>
-<li>Unified Shader 解决哪一种资源浪费？它没有解决什么？</li>
-<li>为什么 Tensor Core 的出现不是对 Unified Shader 的否定？</li>
-<li>一张旧卡有很多通用算力但没有现代矩阵单元，还要查哪些信息才能判断它跑 LLM 是否值得？</li>
+<li>不用“核心更多”这句话，解释 GPU 为什么能从图形芯片演化成通用计算平台。</li>
+<li>固定功能流水线的优势是什么？它为什么最终需要引入可编程性？</li>
+<li>Unified Shader 主要减少什么资源浪费？它为什么不意味着整颗 GPU 没有专用单元？</li>
+<li>既然统一可编程很重要，为什么现代 GPU 又加入 Tensor / Matrix 单元？</li>
+<li>一张旧卡理论 FP32 很高，但你想用它跑 Q4 本地 LLM。至少还要查哪五类信息？</li>
+<li>把同样的“通用资源 + 专用热点 + 内存系统 + 软件生态”框架迁移到 Apple Silicon，你会分别查什么？</li>
 </ol>
 </div>
 
+<h2>Decision Rule</h2>
+<div class="callout">
+<p>完成本课后，你可以用 GPU 演化史解释“为什么现代 GPU 是这种结构”；你<strong>不能</strong>仅凭架构名称、核心数、TFLOPS 或 AI TOPS 对具体显卡做购买结论。</p>
+<p>购买判断必须继续经过：模型 fit → runtime/backend 支持 → 实际性能/质量 → 功耗与整机约束 → 价格与卡况。</p>
+</div>
+
+<h2>Transfer：把这套思维带到四个生态</h2>
+<ul>
+<li><strong>NVIDIA：</strong>SM / warp / CUDA + Tensor Core。</li>
+<li><strong>AMD：</strong>CU / wavefront / HIP/ROCm + matrix acceleration。</li>
+<li><strong>Apple：</strong>GPU SIMD/threadgroup + unified memory + Metal/MLX。</li>
+<li><strong>Intel：</strong>Xe-core / subgroup + XMX + oneAPI/SYCL。</li>
+</ul>
+<p>名字不同，核心问题仍然是：<strong>怎么执行、怎么搬数据、哪些热点专用化、软件能不能把它用起来。</strong></p>
+
 <h2>完成证据</h2>
-<p>提交 Experiment Card，并用自己的话画出：固定功能 → 可编程 → 统一执行池 → 通用计算 → 矩阵专用化。再把执行模型概念映射到 AMD 的 CU/wavefront/LDS。</p>
+<p>提交 Experiment Card，并用自己的话画出：</p>
+<pre>固定功能
+→ 可编程 Shader
+→ 统一执行池
+→ GPGPU / CUDA 类编程模型
+→ 通用并行资源 + 矩阵专用化</pre>
+<p>再写 5 句话说明：为什么这条历史会改变你以后比较二手 GPU 的方法。</p>
 
 <h2>Primary Sources</h2>
 <ul>
@@ -84,9 +206,9 @@
 <li><a href="https://www.nvidia.com/en-us/drivers/geforce-8600-8500-tech-specs/">NVIDIA GeForce 8 Series — Unified Architecture</a></li>
 <li><a href="https://developer.nvidia.com/blog/cuda-refresher-getting-started-with-cuda/">NVIDIA — CUDA Refresher</a></li>
 <li><a href="https://www.nvidia.com/en-sg/data-center/volta-gpu-architecture/">NVIDIA Volta Architecture</a></li>
-<li><a href="https://rocmdocs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li>
 </ul>
-<p class="small">卡住时指出具体一步；导师应按 wait-what 思路补齐前提，而不是整课重复。</p>
+<p class="small">稳定教材只写可长期复用的机制。具体驱动、runtime、backend 支持和当前价格属于动态 Intelligence，学习到对应决策课时再查当前事实。</p>
 </main>
 <script src="../../assets/components/pipeline-balance.js"></script>
 </body>
