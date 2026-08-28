@@ -205,6 +205,7 @@ goal/workload
 | I23 | exact benchmark argv ↔ verified model artifact binding + command evidence admission | verified |
 | I24 | hardware profile SHA256 artifact + PACKET admission gate | verified |
 | I25 | Experiment 57 prompt evidence manifest ↔ Experiment 61 prompt identity gate | verified |
+| I26 | real quality corpus SHA256 artifact ↔ fixed quality-eval corpus gate | verified |
 
 当前稳定边界：
 
