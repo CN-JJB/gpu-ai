@@ -21,6 +21,7 @@ Phase 4 specs：
 - docs/specs/0014-intelligence-sold-marked-listing-evidence.md
 - docs/specs/0015-intelligence-cross-market-signal-comparison.md
 - docs/specs/0016-intelligence-cn-secondary-watch-signals.md
+- docs/specs/0017-intelligence-market-evidence-selection-gate.md
 
 Schema：
 - intelligence/schema/README.md
@@ -274,6 +275,40 @@ confirmed_sale=false
 
 The A770 record is due for revalidation on 2026-08-28.
 
+## Market evidence selection gate
+
+The Intelligence catalog reuses the stable Slice 19 grading system:
+
+~~~text
+M3 direct normalized platform evidence
+M2 current transparent secondary aggregation
+M1 weak/article summary
+M0 unknown
+~~~
+
+Current production mapping:
+
+~~~text
+SECONDARY_REPORTED        → M1
+MEDIAN_ASK                → M2
+SOLD_MARKED_LISTING_PRICE → M3
+~~~
+
+Tool:
+
+~~~bash
+python3 tools/intelligence/market_evidence_gate.py intelligence/catalog
+~~~
+
+Experiment 38 bridge:
+
+~~~text
+M0/M1 → NEEDS-STRONGER-MARKET-EVIDENCE
+M2/M3 → market-evidence sub-gate ELIGIBLE
+~~~
+
+M3 remains claim-scoped. Current SOLD-marked M3 rows do not prove the negotiated transaction amount.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -316,9 +351,11 @@ TCO does not override:
 
 ## Verification
 
-I01–I10 compile and end-to-end self-test:
+I01–I16 GitHub Actions compile and end-to-end self-test:
 
 ~~~text
+run #48
+head 097c8d4839314851e1f4b07267b3c7b2102d50e0
 SELFTEST: PASS
 ~~~
 
@@ -332,8 +369,10 @@ Evidence:
 - examples/evidence/intelligence-13-sold-marked-listings.md
 - examples/evidence/intelligence-14-cross-market-signal.md
 - examples/evidence/intelligence-15-cn-secondary-watch.md
+- examples/evidence/intelligence-16-market-evidence-selection-gate.md
+- examples/evidence/intelligence-i01-i16-ci-selftest.md
 
-I11–I15 were additionally checked against exact latest-main blobs with contract-equivalent execution. A fresh full Python repository run was not repeated because the local execution path timed out/rate-limited; do not collapse these two verification levels.
+The previous I11–I16 verification split is closed: GitHub Actions run #48 executed py_compile and the complete selftest successfully.
 
 ## Current production-data boundary
 
