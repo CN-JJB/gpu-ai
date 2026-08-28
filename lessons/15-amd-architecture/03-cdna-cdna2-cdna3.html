@@ -106,4 +106,40 @@ HBM3
 <pre>model storage quant
 != native matrix datatype
 </pre>
+
+<section class="student-closure">
+<h2>学生闭环 — CDNA / CDNA2 / CDNA3</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意受支持 AMD GPU）。</p>
+<p><strong>成本：</strong>0 元主路径；课程不要求为了这一节购买 AMD 卡。</p>
+<p><strong>风险：</strong>safe。</p>
+<p><strong>替代路径：</strong>无 AMD 卡完成 terminology trap + 官方架构调查；有卡才做 ROCm inventory。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>正确使用 CU / WGP / wave32-wave64 / LDS / matrix path 等术语，不把 NVIDIA 名词硬翻译过去。</li>
+<li>区分 RDNA 图形导向与 CDNA 计算导向的产品目标。</li>
+<li>把“硬件有能力”和“ROCm/具体 backend 当前可用”分开。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>做 <a href="../../labs/experiments/25-amd-generation-terminology-traps/README.md">Experiment 25：AMD generation terminology traps</a>。有 AMD 卡时增强做 <a href="../../labs/experiments/26-real-amd-rocm-inventory/README.md">Experiment 26：real AMD ROCm inventory</a>。</p>
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 CDNA 要和游戏 RDNA 分支分开看？HBM、matrix core、chiplet/interconnect 对 LLM 有什么不同意义？</li>
+<li>RDNA 的 wave32 与 CDNA 常见 wave64 对“warp=32”这种跨厂商说法有什么警告？</li>
+<li>一张 AMD 卡支持某硬件指令，为什么还不能立刻推导 llama.cpp/vLLM 当前高效支持？</li>
+<li>二手 AMD 卡便宜很多时，你要把哪些软件兼容成本计入 TCO？</li>
+</ol>
+<h3>完成证据</h3>
+<p>提交一张 CDNA / CDNA2 / CDNA3 “术语→硬件→LLM”卡：execution group、compute block、on-chip memory、matrix path、memory system、当前 runtime 待验证项。</p>
+<h3>如何迁移</h3>
+<p>比较 NVIDIA/AMD 时只映射功能角色，不强求名词一一对应：warp↔wave、SM↔CU/WGP 只是近似层级，具体 scheduler/cache/resource 仍按架构查。</p>
+<h3>Primary Sources / Reference</h3>
+<ul>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD HIP — Hardware Implementation</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD HIP — Programming Model</a></li>
+<li><a href="../../reference/gpu/amd-generation-spine.md">Course Reference — AMD Generation Spine</a></li>
+<li><a href="../../resources/RESOURCES.md">Course Resources — AMD primary-source index</a></li>
+</ul>
+</section>
 </body></html>
