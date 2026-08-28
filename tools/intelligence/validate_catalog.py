@@ -125,7 +125,7 @@ def main():
 
         if r.get("revalidate_after") is not None and as_of is not None:
             d = parse_date(r.get("revalidate_after"), f"{loc} revalidate_after", errors)
-            if d is not None and d < as_of:
+            if d is not None and d < as_of and not r.get("superseded_by"):
                 warnings.append(f"{loc}: STALE since {d.isoformat()}")
 
     hardware = {}
@@ -354,6 +354,55 @@ def main():
 
         elif t not in {"hardware", "model", "runtime", "market", "compatibility", "benchmark"}:
             errors.append(f"{loc}: unknown record_type {t!r}")
+
+    market_by_id = {
+        str(r.get("record_id")): r
+        for r in records
+        if r.get("record_type") == "market" and present(r.get("record_id"))
+    }
+
+    for rid, r in market_by_id.items():
+        loc = r["_location"]
+        newer_id = r.get("superseded_by")
+        older_id = r.get("supersedes")
+
+        if newer_id:
+            if newer_id == rid:
+                errors.append(f"{loc}: superseded_by cannot reference self")
+            elif newer_id not in market_by_id:
+                errors.append(f"{loc}: superseded_by references unknown market record {newer_id!r}")
+            else:
+                newer = market_by_id[newer_id]
+                if newer.get("supersedes") != rid:
+                    errors.append(f"{loc}: superseded_by target must point back with supersedes")
+                if newer.get("hardware_id") != r.get("hardware_id"):
+                    errors.append(f"{loc}: superseded market lineage must keep hardware_id")
+                old_date = parse_date(r.get("observed_at"), f"{loc} observed_at", errors)
+                new_date = parse_date(newer.get("observed_at"), f"{newer['_location']} observed_at", errors)
+                if old_date is not None and new_date is not None and new_date <= old_date:
+                    errors.append(f"{loc}: superseded_by target must be a newer observation")
+
+        if older_id:
+            if older_id == rid:
+                errors.append(f"{loc}: supersedes cannot reference self")
+            elif older_id not in market_by_id:
+                errors.append(f"{loc}: supersedes references unknown market record {older_id!r}")
+            else:
+                older = market_by_id[older_id]
+                if older.get("superseded_by") != rid:
+                    errors.append(f"{loc}: supersedes target must point forward with superseded_by")
+                if older.get("hardware_id") != r.get("hardware_id"):
+                    errors.append(f"{loc}: superseded market lineage must keep hardware_id")
+
+    for start in market_by_id:
+        seen = set()
+        cur = start
+        while cur:
+            if cur in seen:
+                errors.append(f"{market_by_id[start]['_location']}: market supersession cycle detected")
+                break
+            seen.add(cur)
+            cur = market_by_id.get(cur, {}).get("superseded_by")
 
     print(f"CATALOG: {a.catalog}")
     print(f"records={len(records)} hardware={len(hardware)} models={len(models)} runtimes={len(runtimes)}")
