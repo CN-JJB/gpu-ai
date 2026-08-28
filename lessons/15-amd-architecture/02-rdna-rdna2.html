@@ -1,143 +1,32 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AMD 架构 2：RDNA 与 RDNA2</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>AMD 架构 2 — RDNA → RDNA2：Wave32、WGP、Infinity Cache</h1>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 2：RDNA 与 RDNA2</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">AMD Architecture · 2/4 · L0→L1</p><h1>AMD 架构主线（二）：RDNA → RDNA2</h1><p class="lead">RDNA 不是“GCN 改名”。它代表 AMD 为图形效率重新组织执行资源的一次重要转向。对本地 LLM 学习者，最值得理解的是 wave32、WGP/CU 组织、cache 与 memory hierarchy 如何改变旧 GCN 直觉，以及“游戏架构”为什么仍能通过 HIP/ROCm 或其他 backend 参与计算。</p>
+<h2>Prerequisite Check</h2><p>你应能解释 GCN 的 CU、wave64、LDS、VGPR，以及为什么 exact ROCm/backend support 是现实 hard gate。</p>
+<h2>真实问题：为什么从 Vega 换到 RDNA，不能只拿 CU 数比较？</h2><p>因为每代 CU 内的 SIMD、scheduler、wave width、cache、时钟目标和每 CU 工作量都会变化。架构重组后，“一个 CU 能完成多少工作”本身就变了。</p>
+<h2>1. RDNA 的目标：更适合高时钟、高效率图形 workload</h2><p>GCN 跨越图形与计算很多年。RDNA 针对现代图形 workload 重新优化前端、执行组织与 cache。最容易观察到的概念变化之一是 <strong>wave32</strong> 成为重要执行模式。</p>
+<h3>Wave32 为什么不是“wave64 除以 2 = 性能翻倍”？</h3><p>更窄 wave 可以降低某些控制流 divergence 的浪费，并让 scheduler 以更细粒度组织工作；但每条指令处理的 lane 数也不同，最终吞吐取决于 SIMD 组织、issue、寄存器、occupancy 和 workload。</p><pre>wave64: one instruction conceptually covers more lanes
+wave32: finer scheduling/control granularity
 
-<h2>1. GCN 的 Wave64 为什么要改？</h2>
-<p>游戏/低延迟 workload 经常出现：</p>
-<ul>
-<li>短 shader；</li>
-<li>分支；</li>
-<li>barrier；</li>
-<li>部分 lane 无效；</li>
-<li>需要快速把新 work 填进 execution units。</li>
-</ul>
+neither statement alone predicts performance</pre>
+<h2>2. Work Group Processor：理解名字变化，不陷入“两个 CU 就是一个大 CU”</h2><p>RDNA 文档常以 WGP 描述更高层级的资源组织。你需要学会从名称背后找实际共享关系：哪些 scheduler/compute/cache/LDS 资源归 CU，哪些在更高层共享。不要为了类比 NVIDIA 强行把 WGP 映成某种 SM 数。</p>
+<h2>3. Cache hierarchy：Infinity Cache 的思维准备</h2><p>RDNA/RDNA2 继续强化 cache 与数据路径。RDNA2 的大容量片上 cache 思路（常以 Infinity Cache 营销）本质上是在部分 workload 中提高有效带宽、减少外部显存流量。</p><p>这和 Ada 大 L2 的阅读方法一致：</p><ul><li>先问 working set 是否能产生复用；</li><li>再问 hit rate 是否减少外部 DRAM bytes；</li><li>不要把 cache capacity 与 VRAM capacity 混为一谈。</li></ul>
+<h2>4. RDNA2 的新图形专用能力对 LLM 意味着什么？</h2><p>RDNA2 增加面向光追等图形能力，但 LLM 不会因为“同代游戏 feature 多”自动获益。真正相关的是通用/矩阵计算路径、memory、runtime 与 kernel。</p><div class="callout"><strong>学习规则：</strong>同一 GPU 上的 ray tracing、raster、matrix/general compute 是不同 datapath。不要把一个领域的营销峰值迁移到另一个领域。</div>
+<h2>5. 消费 Radeon 做本地 LLM：为什么软件层比硬件方框图更容易决定成败？</h2><p>很多 Radeon 硬件理论上具备很强的并行与带宽，但目标框架是否支持 exact ASIC、操作系统、ROCm version 与 quant kernel，才决定你能否获得稳定 GPU offload。</p><p>因此对 RDNA 卡的现实调查顺序应是：</p><ol><li>exact GPU/device ID；</li><li>目标 OS；</li><li>current ROCm/runtime support；</li><li>目标应用 build 是否含 HIP/Vulkan/other backend；</li><li>目标 quant/model 是否有对应 GPU kernel；</li><li>最后才跑 benchmark。</li></ol>
+<h2>Worked Example：同价 Radeon 大显存 vs NVIDIA 小显存怎么思考？</h2><p>假设 Radeon A 有更大显存、更高标称带宽，NVIDIA B 显存较小但 CUDA backend 更成熟。不要先选厂商。先做两棵树：</p><pre>Fit tree:
+model+KV+buffers <= usable VRAM ?
 
-<p>Wave64 的生命周期和资源粒度可能太粗。</p>
-
-<h2>2. RDNA 的大变化：Wave32</h2>
-<pre>GCN:
-wave64 primary
-
-RDNA:
-wave32 primary
-wave64 compatibility</pre>
-
-<p>Wave32 的优势包括：</p>
-<ul>
-<li>更短 wave lifetime；</li>
-<li>barrier 后更快重新填满；</li>
-<li>部分填充时浪费更少；</li>
-<li>适合更低延迟调度。</li>
-</ul>
-
-<div class="callout"><strong>但别写：</strong>“AMD 改成和 NVIDIA 一样的 warp32”。Wave size 一样，不代表 scheduler、register file、cache、issue 方式一样。</div>
-
-<h2>3. 32-wide SIMD：一拍吃下 Wave32</h2>
-<p>经典 GCN 要 16-wide SIMD × 4 cycles 处理 wave64。</p>
-<p>RDNA 的主路径让 Wave32 与 32-wide vector issue 更直接匹配。</p>
-
-<pre>Wave32
-→ 32-wide SIMD
-→ one vector instruction issue pass</pre>
-
-<h2>4. WGP — Work Group Processor</h2>
-<p>RDNA 把两个紧密关联的 CU 组织成 WGP。</p>
-<pre>WGP
-├─ CU0
-├─ CU1
-├─ shared scheduling/cache resources
-└─ workgroup-level resource organization</pre>
-
-<p>WGP 让更多计算和带宽资源可以围绕一个 workgroup 配置。</p>
-
-<h2>5. Cache hierarchy 也跟着改</h2>
-<p>官方 HIP 文档的 RDNA 心智图：</p>
-<pre>per-CU L0
-→ WGP-shared L1
-→ global L2</pre>
-
-<p>比起 GCN，增加了更明确的 WGP-shared cache 层。</p>
-
-<h2>6. RDNA2：Infinity Cache</h2>
-<p>RDNA2 把大型 on-die cache 变成 Radeon memory hierarchy 的重要组成。</p>
-
-<pre>compute
-→ L0/L1/L2
-→ Infinity Cache
-→ GDDR</pre>
-
-<p>目的：</p>
-<pre>reuse hits cache
-→ fewer external GDDR transactions
-→ effective bandwidth rises</pre>
-
-<h2>7. Infinity Cache 不是额外显存</h2>
-<p>例如一个几十 GB 的 LLM 权重远大于 Infinity Cache。</p>
-<p>它不能让 12 GB 卡“变成 12 GB + cache”。</p>
-
-<p>对 LLM 的价值取决于：</p>
-<ul>
-<li>访问是否重复；</li>
-<li>working set 是否局部；</li>
-<li>kernel layout；</li>
-<li>metadata / smaller tensors 是否能命中。</li>
-</ul>
-
-<h2>8. Radeon 架构现代 ≠ ROCm 一定支持</h2>
-<p>这对垃圾佬非常重要。</p>
-<pre>hardware architecture
-and
-official compute software support
-are separate products</pre>
-
-<p>一张 RDNA2 卡的 CU/Wave32 没问题，但如果当前 ROCm prebuilt libraries 不支持 exact SKU/gfx target，实际 AI 体验仍会很差。</p>
-
-<h2>9. 买 AMD 消费卡时的第一条规则</h2>
-<p>不要只查：</p>
-<pre>"RDNA2 / RDNA3 / RDNA4?"
-</pre>
-<p>还要查：</p>
-<pre>exact gfx target
-+ current ROCm support matrix
-+ target backend
-</pre>
-
-<section class="student-closure">
-<h2>学生闭环 — RDNA / RDNA2</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意受支持 AMD GPU）。</p>
-<p><strong>成本：</strong>0 元主路径；课程不要求为了这一节购买 AMD 卡。</p>
-<p><strong>风险：</strong>safe。</p>
-<p><strong>替代路径：</strong>无 AMD 卡完成 terminology trap + 官方架构调查；有卡才做 ROCm inventory。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>正确使用 CU / WGP / wave32-wave64 / LDS / matrix path 等术语，不把 NVIDIA 名词硬翻译过去。</li>
-<li>区分 RDNA 图形导向与 CDNA 计算导向的产品目标。</li>
-<li>把“硬件有能力”和“ROCm/具体 backend 当前可用”分开。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/25-amd-generation-terminology-traps/README.md">Experiment 25：AMD generation terminology traps</a>。有 AMD 卡时增强做 <a href="../../labs/experiments/26-real-amd-rocm-inventory/README.md">Experiment 26：real AMD ROCm inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>wave32、WGP 与 cache hierarchy 变化为什么会影响 kernel 与 occupancy 直觉？</li>
-<li>RDNA 的 wave32 与 CDNA 常见 wave64 对“warp=32”这种跨厂商说法有什么警告？</li>
-<li>一张 AMD 卡支持某硬件指令，为什么还不能立刻推导 llama.cpp/vLLM 当前高效支持？</li>
-<li>二手 AMD 卡便宜很多时，你要把哪些软件兼容成本计入 TCO？</li>
-</ol>
-<h3>完成证据</h3>
-<p>提交一张 RDNA / RDNA2 “术语→硬件→LLM”卡：execution group、compute block、on-chip memory、matrix path、memory system、当前 runtime 待验证项。</p>
-<h3>如何迁移</h3>
-<p>比较 NVIDIA/AMD 时只映射功能角色，不强求名词一一对应：warp↔wave、SM↔CU/WGP 只是近似层级，具体 scheduler/cache/resource 仍按架构查。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD HIP — Hardware Implementation</a></li>
-<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD HIP — Programming Model</a></li>
-<li><a href="../../reference/gpu/amd-generation-spine.md">Course Reference — AMD Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — AMD primary-source index</a></li>
-</ul>
-</section>
-</body></html>
+Support tree:
+device supported ?
+runtime starts ?
+backend offloads ?
+required kernels exist ?</pre><p>如果 A 通过两棵树，它的大显存可能形成真正优势；如果 support tree 在你的目标软件上失败，纸面容量无法转化成可用方案。这就是“硬件价值 × 软件可用性”。</p>
+<h2>6. RDNA 与 CDNA 为什么要分开学？</h2><p>AMD 后来把图形优化的 RDNA 与 HPC/AI 计算导向的 CDNA 更明确地区分。RDNA 的存在提醒你：消费 GPU 的设计目标不是“最大化 LLM”；CDNA 则会更关注 matrix compute、HBM、互联与数据中心。</p>
+<h2>Why it matters</h2><ul><li>避免用 CU 数跨 GCN/RDNA 直接比较。</li><li>理解 wave32 对控制流/调度粒度的意义，而不是把它当性能倍增按钮。</li><li>学会把大 cache 与 VRAM 区分。</li><li>建立消费 Radeon 的 support-first 调查顺序。</li><li>为后续 CDNA 与跨厂商采购建立“硬件潜力 × 软件可用性”模型。</li></ul>
+<h2>常见误区</h2><ul><li>“wave32 比 wave64 快一倍”——没有这种通用换算。</li><li>“Infinity Cache 很大，所以等于多了显存”——cache 与容量 hard gate 不同。</li><li>“RDNA 是游戏架构，所以不能计算”——它仍有通用计算能力，现实取决于 backend。</li><li>“ROCm 新版 = 我的 Radeon 一定支持”——exact device support 必须查当前文档。</li></ul>
+<h2>小实验与预期观察</h2><p>选择一张 GCN/Vega 和一张 RDNA/RDNA2 卡，做 architecture/SKU/support 三层表。只用可靠来源记录 wave mode、VRAM、bandwidth、cache，以及当前目标 runtime status。预期你会发现“架构升级”和“应用可用性升级”不是同一条时间线。</p>
+<h2>无硬件路径</h2><p>使用 AMD ISA/HIP 文档和当前兼容矩阵做 L0。拥有 Radeon 后再做 L1 device inventory；不要求为课程买卡。</p>
+<h2>排错</h2><ul><li>HIP runtime 能看到卡但应用不能：检查应用是否按该 backend 编译。</li><li>Vulkan 能跑而 HIP 不能：说明“GPU 可计算”与“特定 runtime 支持”是不同命题。</li><li>大显存卡仍 OOM：检查可用 VRAM、KV/context、runtime buffer、host/offload 配置。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 wave32 不意味着相对 wave64 通用性能翻倍？</li><li>为什么跨 GCN/RDNA 不能只比 CU 数？</li><li>Infinity Cache 与 VRAM 分别解决什么？</li><li>为什么一张 Radeon 的硬件能力必须经过 support tree 才能转化成本地 LLM 价值？</li><li>RDNA 与 CDNA 分叉反映了什么产品目标差异？</li><li>如果一个应用通过 Vulkan 支持某卡而 ROCm 不支持，这说明了什么？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>RDNA 候选先过 exact device + target backend 的可用性 gate，再谈容量、带宽、价格和性能。不能因为“AMD 性价比高”或“ROCm 麻烦”做厂商级一刀切结论。</p></div>
+<h2>Transfer</h2><p>下一节 CDNA 会把“计算导向”放大。请比较：同是 AMD，为什么 CDNA 更愿意把晶体管预算投入 matrix/HBM/interconnect，而 RDNA 仍必须服务图形前端与消费场景。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
