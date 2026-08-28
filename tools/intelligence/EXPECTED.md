@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution was verified through I10 on 2026-08-28:
+Full Python execution is verified through I16 on 2026-08-28 via GitHub Actions run #48:
 
 ~~~text
 SELFTEST: PASS
@@ -29,7 +29,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-The final verification used a local tree whose checked Git blob SHAs matched the latest main-branch scripts and fixture/catalog files.
+The latest full verification checked out head 097c8d4839314851e1f4b07267b3c7b2102d50e0 on GitHub Actions, compiled every Intelligence Python tool, and executed the complete self-test.
 
 Detailed evidence:
 
@@ -52,29 +52,32 @@ The same checks are defined in:
 .github/workflows/intelligence-selftest.yml
 ~~~
 
-The available GitHub connector did not surface a workflow run for this checkpoint, so do not claim CI success from the workflow file alone.
+Verified CI identity:
+
+~~~text
+workflow run #48
+run id 33137329016
+job id 98740118394
+conclusion success
+Python 3.12.14
+Ubuntu 24.04.4
+~~~
 
 
-## I11–I15 added assertions
 
-The latest self-test additionally checks:
-- one GLOBAL-EBAY / used / MEDIAN_ASK / USD contract across three GPUs;
-- 1499 / 1020 / 330 USD values;
-- BROAD / LIMITED / SMALL sample bands;
-- ASK-ONLY and NOT-CONFIRMED-SALE semantics;
-- rejection of MEDIAN_ASK when sample metadata is removed;
-- 9 OfferUp SOLD-marked listing rows across three GPUs;
-- 950 / 700 / 200 USD displayed-price medians;
-- rejection of SOLD_MARKED_LISTING_PRICE when it falsely claims a confirmed transaction;
-- eBay-ask vs sold-marked signal gaps of -36.6% / -31.4% / -39.4%;
-- a two-row CN SECONDARY_REPORTED contract with 7400 / 1450 CNY;
-- rejection of SECONDARY_REPORTED when it falsely claims confirmed sale.
+## I11–I16 assertions included in run #48
 
-Exact latest-main contract verification for these checks is recorded in:
-- examples/evidence/intelligence-11-market-cohort-coverage.md
-- examples/evidence/intelligence-12-market-evidence-audit.md
-- examples/evidence/intelligence-13-sold-marked-listings.md
-- examples/evidence/intelligence-14-cross-market-signal.md
-- examples/evidence/intelligence-15-cn-secondary-watch.md
+The successful log explicitly includes:
+- GLOBAL-EBAY MEDIAN_ASK cohort and values;
+- 47/23/8 asking-listing sample bands;
+- MEDIAN_ASK negative validation;
+- 9 OfferUp SOLD-marked rows and non-confirmed transaction semantics;
+- SOLD_MARKED_LISTING_PRICE negative validation;
+- cross-market descriptive gaps;
+- China SECONDARY_REPORTED watch signals;
+- SECONDARY_REPORTED negative validation;
+- M1/M2/M3 market evidence selection gate;
+- mismatched market evidence grade rejection.
 
-A fresh full Python repository run has not yet been re-recorded after I11–I15 because the local execution path timed out/rate-limited. Do not claim a new full-Python PASS for I11–I15 until that run exists.
+Evidence:
+- examples/evidence/intelligence-i01-i16-ci-selftest.md
