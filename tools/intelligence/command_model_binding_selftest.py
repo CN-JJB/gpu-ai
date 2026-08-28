@@ -62,10 +62,15 @@ def main():
         model = td / "model.gguf"
         model.write_bytes(model_bytes)
 
+        profile_bytes = b"tiny-hardware-profile-for-i23\n"
+        profile = td / "profile.txt"
+        profile.write_bytes(profile_bytes)
+
         wrong_model = td / "wrong.gguf"
         wrong_model.write_bytes(b"x" * len(model_bytes))
 
         manifest_obj = json.loads((exp / "manifest.json").read_text(encoding="utf-8"))
+        manifest_obj["variant"]["hardware"]["profile_sha256"] = sha256_bytes(profile_bytes)
         manifest_obj["variant"]["model"]["artifact_bytes"] = len(model_bytes)
         manifest_obj["variant"]["model"]["artifact_sha256"] = sha256_bytes(model_bytes)
         manifest = td / "source-manifest.json"
@@ -96,6 +101,8 @@ def main():
             str(sealed),
             "--model-artifact",
             str(model),
+            "--include",
+            str(profile),
             "--",
             PY,
             str(fake),
@@ -129,6 +136,8 @@ def main():
             "runtime:fixture",
             "--observed-at",
             "2026-08-28",
+            "--hardware-profile",
+            str(sealed / "evidence" / "profile.txt"),
             "--model-artifact",
             str(model),
             "--command-record",
@@ -164,6 +173,8 @@ def main():
         tampered.mkdir()
         for name in ("manifest.json", "result.json", "stderr.txt", "command.json"):
             shutil.copy2(sealed / name, tampered / name)
+        (tampered / "evidence").mkdir()
+        shutil.copy2(sealed / "evidence" / "profile.txt", tampered / "evidence" / "profile.txt")
 
         tampered_command_path = tampered / "command.json"
         tampered_command = json.loads(tampered_command_path.read_text(encoding="utf-8"))
@@ -177,12 +188,13 @@ def main():
 
         packet = {
             "packet_schema_version": 1,
-            "file_count": 4,
+            "file_count": 5,
             "files": [
                 packet_entry(tampered, tampered / "manifest.json"),
                 packet_entry(tampered, tampered / "result.json"),
                 packet_entry(tampered, tampered / "stderr.txt"),
                 packet_entry(tampered, tampered / "command.json"),
+                packet_entry(tampered, tampered / "evidence" / "profile.txt"),
             ],
         }
         (tampered / "PACKET.json").write_text(
@@ -208,6 +220,8 @@ def main():
             "runtime:fixture",
             "--observed-at",
             "2026-08-28",
+            "--hardware-profile",
+            str(tampered / "evidence" / "profile.txt"),
             "--model-artifact",
             str(model),
             "--command-record",
