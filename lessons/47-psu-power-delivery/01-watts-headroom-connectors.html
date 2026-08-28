@@ -121,4 +121,15 @@ connector/cable gate
 +
 ordinary workload evidence
 → ACCEPT / REVIEW / REJECT</pre>
+
+<section class="student-closure">
+<h2>学生闭环 — PSU / Power Delivery / Platform Integration</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模型/设计主路径；真机实验按页面对应 L1–L3。</p><p><strong>成本：</strong>0 元教学主路径；不要求购买、拆修或高风险改造。</p><p><strong>风险：</strong>默认 safe；涉及 PSU/硬件时只做只读调查与厂商手册约束下的正常安装，不做带电拆装。</p></div>
+<h3>能力目标</h3><ul><li>把“GPU 很强”升级成整机层的容量、稳定、供电、散热和长期运行判断。</li><li>把 PASS / FAIL / UNKNOWN 与具体 Evidence 对齐。</li><li>知道什么情况下应该 BLOCKED 或 REVISE，而不是为了完成课程强行 ACCEPT。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/88-psu-power-budget-model/README.md">Experiment 88：PSU power-budget model</a>；真实机器做 <a href="../../labs/experiments/89-real-psu-platform-dossier/README.md">Experiment 89：real PSU/platform dossier</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>GPU TGP 加 CPU TDP 为什么不是精确 PSU sizing？</li><li>额定瓦数足够时，为什么 connector/cable/rail/瞬态仍可能是问题？</li><li>一根分叉线给高功耗双 8-pin GPU 为什么不能只按“插得进去”判断？</li><li>电源 headroom 的意义是让你永远低负载，还是吸收峰值/老化/平台变化？</li></ol>
+<h3>完成证据</h3><p>做一份真实或假设整机 power dossier：GPU/CPU/其他负载、PSU 型号/额定、接头与线材路径、余量、已知限制、UNKNOWN；任何具体接线必须以该 PSU/GPU 厂商手册为准。</p>
+<h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="../../reference/hardware/psu-power-delivery.md">Course Reference — PSU / Power Delivery</a></li><li><a href="../../resources/RESOURCES.md">Course Resources — vendor manuals and platform evidence hierarchy</a></li></ul>
+</section>
 </body></html>

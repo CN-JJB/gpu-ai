@@ -135,4 +135,15 @@ all gates pass → ACCEPT</pre>
 </pre>
 <p>因为缺了一条关键证据。</p>
 <p>这不是没做完，是你终于没有拿真钱替未知数买单。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Whole-Machine System Integration</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模型/设计主路径；真机实验按页面对应 L1–L3。</p><p><strong>成本：</strong>0 元教学主路径；不要求购买、拆修或高风险改造。</p><p><strong>风险：</strong>默认 safe；涉及 PSU/硬件时只做只读调查与厂商手册约束下的正常安装，不做带电拆装。</p></div>
+<h3>能力目标</h3><ul><li>把“GPU 很强”升级成整机层的容量、稳定、供电、散热和长期运行判断。</li><li>把 PASS / FAIL / UNKNOWN 与具体 Evidence 对齐。</li><li>知道什么情况下应该 BLOCKED 或 REVISE，而不是为了完成课程强行 ACCEPT。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/90-whole-machine-feasibility-model/README.md">Experiment 90：whole-machine feasibility model</a>；真实目标做 <a href="../../labs/experiments/91-real-machine-design-dossier/README.md">Experiment 91：real machine dossier</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么任何一个 hard gate FAIL 都不能被其他优点“平均掉”？</li><li>critical UNKNOWN 为什么应该 BLOCKED，而不是乐观当 PASS？</li><li>一台机器模型能装下，但 PSU/散热/软件 support 未证明，你能 ACCEPT 吗？</li><li>whole-machine dossier 与零件清单的根本区别是什么？</li></ol>
+<h3>完成证据</h3><p>完成一张 machine hard-gate matrix：模型容量、runtime support、性能/质量、host RAM/storage、PCIe、PSU、thermal、网络/服务、成本/风险；每项 PASS/FAIL/UNKNOWN 并链接 Evidence。</p>
+<h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="../../reference/system/whole-machine-integration-dossier.md">Course Reference — Whole-Machine Integration Dossier</a></li><li><a href="../../reference/hardware/cross-vendor-decision-card.md">Course Reference — Cross-vendor Decision Card</a></li></ul>
+</section>
 </body></html>

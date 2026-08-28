@@ -249,4 +249,15 @@ GPU telemetry
 </pre>
 
 <p>不默认分配几十 GB 去诱发 OOM。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Host Memory Pressure / Swap / OOM</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模型/设计主路径；真机实验按页面对应 L1–L3。</p><p><strong>成本：</strong>0 元教学主路径；不要求购买、拆修或高风险改造。</p><p><strong>风险：</strong>默认 safe；涉及 PSU/硬件时只做只读调查与厂商手册约束下的正常安装，不做带电拆装。</p></div>
+<h3>能力目标</h3><ul><li>把“GPU 很强”升级成整机层的容量、稳定、供电、散热和长期运行判断。</li><li>把 PASS / FAIL / UNKNOWN 与具体 Evidence 对齐。</li><li>知道什么情况下应该 BLOCKED 或 REVISE，而不是为了完成课程强行 ACCEPT。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/82-host-memory-reclaim-model/README.md">Experiment 82：memory reclaim model</a>；Linux 真机做 <a href="../../labs/experiments/83-real-memory-pressure-evidence/README.md">Experiment 83：real memory-pressure evidence</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>MemFree 很低为什么不一定表示系统快 OOM？</li><li>MemAvailable 与 page cache/reclaim 的关系是什么？</li><li>GPU VRAM OOM 与 host RAM OOM 为什么必须分开诊断？</li><li>swap activity 很高时，为什么吞吐/TTFT 可能恶化但进程仍没被 OOM kill？</li></ol>
+<h3>完成证据</h3><p>记录一个受控内存压力窗口：MemAvailable、Cached、swap、pgmajfault/pswpin/pswpout、进程 RSS、模型状态；判断是正常 cache、reclaim、swap thrash 还是 OOM 风险。</p>
+<h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://man7.org/linux/man-pages/man5/proc_meminfo.5.html">/proc/meminfo</a></li><li><a href="https://man7.org/linux/man-pages/man5/proc_vmstat.5.html">/proc/vmstat</a></li><li><a href="https://www.kernel.org/doc/html/v6.0/mm/oom.html">Linux OOM Handling</a></li><li><a href="../../reference/llm/host-memory-pressure-swap-oom.md">Course Reference — Host Memory Pressure</a></li></ul>
+</section>
 </body></html>

@@ -230,4 +230,15 @@ fan curve change
 有没有 limiter evidence？
 噪音/机箱是否可接受？
 </pre>
+
+<section class="student-closure">
+<h2>学生闭环 — Thermal / Cooling / Sustained Performance</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模型/设计主路径；真机实验按页面对应 L1–L3。</p><p><strong>成本：</strong>0 元教学主路径；不要求购买、拆修或高风险改造。</p><p><strong>风险：</strong>默认 safe；涉及 PSU/硬件时只做只读调查与厂商手册约束下的正常安装，不做带电拆装。</p></div>
+<h3>能力目标</h3><ul><li>把“GPU 很强”升级成整机层的容量、稳定、供电、散热和长期运行判断。</li><li>把 PASS / FAIL / UNKNOWN 与具体 Evidence 对齐。</li><li>知道什么情况下应该 BLOCKED 或 REVISE，而不是为了完成课程强行 ACCEPT。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/84-thermal-sustained-model/README.md">Experiment 84：thermal sustained model</a>；有 GPU 时做 <a href="../../labs/experiments/85-real-sustained-thermal/README.md">Experiment 85：real sustained thermal</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么 30 秒 benchmark 很快不能证明 30 分钟后仍然快？</li><li>温度高与 thermal throttling 是同一句话吗？</li><li>功率限制、温度限制、供电限制都会让 clocks 掉，你如何区分？</li><li>清灰/风道/降压优化为什么必须看 sustained TG 与稳定性，而不是只看温度数字？</li></ol>
+<h3>完成证据</h3><p>做一条 thermal-soak 时间线：温度、功率、clock、TG/PP、错误/重试，至少比较 warm-up 与 steady window；写出是否存在 drift 及可能原因。</p>
+<h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://docs.nvidia.com/deploy/nvidia-smi/index.html">NVIDIA nvidia-smi</a></li><li><a href="https://docs.nvidia.com/deploy/nvml-api/group__nvmlClocksEventReasons.html">NVIDIA NVML Clock Event Reasons</a></li><li><a href="https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html">AMD SMI Monitoring</a></li><li><a href="../../reference/gpu/thermal-sustained-performance.md">Course Reference — Thermal / Sustained Performance</a></li></ul>
+</section>
 </body></html>
