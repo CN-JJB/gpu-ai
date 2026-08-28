@@ -118,6 +118,10 @@ def main():
         synthetic = bool(r.get("synthetic", False)) or src_class == "SYNTHETIC"
         if synthetic and not a.allow_synthetic:
             errors.append(f"{loc}: synthetic record rejected from production validation")
+        if synthetic and r.get("record_type") == "market":
+            grade = str(r.get("market_evidence_grade", "")).upper()
+            if grade and grade != "M0":
+                errors.append(f"{loc}: synthetic market record must use M0 evidence grade")
 
         if r.get("revalidate_after") is not None and as_of is not None:
             d = parse_date(r.get("revalidate_after"), f"{loc} revalidate_after", errors)
@@ -173,6 +177,14 @@ def main():
                 req(r, f, errors)
             if present(r.get("observed_at")):
                 parse_date(r.get("observed_at"), f"{loc} observed_at", errors)
+
+            market_grade = str(r.get("market_evidence_grade", "")).upper()
+            market_scope = r.get("market_evidence_scope")
+            if market_grade not in {"M0", "M1", "M2", "M3"}:
+                errors.append(f"{loc}: invalid market_evidence_grade {market_grade!r}")
+            if not present(market_scope):
+                errors.append(f"{loc}: market_evidence_scope missing")
+
             price = r.get("price")
             if not isinstance(price, dict):
                 errors.append(f"{loc}: missing price object")
@@ -183,6 +195,8 @@ def main():
                     errors.append(f"{loc}: price.value must be > 0")
 
             if str(r.get("price_state", "")).upper() == "MEDIAN_ASK":
+                if market_grade != "M2":
+                    errors.append(f"{loc}: MEDIAN_ASK market_evidence_grade must be M2")
                 sample = r.get("sample")
                 if not isinstance(sample, dict):
                     errors.append(f"{loc}: MEDIAN_ASK requires sample object")
@@ -208,6 +222,8 @@ def main():
                     errors.append(f"{loc}: MEDIAN_ASK source.data_exported_at missing")
 
             if str(r.get("price_state", "")).upper() == "SECONDARY_REPORTED":
+                if market_grade != "M1":
+                    errors.append(f"{loc}: SECONDARY_REPORTED market_evidence_grade must be M1")
                 report = r.get("report")
                 if not isinstance(report, dict):
                     errors.append(f"{loc}: SECONDARY_REPORTED requires report object")
@@ -220,6 +236,8 @@ def main():
                         errors.append(f"{loc}: SECONDARY_REPORTED report.reported_market missing")
 
             if str(r.get("price_state", "")).upper() == "SOLD_MARKED_LISTING_PRICE":
+                if market_grade != "M3":
+                    errors.append(f"{loc}: SOLD_MARKED_LISTING_PRICE market_evidence_grade must be M3")
                 listing = r.get("listing")
                 if not isinstance(listing, dict):
                     errors.append(f"{loc}: SOLD_MARKED_LISTING_PRICE requires listing object")
