@@ -174,10 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #140
-run id 33169768819
-head 0f1b2f2c18be98e9b701ef7666fb75c399d75e3d
-job id 98843766211
+run #141
+run id 33169970758
+head 2070476cd272f904476dff4100779a12ec534f59
+job id 98844439875
 conclusion success
 ~~~
 
@@ -190,11 +190,12 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21–I30 evidence capture/admission tests remain green;
-- I31 extracts only a unique supported Final estimate PPL line and independently verifies the machine metric artifact;
-- chunk-only or ambiguous quality output is blocked rather than guessed;
-- I32 makes the reproducible quality metric mandatory for non-synthetic intake;
-- old I22–I27 non-synthetic regression gates remain green with synthetic-only metric fixtures;
+- I21–I32 evidence capture/admission tests remain green;
+- I33 independently verifies both quality bundles before any PPL arithmetic;
+- tokenizer/corpus/fixture/evaluation argv/parser/metric/executable hash+bytes must match exactly;
+- changed quality executable bytes or evaluation argv block A/B comparison;
+- only exact-contract comparisons emit descriptive PPL delta/ratio/percent change;
+- no significance, causality or recommendation is inferred;
 - the main benchmark PACKET and quality PACKET remain separate integrity domains;
 - the dedicated I19 market refresh self-test remains green.
 
@@ -215,10 +216,11 @@ Evidence:
 - examples/evidence/intelligence-30-quality-evaluation-argv-binding.md
 - examples/evidence/intelligence-31-quality-metric-extraction.md
 - examples/evidence/intelligence-32-quality-metric-intake-gate.md
+- examples/evidence/intelligence-33-quality-ab-comparability.md
 
 ## Next
 
-1. Add an exact quality A/B comparability gate that only computes PPL delta/ratio when tokenizer + corpus + fixture + evaluation argv contracts match (I33).
+1. Bind the quality A/B result to the paired performance A/B manifest/one-variable contract before any speed-vs-quality tradeoff decision (I34).
 2. Acquire the first learner-owned real Experiment 61 packet through I21 + I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.

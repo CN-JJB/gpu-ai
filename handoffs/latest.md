@@ -16,7 +16,7 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I32 implemented and CI verified
+I01–I33 implemented and CI verified
 ~~~
 
 ## Latest CI
@@ -312,9 +312,29 @@ Only independently reproducible metric evidence can satisfy QUALITY METRIC statu
 
 Run #140 is green, including I31 metric parsing, I32 intake behavior, every historical evidence gate and market refresh.
 
+## I33 exact quality A/B comparability
+
+Both sides must independently pass I31/I32 verification.
+
+The comparator then requires exact equality of:
+
+~~~text
+tokenizer identity
+corpus SHA
+fixture revision
+evaluation argv
+parser contract
+metric name
+quality executable SHA256 + bytes
+~~~
+
+Only then are descriptive PPL delta, ratio and percent change emitted.
+
+Run #141 is green, including negative cases for changed evaluation argv and changed executable bytes.
+
 ## Next work
 
-1. I33: exact quality A/B comparability gate before computing PPL delta/ratio.
+1. I34: bind quality A/B to the paired performance A/B manifest and one-variable contract before any speed-vs-quality tradeoff decision.
 2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.

@@ -35,3 +35,21 @@ The dedicated self-test blocks:
 The self-test PPL values exist only to verify comparison arithmetic.
 
 They are not real model-quality measurements or recommendation evidence.
+
+## CI verification
+
+~~~text
+workflow: Intelligence Self-Test
+run #141
+run id: 33169970758
+head: 2070476cd272f904476dff4100779a12ec534f59
+job id: 98844439875
+conclusion: success
+~~~
+
+The job explicitly passed:
+- quality metric self-test;
+- quality comparison self-test;
+- quality execution + metric intake self-test;
+- every historical Intelligence gate;
+- market refresh self-test.
