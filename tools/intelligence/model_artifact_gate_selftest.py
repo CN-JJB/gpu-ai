@@ -61,7 +61,12 @@ def main():
         model = td / "model.gguf"
         model.write_bytes(model_bytes)
 
+        profile_bytes = b"tiny-hardware-profile-for-i22\n"
+        profile = td / "profile.txt"
+        profile.write_bytes(profile_bytes)
+
         manifest_obj = json.loads((exp / "manifest.json").read_text(encoding="utf-8"))
+        manifest_obj["variant"]["hardware"]["profile_sha256"] = sha256_bytes(profile_bytes)
         manifest_obj["variant"]["model"]["artifact_bytes"] = len(model_bytes)
         manifest_obj["variant"]["model"]["artifact_sha256"] = sha256_bytes(model_bytes)
         manifest = td / "manifest.json"
@@ -109,11 +114,12 @@ def main():
         packet.write_text(
             json.dumps({
                 "packet_schema_version": 1,
-                "file_count": 3,
+                "file_count": 4,
                 "files": [
                     packet_entry(manifest),
                     packet_entry(result),
                     packet_entry(command_record),
+                    packet_entry(profile),
                 ],
             }, indent=2) + "\n",
             encoding="utf-8",
@@ -137,6 +143,8 @@ def main():
             "runtime:fixture",
             "--observed-at",
             "2026-08-28",
+            "--hardware-profile",
+            str(profile),
             "--command-record",
             str(command_record),
         ]
