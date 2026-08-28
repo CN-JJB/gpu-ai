@@ -7,67 +7,54 @@
 
 ## Stable course
 
-```text
+~~~text
 Slices 01–49
 Experiments 01–93
 v1 stable mainline complete
-```
+~~~
 
 ## Phase 4 frontier
 
-```text
-I01–I17 implemented and CI verified
-```
+~~~text
+I01–I18 implemented and CI verified
+~~~
 
 ## Latest CI
 
-```text
-run #54
-run id 33137613634
-head bbf624e44579cbc765974bf8b5070330002f294e
-job id 98741045301
+~~~text
+run #62
+run id 33137884125
+head 373b2ff6dd78f7018fd026e76b9714519204fbbe
+job id 98741901113
 SELFTEST: PASS
-```
+~~~
 
-## Market evidence gate
+## Benchmark boundary
 
-```text
+Production benchmark catalog remains empty.
+
+Required:
+
+~~~text
+manifest + raw result + PACKET + canonical IDs
+→ I07 READY
+→ ingest
+→ validate
+→ exact MEASURED_SUPPORTED
+~~~
+
+## Market evidence
+
+~~~text
 SECONDARY_REPORTED        → M1
 MEDIAN_ASK                → M2
 SOLD_MARKED_LISTING_PRICE → M3
-```
+~~~
 
-M3 is claim-scoped.
+Current active signals:
 
-## Freshness gate
-
-```text
-CURRENT + M2/M3 → ELIGIBLE
-DUE-TODAY → REVALIDATE-NOW
-STALE → STALE-REVALIDATE
-UNSCHEDULED / INVALID → REVALIDATION-SCHEDULE-REQUIRED
-```
-
-Every real market row requires revalidate_after.
-
-## Experiment 38 fix
-
-Old possible state:
-
-```text
-BUY-CANDIDATE + stale=YES
-```
-
-is no longer allowed.
-
-CI verifies:
-- current evidence can produce BUY-CANDIDATE;
-- due-today/stale/invalid evidence produces NEEDS EVIDENCE.
-
-## Current market signals
-
-```text
-eBay active asks:
+~~~text
+eBay asks:
 3090 1499
 7900 XTX 1020
 A770 330 USD
@@ -79,28 +66,64 @@ A770 200 USD
 
 China secondary:
 3090 7400
-A770 1450 CNY
-```
+A770 1400 CNY
+~~~
 
-## Active next defect/data need
+## A770 append-only refresh
 
-The newer China A770 source reports a range:
+Historical:
 
-```text
-1200–1600 CNY
-```
+~~~text
+2026-08-21
+1450 CNY
+~~~
 
-not a scalar.
+Current:
 
-Do not invent a midpoint merely to satisfy the current scalar market schema.
+~~~text
+2026-08-25
+1400 CNY
+revalidate_after=2026-09-01
+~~~
 
-I18 should add:
-- range-valued SECONDARY_REPORTED support;
-- append-only refresh lineage;
-- superseded observations excluded from active refresh/purchase use while history remains preserved.
+Lineage:
 
-## Benchmark boundary
+~~~text
+old.superseded_by = new
+new.supersedes = old
+~~~
 
-Production benchmark catalog remains empty until real Experiment 61 Evidence passes I07.
+The old row remains audit history but is not current purchase evidence.
+
+## Active-view semantics
+
+~~~text
+market_matrix
+→ hides superseded by default
+
+freshness_report
+→ SUPERSEDED, not active stale queue
+
+market_evidence_gate
+→ SUPERSEDED-USE-NEWER-OBSERVATION
+~~~
+
+Use --include-superseded for audit history.
+
+## Watchlist freshness
+
+~~~text
+CURRENT + M2/M3 → ELIGIBLE
+DUE/STALE/INVALID → not purchase-eligible
+~~~
+
+Experiment 38 cannot emit BUY-CANDIDATE from stale/due/invalid market evidence.
+
+## Next work
+
+1. Refresh future due/stale market records using the same lineage pattern.
+2. Find stronger/newer RTX 3090 China evidence.
+3. Ingest real benchmark only after I07 READY.
+4. No recommendation leaderboard yet.
 
 No auto-purchase or unsafe hardware modification.
