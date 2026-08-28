@@ -61,6 +61,7 @@ def main():
             (exp / "quality-identity.json").read_text(encoding="utf-8")
         )
         identity_obj["corpus_sha256"] = sha(corpus.read_bytes())
+        identity_obj["evaluation_args"] = ["--fixture-mode", "strict"]
         identity = td / "quality-identity.json"
         identity.write_text(
             json.dumps(identity_obj, indent=2, sort_keys=True) + "\n",
@@ -110,7 +111,7 @@ a=p.parse_args()
 size=__import__("pathlib").Path(a.model).stat().st_size
 common={
  "build_commit":"fixture-commit",
- "gpu_info":"Synthetic Fixture GPU",
+ "gpu_info":"Synthetic 24 GiB GPU",
  "backends":"FIXTURE",
  "model_size":size,
  "n_threads":a.t,
