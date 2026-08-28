@@ -1,178 +1,43 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Slice 19 — 二手显卡：价格不是一个数字</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>Slice 19 — 中国二手 GPU：先学会“价格不是一个数字”</h1>
-
-<p>你打开闲鱼搜“3090”，第一屏能看到很多数字。真正的问题是：<strong>这些数字到底是不是同一种东西？</strong></p>
-
-<h2>1. 一个最危险的例子</h2>
-<p>商品标题可能写：</p>
-<pre>RTX3050 / 3060 / 3070 / 3080Ti / 3090
-¥1598</pre>
-
-<p>如果搜索页把最低选项显示为 ¥1598，你不能记：</p>
-<pre>3090 = 1598</pre>
-
-<p>这类链接可能把多个 SKU、配件、坏卡、定金放进一个商品。</p>
-
-<div class="callout"><strong>规则：</strong>没有 exact option price，就不进入 exact-SKU 行情样本。</div>
-
-<h2>2. 二手市场至少有六种“价格”</h2>
-
-<table>
-<tr><th>状态</th><th>意思</th></tr>
-<tr><td>ASK</td><td>卖家当前挂牌</td></tr>
-<tr><td>SOLD-CONFIRMED</td><td>平台明确显示成交</td></tr>
-<tr><td>DELISTED-ASSUMED</td><td>下架，被第三方推测成交</td></tr>
-<tr><td>MERCHANT-QUOTE</td><td>商家报价</td></tr>
-<tr><td>BUYBACK</td><td>回收价</td></tr>
-<tr><td>UNKNOWN</td><td>状态不明</td></tr>
-</table>
-
-<p>它们不能直接混在一起算“均价”。</p>
-
-<h2>3. 同一个 GPU 名字也可能不是同一个产品</h2>
-
-<p>例如：</p>
-<pre>A770 8G
-A770 16G</pre>
-
-<p>本地 LLM 对显存非常敏感，所以必须分开。</p>
-
-<p>再比如：</p>
-<pre>2080 Ti 11G stock
-2080 Ti 22G VRAM mod</pre>
-
-<p>后者已经是一个 custom hardware cohort。</p>
-
-<h2>4. “非矿”不是检测结果</h2>
-<p>卖家说：</p>
-<ul>
-<li>个人自用；</li>
-<li>女生自用；</li>
-<li>非矿；</li>
-<li>网吧拆机；</li>
-<li>服务器退役；</li>
-<li>无修。</li>
-</ul>
-
-<p>全部先存成：</p>
-<pre>seller_claim</pre>
-
-<p>不要自动转成：</p>
-<pre>low risk</pre>
-
-<h2>5. 证据强度应该单独记录</h2>
-<table>
-<tr><th>等级</th><th>含义</th></tr>
-<tr><td>C0</td><td>无条件证据</td></tr>
-<tr><td>C1</td><td>卖家口述</td></tr>
-<tr><td>C2</td><td>有当前功能截图/视频</td></tr>
-<tr><td>C3</td><td>有身份、持续负载、显存/温度等完整测试</td></tr>
-<tr><td>C4</td><td>第三方或买家本人独立验证</td></tr>
-</table>
-
-<h2>6. 验货服务也不是万能 GPU 测试</h2>
-<p>平台第三方验货可以提高交易保障，但查验有明确服务范围和标准。</p>
-
-<p>对 AI GPU，你仍然需要自己关心：</p>
-<ul>
-<li>显存容量是否正确；</li>
-<li>显存错误；</li>
-<li>持续 compute 稳定性；</li>
-<li>热点/显存温度；</li>
-<li>驱动重置；</li>
-<li>BIOS；</li>
-<li>维修/魔改。</li>
-</ul>
-
-<h2>7. 为什么不能迷信“最低价”</h2>
-
-<p>正常样本里你更应该看：</p>
-<pre>n
-median
-Q1-Q3
-confirmed sold sample
-condition cohort
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>二手市场：价格不是一个数字</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Secondhand Market · L0</p><h1>二手 GPU 市场：价格不是一个数字，而是一组带来源和条件的证据</h1><p class="lead">“RTX 3090 现在多少钱？”看似简单，实际上至少要先回答：哪个国家/平台、挂牌还是成交、哪种成色、是否含税运、样本日期、是否同一 SKU、是否可退。不会区分这些语义，任何“市场价”都可能误导购买。</p>
+<h2>Prerequisite Check</h2><p>你应理解硬件决策中的 hard gate、UNKNOWN 与 TCO。无需懂统计学。</p>
+<h2>真实问题：为什么同一天你能看到同型号显卡从 500 到 1500 美元？</h2><p>因为展示价格并不等于同一种经济事件。常见数据至少包括：</p><ul><li>卖家<strong>挂牌价</strong>；</li><li>平台标记<strong>已售</strong>但未公开最终成交价；</li><li>可以确认的<strong>成交价</strong>；</li><li>拍卖当前出价；</li><li>含整机/配件的捆绑价格；</li><li>故障/维修/矿卡/无保修特殊成色；</li><li>不同地区、税费、货币与物流。</li></ul><p>如果把这些混在一起算平均数，得到的是一个“数学上有数字、经济上没意义”的结果。</p>
+<h2>1. 先定义 observation，而不是先抄价格</h2><p>每条市场记录至少应该有：</p><pre>hardware_id / exact SKU
+market / region
+currency
+observed_at
+price
+price_semantics
+condition claim
+shipping/tax inclusion
+source/provenance
+sample/cohort identity
+</pre><p>课程 Intelligence lane 使用不同 evidence grade，就是为了避免把弱信号冒充成交事实。</p>
+<h2>2. Asking price 与 transaction price 是不同变量</h2><p><strong>挂牌价</strong>告诉你卖家希望多少钱；<strong>成交价</strong>才告诉你市场实际交换了多少钱。两者之间可能存在议价、优惠券、退货、捆绑、平台税费等差异。</p><div class="callout"><strong>规则：</strong>“SOLD”标签不自动等于“确认最终成交价”。如果平台只显示原挂牌价，你只能写“sold-marked displayed price”，不能升级成 confirmed transaction。</div>
+<h2>3. Cohort：只有同一类样本才适合算中位数</h2><p>假设你搜 3090：</p><ul><li>24 GB 正常消费版；</li><li>水冷改装；</li><li>只有散热器/空盒；</li><li>维修故障卡；</li><li>整机拆卖；</li><li>海外包税；</li><li>专业 OEM 型号。</li></ul><p>这些不能无脑放进同一 median。先定义 cohort，例如：</p><pre>same exact product class
++ working/claimed-working condition
++ same region/platform
++ same price semantics
++ same observation window
 </pre>
-
-<p>而不是：</p>
-<pre>min(listing)
-</pre>
-
-<p>最低的那条最可能恰好是：</p>
-<ul>
-<li>坏卡；</li>
-<li>配件；</li>
-<li>诈骗引流；</li>
-<li>修过；</li>
-<li>定金；</li>
-<li>错误型号。</li>
-</ul>
-
-<h2>8. 二手显卡不只有“矿卡风险”</h2>
-
-<p>本地 LLM 特别容易遇到：</p>
-<ul>
-<li>退役计算卡；</li>
-<li>涡轮/被动散热卡；</li>
-<li>显存魔改；</li>
-<li>无输出卡；</li>
-<li>EPS 特殊供电；</li>
-<li>板修；</li>
-<li>OEM 怪板；</li>
-<li>工程样品。</li>
-</ul>
-
-<p>每一种都会改变：</p>
-<pre>平台成本
-+ 测试成本
-+ 故障概率
-+ resale
-</pre>
-
-<h2>9. 真正有用的是“我的最高买价”</h2>
-
-<p>你不应该问：</p>
-<pre>3090 值多少钱？</pre>
-
-<p>应该问：</p>
-<pre>对我的 32B Q4 + 16k context
-这张 exact 3090
-在当前软件和风险条件下
-最高值得我付多少钱？</pre>
-
-<p>简化：</p>
-<pre>max buy price
-= workload value
-- platform extras
-- repair reserve
-- software burden
-- condition/risk discount</pre>
-
-<h2>10. 最终市场工作流</h2>
-<pre>抓 listing
-→ exact SKU
-→ condition cohort
-→ price state
-→ duplicate/outlier cleanup
-→ median/Q1-Q3
-→ evidence grade
-→ candidate dossier
-→ BUY IF PRICE ≤ X</pre>
-
-<p>这才是“垃圾佬”真正可复用的市场能力。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — 二手市场价格证据</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实硬件/市场只是增强。</p><p><strong>成本：</strong>0 元教学路径。</p><p><strong>风险：</strong>safe；涉及真实二手交易时课程只提供调查/验收方法，不替你自动购买。</p></div>
-<h3>能力目标</h3><ul><li>区分挂牌价、sold-marked price、确认成交价、二手报道/商家报价</li><li>把地区、日期、成色、型号/显存、平台、样本规则写进价格证据</li><li>拒绝用一个搜索结果或多 SKU 诱饵价代表市场</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/33-secondhand-market-normalization/README.md">Experiment 33：secondhand market normalization</a>；需要真实市场时做 <a href="../../labs/experiments/34-real-secondhand-market-snapshot/README.md">Experiment 34：real market snapshot</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>为什么同一型号的最低展示价通常不是可用的 fair-value 证据？</li><li>MEDIAN_ASK 与 confirmed transaction price 证明的事情相同吗？</li><li>跨人民币/美元市场比较时除了汇率还要处理哪些口径？</li><li>为什么动态价格不应该写死进稳定 Lesson？</li></ol>
-<h3>完成证据</h3><p>做一份 10 条样本的规范化 market table，明确 inclusion/exclusion、来源等级、观察日期和你不能声称的结论。</p>
-<h3>如何选择 / 迁移</h3><p>以后调查 CPU、内存、整机或别的二手硬件，也沿用“同品类、同口径、同时间窗、证据等级”原则。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://terms.alicdn.com/legal-agreement/terms/product/20221213134628952/20221213134628952.html">闲鱼验货服务相关公开协议</a></li><li><a href="../../reference/market/china-secondhand-gpu-sampling-card.md">Course Reference — China Secondhand Sampling</a></li></ul>
-</section>
-</body></html>
+<h2>4. 为什么中位数常比平均数更适合二手挂牌？</h2><p>二手市场常有极端离群值：天价钓鱼、故障白菜价、误标。平均数容易被少量极端值拖动；中位数对离群值更稳健。</p><p>例：</p><pre>700, 720, 740, 760, 1800
+median = 740
+mean   = 944
+</pre><p>但中位数也不是魔法：如果样本本身混 cohort，median 仍然没有意义。</p>
+<h2>5. Freshness：市场数据有保质期</h2><p>GPU 二手价格会受新品发布、显存需求、AI 热潮、矿业周期、汇率、库存、驱动支持等影响。三个月前的“好价”可能今天完全失效。</p><p>因此记录时间并定义 freshness policy：</p><ul><li>近期 active decision 使用更短窗口；</li><li>历史趋势可保留旧样本，但不得冒充当前报价；</li><li>刷新时 append 新 observation，不覆盖旧历史。</li></ul>
+<h2>6. Region / currency：不能只做汇率换算</h2><p>中国闲鱼、美国 eBay/OfferUp、日本 Mercari 等市场存在不同：</p><ul><li>税费/手续费；</li><li>保修与退货制度；</li><li>假货/维修卡风险；</li><li>物流损坏风险；</li><li>供需与常见 SKU；</li><li>议价文化。</li></ul><p>汇率只能转换货币单位，不能把市场制度变成同一个 cohort。</p>
+<h2>Worked Example：你看到三个“3090 市场价”</h2><p>假设资料里出现：</p><pre>A: 1499 USD — eBay active ask
+B: 950 USD  — OfferUp listing marked sold, displayed price
+C: 7400 CNY — China secondary report</pre><p>正确处理不是先换算后平均，而是：</p><ol><li>A 标为 current ask signal；</li><li>B 标为 sold-marked displayed price，但若最终成交不可确认，不写 confirmed transaction；</li><li>C 保留 secondary-reported provenance；</li><li>三者可用于观察不同市场信号，却不能直接合成一个“全球成交均价”。</li></ol>
+<h2>7. Condition 是价格的一部分</h2><p>二手 GPU 价格必须与卡况证据联动。缺少序列/外观、PCIe link、显存错误、热点温度、负载稳定性、风扇等信息的“便宜价”，实际上包含未知风险。</p><p>因此同型号同地区也至少区分：</p><ul><li>seller claim only；</li><li>有截图/视频但不可复现；</li><li>买家自己到货可复现实测。</li></ul>
+<h2>8. Listing selection bias：你看到的不是完整市场</h2><p>搜索页面可能按推荐排序；已售页面可能不显示所有成交；平台 API/搜索结果可能限制数量。样本必须记录采集方法，避免把“我看了前 10 条”包装成全市场统计。</p>
+<h2>Why it matters</h2><ul><li>防止把挂牌价冒充成交价。</li><li>防止用混合 cohort 的平均数做预算。</li><li>让价格证据可以随时间刷新而不篡改历史。</li><li>把卡况风险显式加入“便宜”的含义。</li><li>让跨地区价格比较保持语义诚实。</li></ul>
+<h2>常见误区</h2><ul><li>“标 SOLD 就是最终成交价”——未必。</li><li>“样本越多越好”——混 cohort 的大样本仍然错。</li><li>“换算成人民币就能比较美国/中国市场”——制度/税运/风险不同。</li><li>“最低价就是好价”——可能故障/骗局/配件/特殊成色。</li><li>“三个月前价格还能当现在市场价”——必须 freshness check。</li></ul>
+<h2>小实验：建立一个 10 条 market observation cohort</h2><p>任选一个 SKU，不要求购买。定义地区、平台、条件与 price semantics 后收集 10 条。剔除不属于 cohort 的项目，并写清剔除理由。</p><p>记录 median、min/max，但<strong>不要</strong>因为样本少就写“真实市场成交价”。你的完成证据是 cohort 定义、来源和语义，而不是漂亮数字。</p>
+<h2>无购买路径</h2><p>本课纯 L0。只做市场观察，不联系卖家、不付款。动态价格永远属于 Intelligence lane，教材不冻结当前价格。</p>
+<h2>排错</h2><ul><li>结果价格跨度巨大：先查 cohort 是否混入故障/配件/整机。</li><li>平台隐藏成交价：降级证据语义，不猜。</li><li>跨市场无法统一：保留多市场信号，不强制合并。</li><li>样本太少：标注低样本，不扩大结论。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>asking price 与 transaction price 的经济语义有什么不同？</li><li>为什么 SOLD-marked displayed price 仍可能不是确认成交价？</li><li>什么是 cohort？为什么 median 之前必须先定义 cohort？</li><li>举例说明汇率换算不能消除哪些跨市场差异。</li><li>为什么 market observation 应 append 而不是覆盖历史？</li><li>卡况证据强弱怎样影响你对“便宜”的解释？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>没有明确 provenance、price semantics、cohort、日期和 condition context 的价格，只能当线索，不能进入个人买入上限或“划算”结论。UNKNOWN 不用补成假成交价。</p></div>
+<h2>Transfer</h2><p>同样的方法可以用于二手 CPU、服务器、SSD、Mac、整机甚至模型 API 价格：先定义观察对象和语义，再统计。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="../../intelligence/README.md">Course Intelligence — Market evidence</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li><li><a href="../../ROADMAP.md">Roadmap — dynamic market lane</a></li></ul>
+</main></body></html>
