@@ -16,17 +16,18 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I18 implemented and CI verified
+I01–I19 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #62
-run id 33137884125
-head 373b2ff6dd78f7018fd026e76b9714519204fbbe
-job id 98741901113
-SELFTEST: PASS
+run #67
+run id 33154549739
+head 8ab1d5435e867570c2a5c2a48cc94d45c533179f
+job id 98794100639
+full SELFTEST: PASS
+market refresh SELFTEST: PASS
 ~~~
 
 ## Benchmark boundary
@@ -119,10 +120,25 @@ DUE/STALE/INVALID → not purchase-eligible
 
 Experiment 38 cannot emit BUY-CANDIDATE from stale/due/invalid market evidence.
 
+## I19 reusable refresh helper
+
+```text
+tools/intelligence/market_refresh.py
+```
+
+Use a complete new observation candidate plus the active old record.
+
+The helper creates reciprocal append-only lineage and rejects:
+- already-superseded forks;
+- cross-hardware links;
+- non-newer observations.
+
+CI run #67 verifies the helper and keeps the original full self-test green.
+
 ## Next work
 
-1. Refresh future due/stale market records using the same lineage pattern.
-2. Find stronger/newer RTX 3090 China evidence.
+1. Use the helper for the next due/stale market refresh.
+2. Find stronger/newer RTX 3090 China evidence; do not promote the current 7400 CNY M1 signal without stronger provenance.
 3. Ingest real benchmark only after I07 READY.
 4. No recommendation leaderboard yet.
 
