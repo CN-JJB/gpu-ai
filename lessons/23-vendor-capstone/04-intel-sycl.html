@@ -1,67 +1,44 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — Intel SYCL</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
-<h1>Vendor Capstone 4 — Intel SYCL / Level Zero / XPU</h1>
-
-<h2>1. 先证明 oneAPI 看到了 GPU</h2>
-<pre>source /opt/intel/oneapi/setvars.sh
-sycl-ls</pre>
-
-<p>目标 Intel GPU 通常应以 Level Zero GPU 设备出现。</p>
-
-<h2>2. 当前 llama.cpp SYCL 构建</h2>
-<pre>cmake -B build \
-  -DGGML_SYCL=ON \
-  -DCMAKE_C_COMPILER=icx \
-  -DCMAKE_CXX_COMPILER=icpx \
-  -DGGML_SYCL_F16=ON
-
-cmake --build build --config Release -j</pre>
-
-<p>当前 upstream 还提供：</p>
-<pre>./examples/sycl/build.sh</pre>
-
-<h2>3. llama.cpp 自己也要看到设备</h2>
-<pre>./build/bin/llama-ls-sycl-device
-./build/bin/llama-bench --list-devices</pre>
-
-<h2>4. dGPU / iGPU 不同</h2>
-<pre>Arc dGPU → dedicated GDDR
-Intel iGPU → shared system memory</pre>
-
-<p>不能把两者的“global memory”数字当同一种 VRAM。</p>
-
-<h2>5. 第一轮优化</h2>
-<ul>
-<li>PP 弱 → FA / oneDNN/backend path；</li>
-<li>TG 弱 → quant/reorder/memory behavior；</li>
-<li>FP16 vs FP32 build → 可以作为单变量 runtime-build A/B；</li>
-<li>iGPU/dGPU 同时出现 → 先固定 device selection。</li>
-</ul>
-
-<div class="callout"><strong>XMX 是硬件能力，不是“任何 Q4 都自动加速”的证据。</strong></div>
-
-<section class="student-closure">
-<h2>学生闭环 — Intel SYCL/XPU</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0 preflight；有对应硬件时 L1/L2 做真机增强。</p>
-<p><strong>成本：</strong>0 元主路径，不要求集齐四个生态。</p>
-<p><strong>风险：</strong>safe；只做 build/device/runtime 检查和 benchmark。</p>
-<p><strong>替代路径：</strong>没有 Intel SYCL/XPU 硬件就只做 Experiment 41 的 preflight，并用已有 Evidence/官方资料完成生态映射。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>把 hardware identity、driver/runtime、backend build、model artifact、execution config 分层记录。</li>
-<li>把同一 benchmark contract 迁移到 Intel SYCL/XPU，只替换厂商特有的 discovery/build 命令。</li>
-<li>知道“能运行”与“使用预期加速路径”是两个不同结论。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/41-vendor-capstone-preflight/README.md">Experiment 41：vendor capstone preflight</a>。真机时再把对应厂商的 exact version / device / backend log 填进 Experiment Card。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么 Level Zero/SYCL device 可见不等于 llama.cpp 当前走高效 XMX path？</li><li>oneAPI、PyTorch XPU、llama.cpp SYCL 之间是什么关系？</li><li>如果同一模型在 CPU fallback 也能跑，如何证明 benchmark 真在 Intel GPU？</li><li>Intel 生态变化快时，哪些信息应该放 Intelligence 而不是稳定 Lesson？</li></ol>
-<h3>完成证据</h3>
-<p>提交一张 Intel SYCL/XPU evidence ladder：<strong>device identity → driver/runtime → backend build → model identity → exact argv → PP/TG/quality</strong>；每一层写“由什么命令或文件证明”。</p>
-<h3>如何迁移</h3>
-<p>四生态真正应该共用的是 Evidence 结构，而不是命令。换厂商后保持问题不变：<strong>我跑了谁、在哪跑、用什么路径、测了什么、什么仍未知</strong>。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/latest/intel-xe-gpu-architecture.html">Intel Xe GPU Architecture</a></li><li><a href="https://docs.pytorch.org/docs/stable/xpu.html">PyTorch XPU</a></li><li><a href="../../reference/system/vendor-capstone-runbooks.md">Course Reference — Vendor Capstone Runbooks</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone：Intel / SYCL</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Vendor Capstone · Intel · L0→L2</p><h1>Intel / SYCL 实战闭环：从 Arc 枚举到可复现 LLM GPU 证据</h1><p class="lead">Intel capstone 的目标是让你摆脱“Arc 能不能跑 LLM”的二元争论，改成精确回答：哪张 exact device、哪条 backend、哪版 driver/runtime、哪个模型/量化能跑，哪里 fallback，真实 PP/TG/质量怎样。</p>
+<h2>Prerequisite Check</h2><p>完成 Xe-core/XMX 与 Arc/oneAPI 软件栈课程，能画出 device→driver→runtime→backend→model kernel 的链。</p>
+<h2>真实问题：为什么“Arc 支持 SYCL”不是应用可用性的充分条件？</h2><p>SYCL 是编程模型；LLM 应用还必须实际提供并启用对应 backend，编译器/runtime 要支持 exact device，模型量化还要有可用 kernel。任何一层都可能阻断。</p>
+<h2>1. Intel evidence chain</h2><pre>exact Arc/Xe device
+→ graphics/compute driver
+→ Level Zero / oneAPI runtime
+→ SYCL or other application backend
+→ target model/quant kernel
+→ GPU offload observed
+→ PP/TG + quality
+→ reproducible environment record</pre>
+<h2>2. Device enumeration：先证明 runtime 看到谁</h2><p>操作系统显示设备只是第一步。下一步用目标 runtime/SYCL/Level Zero 工具列出 device，并记录 PCI identity、driver version、可见 memory 与 capability。多 GPU/iGPU+dGPU 环境还要明确 selector。</p>
+<h2>3. Application build：最常见的“看起来能跑其实走 CPU”来源</h2><p>同一个开源项目可能发布 CPU、CUDA、HIP、SYCL、Vulkan 等不同 build。启动时确认 backend 字样、device name、offload count 和 memory allocation。</p><p>如果应用不提供明确日志，就用系统监控 + 性能对照作为辅助，但不要只凭 utilization 猜。</p>
+<h2>4. SYCL 与 Vulkan 两条路径怎样公平比较？</h2><p>先固定模型、量化、prompt、context、输出长度和 runtime revision。如果只是 backend 不同，其他变量尽量相同。然后分 PP 与 TG，同时做质量/输出一致性检查。</p><p>正确结论可能是“当前 build 下 Vulkan 更稳定、SYCL 更快/更慢”，而不是“Vulkan/SYCL 本质谁优”。</p>
+<h2>5. XMX 使用：三层证据</h2><ul><li><strong>Capability：</strong>exact GPU 宣称 XMX/相应 numeric capability；</li><li><strong>Kernel：</strong>应用/library 有对应 XMX/DPAS path；</li><li><strong>Measurement：</strong>固定 workload 下该 path 带来可解释效果。</li></ul><p>缺第二层时，第一层只是纸面潜力；缺第三层时，尚未证明对你的 workload 有价值。</p>
+<h2>Worked Example：Arc 16 GB 能完整 offload，但 TG 仍低</h2><pre>confirm full offload
+→ compare PP vs TG
+→ check VRAM bandwidth / clocks
+→ check quant kernel / XMX path
+→ check CPU sampling/tokenization
+→ inspect PCIe transfers
+→ check power/thermal
+→ compare one variable at a time</pre><p>若 PP 明显好、TG 弱，可能是 decode/memory/quant path；若两者都弱，可能是 backend/kernel/build；若运行中频繁 host transfer，可能是 memory/offload 配置。</p>
+<h2>6. Driver regression 与版本冻结</h2><p>新驱动可能修 bug、加设备支持，也可能改变性能或行为。每份 benchmark 保存 driver/runtime/application commit。升级前有 baseline，升级后同协议复测；若回归，能回滚/定位，而不是把结果归因于“卡变慢了”。</p>
+<h2>7. Platform variables</h2><p>Arc 类独显还可能受主板 BIOS、Resizable BAR、PCIe link width、iGPU/dGPU selection、power profile 影响。课程不会宣称某设置对所有 LLM 有固定百分比收益，但要求把关键平台状态记录在 profile。</p>
+<h2>8. Benchmark + quality</h2><p>固定 model artifact SHA、quant、runtime/backend build、context、prompt token identity、offload、warmup/repetition。至少记录 PP/TG；改变 backend/quant 时配固定质量 corpus/task。</p>
+<h2>Why it matters</h2><ul><li>Arc 的价格/显存优势只有 software chain 兑现后才有意义。</li><li>SYCL/Vulkan 多 backend 让你练习“精确到路径”的兼容结论。</li><li>版本冻结是小生态/快速迭代生态中特别重要的可复现技能。</li><li>XMX capability 与 XMX-used 是两个证据等级。</li></ul>
+<h2>常见误区</h2><ul><li>“系统看到 Arc = 应用在 Arc 上跑”——缺 runtime/backend/offload。</li><li>“SYCL 跨平台 = 性能跨平台”——可运行和高效是两件事。</li><li>“XMX 存在 = 量化模型自动用 XMX”——需要具体 kernel。</li><li>“更新驱动一定更快”——必须 regression test。</li><li>“一张 benchmark 图能代表所有 backend”——必须记录 exact software path。</li></ul>
+<h2>实践路径</h2><p>作者阶段完成 preflight、evidence schema、benchmark protocol。以后你真正有 Arc 时依次跑 device inventory → tiny model → target model → backend A/B → quality → sustained profile。无卡时用文档/fixture 完成 L0。</p>
+<h2>排错树</h2><pre>OS device OK?
+ no → driver/platform
+ yes → runtime enumerates?
+        no → oneAPI/Level Zero/device support
+        yes → app backend active?
+              no → build/config
+              yes → full offload?
+                    no → fit/kernel/model support
+                    yes → PP/TG/profile</pre>
+<h2>Retrieval Practice</h2><ol><li>为什么“Arc 支持 SYCL”不是 LLM 应用支持的完整命题？</li><li>怎样公平比较同一应用的 SYCL 与 Vulkan backend？</li><li>XMX 的 capability/kernel/measurement 三层证据分别是什么？</li><li>为什么 driver version 必须进入 benchmark record？</li><li>哪些 platform setting 可能污染 Arc benchmark？</li><li>完整 offload 后 TG 低，应按什么顺序排查？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>Intel 路径的购买证据必须精确到 device + driver/runtime + application backend + model/quant + measured protocol。品牌级“支持/不支持”结论一律降级为待验证假设。</p></div>
+<h2>Transfer</h2><p>完成四厂商 capstone 后，你应该看到同一个模式：硬件 feature 只是一层；真正可用性来自完整软件链与真实 evidence。以后面对新厂商/新加速器继续套这套链。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-spine.md">Intel Xe Course Reference</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 Evidence Packet</a></li></ul>
+</main></body></html>
