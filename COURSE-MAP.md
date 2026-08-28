@@ -203,6 +203,7 @@ goal/workload
 | I21 | explicit-argv real benchmark capture/seal + failure-preserving Evidence Packet | verified |
 | I22 | non-synthetic local model artifact SHA256/bytes admission gate | verified |
 | I23 | exact benchmark argv ↔ verified model artifact binding + command evidence admission | verified |
+| I24 | hardware profile SHA256 artifact + PACKET admission gate | verified |
 
 当前稳定边界：
 
