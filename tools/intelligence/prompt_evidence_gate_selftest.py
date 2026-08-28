@@ -6,6 +6,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from quality_execution_test_support import write_quality_execution_fixture
+
 HERE = Path(__file__).resolve().parent
 PY = sys.executable
 
@@ -133,6 +135,13 @@ def main():
             encoding="utf-8",
         )
 
+        quality_exec = write_quality_execution_fixture(
+            td / "quality-execution",
+            model,
+            quality_corpus,
+            quality_manifest,
+        )
+
         base = [
             PY,
             str(HERE / "verify_real_intake.py"),
@@ -149,6 +158,14 @@ def main():
             "--command-record", str(command),
             "--quality-corpus", str(quality_corpus),
             "--quality-manifest", str(quality_manifest),
+            "--quality-command-record",
+            str(quality_exec["command"]),
+            "--quality-stdout",
+            str(quality_exec["stdout"]),
+            "--quality-stderr",
+            str(quality_exec["stderr"]),
+            "--quality-packet",
+            str(quality_exec["packet"]),
         ]
 
         out = run(base, expect=2)

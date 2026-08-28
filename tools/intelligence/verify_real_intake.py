@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from verify_quality_execution import verify_quality_execution_evidence
+
 PLACEHOLDERS = {"", "TODO", "TBD", "REPLACE", "UNKNOWN", "N/A"}
 RAW_SHARED_FIELDS = (
     "build_commit",
@@ -368,6 +370,10 @@ def main():
     p.add_argument("--quality-corpus", type=Path, help="Quality-evaluation corpus to SHA-check against fixed.quality_eval.corpus_sha256")
     p.add_argument("--quality-manifest", type=Path, help="Experiment 59 quality identity manifest to bind fixed.quality_eval identity")
     p.add_argument("--command-record", type=Path, help="I21 command.json to bind exact argv to the verified model artifact")
+    p.add_argument("--quality-command-record", type=Path, help="I28 quality-command.json for executed quality evidence")
+    p.add_argument("--quality-stdout", type=Path, help="I28 raw quality stdout.txt")
+    p.add_argument("--quality-stderr", type=Path, help="I28 raw quality stderr.txt")
+    p.add_argument("--quality-packet", type=Path, help="I28 quality PACKET.json")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
 
@@ -739,6 +745,60 @@ def main():
         )
         command_status = "BLOCKED"
 
+    quality_execution_status = "NOT-CHECKED"
+    quality_exec_args = (
+        a.quality_command_record,
+        a.quality_stdout,
+        a.quality_stderr,
+        a.quality_packet,
+    )
+    supplied_quality_exec = [x is not None for x in quality_exec_args]
+
+    if any(supplied_quality_exec):
+        if not all(supplied_quality_exec):
+            errors.append(
+                "quality execution evidence is partial; supply all of "
+                "--quality-command-record, --quality-stdout, --quality-stderr, --quality-packet"
+            )
+            quality_execution_status = "BLOCKED"
+        elif (
+            a.model_artifact is None
+            or a.quality_corpus is None
+            or a.quality_manifest is None
+        ):
+            errors.append(
+                "quality execution evidence requires --model-artifact, --quality-corpus, "
+                "and --quality-manifest anchors"
+            )
+            quality_execution_status = "BLOCKED"
+        else:
+            quality_exec_result = verify_quality_execution_evidence(
+                a.quality_command_record,
+                a.quality_stdout,
+                a.quality_stderr,
+                a.quality_packet,
+                a.model_artifact,
+                a.quality_corpus,
+                a.quality_manifest,
+            )
+            if quality_exec_result["errors"]:
+                errors.extend(
+                    "quality execution: " + error
+                    for error in quality_exec_result["errors"]
+                )
+                quality_execution_status = "BLOCKED"
+            else:
+                quality_execution_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            quality_execution_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic intake requires quality execution evidence: "
+            "--quality-command-record, --quality-stdout, --quality-stderr, --quality-packet"
+        )
+        quality_execution_status = "BLOCKED"
+
     protocol = manifest.get("fixed", {}).get("protocol", {})
     for field in ("pp_tokens", "tg_tokens", "repetitions"):
         if not positive_number(protocol.get(field)):
@@ -836,6 +896,16 @@ def main():
     print(f"- status={command_status}")
     if a.command_record is not None:
         print(f"- command_record={a.command_record}")
+    print("QUALITY EXECUTION")
+    print(f"- status={quality_execution_status}")
+    if a.quality_command_record is not None:
+        print(f"- quality_command_record={a.quality_command_record}")
+    if a.quality_stdout is not None:
+        print(f"- stdout={a.quality_stdout}")
+    if a.quality_stderr is not None:
+        print(f"- stderr={a.quality_stderr}")
+    if a.quality_packet is not None:
+        print(f"- packet={a.quality_packet}")
 
     print("ERRORS")
     for x in errors:

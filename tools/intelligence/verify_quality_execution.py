@@ -93,31 +93,32 @@ def check_binding(record, actual_path, label, errors):
     return ok
 
 
-def main():
-    p = argparse.ArgumentParser(
-        description=(
-            "Verify sealed quality execution evidence against the exact model, corpus, "
-            "quality identity artifact, raw streams, and packet."
-        )
-    )
-    p.add_argument("--quality-command-record", type=Path, required=True)
-    p.add_argument("--stdout", type=Path, required=True)
-    p.add_argument("--stderr", type=Path, required=True)
-    p.add_argument("--packet", type=Path, required=True)
-    p.add_argument("--model-artifact", type=Path, required=True)
-    p.add_argument("--quality-corpus", type=Path, required=True)
-    p.add_argument("--quality-manifest", type=Path, required=True)
-    a = p.parse_args()
+def verify_quality_execution_evidence(
+    quality_command_record,
+    stdout,
+    stderr,
+    packet_path,
+    model_artifact,
+    quality_corpus,
+    quality_manifest,
+):
+    quality_command_record = Path(quality_command_record)
+    stdout = Path(stdout)
+    stderr = Path(stderr)
+    packet_path = Path(packet_path)
+    model_artifact = Path(model_artifact)
+    quality_corpus = Path(quality_corpus)
+    quality_manifest = Path(quality_manifest)
 
     errors = []
     for label, path in (
-        ("quality command record", a.quality_command_record),
-        ("stdout", a.stdout),
-        ("stderr", a.stderr),
-        ("packet", a.packet),
-        ("model artifact", a.model_artifact),
-        ("quality corpus", a.quality_corpus),
-        ("quality manifest", a.quality_manifest),
+        ("quality command record", quality_command_record),
+        ("stdout", stdout),
+        ("stderr", stderr),
+        ("packet", packet_path),
+        ("model artifact", model_artifact),
+        ("quality corpus", quality_corpus),
+        ("quality manifest", quality_manifest),
     ):
         if not path.is_file():
             errors.append(f"{label} is not a file: {path}")
@@ -125,17 +126,19 @@ def main():
     command_obj = {}
     quality_obj = {}
     packet = {}
-    if a.quality_command_record.is_file():
-        command_obj = load_object(a.quality_command_record, "quality command record", errors)
-    if a.quality_manifest.is_file():
-        quality_obj = load_object(a.quality_manifest, "quality manifest", errors)
-    if a.packet.is_file():
-        packet = load_object(a.packet, "packet", errors)
+    if quality_command_record.is_file():
+        command_obj = load_object(
+            quality_command_record, "quality command record", errors
+        )
+    if quality_manifest.is_file():
+        quality_obj = load_object(quality_manifest, "quality manifest", errors)
+    if packet_path.is_file():
+        packet = load_object(packet_path, "packet", errors)
 
-    model_ok = a.model_artifact.is_file()
-    corpus_ok = a.quality_corpus.is_file()
+    model_ok = model_artifact.is_file()
+    corpus_ok = quality_corpus.is_file()
     identity_ok = bool(quality_obj)
-    raw_ok = a.stdout.is_file() and a.stderr.is_file()
+    raw_ok = stdout.is_file() and stderr.is_file()
     packet_ok = bool(packet)
     command_ok = bool(command_obj)
 
@@ -143,12 +146,17 @@ def main():
         if quality_obj.get("quality_identity_schema_version") != 1:
             errors.append("quality_identity_schema_version must be 1")
             identity_ok = False
-        for field in ("tokenizer_identity", "corpus_sha256", "fixture_revision", "evaluation_args"):
+        for field in (
+            "tokenizer_identity",
+            "corpus_sha256",
+            "fixture_revision",
+            "evaluation_args",
+        ):
             if not present(quality_obj.get(field)):
                 errors.append(f"quality manifest missing/placeholder {field}")
                 identity_ok = False
-        if a.quality_corpus.is_file():
-            actual_corpus_sha = sha256_file(a.quality_corpus)
+        if quality_corpus.is_file():
+            actual_corpus_sha = sha256_file(quality_corpus)
             expected = str(quality_obj.get("corpus_sha256", "")).strip().lower()
             if actual_corpus_sha.lower() != expected:
                 errors.append(
@@ -173,20 +181,20 @@ def main():
             )
             command_ok = False
 
-        if a.model_artifact.is_file():
+        if model_artifact.is_file():
             if not check_binding(
                 command_obj.get("model_artifact"),
-                a.model_artifact,
+                model_artifact,
                 "model artifact",
                 errors,
             ):
                 model_ok = False
                 command_ok = False
 
-        if a.quality_corpus.is_file():
+        if quality_corpus.is_file():
             if not check_binding(
                 command_obj.get("quality_corpus"),
-                a.quality_corpus,
+                quality_corpus,
                 "quality corpus",
                 errors,
             ):
@@ -198,9 +206,9 @@ def main():
             errors.append("quality command record missing quality_identity binding")
             identity_ok = False
             command_ok = False
-        elif a.quality_manifest.is_file():
-            actual_identity_sha = sha256_file(a.quality_manifest)
-            actual_identity_bytes = a.quality_manifest.stat().st_size
+        elif quality_manifest.is_file():
+            actual_identity_sha = sha256_file(quality_manifest)
+            actual_identity_bytes = quality_manifest.stat().st_size
             if identity_record.get("sha256") != actual_identity_sha:
                 errors.append(
                     "quality command quality_identity SHA256 does not match supplied quality manifest"
@@ -220,14 +228,22 @@ def main():
                 raise ValueError("quality command cwd is missing")
             argv = command_obj.get("argv")
             argv_model = extract_path_arg(argv, "-m", "--model", "model")
-            argv_corpus = extract_path_arg(argv, "-f", "--file", "quality corpus")
-            if a.model_artifact.is_file():
-                if resolve_recorded_path(argv_model, cwd) != a.model_artifact.expanduser().resolve():
+            argv_corpus = extract_path_arg(
+                argv, "-f", "--file", "quality corpus"
+            )
+            if model_artifact.is_file():
+                if (
+                    resolve_recorded_path(argv_model, cwd)
+                    != model_artifact.expanduser().resolve()
+                ):
                     raise ValueError(
                         "quality command model path does not match --model-artifact"
                     )
-            if a.quality_corpus.is_file():
-                if resolve_recorded_path(argv_corpus, cwd) != a.quality_corpus.expanduser().resolve():
+            if quality_corpus.is_file():
+                if (
+                    resolve_recorded_path(argv_corpus, cwd)
+                    != quality_corpus.expanduser().resolve()
+                ):
                     raise ValueError(
                         "quality command corpus path does not match --quality-corpus"
                     )
@@ -236,7 +252,7 @@ def main():
             command_ok = False
 
     if raw_ok:
-        if a.stdout.stat().st_size == 0 and a.stderr.stat().st_size == 0:
+        if stdout.stat().st_size == 0 and stderr.stat().st_size == 0:
             errors.append("quality execution has no raw stdout/stderr evidence")
             raw_ok = False
 
@@ -253,10 +269,10 @@ def main():
                 errors.append("packet.file_count does not equal len(packet.files)")
                 packet_ok = False
             for path in (
-                a.quality_command_record,
-                a.stdout,
-                a.stderr,
-                a.quality_manifest,
+                quality_command_record,
+                stdout,
+                stderr,
+                quality_manifest,
             ):
                 if path.is_file():
                     ok, message = packet_match(packet, path)
@@ -264,18 +280,60 @@ def main():
                         errors.append(message)
                         packet_ok = False
 
+    return {
+        "errors": errors,
+        "model_ok": model_ok,
+        "corpus_ok": corpus_ok,
+        "identity_ok": identity_ok,
+        "command_ok": command_ok,
+        "raw_ok": raw_ok,
+        "packet_ok": packet_ok,
+    }
+
+
+def print_result(result):
     print("QUALITY EXECUTION EVIDENCE")
-    print(f"model_binding={'PASS' if model_ok else 'BLOCKED'}")
-    print(f"corpus_binding={'PASS' if corpus_ok else 'BLOCKED'}")
-    print(f"quality_identity_binding={'PASS' if identity_ok else 'BLOCKED'}")
-    print(f"command_binding={'PASS' if command_ok else 'BLOCKED'}")
-    print(f"raw_output={'PASS' if raw_ok else 'BLOCKED'}")
-    print(f"packet={'PASS' if packet_ok else 'BLOCKED'}")
+    print(f"model_binding={'PASS' if result['model_ok'] else 'BLOCKED'}")
+    print(f"corpus_binding={'PASS' if result['corpus_ok'] else 'BLOCKED'}")
+    print(
+        f"quality_identity_binding={'PASS' if result['identity_ok'] else 'BLOCKED'}"
+    )
+    print(f"command_binding={'PASS' if result['command_ok'] else 'BLOCKED'}")
+    print(f"raw_output={'PASS' if result['raw_ok'] else 'BLOCKED'}")
+    print(f"packet={'PASS' if result['packet_ok'] else 'BLOCKED'}")
     print("ERRORS")
-    for error in errors:
+    for error in result["errors"]:
         print("- " + error)
 
-    if errors:
+
+def main():
+    p = argparse.ArgumentParser(
+        description=(
+            "Verify sealed quality execution evidence against the exact model, corpus, "
+            "quality identity artifact, raw streams, and packet."
+        )
+    )
+    p.add_argument("--quality-command-record", type=Path, required=True)
+    p.add_argument("--stdout", type=Path, required=True)
+    p.add_argument("--stderr", type=Path, required=True)
+    p.add_argument("--packet", type=Path, required=True)
+    p.add_argument("--model-artifact", type=Path, required=True)
+    p.add_argument("--quality-corpus", type=Path, required=True)
+    p.add_argument("--quality-manifest", type=Path, required=True)
+    a = p.parse_args()
+
+    result = verify_quality_execution_evidence(
+        a.quality_command_record,
+        a.stdout,
+        a.stderr,
+        a.packet,
+        a.model_artifact,
+        a.quality_corpus,
+        a.quality_manifest,
+    )
+    print_result(result)
+
+    if result["errors"]:
         print("QUALITY EXECUTION: BLOCKED")
         raise SystemExit(2)
 
