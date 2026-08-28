@@ -1,137 +1,27 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NVIDIA 架构 2：Maxwell、Pascal</title>
-<link rel="stylesheet" href="../../assets/course.css">
-<style>
-body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
-pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
-.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
-table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
-</style>
-</head>
-<body>
-
-<h1>NVIDIA 架构 2 — Maxwell → Pascal</h1>
-<p>这两代最重要的课不是“工艺进步”，而是：<strong>更聪明的 SM partition</strong>，以及<strong>同一 architecture family 可以出现完全不同的产品路线</strong>。</p>
-
-<h2>1. Maxwell：Kepler 的问题不是算力不够，而是太难喂</h2>
-<p>Kepler SMX 很宽。Maxwell 的设计目标转向执行效率。</p>
-
-<h3>SMM 的四个 partition</h3>
-<p>Maxwell 仍有四个 warp scheduler，但和 Kepler 不同的是，每个 scheduler 的功能单元更明确地属于自己的 partition。</p>
-<pre>SMM
-├─ scheduler 0 → dedicated CUDA-core group / units
-├─ scheduler 1 → dedicated CUDA-core group / units
-├─ scheduler 2 → dedicated CUDA-core group / units
-└─ scheduler 3 → dedicated CUDA-core group / units</pre>
-<p>这种 power-of-two、warp-width-friendly 的映射简化 scheduling，减少 stall。</p>
-
-<div class="callout"><strong>重要：</strong>Maxwell 每 SM CUDA core 数比 Kepler 少，不代表倒退。它在用<strong>更高 execution efficiency</strong>换更好的 perf/area/perf/W。</div>
-
-<h2>2. Maxwell 的 memory hierarchy 也重新整理</h2>
-<p>Fermi/Kepler：</p>
-<pre>one on-chip pool
-→ choose L1/shared split</pre>
-<p>Maxwell：</p>
-<pre>dedicated shared memory
-+
-unified L1/texture function</pre>
-<p>这样 shared-memory-heavy kernel 不再和 L1 用同样方式争那块物理容量。</p>
-
-<h3>更多 resident blocks</h3>
-<p>每 SM 最大 active blocks 从 16 提到 32，对小 thread-block kernel 特别有帮助。</p>
-
-<h3>Native shared atomics</h3>
-<p>histogram/local accumulation 这类 shared-memory contention workload 得到更直接的硬件支持。</p>
-
-<h2>3. Pascal：第一次必须认真区分“GP100”和“GP10x”</h2>
-<p>如果只写：</p>
-<pre>Pascal = HBM2 + NVLink + fast FP16</pre>
-<p>这节课就是错的。</p>
-
-<h2>4. GP100：HPC / training 分支</h2>
-<h3>更小的 compute-oriented SM</h3>
-<p>GP100 SM 有 64 FP32 cores，继续 Maxwell 的“不要盲目做超宽 SM”方向。</p>
-
-<h3>HBM2</h3>
-<p>GP100 通过超宽 HBM2 interface 提高 capacity/bandwidth efficiency。</p>
-
-<h3>NVLink</h3>
-<p>支持平台可以使用 NVLink 提高 GPU↔GPU / GPU↔CPU 互联能力。</p>
-<p>这正是 Slice 11 的历史来源之一。</p>
-
-<h3>FP16</h3>
-<p>GP100 的 FP16 <code>half2</code> 路径专门面向 training/low-precision compute，FP16 throughput 可以高于 FP32。</p>
-
-<h2>5. GP104/GP10x：另一个 Pascal</h2>
-<p>消费/graphics-oriented Pascal 的 FP16 路径和 GP100 完全不同。官方文档甚至明确给出：GP104 的 FP16 arithmetic throughput 远低于 GP100。</p>
-
-<p>但 GP104 等变体加入了 DP4A 这类 INT8 dot-product 指令：</p>
-<pre>4 × int8 products
-→ accumulate int32</pre>
-<p>这对 inference 很有意义。</p>
-
-<div class="callout"><strong>第三次重要抽象：</strong>“architecture name”已经不足以预测 AI 能力。必须看 exact die / product variant。</div>
-
-<h2>6. Pascal Unified Memory：从“托管分配”走向 page fault</h2>
-<p>Pascal 增加 GPU page fault 和更大的 unified virtual addressing 能力。</p>
-<pre>GPU touches non-resident managed page
-→ page fault
-→ runtime migrates/maps page
-→ execution continues</pre>
-<p>这使 heterogeneous memory 更灵活，但 page migration 仍有成本。它不是“CPU RAM 和 VRAM 自动一样快”。</p>
-
-<h2>7. 对垃圾佬最重要的 Pascal 教训</h2>
-<table>
-<tr><th>看到 Pascal</th><th>你还必须问</th></tr>
-<tr><td>FP16?</td><td>GP100 还是 GP10x？</td></tr>
-<tr><td>HBM2?</td><td>具体卡是不是 GP100/HBM 产品？</td></tr>
-<tr><td>NVLink?</td><td>具体 SKU/board 是否有？</td></tr>
-<tr><td>INT8?</td><td>具体 die / backend 是否使用 DP4A？</td></tr>
-<tr><td>今天还能不能跑？</td><td>看当前 driver/CUDA/backend support intelligence</td></tr>
-</table>
-
-<h2>8. LLM 迁移</h2>
-<p>Pascal 没有 Tensor Core，但这不等于“完全不能推理”。对于 memory-bound quantized decode，VRAM bandwidth、capacity 和 backend kernel 仍可能比 Tensor TOPS 更直接。</p>
-<p>但今天买旧 Pascal 的软件寿命问题，必须和架构能力一起算 TCO。</p>
-
-
-<section class="student-closure">
-<h2>学生闭环 — Maxwell / Pascal</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意 NVIDIA GPU 均可做 capability inventory）。</p>
-<p><strong>成本：</strong>0 元主路径；不要求为历史架构买卡。</p>
-<p><strong>风险：</strong>safe；只读资料、设备信息与 benchmark。</p>
-<p><strong>替代路径：</strong>没有对应年代 GPU 也能完成 Experiment 23；有 NVIDIA 卡才做 Experiment 24。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>从“上一代瓶颈 → 本代机制 → 今天 LLM 的影响”解释本页，而不是背型号。</li>
-<li>把 architecture family 与具体 SKU 的显存、带宽、互联、precision、功耗和软件生命周期分开。</li>
-<li>识别哪些是稳定架构事实，哪些必须在当前 driver/runtime 上重新验证。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果手里有 NVIDIA 卡，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>为什么能效、memory compression、FP16/INT8/统一内存与产品分化开始让“同架构不同 SKU”差异扩大？</li>
-<li>Pascal 游戏卡、专业卡、数据中心卡为什么不能只按 architecture 名字互相替代？</li>
-<li>如果一张旧 NVIDIA 卡理论算力不错，但最新 runtime 不再支持，你的结论属于“架构能力”还是“当前可用性”？</li>
-<li>为什么“同一 architecture”也必须继续查 memory system、SKU cut-down、power 和 software support？</li>
-</ol>
-<h3>完成证据</h3>
-<p>做一张 Maxwell / Pascal 代际卡片：<strong>前代瓶颈 / 本代改变 / LLM 影响 / 二手价值可能受什么影响 / 当前软件支持仍需查什么</strong>。禁止写“某代一定更值”。</p>
-<h3>如何迁移</h3>
-<p>以后看到 NVIDIA 新架构时沿用同一模板：execution、data movement、numerics、memory/interconnect、software enablement；最后再落到具体 SKU。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
-<li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — NVIDIA primary-source index</a></li>
-</ul>
-</section>
-</body>
-</html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 2：Maxwell 与 Pascal</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">NVIDIA Architecture · 2/5 · L0→L1</p><h1>NVIDIA 架构主线（二）：Maxwell → Pascal</h1><p class="lead">这两代最值得学的不是“帧数进步”，而是 NVIDIA 如何围绕每瓦吞吐、SM 资源组织、内存效率、低精度与高带宽计算继续重构 GPU。它们也是你理解大量二手消费卡与早期深度学习卡价值差异的关键节点。</p>
+<h2>Prerequisite Check</h2><p>先能解释 SM/warp、latency hiding、shared memory/cache 的作用。如果忘了，回看上一节；不要求记具体核心数或发布时间。</p>
+<h2>真实问题：为什么“同样很多 CUDA Core”的两代卡，每瓦性能和可用场景会差很多？</h2><p>扩大一个 SM 并不断堆执行单元，会遇到调度、供电、寄存器、shared memory、cache 与控制逻辑的效率问题。Maxwell 的重点之一，就是重新组织 SM，让每组执行资源和调度更紧密，减少为了追求宽度而浪费的能耗。</p>
+<h2>1. Maxwell：性能不是只靠“更多”，还靠“更容易喂饱”</h2><p>理解 Maxwell 可以先用“把一个大车间拆成更自治的小生产线”来类比。执行资源、warp scheduler、register/shared 等组织更细，使实际 workload 更容易使用已有晶体管。</p><div class="callout"><strong>长期规律：</strong>架构优化经常不是增加峰值单元，而是减少“资源存在但用不上”的时间和能量。</div>
+<h3>每瓦性能为什么重要？</h3><p>消费 GPU 受板卡功耗、散热、噪声和供电限制。若每完成一份工作所需能量降低，厂商可以在相似功耗范围内提供更多持续吞吐。本地 LLM 同样受这个约束：长期 decode、批处理或服务负载会把瞬时峰值变成热稳态问题。</p>
+<h3>内存效率同样是架构能力</h3><p>显存带宽很贵。除了增加总线宽度/速率，还可以通过 cache、压缩与访问效率减少真正需要穿过 DRAM 的字节。以后看到“带宽相近但性能不同”，要想到有效数据流量可能已经被架构改变。</p>
+<h2>2. Pascal：消费图形与数据中心计算开始更明显分化</h2><p>Pascal family 覆盖的芯片和产品定位非常广。消费卡与高端计算产品不能只用“都是 Pascal”概括。数据中心方向引入/强化的特性可能包含不同的 FP64/FP16 吞吐、HBM、高速互联与更适合 HPC/DL 的资源组合，而消费 SKU 追求的是另一种成本/图形平衡。</p>
+<h3>这为什么对二手卡特别重要？</h3><pre>architecture name = Pascal
+≠ same die
+≠ same memory technology
+≠ same FP16/FP64 ratio
+≠ same interconnect
+≠ same product support lifecycle</pre><p>因此“P100 很强，所以 GTX 10 系也一样有这些计算优势”是典型错误推理。</p>
+<h2>3. 低精度为什么开始变得更重要？</h2><p>深度学习并不总需要 FP64。若模型能容忍较低数值精度，就能用更少字节保存数据，并让某些硬件一次处理更多元素。Pascal 时期低精度计算的重要性快速上升，为后续 Tensor Core 的专用矩阵路径铺路。</p><p>但要注意两个层次：</p><ol><li><strong>数据格式存在：</strong>硬件/ISA 能表示或处理 FP16 等类型；</li><li><strong>应用能高效利用：</strong>库、kernel、累加策略和特定 SKU 的吞吐比例真的有优势。</li></ol>
+<h2>4. HBM 与 GDDR：不要把“显存容量”和“显存系统”混成一个数字</h2><p>高端计算 Pascal 产品使用 HBM，而大量消费卡使用 GDDR。对 LLM 来说，至少要把以下信息分开：</p><table><tr><th>维度</th><th>影响</th></tr><tr><td>容量</td><td>模型权重、KV cache、buffer 能否放下</td></tr><tr><td>带宽</td><td>decode/流式权重读取等 workload 的上限</td></tr><tr><td>延迟/访问模式</td><td>小而不规则访问的代价</td></tr><tr><td>ECC/可靠性</td><td>长时间计算、数据中心场景</td></tr><tr><td>封装/成本</td><td>二手价格、维修和整机适配</td></tr></table>
+<h2>Worked Example：GTX 1080 Ti 与 P100 为什么不能只比“哪张更新”？</h2><p>不需要记住它们的具体 benchmark。只要按决策树拆：</p><ol><li>目标模型能否放入各自可用显存？</li><li>目标 backend/driver 今天是否支持？</li><li>所需 precision/kernel 在 exact GPU 上是否高效？</li><li>memory bandwidth 和容量哪个是当前瓶颈？</li><li>板卡形态、散热、供电、接口是否适合家用？</li><li>当前价格是否足以补偿软件生命周期和能耗风险？</li></ol><p>这比“数据中心卡一定比游戏卡强”或“游戏卡一定更好用”更可靠。</p>
+<h2>Why it matters</h2><ul><li>Maxwell 教你看<strong>效率和资源组织</strong>，而不是只看执行单元数量。</li><li>Pascal 教你区分<strong>architecture family 与具体市场/芯片变体</strong>。</li><li>低精度演化告诉你：AI 性能要同时看 dtype、吞吐比例和软件 kernel。</li><li>HBM/GDDR 差异提醒你：LLM 的“显存”至少包含容量和带宽两个独立约束。</li><li>大量二手 NVIDIA 卡正来自这些代际，软件支持和功耗常比历史峰值算力更决定今天价值。</li></ul>
+<h2>常见误区</h2><ul><li>“Pascal 都有一样的 FP16/FP64 能力”——错，必须具体到芯片/SKU。</li><li>“HBM 一定让所有 workload 更快”——错，只有带宽/访问成为相关瓶颈时才直接受益。</li><li>“显存越大越好”——容量是 hard gate，但放得下以后还要看速度、软件和整机成本。</li><li>“Maxwell 没 Tensor Core，所以学习价值低”——错，它能帮助理解能效、调度与内存效率如何决定实际吞吐。</li></ul>
+<h2>小实验与预期观察</h2><p>继续 Experiment 23 的 generation feature trap 表。任选一个 Maxwell 和一个 Pascal SKU，仅用第一方/可靠规格建立：architecture、exact chip、VRAM、memory type/bandwidth、precision claims、当前 runtime support 五列。预期你会发现“同一代”内部差异足以破坏简单排名。</p>
+<h2>无对应硬件路径</h2><p>L0 完全可以只做规格与支持矩阵。不要为了课程购买旧 Maxwell/Pascal 卡。若你恰好有卡，L1 只读取设备信息并运行课程规定的安全 benchmark；不刷 BIOS、不超压。</p>
+<h2>排错</h2><ul><li>规格站数字冲突：回到厂商 product brief / whitepaper，并记录 SKU/芯片而非只记系列名。</li><li>理论 FP16 很高但应用没加速：确认 exact instruction path、kernel、累加格式和 backend。</li><li>数据中心卡便宜但装机困难：把散热形式、供电、显示输出、PCIe/机箱当作系统约束，不把“便宜算力”孤立看。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>Maxwell 为什么说明“更宽”不一定比“更容易利用”更重要？</li><li>为什么 Pascal family 内部不能用一个规格代表全部产品？</li><li>低精度同时怎样影响存储字节数和计算吞吐？为什么应用未必自动受益？</li><li>HBM 的价值主要解决什么？它不能解决什么？</li><li>看到一张廉价旧 Tesla/Pascal 数据中心卡，你会先列哪些整机风险？</li><li>如何把“每瓦吞吐”迁移到长期本地 LLM 服务的电费/噪声判断？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>完成本课后，你可以用效率、memory system、precision 和 SKU segmentation 解释 Maxwell/Pascal；不能用 architecture 名称或数据中心/消费标签直接做购买决定。任何今日可用性都必须重新查 driver/runtime/backend。</p></div>
+<h2>Transfer</h2><p>下一节 Volta/Turing 会把低精度矩阵加速正式专用化。学习时继续追问：这是通用 CUDA core 的改进，还是新专用 datapath？目标软件怎样显式命中它？</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
