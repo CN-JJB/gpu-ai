@@ -196,6 +196,7 @@ goal/workload
 | I14 | explicit eBay-ask vs OfferUp-sold-marked cross-contract signal comparison | contract-verified |
 | I15 | China 3090/A770 SECONDARY_REPORTED watch signals | verified |
 | I16 | stable M0–M3 market evidence selection gate + Experiment 38 bridge | verified |
+| I17 | freshness-aware market evidence + Experiment 38 stale BUY-CANDIDATE fix | verified |
 
 当前稳定边界：
 
