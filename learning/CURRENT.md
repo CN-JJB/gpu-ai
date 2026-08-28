@@ -37,6 +37,7 @@ I17 freshness-aware watchlist gate
 I18 append-only market refresh lineage
 I19 reusable market refresh helper + CI self-test
 I20 manifest ↔ raw llama-bench identity/config cross-check
+I21 explicit-argv real benchmark capture/seal helper
 ~~~
 
 ## Benchmark boundary
@@ -171,10 +172,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #76
-run id 33155172914
-head 24f797883fc09c96b8dc8422ccfd4724c8e0b08a
-job id 98796127099
+run #81
+run id 33155511018
+head f145d272d7288ab977f6b2066340f74f2f2cc89e
+job id 98797214814
 conclusion success
 ~~~
 
@@ -187,8 +188,8 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I20 selects the exact protocol PP/TG rows and cross-checks manifest identity/config against raw llama-bench fields;
-- a hash-consistent packet with a false manifest GPU identity is blocked;
+- the dedicated I21 capture self-test seals explicit argv evidence and passes the sealed synthetic packet through I07/I20;
+- failed benchmark commands remain auditable but CAPTURE: BLOCKED;
 - the dedicated I19 market refresh self-test remains green.
 
 Evidence:
@@ -196,11 +197,12 @@ Evidence:
 - examples/evidence/intelligence-18-append-only-market-refresh.md
 - examples/evidence/intelligence-19-market-refresh-helper.md
 - examples/evidence/intelligence-20-real-benchmark-raw-identity.md
+- examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 
 ## Next
 
-1. Acquire the first learner-owned real Experiment 61 Evidence Packet through the strengthened I07/I20 gate.
-2. Reduce manual packet-capture friction without weakening Experiment 61 provenance or identity requirements.
-3. Use market_refresh.py for future due/stale observation replacement; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
+1. Strengthen real intake with a local model-artifact SHA/byte check; llama-bench raw JSON proves size/config but not GGUF SHA.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20 admission.
+3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
