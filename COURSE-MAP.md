@@ -194,7 +194,8 @@ goal/workload
 | I12 | market sample/method audit + MEDIAN_ASK evidence validator | contract-verified |
 | I13 | OfferUp SOLD-marked listing cohort with non-confirmed transaction semantics | contract-verified |
 | I14 | explicit eBay-ask vs OfferUp-sold-marked cross-contract signal comparison | contract-verified |
-| I15 | China 3090/A770 SECONDARY_REPORTED watch signals | contract-verified |
+| I15 | China 3090/A770 SECONDARY_REPORTED watch signals | verified |
+| I16 | stable M0–M3 market evidence selection gate + Experiment 38 bridge | verified |
 
 当前稳定边界：
 
