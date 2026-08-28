@@ -137,6 +137,61 @@ def compare_contracts(baseline, candidate, errors):
         )
 
 
+def build_exact_quality_comparison(baseline, candidate, errors):
+    compare_contracts(baseline, candidate, errors)
+    if errors:
+        return None
+
+    baseline_ppl = float(baseline["metric"]["value"])
+    candidate_ppl = float(candidate["metric"]["value"])
+    if (
+        not math.isfinite(baseline_ppl)
+        or baseline_ppl <= 0
+        or not math.isfinite(candidate_ppl)
+        or candidate_ppl <= 0
+    ):
+        errors.append("PPL values must be finite and > 0")
+        return None
+
+    delta = candidate_ppl - baseline_ppl
+    ratio = candidate_ppl / baseline_ppl
+    return {
+        "quality_comparison_schema_version": 1,
+        "comparison_contract": COMPARISON_CONTRACT,
+        "metric": "PPL",
+        "lower_is_better": True,
+        "baseline": {
+            "value": baseline_ppl,
+            "reported_uncertainty": baseline["metric"].get(
+                "reported_uncertainty"
+            ),
+            "model_sha256": baseline["model_sha256"],
+            "model_bytes": baseline["model_bytes"],
+            "metric_sha256": sha256_file(baseline["paths"]["metric"]),
+        },
+        "candidate": {
+            "value": candidate_ppl,
+            "reported_uncertainty": candidate["metric"].get(
+                "reported_uncertainty"
+            ),
+            "model_sha256": candidate["model_sha256"],
+            "model_bytes": candidate["model_bytes"],
+            "metric_sha256": sha256_file(candidate["paths"]["metric"]),
+        },
+        "delta_candidate_minus_baseline": delta,
+        "ratio_candidate_to_baseline": ratio,
+        "percent_change": (ratio - 1.0) * 100.0,
+        "fixed_quality_identity": {
+            field: baseline["identity"].get(field)
+            for field in IDENTITY_FIELDS
+        },
+        "quality_executable": {
+            "sha256": baseline["executable_sha256"],
+            "bytes": baseline["executable_bytes"],
+        },
+    }
+
+
 def main():
     p = argparse.ArgumentParser(
         description=(
@@ -179,58 +234,11 @@ def main():
             errors,
         )
 
-    if baseline is not None and candidate is not None:
-        compare_contracts(baseline, candidate, errors)
-
     comparison = None
-    if not errors and baseline is not None and candidate is not None:
-        baseline_ppl = float(baseline["metric"]["value"])
-        candidate_ppl = float(candidate["metric"]["value"])
-        if (
-            not math.isfinite(baseline_ppl)
-            or baseline_ppl <= 0
-            or not math.isfinite(candidate_ppl)
-            or candidate_ppl <= 0
-        ):
-            errors.append("PPL values must be finite and > 0")
-        else:
-            delta = candidate_ppl - baseline_ppl
-            ratio = candidate_ppl / baseline_ppl
-            comparison = {
-                "quality_comparison_schema_version": 1,
-                "comparison_contract": COMPARISON_CONTRACT,
-                "metric": "PPL",
-                "lower_is_better": True,
-                "baseline": {
-                    "value": baseline_ppl,
-                    "reported_uncertainty": baseline["metric"].get(
-                        "reported_uncertainty"
-                    ),
-                    "model_sha256": baseline["model_sha256"],
-                    "model_bytes": baseline["model_bytes"],
-                    "metric_sha256": sha256_file(baseline["paths"]["metric"]),
-                },
-                "candidate": {
-                    "value": candidate_ppl,
-                    "reported_uncertainty": candidate["metric"].get(
-                        "reported_uncertainty"
-                    ),
-                    "model_sha256": candidate["model_sha256"],
-                    "model_bytes": candidate["model_bytes"],
-                    "metric_sha256": sha256_file(candidate["paths"]["metric"]),
-                },
-                "delta_candidate_minus_baseline": delta,
-                "ratio_candidate_to_baseline": ratio,
-                "percent_change": (ratio - 1.0) * 100.0,
-                "fixed_quality_identity": {
-                    field: baseline["identity"].get(field)
-                    for field in IDENTITY_FIELDS
-                },
-                "quality_executable": {
-                    "sha256": baseline["executable_sha256"],
-                    "bytes": baseline["executable_bytes"],
-                },
-            }
+    if baseline is not None and candidate is not None:
+        comparison = build_exact_quality_comparison(
+            baseline, candidate, errors
+        )
 
     print("QUALITY A/B COMPARISON")
     print(f"comparison_contract={COMPARISON_CONTRACT}")
