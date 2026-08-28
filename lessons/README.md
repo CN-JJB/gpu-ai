@@ -59,9 +59,26 @@ Lesson 只承载获得目标技能所需知识；需要查表的信息链接到 
 | 48 | `48-system-integration/` | hard gates / unknown blockers / machine dossier |
 | 49 | `49-graduation-capstone/` | Evidence-linked final machine design review |
 
-## 使用方式
+## 第一次学习：线性走完
 
-不需要从 01 线性读到 49。
+如果你是第一次完整学这门课，先读：
+
+- [学生入口](../curriculum/README.md)
+- [Foundation 00 — 如何使用这门课](../curriculum/foundations/00-how-to-use-course.md)
+
+然后推荐：
+
+~~~text
+01 → 02 → ... → 49
+~~~
+
+原因不是所有知识都必须严格前后依赖，而是这条顺序把术语、实验纪律和 Evidence 能力逐步叠起来。
+
+真机实验暂时不能做时，不停课：完成对应 L0 / README / EXPECTED，记 `DEFERRED-HARDWARE`，继续下一 Slice。
+
+## 已经有明确目标时：按路径复习
+
+不需要每次复习都从 01 线性读到 49。
 
 推荐：
 - 想买卡：05 → 06 → 14/15/16/17 → 18 → 19 → 20 → 21 → 45 → 46 → 47 → 48 → 49
