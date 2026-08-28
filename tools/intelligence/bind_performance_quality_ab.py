@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
 
 from experiment61_ab_contract import get_path, validate_manifest_pair
+from verify_quality_comparison import verify_exact_quality_comparison_evidence
 
 
-TRADEOFF_CONTRACT = "experiment61-model-performance-quality-v1"
+TRADEOFF_CONTRACT = "experiment61-model-performance-quality-v2"
 QUALITY_COMPARISON_CONTRACT = "ppl-exact-quality-identity-v1"
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def load_object(path, label, errors):
@@ -285,8 +295,8 @@ def perf_delta(baseline, candidate):
 def main():
     p = argparse.ArgumentParser(
         description=(
-            "Bind an exact I33 model-quality A/B to the same Experiment 61 one-variable "
-            "performance A/B and emit descriptive speed-vs-PPL evidence."
+            "Bind an independently reproducible I33 model-quality A/B to the same "
+            "Experiment 61 one-variable performance A/B."
         )
     )
     p.add_argument("--baseline-manifest", type=Path, required=True)
@@ -294,6 +304,11 @@ def main():
     p.add_argument("--baseline-benchmark", type=Path, required=True)
     p.add_argument("--candidate-benchmark", type=Path, required=True)
     p.add_argument("--quality-comparison", type=Path, required=True)
+    p.add_argument("--baseline-quality-dir", type=Path, required=True)
+    p.add_argument("--candidate-quality-dir", type=Path, required=True)
+    p.add_argument("--baseline-model-artifact", type=Path, required=True)
+    p.add_argument("--candidate-model-artifact", type=Path, required=True)
+    p.add_argument("--quality-corpus", type=Path, required=True)
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
 
@@ -302,7 +317,20 @@ def main():
     candidate_manifest = load_object(a.candidate_manifest, "candidate manifest", errors)
     baseline_benchmark = load_object(a.baseline_benchmark, "baseline benchmark", errors)
     candidate_benchmark = load_object(a.candidate_benchmark, "candidate benchmark", errors)
-    quality = load_object(a.quality_comparison, "quality comparison", errors)
+
+    quality_result = verify_exact_quality_comparison_evidence(
+        a.quality_comparison,
+        a.baseline_quality_dir,
+        a.candidate_quality_dir,
+        a.baseline_model_artifact,
+        a.candidate_model_artifact,
+        a.quality_corpus,
+    )
+    errors.extend(
+        "quality comparison evidence: " + error
+        for error in quality_result["errors"]
+    )
+    quality = quality_result["comparison"] if not quality_result["errors"] else {}
 
     contract = None
     if baseline_manifest and candidate_manifest:
@@ -344,7 +372,7 @@ def main():
         and all(key in candidate_metrics for key in ("pp_tok_s", "tg_tok_s"))
     ):
         output = {
-            "joint_tradeoff_schema_version": 1,
+            "joint_tradeoff_schema_version": 2,
             "tradeoff_contract": TRADEOFF_CONTRACT,
             "comparison_id": contract["comparison_id"],
             "intentional_variable": contract["intentional_variable"],
@@ -382,6 +410,17 @@ def main():
                     "candidate_uncertainty"
                 ],
             },
+            "quality_evidence": {
+                "comparison_sha256": sha256_file(a.quality_comparison),
+                "comparison_contract": quality.get("comparison_contract"),
+                "baseline_metric_sha256": (quality.get("baseline") or {}).get(
+                    "metric_sha256"
+                ),
+                "candidate_metric_sha256": (quality.get("candidate") or {}).get(
+                    "metric_sha256"
+                ),
+                "verification": "INDEPENDENTLY-REPRODUCED-I36",
+            },
         }
 
     print("PERFORMANCE × QUALITY A/B BINDING")
@@ -410,11 +449,12 @@ def main():
         f"TG percent_change={output['performance']['tg_tok_s']['percent_change']}"
     )
     print(f"PPL percent_change={output['quality']['percent_change']}")
+    print("quality_comparison_verification=INDEPENDENTLY-REPRODUCED-I36")
     print(f"out={a.out}")
     print("JOINT TRADEOFF: PASS")
     print(
         "PASS is a descriptive binding of one Experiment 61 model A/B across performance "
-        "and PPL evidence. It is not an ACCEPT/REJECT or purchase recommendation."
+        "and independently reproduced PPL evidence. It is not an ACCEPT/REJECT or purchase recommendation."
     )
 
 
