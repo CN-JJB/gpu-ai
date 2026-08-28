@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 import shutil
 import subprocess
@@ -22,6 +23,15 @@ def run(args, expect=0):
         print(p.stderr)
         raise SystemExit(2)
     return p.stdout + p.stderr
+
+
+def packet_entry(path):
+    data = path.read_bytes()
+    return {
+        "path": str(path),
+        "bytes": len(data),
+        "sha256": hashlib.sha256(data).hexdigest(),
+    }
 
 
 def main():
@@ -131,7 +141,48 @@ def main():
         "--allow-synthetic",
     ])
     assert "INTAKE: READY" in out
-    assert "READY is an evidence-completeness gate" in out
+    assert "RAW IDENTITY: PASS" in out
+    assert "internal-consistency gate" in out
+
+    # A self-consistent PACKET hash must not let a false manifest identity pass.
+    with tempfile.TemporaryDirectory() as raw_identity_td:
+        raw_identity_td = Path(raw_identity_td)
+        bad_identity_manifest = raw_identity_td / "manifest.json"
+        bad_identity_packet = raw_identity_td / "PACKET.json"
+
+        bad_manifest_obj = json.loads((exp / "manifest.json").read_text(encoding="utf-8"))
+        bad_manifest_obj["variant"]["hardware"]["device_identity"] = "Different Synthetic GPU"
+        bad_identity_manifest.write_text(
+            json.dumps(bad_manifest_obj, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        bad_identity_packet.write_text(
+            json.dumps({
+                "packet_schema_version": 1,
+                "file_count": 2,
+                "files": [
+                    packet_entry(bad_identity_manifest),
+                    packet_entry(exp / "result.json"),
+                ],
+            }, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        out = run([
+            PY, str(HERE / "verify_real_intake.py"),
+            str(fixture),
+            "--manifest", str(bad_identity_manifest),
+            "--result", str(exp / "result.json"),
+            "--packet", str(bad_identity_packet),
+            "--hardware-id", "hw:fixture:24g",
+            "--model-id", "model:fixture:8b",
+            "--runtime-id", "runtime:fixture",
+            "--observed-at", "2026-08-27",
+            "--allow-synthetic",
+        ], expect=2)
+        assert "INTAKE: BLOCKED" in out
+        assert "gpu_info does not match manifest device_identity" in out
 
     out = run([
         PY, str(HERE / "compatibility_preflight.py"),
@@ -729,7 +780,7 @@ def main():
     print("- superseded observations leave active market/freshness/watchlist views by default")
     print("- broken market refresh lineage is rejected")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
-    print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
+    print("- real benchmark intake cross-checks manifest identity/config against raw llama-bench rows")\n    print("- hash-consistent identity tampering is blocked, not only broken PACKET hashes")
     print("- Experiment 61 importer reproduces PP/TG")
     print("- exact benchmark Evidence upgrades only the matching path to PASS-MEASURED")
     print("- a different artifact falls back to NEEDS-TEST")
