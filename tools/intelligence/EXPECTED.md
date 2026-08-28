@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution remains verified through I18, and I19 adds a dedicated market-refresh self-test. The I19 verification checkpoint is GitHub Actions run #67 on 2026-08-28:
+Full Python execution is verified through I20. I19 retains its dedicated market-refresh self-test, while I20 strengthens real benchmark intake with manifest ↔ raw llama-bench identity checking. The I20 implementation checkpoint is GitHub Actions run #74 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -22,14 +22,15 @@ SELFTEST: PASS
 - compatibility coverage matrix reports four production NEEDS-TEST observations without ranking
 - freshness queue surfaces due-soon and stale production observations
 - explicit UNKNOWN remains valid and returns BLOCKED
-- real benchmark intake accepts an intact packet and rejects a tampered packet
+- real benchmark intake cross-checks manifest identity/config against raw llama-bench rows
+- hash-consistent identity tampering is blocked, not only broken PACKET hashes
 - Experiment 61 importer reproduces PP/TG
 - exact benchmark Evidence upgrades only the matching path to PASS-MEASURED
 - a different artifact falls back to NEEDS-TEST
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #67 checked out head 8ab1d5435e867570c2a5c2a48cc94d45c533179f, compiled every Intelligence Python tool, executed the complete existing self-test, and then executed the dedicated market refresh self-test.
+Run #74 checked out head 719c51d130ee4b932e6a0b8d7c26c3337af7d928, compiled every Intelligence Python tool, executed the complete self-test including the new hash-consistent identity-tampering negative case, and then executed the dedicated market refresh self-test.
 
 Detailed evidence:
 
@@ -55,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #67
-run id 33154549739
-job id 98794100639
+workflow run #74
+run id 33155088741
+job id 98795852292
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -115,3 +116,19 @@ The dedicated self-test confirms:
 
 Evidence:
 - examples/evidence/intelligence-19-market-refresh-helper.md
+
+
+## I20 assertions included in run #74
+
+The successful run confirms:
+- exact manifest protocol PP/TG rows are selected from raw llama-bench JSON;
+- PP/TG raw rows must agree on shared device/build/model/config identity;
+- manifest GPU identity must agree with raw gpu_info;
+- manifest backend/build must agree with raw backends/build_commit;
+- model bytes, threads, KV types, GPU layers, split mode, flash attention, tensor split and repetition count are cross-checked;
+- a tampered manifest with a freshly recomputed, hash-consistent PACKET is still rejected.
+
+Evidence:
+- examples/evidence/intelligence-20-real-benchmark-raw-identity.md
+
+The gate remains an internal-consistency check. It is not benchmark truth, causal proof, or a purchase recommendation.
