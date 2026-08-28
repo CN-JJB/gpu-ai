@@ -210,7 +210,7 @@ def main():
         assert "synthetic" in obj["components"]["used_gpu_acceptance"]["reason"]
         assert obj["components"]["used_gpu_acceptance"]["decision"] == "ACCEPT"
         assert obj["components"]["condition_acceptance"]["status"] == "BLOCKED"
-        assert "mapping remains undefined" in obj["components"]["condition_acceptance"]["reason"]
+        assert "no I50 condition evidence artifact supplied" in obj["components"]["condition_acceptance"]["reason"]
         assert obj["decision_readiness"] == "BLOCKED"
         assert "AUTOMATIC PURCHASE DECISION: NOT-PERMITTED" in out
 
