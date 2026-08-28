@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I27. GitHub Actions run #131 verifies the full Python self-test plus dedicated I21 capture, I22 model-artifact, I23 command-model binding, I24 hardware-profile, I25 prompt-evidence, I26 quality-corpus, I27 quality-identity, and I19 market-refresh self-tests.
+Phase 4 tooling currently implements I01–I41. GitHub Actions run #152 verifies the complete Intelligence suite, including reproducible model and execution-variable performance × quality evidence chains.
 
 ## 1. Validate a catalog
 
@@ -89,7 +89,25 @@ The helper:
 Before ingestion:
 
 ~~~bash
-python3 verify_real_intake.py ../../intelligence/catalog   --manifest /path/to/manifest.json   --result /path/to/result.json   --packet /path/to/PACKET.json   --hardware-id hw:...   --model-id model:...   --runtime-id runtime:...   --observed-at YYYY-MM-DD   --hardware-profile /path/to/profile.txt   --prompt-manifest /path/to/prompt-evidence/manifest.json   --quality-corpus /path/to/corpus.txt   --quality-manifest /path/to/quality-identity.json   --model-artifact /path/to/model.gguf   --command-record /path/to/command.json
+python3 verify_real_intake.py ../../intelligence/catalog \
+  --manifest /path/to/manifest.json \
+  --result /path/to/result.json \
+  --packet /path/to/PACKET.json \
+  --hardware-id hw:... \
+  --model-id model:... \
+  --runtime-id runtime:... \
+  --observed-at YYYY-MM-DD \
+  --hardware-profile /path/to/profile.txt \
+  --prompt-manifest /path/to/prompt-evidence/manifest.json \
+  --quality-corpus /path/to/corpus.txt \
+  --quality-manifest /path/to/quality-identity.json \
+  --model-artifact /path/to/model.gguf \
+  --command-record /path/to/command.json \
+  --quality-command-record /path/to/quality-command.json \
+  --quality-stdout /path/to/stdout.txt \
+  --quality-stderr /path/to/stderr.txt \
+  --quality-packet /path/to/quality/PACKET.json \
+  --quality-metric /path/to/quality-metric.json
 ~~~
 
 Required result:
@@ -420,7 +438,112 @@ I33 independently verifies both sides and requires exact tokenizer/corpus/fixtur
 
 This is not a significance test, causal claim, task-quality verdict, or recommendation.
 
-## 23. Self-test
+## 23. Reproducible model tradeoff
+
+Model-artifact A/B path:
+
+~~~text
+compare_quality_metrics.py
+→ verify_quality_comparison.py
+→ bind_performance_quality_ab.py
+→ verify_joint_tradeoff.py
+~~~
+
+I36 requires `quality-comparison.json` to reproduce both sealed quality bundles.
+
+I37 requires that reproduction inside the PP/TG × PPL binder.
+
+I38 independently rebuilds the entire model joint artifact.
+
+The model joint path is only for `variant.model` / `variant.model.*`.
+
+## 24. Declared execution-variable quality A/B
+
+Copy and fill:
+
+~~~text
+labs/experiments/59-real-quality-gate/quality-variable-contract.template.json
+~~~
+
+Then run:
+
+~~~bash
+python3 compare_quality_execution_variable.py \
+  --baseline-manifest baseline-manifest.json \
+  --candidate-manifest candidate-manifest.json \
+  --baseline-dir baseline-quality-run \
+  --candidate-dir candidate-quality-run \
+  --baseline-model /path/to/model.gguf \
+  --candidate-model /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --variable-contract quality-variable-contract.json \
+  --out quality-comparison.json
+~~~
+
+I35/I39 currently support `variant.execution.*` only.
+
+The contract binds each manifest value to the exact side-specific evaluation argv already authenticated by I30.
+
+The model artifact and quality executable must stay identical.
+
+## 25. Reproduce execution-variable quality comparison
+
+~~~bash
+python3 verify_quality_execution_variable_comparison.py \
+  --quality-comparison quality-comparison.json \
+  --baseline-manifest baseline-manifest.json \
+  --candidate-manifest candidate-manifest.json \
+  --baseline-dir baseline-quality-run \
+  --candidate-dir candidate-quality-run \
+  --baseline-model /path/to/model.gguf \
+  --candidate-model /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --variable-contract quality-variable-contract.json
+~~~
+
+I39 rebuilds the schema-v2 comparison from sealed metric roots + the declared variable contract.
+
+## 26. Execution-variable performance × quality binding
+
+~~~bash
+python3 bind_execution_performance_quality_ab.py \
+  --baseline-manifest baseline-manifest.json \
+  --candidate-manifest candidate-manifest.json \
+  --baseline-benchmark baseline-benchmark.json \
+  --candidate-benchmark candidate-benchmark.json \
+  --quality-comparison quality-comparison.json \
+  --baseline-quality-dir baseline-quality-run \
+  --candidate-quality-dir candidate-quality-run \
+  --baseline-model-artifact /path/to/model.gguf \
+  --candidate-model-artifact /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --variable-contract quality-variable-contract.json \
+  --out execution-joint.json
+~~~
+
+I40 requires I39 reproduction before binding PPL to PP/TG.
+
+## 27. Reproduce execution-variable joint artifact
+
+~~~bash
+python3 verify_execution_joint_tradeoff.py \
+  --joint-tradeoff execution-joint.json \
+  --baseline-manifest baseline-manifest.json \
+  --candidate-manifest candidate-manifest.json \
+  --baseline-benchmark baseline-benchmark.json \
+  --candidate-benchmark candidate-benchmark.json \
+  --quality-comparison quality-comparison.json \
+  --baseline-quality-dir baseline-quality-run \
+  --candidate-quality-dir candidate-quality-run \
+  --baseline-model-artifact /path/to/model.gguf \
+  --candidate-model-artifact /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --variable-contract quality-variable-contract.json
+~~~
+
+I41 requires exact full-object reproduction.
+
+## 28. Self-test
 
 From repository root:
 
@@ -432,12 +555,19 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #141
+run #152
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
 QUALITY METRIC SELFTEST: PASS
 QUALITY COMPARISON SELFTEST: PASS
+QUALITY COMPARISON ARTIFACT SELFTEST: PASS
+JOINT TRADEOFF SELFTEST: PASS
+JOINT TRADEOFF ARTIFACT SELFTEST: PASS
+QUALITY EXECUTION-VARIABLE SELFTEST: PASS
+QUALITY EXECUTION-VARIABLE ARTIFACT SELFTEST: PASS
+EXECUTION JOINT TRADEOFF SELFTEST: PASS
+EXECUTION JOINT TRADEOFF ARTIFACT SELFTEST: PASS
 QUALITY EXECUTION INTAKE SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
@@ -472,6 +602,22 @@ See:
 - examples/evidence/intelligence-32-quality-metric-intake-gate.md
 - examples/evidence/intelligence-31-quality-metric-extraction.md
 - examples/evidence/intelligence-30-quality-evaluation-argv-binding.md
+
+- examples/evidence/intelligence-34-performance-quality-ab-binding.md
+
+- examples/evidence/intelligence-35-quality-execution-variable-contract.md
+
+- examples/evidence/intelligence-36-quality-comparison-artifact-verification.md
+
+- examples/evidence/intelligence-37-joint-tradeoff-quality-reproduction.md
+
+- examples/evidence/intelligence-38-joint-tradeoff-artifact-verification.md
+
+- examples/evidence/intelligence-39-quality-execution-variable-artifact-verification.md
+
+- examples/evidence/intelligence-40-execution-performance-quality-binding.md
+
+- examples/evidence/intelligence-41-execution-joint-tradeoff-artifact-verification.md
 
 ## Non-goals
 

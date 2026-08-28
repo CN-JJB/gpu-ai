@@ -2,8 +2,10 @@
 
 ## Repo
 
-- CN-JJB/gpu-ai
-- main
+~~~text
+CN-JJB/gpu-ai
+branch: main
+~~~
 
 ## Stable course
 
@@ -16,327 +18,118 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I33 implemented and CI verified
+I01–I41 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #133
-run id 33157503815
-head 96c805572b7e4f3c9f2882ec175045e25674a672
-job id 98803698443
+workflow: Intelligence Self-Test
+run #152
+run id 33171494742
+head 82b834197062216e33bde05c1ddc00f3fecd0027
+job id 98849501909
 conclusion success
-full SELFTEST: PASS
-market refresh SELFTEST: PASS
 ~~~
 
-## Benchmark boundary
+Every Intelligence Python tool compiled and every historical + I41 dedicated self-test passed.
 
-Production benchmark catalog remains empty.
-
-Required:
+## Production evidence boundary
 
 ~~~text
-manifest + raw result + PACKET + canonical IDs
-→ I07 READY
-→ ingest
-→ validate
-→ exact MEASURED_SUPPORTED
+real production benchmark rows = 0
 ~~~
 
-## Market evidence
+Do not promote synthetic PP/TG/PPL fixtures into production evidence.
+
+Current market evidence remains unchanged from I18/I19. RTX 3090 China remains M1 SECONDARY_REPORTED around 7400 CNY from the existing observation; no stronger direct/confirmed transaction evidence has been acquired.
+
+## Real intake chain
+
+Non-synthetic Experiment 61 admission requires:
+- manifest + raw result + benchmark PACKET;
+- canonical hardware/model/runtime IDs;
+- local exact model artifact;
+- benchmark command record bound to `-m/--model`;
+- hardware profile;
+- Experiment 57 prompt evidence;
+- concrete quality corpus;
+- quality identity schema v2;
+- sealed quality execution command/raw streams + quality PACKET;
+- exact evaluation argv binding;
+- independently reproducible machine PPL metric.
+
+Only then may `verify_real_intake.py` return `INTAKE: READY`.
+
+## Model-artifact A/B lane
 
 ~~~text
-SECONDARY_REPORTED        → M1
-MEDIAN_ASK                → M2
-SOLD_MARKED_LISTING_PRICE → M3
+I33
+exact tokenizer/corpus/fixture/evaluation argv/parser/executable contract
+→ descriptive PPL comparison
+
+I36
+quality-comparison.json independently rebuilt from sealed quality bundles
+
+I37
+I36 reproduction required before binding PPL to Experiment 61 PP/TG
+
+I38
+entire model joint tradeoff independently rebuilt
 ~~~
 
-Current active signals:
+Model joint tradeoff remains descriptive only.
+
+## Execution-variable A/B lane
 
 ~~~text
-eBay asks:
-3090 1499
-7900 XTX 1020
-A770 330 USD
+I35
+quality-variable-contract.json
+manifest value ↔ exact executed quality argv
 
-OfferUp SOLD-marked displayed medians:
-3090 950
-7900 XTX 700
-A770 200 USD
+I39
+schema-v2 execution-variable quality comparison
++ variable-contract SHA
++ metric SHAs
++ independent full reconstruction
 
-China secondary:
-3090 7400
-A770 1400 CNY
+I40
+I39-reproduced PPL bound to matching Experiment 61 PP/TG
+
+I41
+entire execution joint tradeoff independently rebuilt
 ~~~
 
-## A770 append-only refresh
-
-Historical:
-
-~~~text
-2026-08-21
-1450 CNY
-~~~
-
-Current:
-
-~~~text
-2026-08-25
-1400 CNY
-revalidate_after=2026-09-01
-~~~
-
-Lineage:
-
-~~~text
-old.superseded_by = new
-new.supersedes = old
-~~~
-
-The old row remains audit history but is not current purchase evidence.
-
-## Active-view semantics
-
-~~~text
-market_matrix
-→ hides superseded by default
-
-freshness_report
-→ SUPERSEDED, not active stale queue
-
-market_evidence_gate
-→ SUPERSEDED-USE-NEWER-OBSERVATION
-~~~
-
-Use --include-superseded for audit history.
-
-## Watchlist freshness
-
-~~~text
-CURRENT + M2/M3 → ELIGIBLE
-DUE/STALE/INVALID → not purchase-eligible
-~~~
-
-Experiment 38 cannot emit BUY-CANDIDATE from stale/due/invalid market evidence.
-
-## I19 reusable refresh helper
-
-```text
-tools/intelligence/market_refresh.py
-```
-
-Use a complete new observation candidate plus the active old record.
-
-The helper creates reciprocal append-only lineage and rejects:
-- already-superseded forks;
-- cross-hardware links;
-- non-newer observations.
-
-CI run #67 verifies the helper and keeps the original full self-test green.
-
-## I20 raw benchmark identity gate
-
-```text
-verify_real_intake.py
-→ PACKET hash/bytes
-+ exact PP/TG protocol rows
-+ manifest ↔ raw llama-bench identity/config agreement
-→ RAW IDENTITY: PASS
-→ INTAKE: READY
-```
-
-The verifier now blocks a recomputed, hash-consistent packet when the manifest claims a different GPU/backend/build/model/config than the raw benchmark evidence.
-
-Implementation checkpoint: run #74.  
-Final documented head: run #76, success.
-
-## I21 capture/seal helper
-
-```text
-capture_real_benchmark.py
-→ explicit argv, shell=False
-→ stdout + stderr + command identity + exit code
-→ optional evidence copies
-→ PACKET.json
-→ CAPTURE: SEALED
-```
-
-`SEALED` is not admission.
-
-The sealed bundle must still pass I07/I20.
-
-CI run #81 keeps the full suite, I21 capture self-test and I19 refresh self-test green.
-
-## I22 local model artifact gate
-
-For non-synthetic intake:
-
-```text
---model-artifact MODEL.gguf
-→ local bytes + SHA256
-↔ manifest artifact_bytes + artifact_sha256
-↔ I20 raw llama-bench model_size
-→ MODEL ARTIFACT status=PASS
-```
-
-CI run #86 keeps full, capture, artifact and refresh tests green.
-
-## I23 command ↔ model binding
-
-For non-synthetic intake:
-
-```text
-I21 command.json exact argv
-↔ -m/--model path
-↔ I22 locally verified GGUF
-↔ manifest artifact identity
-↔ raw llama-bench model_size
-```
-
-command.json must itself be PACKET-indexed.
-
-A tampered argv plus freshly recomputed PACKET is still blocked.
-
-CI run #93 keeps full, capture, artifact, command-binding and refresh tests green.
-
-## I25 prompt evidence gate
-
-Experiment 57 prompt evidence now backs Experiment 61 `variant.prompt.*`.
-
-For non-synthetic intake, the prompt-evidence manifest must be PACKET-indexed and match messages/template/rendered/token-ID hashes plus token count.
-
-CI run #110 keeps the full suite green.
-
-## I26 quality corpus gate
-
-Non-synthetic intake now requires the concrete quality corpus.
-
-Its SHA256 must match `fixed.quality_eval.corpus_sha256`, and the artifact must be PACKET-indexed.
-
-CI run #122 is green.
-
-## I27 quality identity gate
-
-Experiment 59 now has a machine-readable quality identity artifact.
-
-Tokenizer identity, corpus SHA, fixture revision and evaluation args must match Experiment 61 `fixed.quality_eval.*` and be PACKET-indexed.
-
-CI run #133 is green.
-
-## I28 quality execution evidence
-
-Experiment 59 quality execution now has a dedicated capture + verification lane:
-
-~~~text
-capture_quality_eval.py
-→ exact argv, shell=False
-→ exact -m/--model + -f/--file bindings
-→ model/corpus SHA256 + bytes
-→ I27 quality identity artifact binding
-→ raw stdout.txt + stderr.txt
-→ quality-command.json + PACKET.json
-→ QUALITY CAPTURE: SEALED
-
-verify_quality_execution.py
-→ independent argv reparse + re-hash
-→ QUALITY EXECUTION: PASS
-~~~
-
-Run #134 is green, including the dedicated quality execution self-test.
-
-I28 intentionally does not parse PPL.
-
-## I29 mandatory quality execution admission
-
-For non-synthetic intake, `verify_real_intake.py` now requires:
-
-~~~text
---quality-command-record
---quality-stdout
---quality-stderr
---quality-packet
-~~~
-
-These are checked against the same I22 model artifact, I26 corpus and I27 quality identity.
-
-The quality PACKET remains separate from the benchmark PACKET.
-
-Run #136 is green, including the new quality execution intake self-test and every prior Intelligence gate.
-
-## I30 exact evaluation argv binding
-
-Quality identity is now schema v2:
-
-~~~text
-evaluation_args = exact JSON argv-token list
-~~~
-
-Capture and verification independently remove only:
-- argv[0] executable;
-- exactly one model selector;
-- exactly one corpus selector.
-
-Every remaining token must match `evaluation_args` exactly and in order.
-
-Quality command records are schema v2 and store the derived evaluation token list.
-
-Run #138 is green, including the dedicated I30 self-test plus every prior Intelligence gate.
-
-## I31 fail-closed quality metric extraction
-
-Supported raw contract:
-
-~~~text
-Final estimate: PPL = VALUE +/- UNCERTAINTY
-~~~
-
-Exactly one matching line across sealed stdout/stderr is required.
-
-Chunk-only output is not promoted to a final metric.
-
-The machine-readable artifact is independently reconstructed from raw evidence.
-
-## I32 mandatory metric admission
-
-For non-synthetic intake:
-
-~~~text
---quality-metric quality-metric.json
-~~~
-
-is now required after I28/I30 execution PASS.
-
-Only independently reproducible metric evidence can satisfy QUALITY METRIC status=PASS.
-
-Run #140 is green, including I31 metric parsing, I32 intake behavior, every historical evidence gate and market refresh.
-
-## I33 exact quality A/B comparability
-
-Both sides must independently pass I31/I32 verification.
-
-The comparator then requires exact equality of:
-
-~~~text
-tokenizer identity
-corpus SHA
-fixture revision
-evaluation argv
-parser contract
-metric name
-quality executable SHA256 + bytes
-~~~
-
-Only then are descriptive PPL delta, ratio and percent change emitted.
-
-Run #141 is green, including negative cases for changed evaluation argv and changed executable bytes.
+Current scope is `variant.execution.*` only.
+
+The model artifact and quality executable must remain the same across the execution-variable quality A/B.
+
+The declared flag semantics are not independently inferred from upstream; they remain explicit auditable assumptions.
+
+## Fail-closed properties
+
+The current lane blocks:
+- missing real evidence;
+- PACKET-only tampering;
+- model/corpus/identity/argv drift;
+- unsupported/ambiguous PPL raw output;
+- edited metric artifacts;
+- edited quality-comparison artifacts;
+- edited joint tradeoff artifacts;
+- undeclared Experiment 61 semantic drift;
+- using the model-quality path for execution-variable attribution;
+- changed executable in the execution-variable quality path.
+
+Even coherently recomputed delta/ratio/percent fields are blocked if they do not reproduce source evidence.
 
 ## Next work
 
-1. I34: bind quality A/B to the paired performance A/B manifest and one-variable contract before any speed-vs-quality tradeoff decision.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32.
-3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
+1. I42: unified verified-tradeoff routing gate:
+   - `variant.model*` → I38;
+   - `variant.execution.*` → I41;
+   - runtime/hardware/system or unsupported variables → BLOCKED.
+2. Acquire the first learner-owned real Experiment 61 packet.
+3. Refresh market evidence only with auditable stronger/newer provenance.
 4. No recommendation leaderboard yet.
 
 No auto-purchase or unsafe hardware modification.

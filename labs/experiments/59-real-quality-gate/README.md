@@ -155,6 +155,46 @@ I33 only computes descriptive PPL delta/ratio when tokenizer, corpus, fixture re
 
 It does not perform a significance test or turn PPL into a universal quality verdict.
 
+### Execution-variable quality A/B
+
+When the intended Experiment 61 variable is under `variant.execution.*`, do **not** use the I33 exact-identical-argv comparator.
+
+Instead copy:
+
+~~~bash
+cp quality-variable-contract.template.json quality-variable-contract.json
+~~~
+
+Fill the manifest value ↔ exact quality argv mapping for baseline and candidate.
+
+Then use:
+
+~~~bash
+python3 ../../../tools/intelligence/compare_quality_execution_variable.py \
+  --baseline-manifest ../61-real-benchmark-evidence-packet/baseline-manifest.json \
+  --candidate-manifest ../61-real-benchmark-evidence-packet/candidate-manifest.json \
+  --baseline-dir baseline-quality-run \
+  --candidate-dir candidate-quality-run \
+  --baseline-model "$BASE" \
+  --candidate-model "$CAND" \
+  --quality-corpus "$CORPUS" \
+  --variable-contract quality-variable-contract.json \
+  --out quality-comparison.json
+~~~
+
+I39 upgrades this to a reproducible schema-v2 comparison artifact and embeds the variable-contract SHA plus both metric SHAs.
+
+Verify it with `verify_quality_execution_variable_comparison.py` before downstream use.
+
+Current safety scope:
+- `variant.execution.*` only;
+- same exact model artifact;
+- same quality executable;
+- fixed tokenizer/corpus/fixture identity;
+- side-specific evaluation argv must match the explicit contract.
+
+This proves an auditable declared mapping. It does **not** independently prove that an upstream flag has the semantic effect claimed by the contract.
+
 ## 2. Dataset
 
 llama.cpp contributors commonly use Wikitext-2 for quantization comparisons, but your own domain corpus can also be useful.
@@ -195,14 +235,11 @@ Use Experiment 40:
 - candidate PP/TG;
 - same one-variable discipline.
 
-Then make one decision using both:
-```
-speed
-+
-memory
-+
-quality
-```
+For model-artifact A/B, use I36 → I37 → I38.
+
+For execution-variable A/B, use I39 → I40 → I41.
+
+These paths produce reproducible descriptive tradeoff evidence only. They do not make an automatic decision.
 
 ## No fake results
 

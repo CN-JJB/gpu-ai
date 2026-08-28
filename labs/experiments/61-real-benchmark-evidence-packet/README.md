@@ -186,7 +186,41 @@ Quality:
 - seal each quality run with I28/I30;
 - extract and verify `quality-metric.json` with I31;
 - supply `--quality-metric` to I32 admission;
-- for baseline/candidate quality arithmetic, use I33 exact-contract comparison before interpreting PPL delta/ratio.
+- for model-artifact A/B, use I33 → I36 → I37 → I38;
+- for declared `variant.execution.*` A/B, use the Experiment 59 quality-variable contract and I35 → I39 → I40 → I41;
+- do not route runtime/hardware/system comparisons through either quality-attribution path unless a future explicit contract supports them.
+
+## 6A. Verified tradeoff paths
+
+### Model artifact / quant path
+
+~~~text
+I33 quality compare
+→ I36 reproduce comparison
+→ I37 bind performance + quality
+→ I38 reproduce joint artifact
+~~~
+
+The Experiment 61 intentional variable must be `variant.model` or below it.
+
+### Execution-variable path
+
+~~~text
+quality-variable-contract.json
+→ I35/I39 reproduce execution-variable quality compare
+→ I40 bind performance + quality
+→ I41 reproduce joint artifact
+~~~
+
+The Experiment 61 intentional variable must be under `variant.execution.*`.
+
+The model artifact and quality executable remain fixed in the current execution-variable quality path.
+
+### Unsupported attribution
+
+`variant.runtime.*`, `variant.hardware.*`, multi-variable/system comparisons, or other unsupported interventions remain descriptive performance/system comparisons unless a dedicated quality contract exists.
+
+No joint artifact from either path is a purchase recommendation.
 
 ## 7. Build packet index
 
