@@ -1,168 +1,35 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Apple Silicon 1：Unified Memory 不是 VRAM</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>Apple Silicon 1 — Unified Memory：它不是“共享显存”，也不是“64 GB 免费 VRAM”</h1>
-
-<p><strong>真实问题：</strong>为什么 64 GB Mac 能运行一些 24 GB 独显装不下的模型，但又不能说“它有 64 GB 显存”？</p>
-
-<h2>1. 先画离散 GPU</h2>
-<pre>CPU
-│
-├─ system RAM
-│
-└─ PCIe / interconnect
-        │ copy
-        ▼
-      GPU
-      └─ VRAM</pre>
-
-<p>两个物理内存池意味着：</p>
-<ul>
-<li>模型可能同时在 RAM 和 VRAM 各有一份；</li>
-<li>CPU→GPU 需要 transfer；</li>
-<li>VRAM capacity 是独立硬限制。</li>
-</ul>
-
-<h2>2. Apple Silicon 把内存池放进一个 SoC 系统</h2>
-<pre>CPU ─┐
-GPU ─┼──── unified memory
-ANE ─┤
-I/O ─┘</pre>
-
-<p>M1 官方就把 Unified Memory Architecture 定义成一个高带宽、低延迟的单一内存池，SoC 各单元可以访问同一数据，而不必在多个物理内存池之间复制。</p>
-
-<div class="callout"><strong>优势不是“RAM 变成 VRAM”。</strong><br>优势是：CPU 与 GPU 不再天然被“system RAM vs dedicated VRAM”这堵物理墙隔开。</div>
-
-<h2>3. Metal 真的能看到这一点</h2>
-<p>Metal device 有：</p>
-<pre>hasUnifiedMemory</pre>
-<p>Apple Silicon 上为 true。</p>
-
-<p>普通 Metal resource 默认：</p>
-<pre>MTLStorageMode.shared</pre>
-<p>表示 CPU/GPU 都可以访问这份 system-memory resource。</p>
-
-<h2>4. 但 shared 不等于“什么都不用管”</h2>
-<p>Apple 文档明确要求 CPU/GPU 对共享资源仍要正确同步。</p>
-
-<pre>CPU writes
-→ command/dependency completes
-→ GPU reads</pre>
-
-<p>如果顺序错了：</p>
-<pre>same address
-+ wrong timing
-= race / stale data
-</pre>
-
-<h2>5. Framework 仍可能制造其他资源</h2>
-<p>Metal 还支持：</p>
-<ul>
-<li>private GPU resources；</li>
-<li>temporary buffers；</li>
-<li>optimized layouts；</li>
-<li>kernel workspaces。</li>
-</ul>
-
-<p>所以：</p>
-<pre>Unified Memory
-!=
-"every app only has one copy forever"</pre>
-
-<h2>6. 64 GB 机器到底有多少可以给 LLM？</h2>
-<p>统一内存同时要给：</p>
-<ul>
-<li>macOS；</li>
-<li>浏览器/应用；</li>
-<li>CPU；</li>
-<li>GPU；</li>
-<li>KV Cache；</li>
-<li>runtime workspace；</li>
-<li>其他系统服务。</li>
-</ul>
-
-<p>模型预算应该写成：</p>
-<pre>safe model budget
-≈ installed unified memory
- - OS/apps reserve
- - runtime buffers
- - safety headroom</pre>
-
-<h2>7. Metal 给了一个更靠谱的指标</h2>
-<pre>recommendedMaxWorkingSetSize</pre>
-
-<p>Apple 把它定义为：GPU 在不影响运行时性能的前提下，大致可以分配的内存量。</p>
-
-<p>还有：</p>
-<pre>currentAllocatedSize</pre>
-
-<p>所以真实实验应该记录它们，而不是把机器 RAM 数字改名叫“VRAM”。</p>
-
-<h2>8. Unified Memory 没有消灭 bandwidth</h2>
-<p>假设每生成一个 token 都要近似流过 20 GiB 权重：</p>
-<pre>200 GiB/s memory bandwidth
-÷ 20 GiB/token
-≈ 10 token/s theoretical bandwidth roof</pre>
-
-<p>这只是极简上限，但它解释一个现实：</p>
-
-<div class="callout"><strong>Apple 本地 LLM 的 decode，经常首先应该看 memory bandwidth，而不是 GPU 核心数。</strong></div>
-
-<h2>9. CPU/GPU/ANE 还会共享带宽</h2>
-<p>统一内存减少 copy boundary，但同一个内存系统也意味着多个单元的流量共享有限的物理通道。</p>
-
-<pre>GPU demand
-+ CPU demand
-+ other SoC traffic
-> memory bandwidth
-
-→ someone waits</pre>
-
-<h2>10. 为什么 Pro / Max / Ultra 很关键</h2>
-<p>同样写着“M3”或“M5”，不同 tier 可以有完全不同的：</p>
-<ul>
-<li>内存容量；</li>
-<li>带宽；</li>
-<li>GPU resources；</li>
-<li>package 结构。</li>
-</ul>
-
-<p>所以买 Mac 跑 LLM，必须记录：</p>
-<pre>exact chip tier
-+ memory capacity
-+ memory bandwidth</pre>
-
-<p>而不是只说：</p>
-<pre>"M4 很新"</pre>
-
-<section class="student-closure">
-<h2>学生闭环 — Unified Memory</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1（Apple Silicon Mac）。</p>
-<p><strong>成本：</strong>0 元主路径；课程不要求购买对应平台。</p>
-<p><strong>风险：</strong>safe。</p>
-<p><strong>替代路径：</strong>没有 Mac 就完成统一内存预算与架构调查；有 Apple Silicon 再做 Metal/MLX inventory。</p>
-</div>
-<h3>能力目标</h3>
-<ul><li>解释 Apple Silicon 的 CPU/GPU 共享物理内存为什么改变传统 host RAM vs VRAM 边界。</li>
-<li>区分 GPU、Neural Engine、Metal、MLX/Core ML 的职责层。</li>
-<li>用 working-set / memory pressure，而不是只看总统一内存，判断本地 LLM 容量风险。</li></ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/27-apple-unified-memory-budget-model/README.md">Experiment 27：Apple unified-memory budget model</a>；有 Apple Silicon 时做 <a href="../../labs/experiments/28-real-apple-metal-mlx-inventory/README.md">Experiment 28：real Metal/MLX inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么“统一内存 64GB”既不是“独显 64GB VRAM”，也不是“GPU 只能拿很少内存”？</li>
-<li>为什么“CPU 和 GPU 共享内存”不意味着任何数据访问都零成本？</li>
-<li>模型能装进统一内存后，还要继续检查哪些带宽、working-set、backend 条件？</li>
-<li>某模型能用 MLX 跑，与它能用 llama.cpp Metal 跑，证明的是同一件事吗？</li></ol>
-<h3>完成证据</h3>
-<p>做一张 Apple 路径预算：总统一内存 → OS/应用余量 → 模型权重 → KV/context → runtime headroom，并把“已知/估算/待真机验证”分开。</p>
-<h3>如何迁移</h3>
-<p>Apple 的特殊性用来强化一个通用原则：<strong>逻辑内存模型、物理内存拓扑、runtime allocation policy</strong> 是三层，不要把营销容量直接等价成可用模型容量。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://developer.apple.com/documentation/metal/setting-resource-storage-modes">Apple Metal — Resource Storage Modes</a></li>
-<li><a href="https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html">MLX — Unified Memory</a></li>
-<li><a href="../../reference/gpu/apple-silicon-unified-memory-metal.md">Course Reference — Apple Silicon / Metal</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Apple Silicon 1：Unified Memory 不是大显存</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Apple Silicon · 1/3 · L0→L1</p><h1>Apple Silicon（一）：Unified Memory 不是“超大显存”</h1><p class="lead">Apple Silicon 最容易被本地 LLM 玩家误读的就是 unified memory。它确实允许 CPU 与 GPU 在同一统一内存体系中访问数据，减少传统独显的显式复制，但它不等于“全部内存都能无代价当显存”，更不等于“容量够就一定快”。</p>
+<h2>Prerequisite Check</h2><p>你应知道传统独显通常有主机 RAM 与 GPU VRAM 两个物理内存域，CPU↔GPU 之间的数据移动可能经过 PCIe/驱动管理。</p>
+<h2>真实问题：一台 64 GB Mac 是否等于“一张 64 GB 显存 GPU”？</h2><p>不能这样等同。64 GB unified memory 是整台 SoC 的共享内存资源，CPU、GPU、系统服务、应用、文件 cache 等都要使用。模型可用空间取决于系统保留、当前进程、runtime 策略与 memory pressure。</p>
+<h2>1. 传统独显：两个物理内存域</h2><pre>CPU ↔ system RAM
+ |
+PCIe / driver transfer
+ |
+GPU ↔ VRAM</pre><p>当 CPU 准备的数据需要 GPU 使用时，很多 API/运行时必须显式或隐式地创建 device allocation 并搬运。大模型加载、activation 或频繁 host-device 往返都可能因此产生额外时间/内存副本。</p>
+<h2>2. Apple unified memory：共享物理内存不等于没有层级</h2><pre>          unified memory pool
+        ↙        ↓        ↘
+      CPU       GPU      Neural/other engines
+</pre><p>Apple Silicon 把 CPU/GPU 等组件放在高带宽统一内存架构中。对程序的价值是减少许多传统 discrete GPU 必须显式复制的场景，并让 CPU/GPU 更容易共享同一份数据。</p><div class="callout"><strong>但：</strong>共享 pool 仍有 bandwidth、latency、cache coherence、page residency、系统占用与 memory pressure。物理共享不是“无限快、无限可用”。</div>
+<h2>3. “模型能放下”应该怎么算？</h2><p>不要用：</p><pre>model file size < total unified memory → PASS</pre><p>更合理的是预算：</p><pre>usable headroom
+≈ total unified memory
+- macOS + background apps
+- runtime/code/buffers
+- model weights
+- KV cache
+- temporary activations / scratch
+- safety margin</pre><p>模型文件大小只是权重的一部分。上下文增长会增加 KV；并发 session 会增加额外工作集；部分框架还会创建临时 buffer。</p>
+<h2>4. Memory bandwidth：Apple Silicon 为什么在某些本地 LLM workload 很有吸引力？</h2><p>部分高端 Apple SoC 提供较宽的统一内存带宽。对于小 batch autoregressive decode，如果需要持续流式读取大量权重，bandwidth 对 token/s 很重要。</p><p>但同样要避免“带宽除模型大小 = 实测 token/s”的过度简化。真实路径还包含：</p><ul><li>cache hit / effective bytes；</li><li>quant dequant 与 matrix/vector compute；</li><li>kernel fusion；</li><li>CPU tokenizer/sampling；</li><li>runtime scheduling；</li><li>thermal/power behavior。</li></ul>
+<h2>5. Swap 为什么是危险信号，而不是“免费扩容”？</h2><p>macOS 可以把内存页换到 SSD，但大模型推理若严重依赖 swap，延迟和 SSD 写入都会明显恶化。swap 能避免某些瞬时 OOM，不等于把 32 GB Mac 变成 64 GB 高速统一内存。</p><p>判断时区分：</p><ul><li><strong>轻微 swap：</strong>系统后台行为，未必直接破坏 workload；</li><li><strong>持续高 memory pressure + 大量 swap：</strong>说明模型/上下文/并发超出舒适工作集；</li><li><strong>OOM/进程被杀：</strong>hard failure。</li></ul>
+<h2>6. Unified memory 与“zero-copy”营销词怎么读？</h2><p>zero-copy 通常意味着避免某类显式数据副本，不代表所有访问路径零成本。CPU/GPU cache、同步、资源状态和访问模式仍会产生代价。阅读框架文档时要问：避免的是哪一次 copy？数据由谁生产/消费？是否需要 synchronization？</p>
+<h2>Worked Example：32 GB vs 64 GB Apple Silicon</h2><p>假设某量化模型权重 22 GB，目标长上下文还需要数 GB KV，加上系统/runtime/safety margin：</p><ul><li>32 GB 机器可能“勉强加载”但 memory pressure 高，甚至需要缩短上下文；</li><li>64 GB 机器更容易保留 headroom，并能提高上下文或并发；</li><li>这不代表 64 GB 型号 token/s 自动是 32 GB 的两倍——容量与带宽/计算是不同维度。</li></ul>
+<h2>Why it matters</h2><ul><li>Apple 机器购买往往在下单时就固定内存，容量选择几乎不可后期升级。</li><li>统一内存让大模型 fit 逻辑与独显不同，但仍要做完整 budget。</li><li>“能加载”与“舒适运行”之间需要 safety margin。</li><li>swap 可以掩盖容量不足，却带来性能/SSD 成本。</li><li>对 bandwidth-bound decode，内存带宽仍是关键规格，但必须实测。</li></ul>
+<h2>常见误区</h2><ul><li>“64 GB unified memory = 64 GB VRAM”——共享 pool 由整个系统共同使用。</li><li>“统一内存没有数据移动成本”——减少显式 copy，不消除所有数据访问/同步成本。</li><li>“只要模型文件能放下就行”——还有 KV、buffer、OS、headroom。</li><li>“swap 可以替代买更大内存”——它是慢速后备，不是等价容量。</li><li>“带宽高就一定 token/s 高”——kernel/compute/runtime 仍参与。</li></ul>
+<h2>小实验与预期观察</h2><p>用课程 worksheet 做三档模型预算：短上下文单用户、长上下文单用户、两路并发。先不运行模型，只计算权重 + KV + 系统/运行时余量。预期你会看到总内存不是“模型最大尺寸”的同义词。</p><p>有 Mac 时再观察 Activity Monitor / memory pressure 与 runtime 的实际 allocation。不要把某一次系统闲置时的 free memory 当永久可用容量。</p>
+<h2>无 Apple 硬件路径</h2><p>L0 用预算表即可完成。课程不会要求为了验证 UMA 购买 Mac。后续真实学习阶段再在手头机器上采样 memory pressure、加载时间和 token/s。</p>
+<h2>排错</h2><ul><li>模型加载后系统卡顿：检查 memory pressure、swap、并发和 context。</li><li>明明总内存够却 allocation 失败：确认 runtime 的 GPU memory policy/限制与其他进程占用。</li><li>速度突然下降：同时检查 thermal、memory pressure、swap，不只看 GPU utilization。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 unified memory 不能直接等同同容量 VRAM？</li><li>列出模型文件之外至少四类内存开销。</li><li>统一内存减少了哪类传统 discrete GPU 成本？哪些成本仍存在？</li><li>为什么 swap 是容量压力证据而不是免费扩容？</li><li>容量翻倍为什么不意味着 token/s 翻倍？</li><li>购买不可升级内存的 Mac 时，为什么 safety margin 比“刚好能放下”更重要？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>Apple Silicon 先按整机 unified-memory budget 做 fit，再比较 bandwidth/compute/runtime。不能把总内存直接写成“VRAM”，也不能用“能加载”替代长上下文、并发与 memory-pressure 验证。</p></div>
+<h2>Transfer</h2><p>把这个思维迁移到 APU、共享内存 iGPU、AMD MI300A 等系统时，同样区分：物理共享、地址可见性、带宽、系统竞争、软件分配策略。下一节会进入 Apple GPU/Metal 的执行模型。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="../../reference/gpu/apple-silicon-spine.md">Apple Silicon Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
