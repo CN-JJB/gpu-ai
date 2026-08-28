@@ -57,15 +57,16 @@ Verified foundations:
 - [x] I13 sold-marked listing cohort + transaction-certainty guardrail
 - [x] I14 explicit cross-market signal comparison
 - [x] I15 China SECONDARY_REPORTED watch signals + semantic validator
-- [x] I01–I10 Python compile + end-to-end self-test
-- [x] I11–I15 exact-main contract verification
+- [x] I16 stable M0–M3 market evidence selection gate + Experiment 38 bridge
+- [x] I01–I16 GitHub Actions Python compile + end-to-end self-test
 
 Next:
 - [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
 - [ ] pass it through I07 intake and derive exact MEASURED_SUPPORTED;
 - [ ] add stronger direct-listing / confirmed-transaction evidence without mixing cohorts;
 - [ ] refresh observations when I10 marks them due/stale;
-- [ ] repeat the full Python self-test when a local/CI execution path is available;
+- [x] close full Python verification debt via GitHub Actions run #48;
+- [ ] make watchlist eligibility freshness-aware so stale market evidence cannot remain purchase-eligible;
 - [ ] recommendation views only after feasibility/support/quality gates and real comparable Evidence.
 
 Dynamic prices, current compatibility, model releases and benchmark observations belong here rather than being written into stable lessons.
