@@ -1,164 +1,37 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 6：从 config.json 到硬件需求档案</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
-<h1>LLM 架构 6 — 不看跑分，先从 config.json 做一份 Model Dossier</h1>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Model Dossier：从 config 到硬件假设</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Model Dossier · L0</p><h1>拿到陌生模型先别下载：从 config 建立硬件假设</h1><p class="lead">“这是 32B，所以要多少显存？”只是很粗的第一问。真正会选模型的人，会先读 architecture/config，把 dense/MoE、layers、hidden、intermediate、attention/KV heads、context、vocab、tie、dtype 等信息转换成权重、KV、计算和 runtime 风险假设。</p>
+<h2>Prerequisite Check</h2><p>你应理解 decoder-only、GQA/MQA、SwiGLU FFN、MoE 的 total/resident/active 区别。</p>
+<h2>真实问题：为什么同样叫“30B 左右”的模型，显存、KV 与 token/s 可以差很多？</h2><p>因为参数总数没有告诉你参数放在哪里、KV heads 有多少、每层宽度怎样、是否 MoE、context 多长，也没告诉你目标量化与 runtime kernel。</p>
+<h2>1. 建 Dossier 的四层</h2><pre>A. Identity
+model family / exact revision / tokenizer / license
 
-<h2>1. 目标不是“算出显存精确值”</h2>
+B. Architecture
+layers / hidden / FFN / attention / KV / MoE / context
 
-<p>目标是先把已知结构整理出来：</p>
+C. Artifact
+format / quant / bytes / SHA / conversion source
 
-<pre>模型是谁
-→ attention 什么结构
-→ KV 多大
-→ FFN 多宽
-→ 有没有 MoE
-→ 权重规模
-→ 哪些东西还必须实测</pre>
-
-<h2>2. 为什么 8B/14B 远远不够？</h2>
-
-<p>总参数量不知道：</p>
-
-<ul>
-<li>Hq / Hkv；</li>
-<li>head_dim；</li>
-<li>FFN expansion；</li>
-<li>MoE top-k；</li>
-<li>sliding/local attention；</li>
-<li>RoPE/context scheme。</li>
-</ul>
-
-<p>这些都会改变本地部署。</p>
-
-<h2>3. 第一张表：Attention</h2>
-
-<pre>Hq
-Hkv
-Dh
-
-q_width = Hq × Dh
-kv_width = Hkv × Dh</pre>
-
-<p>然后判断：</p>
-
-<pre>MHA-like
-GQA-like
-MQA-like
-architecture-specific</pre>
-
-<h2>4. 第二张表：KV</h2>
-
-<pre>KV
-=
-2 × L × Hkv × Dh × bytes
-× context
-× sequences</pre>
-
-<p>如果 config 有：</p>
-
-<pre>sliding_window
-layer_types
-latent/compressed attention</pre>
-
-<p>立刻标：</p>
-
-<pre>homogeneous baseline incomplete</pre>
-
-<h2>5. 第三张表：Dense FFN</h2>
-
-<pre>3 × d × d_ff</pre>
-
-<p>不是为了背参数量，而是为了看：</p>
-
-<pre>attention weights
-vs
-FFN weights</pre>
-
-<p>谁在 decode 时可能贡献更多 weight traffic。</p>
-
-<h2>6. 第四张表：MoE</h2>
-
-<pre>routed experts
-top-k
-shared experts
-expert d_ff
-MoE layer pattern</pre>
-
-<p>再分开：</p>
-
-<pre>total
-active/token
-resident
-traffic</pre>
-
-<h2>7. 权重大小优先用真实 artifact</h2>
-
-<p>有 GGUF：</p>
-
-<pre>stat
-sha256
-actual file bytes</pre>
-
-<p>没有 exact artifact 才用：</p>
-
-<pre>params × effective bpw / 8</pre>
-
-<p>并且明确写：</p>
-
-<pre>proxy</pre>
-
-<h2>8. 容量只做 lower bound</h2>
-
-<pre>lower_bound
-=
-weights/artifact
-+ KV
-+ reserve</pre>
-
-<p>如果它都已经大于显存：</p>
-
-<pre>FAIL-WITHOUT-OFFLOAD</pre>
-
-<p>如果小于显存：</p>
-
-<pre>POSSIBLE-NOT-PROVEN</pre>
-
-<div class="callout"><strong>公式只能证明“肯定不够”的一部分情况，不能证明 runtime 一定能 fit。</strong></div>
-
-<h2>9. 为什么不自动给 PP/TG？</h2>
-
-<p>因为 config 只能给 hypothesis：</p>
-
-<pre>large dense weights
-→ TG bandwidth might matter
-
-large prompt
-→ PP matrix/kernel might matter
-
-large Hkv/context
-→ KV might matter
-
-MoE
-→ expert placement/routing might matter</pre>
-
-<p>真正的数字必须进 Experiment 40 实测。</p>
-
-<h2>10. 最终形成一对 dossier</h2>
-
-<pre>Model Dossier
-+
-Hardware Candidate Dossier
-↓
-Real Capstone</pre>
-
-<p>到这里，选模型和选显卡终于是同一套 Evidence 系统。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — Model Architecture Dossier</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实模型/硬件只用于增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3><ul><li>把“模型/输入/质量/benchmark 身份”变成可审计对象。</li><li>能指出公式或配置的适用边界，不把近似写成事实。</li><li>为后续硬件选择提供可重复的 workload contract。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/52-model-architecture-dossier-model/README.md">Experiment 52：dossier model</a>；再做 <a href="../../labs/experiments/53-real-model-architecture-dossier/README.md">Experiment 53：real model dossier</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>为什么 config.json 只能给 hardware hypothesis，不能直接给 benchmark 结论？</li><li>哪些字段影响权重容量，哪些影响 KV，哪些影响每 token active compute？</li><li>模型 repo 写 128K context，为什么还不能说明你的本地 runtime 能稳定跑 128K？</li><li>如果模型是 MoE，你的 dossier 里必须比 dense 多写哪几类字段？</li></ol>
-<h3>完成证据</h3><p>完成一个真实模型 Architecture Dossier：参数/层数/hidden/FFN/attention/KV/context/MoE/weight format，并把每个字段映射到容量、带宽、compute 或 runtime 风险。</p>
-<h3>如何选择 / 迁移</h3><p>遇到新模型或新 backend 时，优先冻结 <strong>身份 + 输入 + protocol</strong>，再谈性能或质量；不可比的数据宁可 BLOCKED，也不要硬排排行榜。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://huggingface.co/docs/transformers/model_doc/llama">Hugging Face — LlamaConfig</a></li><li><a href="https://huggingface.co/docs/safetensors/metadata_parsing">Safetensors — Metadata Parsing</a></li><li><a href="../../reference/llm/model-architecture-dossier-card.md">Course Reference — Model Dossier Card</a></li></ul>
-</section>
-</body></html>
+D. Runtime hypothesis
+fit / KV / likely bottleneck / backend support / unknowns</pre><p>先写事实，再写推论；事实和假设不要混在同一栏。</p>
+<h2>2. Identity：名字不是 revision</h2><p>同一个模型名可能有 base/instruct、不同 revision、重新量化、社区 conversion。至少记录：</p><ul><li>原始模型仓库/官方标识；</li><li>base vs instruct；</li><li>source revision/commit（能确认时）；</li><li>tokenizer/chat template；</li><li>转换/量化来源；</li><li>本地 artifact SHA。</li></ul><p>否则以后质量差异可能只是“拿错模型”。</p>
+<h2>3. Dense architecture：先读这些字段</h2><table><tr><th>字段</th><th>主要影响</th></tr><tr><td>num_hidden_layers</td><td>每 token 重复 block 次数、KV 层数</td></tr><tr><td>hidden_size</td><td>attention/FFN 矩阵宽度</td></tr><tr><td>intermediate_size</td><td>FFN 参数与计算</td></tr><tr><td>num_attention_heads</td><td>Q 结构/并行组织</td></tr><tr><td>num_key_value_heads</td><td>KV cache 大小与 decode traffic</td></tr><tr><td>vocab_size</td><td>embedding/output projection</td></tr><tr><td>max/context + rope</td><td>合法 context 与位置语义</td></tr></table>
+<h2>4. 参数量粗算：不是为了取代官方数字</h2><p>你可以用结构粗算来检查“这个 config 是否看起来合理”，例如 dense SwiGLU 每层 FFN 约 3HI；attention 投影按 Q/K/V/O shape 估算；再乘层数并加 embedding。</p><p>用途是理解参数分布和发现异常，不是追求一位不差复算模型总参数。</p>
+<h2>5. Artifact bytes：比参数量更接近真实 fit</h2><p>本地部署最终加载的是具体 artifact。记录文件实际 bytes 与 SHA，优先用它做权重驻留预算，再加 KV/runtime。</p><pre>ideal bytes ≈ params × bits/8
+actual artifact bytes = filesystem reality
+</pre><p>两者会因 quant block metadata、混合 tensor dtype、alignment 等不同。</p>
+<h2>6. KV 预算：从 config 推，不从模型 B 数猜</h2><pre>KV ≈ 2 × layers × context × kv_heads × head_dim × bytes × sequences</pre><p>如果模型使用 sliding/hybrid/latent KV，公式要按实际架构调整；先标 UNKNOWN，后续专课再推。</p>
+<h2>7. MoE Dossier 多三列</h2><ul><li>number of experts / shared experts；</li><li>top-k active experts；</li><li>total vs active parameter statement。</li></ul><p>显存预算看 resident/total artifact；per-token compute 假设看 active 路由。不要只抄模型卡里最吸引人的“active B”。</p>
+<h2>Worked Example：陌生 32B 模型下载前 5 分钟</h2><ol><li>确认官方/可信 model card 和 exact revision；</li><li>读 config：layers/H/I/Q heads/KV heads/context/MoE；</li><li>找目标 GGUF/MLX 等 artifact 实际大小；</li><li>按目标 context 做 KV rough budget；</li><li>加 runtime/safety margin；</li><li>检查目标 backend 当前是否支持该 architecture/quant；</li><li>写 hypothesis：fit? PP/TG 谁可能受限？哪些 unknown 需实验？</li></ol><p>到这里你才决定值不值得下载/转换/测试。</p>
+<h2>8. Hypothesis 应写成可被推翻的句子</h2><p>坏写法：“这模型应该很快。”好写法：</p><pre>On a 24 GB GPU, Q4 artifact + 16k KV is expected to fit with limited headroom;
+decode may be bandwidth-sensitive;
+actual support for attention variant is UNKNOWN until backend check.</pre><p>这样后续 experiment 能验证/推翻每一项。</p>
+<h2>Why it matters</h2><ul><li>减少下载几十 GB 后才发现不 fit 的浪费。</li><li>让模型参数量从营销标签变成结构可解释对象。</li><li>提前发现 KV/MoE/新 attention 的隐藏成本。</li><li>把“事实、假设、unknown”分开，方便后续实验。</li></ul>
+<h2>常见误区</h2><ul><li>“B 数相同就硬件需求相同”——结构与 artifact 不同。</li><li>“模型 card 写 128k，就按 128k 买显存”——还需质量语义和 KV 实际结构。</li><li>“文件名 Q4 就足够建立 provenance”——要 exact artifact/hash/source。</li><li>“active params 就是显存 params”——MoE 错误。</li><li>“config 字段一定跨模型同义”——新架构可能定义不同。</li></ul>
+<h2>小实验</h2><p>任选两个不同 family 模型，创建 Dossier。每个字段标记 <strong>FACT / DERIVED / HYPOTHESIS / UNKNOWN</strong>。在不跑模型前写出 fit 与瓶颈预测。</p><p><strong>预期观察：</strong>你会发现 config 足以排除很多候选，但不能替代 runtime support 与真实 measurement。</p>
+<h2>无 GPU 路径</h2><p>这本来就是 L0 research lesson。无需下载完整权重，config/model card 足够完成第一版。</p>
+<h2>排错</h2><ul><li>config 与 model card 冲突：优先 exact revision 的机器可读 config + 官方说明，记录冲突。</li><li>artifact 大小异常：查是否 split、是否包含多文件、是否混合 precision。</li><li>KV 公式不适用：标 unknown，查 architecture implementation，不强套 MHA。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>Model Dossier 的四层是什么？</li><li>为什么 artifact bytes 比参数×位宽更接近真实权重 fit？</li><li>KV 预算至少需要哪些 config 字段？</li><li>MoE Dossier 为什么必须区分 total/active？</li><li>FACT、DERIVED、HYPOTHESIS、UNKNOWN 为什么要分开？</li><li>给一个可被实验推翻的硬件 hypothesis 示例。</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>下载/购买硬件前先建立 Model Dossier。没有 exact identity、artifact、attention/KV 结构和 backend support 的模型，只能进入探索队列，不能直接进入硬件采购结论。</p></div>
+<h2>Transfer</h2><p>未来遇到任何新 architecture，把新字段加进 Dossier，而不是重写思考方式：identity → architecture → artifact → runtime hypothesis。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="../../reference/llm/">Course LLM Reference</a></li><li><a href="../../templates/">Course templates</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
+</main></body></html>
