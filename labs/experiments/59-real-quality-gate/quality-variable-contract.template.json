@@ -1,0 +1,13 @@
+{
+  "quality_variable_contract_schema_version": 1,
+  "comparison_id": "REPLACE",
+  "intentional_variable": "variant.execution.REPLACE",
+  "baseline": {
+    "manifest_value": "REPLACE",
+    "evaluation_args": []
+  },
+  "candidate": {
+    "manifest_value": "REPLACE",
+    "evaluation_args": []
+  }
+}
