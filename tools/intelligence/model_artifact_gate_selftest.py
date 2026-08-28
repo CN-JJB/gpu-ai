@@ -73,12 +73,48 @@ def main():
         result = td / "result.json"
         result.write_text(json.dumps(result_obj, indent=2) + "\n", encoding="utf-8")
 
+        command_record = td / "command.json"
+        command_record.write_text(
+            json.dumps({
+                "capture_schema_version": 1,
+                "started_at": "2026-08-28T00:00:00Z",
+                "ended_at": "2026-08-28T00:00:01Z",
+                "cwd": str(td),
+                "argv": ["llama-bench", "-m", str(model), "-o", "json"],
+                "exit_code": 0,
+                "launch_error": None,
+                "executable": {
+                    "requested": "llama-bench",
+                    "resolved": None,
+                    "bytes": None,
+                    "sha256": None,
+                },
+                "manifest": {
+                    "source": str(manifest),
+                    "copied_path": "manifest.json",
+                    "bytes": manifest.stat().st_size,
+                    "sha256": sha256_bytes(manifest.read_bytes()),
+                },
+                "model_artifact": {
+                    "argv_value": str(model),
+                    "resolved": str(model.resolve()),
+                    "bytes": len(model_bytes),
+                    "sha256": sha256_bytes(model_bytes),
+                },
+            }, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
         packet = td / "PACKET.json"
         packet.write_text(
             json.dumps({
                 "packet_schema_version": 1,
-                "file_count": 2,
-                "files": [packet_entry(manifest), packet_entry(result)],
+                "file_count": 3,
+                "files": [
+                    packet_entry(manifest),
+                    packet_entry(result),
+                    packet_entry(command_record),
+                ],
             }, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -101,6 +137,8 @@ def main():
             "runtime:fixture",
             "--observed-at",
             "2026-08-28",
+            "--command-record",
+            str(command_record),
         ]
 
         out = run(base, expect=2)
