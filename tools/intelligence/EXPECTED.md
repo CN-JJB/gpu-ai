@@ -10,17 +10,17 @@ python tools/intelligence/selftest.py
 ## Current verified frontier
 
 ~~~text
-I01–I51
+I01–I52
 ~~~
 
 Latest implementation verification:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #165
-run id 33189475466
-head ba1ddf6a3c88d07721eefd30b7e452a8e93c42c6
-job id 98910975890
+run #170
+run id 33190099651
+head 29e23bca982989b31597de61eb3be43ec25c01f7
+job id 98913094544
 conclusion success
 Python 3.12
 Ubuntu 24.04
@@ -69,6 +69,20 @@ I42 route
 ~~~
 
 The complete run includes dedicated tests for every listed stage.
+
+### I52 — real evidence session orchestration
+
+~~~text
+explicit session JSON
+→ benchmark capture
+→ quality capture
+→ machine PPL extraction
+→ full I20–I32 intake
+~~~
+
+The dedicated self-test proves the runner can reach `REAL SESSION: READY` through the existing gates, preserves failed-step evidence, never overwrites a non-empty output directory, and indexes profile/prompt/corpus/quality identity in the main benchmark PACKET.
+
+All I52 self-test metrics are synthetic fixtures only.
 
 ## Decision boundary
 

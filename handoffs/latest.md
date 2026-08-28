@@ -18,16 +18,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I51 implemented
-latest implementation CI: run #165 success
+I01–I52 implemented
+latest implementation CI: run #170 success
 ~~~
 
 CI identity:
 
 ~~~text
-run id 33189475466
-head ba1ddf6a3c88d07721eefd30b7e452a8e93c42c6
-job id 98910975890
+run id 33190099651
+head 29e23bca982989b31597de61eb3be43ec25c01f7
+job id 98913094544
 ~~~
 
 ## Production boundary
@@ -152,13 +152,37 @@ I46 uses only explicit hard thresholds:
 
 No weighted score is used.
 
+## I52 real evidence session runner
+
+Use:
+
+~~~text
+labs/experiments/61-real-benchmark-evidence-packet/real-evidence-session.template.json
+tools/intelligence/run_real_evidence_session.py
+~~~
+
+The session runner orchestrates only existing gates:
+
+~~~text
+benchmark capture
+→ quality capture
+→ PPL extraction
+→ verify_real_intake
+~~~
+
+It accepts explicit argv arrays and uses no shell.
+
+On success it emits `REAL SESSION: READY`, `session-summary.json`, and `intake-args.json`.
+
+Do not ingest automatically. Review the real evidence first.
+
 ## Next work
 
-1. Acquire first learner-owned real Experiment 61 packet.
-2. Acquire first real Experiment 87/I44 acceptance packet for the same candidate hardware.
-3. Create explicit I46 and I48 policies for the learner's workload/budget.
-4. Run I43 and close only evidence-specific blockers.
-5. Refresh market evidence when newer/stronger provenance exists.
-6. Do not build a recommendation leaderboard before real evidence exists.
+1. Fill the I52 real-evidence session template on the actual benchmark machine.
+2. Run I52 and require `REAL SESSION: READY`; manually review before ingestion.
+3. After reviewed ingestion, derive exact measured compatibility.
+4. Acquire the first real Experiment 87/I44 acceptance packet for the same candidate hardware.
+5. Create explicit I46/I48 policies and run I43.
+6. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
 
 No auto-purchase, no unsafe hardware modification.

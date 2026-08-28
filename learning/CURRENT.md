@@ -26,6 +26,7 @@ I44–I45  packet-bound used-GPU acceptance + readiness bridge
 I46–I47  explicit performance-target policy + readiness bridge
 I48–I49  explicit personal price-ceiling policy + readiness bridge
 I50–I51  condition-evidence provenance grades + readiness bridge
+I52       real Experiment 61 evidence session runner
 ~~~
 
 ## Structural status
@@ -191,14 +192,14 @@ China rows remain M1 secondary signals, not confirmed transactions.
 
 ~~~text
 workflow: Intelligence Self-Test
-run #165
-run id 33189475466
-head ba1ddf6a3c88d07721eefd30b7e452a8e93c42c6
-job id 98910975890
+run #170
+run id 33190099651
+head 29e23bca982989b31597de61eb3be43ec25c01f7
+job id 98913094544
 conclusion success
 ~~~
 
-The complete suite passed through I51.
+The complete suite passed through I52, including the end-to-end real-evidence session orchestration self-test.
 
 ## Newest evidence
 
@@ -212,16 +213,17 @@ The complete suite passed through I51.
 - examples/evidence/intelligence-49-price-ceiling-readiness-bridge.md
 - examples/evidence/intelligence-50-condition-evidence-grades.md
 - examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
+- examples/evidence/intelligence-52-real-evidence-session-runner.md
 
 ## Next
 
 1. Stop expanding decision gates by default.
-2. Acquire the first learner-owned real Experiment 61 benchmark + quality packet.
-3. Derive exact `MEASURED_SUPPORTED` compatibility from that real path.
-4. Acquire the first real Experiment 87 / I44 used-GPU acceptance packet for a candidate.
-5. Fill explicit I46 performance-target and I48 price-ceiling policies.
-6. Run I43 and inspect the remaining real blockers.
-7. Refresh market evidence only when stronger/newer auditable provenance exists.
-8. Keep ranking/recommendation blocked until real candidate evidence exists.
+2. On the learner's actual machine, copy and fill `labs/experiments/61-real-benchmark-evidence-packet/real-evidence-session.template.json`.
+3. Run `tools/intelligence/run_real_evidence_session.py`; require `REAL SESSION: READY`.
+4. Manually review the captured evidence before any catalog ingestion.
+5. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
+6. Acquire the first real Experiment 87 / I44 used-GPU acceptance packet for the same candidate hardware.
+7. Fill explicit I46 performance-target and I48 price-ceiling policies, then run I43.
+8. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
 
 No auto-purchase or unsafe hardware modification.

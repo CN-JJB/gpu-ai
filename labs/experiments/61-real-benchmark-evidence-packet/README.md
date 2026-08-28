@@ -120,6 +120,40 @@ validator.txt
 Performance:
 - reuse Experiment 40.
 
+### One-session I52 path
+
+For the first real packet, prefer the orchestrated path after all source artifacts and exact argv are ready:
+
+~~~bash
+cp real-evidence-session.template.json real-session.json
+# fill every REPLACE/path/argv field
+
+python3 ../../../tools/intelligence/run_real_evidence_session.py \
+  real-session.json \
+  --out-dir real-session-output
+~~~
+
+The runner executes the existing benchmark capture, quality capture, PPL extraction and real-intake verifier in sequence.
+
+It does **not** generate manifests, choose flags, choose a model, or infer canonical IDs.
+
+Required success:
+
+~~~text
+REAL SESSION: READY
+~~~
+
+Then inspect:
+
+~~~text
+real-session-output/session-summary.json
+real-session-output/intake-args.json
+real-session-output/benchmark/
+real-session-output/quality/
+~~~
+
+Do not auto-ingest. Review raw evidence and identity first.
+
 ### Recommended capture/seal path
 
 After the manifest is filled, prefer the Intelligence capture helper for the raw performance command:

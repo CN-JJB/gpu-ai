@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I51. GitHub Actions run #165 verifies the complete suite, including verified tradeoff routing, decision-gap reporting, used-GPU acceptance, explicit performance/price policies, and condition-evidence provenance.
+Phase 4 tooling currently implements I01–I52. GitHub Actions run #170 verifies the complete suite, including verified tradeoff routing, decision readiness, and the end-to-end real-evidence session runner.
 
 ## 1. Validate a catalog
 
@@ -583,7 +583,48 @@ reference/hardware/condition-evidence-grades.md
 
 C3 means learner-owned, PACKET-bound, independently reproducible I44 technical evidence. ACCEPT/REVIEW/REJECT remains separate.
 
-## 29. Self-test
+## 29. Run one real evidence session
+
+Copy and fill:
+
+~~~bash
+cp labs/experiments/61-real-benchmark-evidence-packet/real-evidence-session.template.json \
+  /path/to/real-session.json
+~~~
+
+Then run:
+
+~~~bash
+python3 tools/intelligence/run_real_evidence_session.py \
+  /path/to/real-session.json \
+  --out-dir /path/to/session-output
+~~~
+
+I52 executes, in order:
+
+~~~text
+capture_real_benchmark.py
+capture_quality_eval.py
+extract_quality_metric.py
+verify_real_intake.py
+~~~
+
+The session JSON contains exact benchmark and quality argv token arrays. The runner does not invent flags and does not use a shell.
+
+Success is:
+
+~~~text
+REAL SESSION: READY
+~~~
+
+The output also contains:
+- benchmark and quality sealed directories;
+- `session-summary.json`;
+- `intake-args.json`.
+
+Review the real evidence before ingestion. READY is not benchmark truth or purchase approval.
+
+## 30. Self-test
 
 From repository root:
 
@@ -595,7 +636,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #165
+run #170
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
@@ -619,6 +660,7 @@ PRICE CEILING READINESS BRIDGE SELFTEST: PASS
 CONDITION EVIDENCE GRADE SELFTEST: PASS
 CONDITION EVIDENCE READINESS BRIDGE SELFTEST: PASS
 QUALITY EXECUTION INTAKE SELFTEST: PASS
+REAL EVIDENCE SESSION SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
 
@@ -688,6 +730,8 @@ See:
 - examples/evidence/intelligence-50-condition-evidence-grades.md
 
 - examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
+
+- examples/evidence/intelligence-52-real-evidence-session-runner.md
 
 ## Non-goals
 
