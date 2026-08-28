@@ -26,6 +26,7 @@ def main():
     p.add_argument("--currency")
     p.add_argument("--as-of", default=date.today().isoformat())
     p.add_argument("--include-synthetic", action="store_true")
+    p.add_argument("--include-superseded", action="store_true")
     a = p.parse_args()
 
     hardware = {x["hardware_id"]: x for x in load(a.catalog / "hardware.jsonl")}
@@ -42,6 +43,8 @@ def main():
 
     for m in load(a.catalog / "market.jsonl"):
         if m.get("synthetic", False) and not a.include_synthetic:
+            continue
+        if m.get("superseded_by") and not a.include_superseded:
             continue
 
         reject = False
@@ -75,6 +78,8 @@ def main():
             "revalidate_after": m.get("revalidate_after"),
             "stale": stale,
             "evidence": (m.get("source") or {}).get("evidence_class"),
+            "superseded_by": m.get("superseded_by"),
+            "supersedes": m.get("supersedes"),
         })
 
     rows.sort(key=lambda x: (str(x["geography"]), str(x["channel"]), str(x["hardware"]), str(x["record_id"])))
@@ -119,7 +124,9 @@ def main():
             print(
                 f"- hardware={x['hardware']} | value={x['value']} {x['currency']} | "
                 f"observed={x['observed_at']} | revalidate_after={x['revalidate_after']} | "
-                f"freshness={freshness} | evidence={x['evidence']} | record={x['record_id']}"
+                f"freshness={freshness} | evidence={x['evidence']} | "
+                f"supersedes={x['supersedes']} | superseded_by={x['superseded_by']} | "
+                f"record={x['record_id']}"
             )
 
     if not rows:
@@ -128,6 +135,7 @@ def main():
         print("COVERAGE: PRESENT")
 
     print("Market coverage is not a sale-price claim and not a purchase recommendation.")
+    print("Superseded observations are hidden by default; use --include-superseded for audit history.")
     print("Never merge different contracts without an explicit comparison rule.")
 
 
