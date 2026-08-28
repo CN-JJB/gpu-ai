@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I27. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv, I24 verifies hardware-profile evidence, I25 verifies prompt identity evidence, I26 verifies the quality corpus artifact, and I27 verifies the machine-readable quality identity manifest. The I27 implementation checkpoint is GitHub Actions run #131 on 2026-08-28:
+Full Python execution is verified through I29. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv, I24 verifies hardware-profile evidence, I25 verifies prompt identity evidence, I26 verifies the quality corpus artifact, I27 verifies the machine-readable quality identity manifest, I28 seals/verifies executed quality evidence, and I29 makes I28 mandatory for non-synthetic intake. The I29 implementation checkpoint is GitHub Actions run #136 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #131 checked out head bed49fe2878c314ee08a215e7fc8d4c31516ae35, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated capture, model-artifact, command-model, hardware-profile, prompt-evidence, quality-corpus, quality-identity and market-refresh self-tests.
+Run #136 checked out head 1651f040ff5e16a38102c33949525b3b991f5a69, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated capture, model-artifact, command-model, hardware-profile, prompt-evidence, quality-corpus, quality-identity, quality-execution, quality-execution-intake and market-refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #131
-run id 33157420701
-job id 98803423115
+workflow run #136
+run id 33159217898
+job id 98809329732
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -239,4 +239,18 @@ Evidence:
 - examples/evidence/intelligence-28-quality-execution-evidence.md
 
 I28 intentionally does not parse a PPL value. QUALITY EXECUTION: PASS is an execution-evidence consistency gate.
+
+## I29 assertions included in run #136
+
+The dedicated quality execution intake self-test confirms:
+- the I22–I27 evidence set can no longer reach `INTAKE: READY` without I28 execution evidence;
+- all four quality execution paths are required for non-synthetic intake;
+- `verify_real_intake.py` reuses the I28 verifier against the same model, corpus and quality identity anchors;
+- the quality PACKET remains separate from the benchmark PACKET;
+- a tampered `-f/--file` argv remains blocked after the quality PACKET is recomputed.
+
+Evidence:
+- examples/evidence/intelligence-29-quality-execution-intake-gate.md
+
+I29 is still evidence-completeness/internal-consistency, not PPL truth or a purchase recommendation.
 

@@ -154,6 +154,10 @@ Then run `verify_real_intake.py` with canonical IDs **and the local model artifa
 --quality-manifest /path/to/quality-identity.json
 --model-artifact /path/to/model.gguf
 --command-record baseline-run/command.json
+--quality-command-record baseline-quality-run/quality-command.json
+--quality-stdout baseline-quality-run/stdout.txt
+--quality-stderr baseline-quality-run/stderr.txt
+--quality-packet baseline-quality-run/PACKET.json
 ```
 
 For non-synthetic intake:
@@ -163,9 +167,10 @@ For non-synthetic intake:
 - I25 requires an Experiment 57 prompt-evidence manifest and matches messages/template/rendered/token-ID hashes plus token count to `variant.prompt.*`;
 - I26 hashes the real quality corpus, matches `fixed.quality_eval.corpus_sha256`, and requires PACKET coverage;
 - I27 requires the Experiment 59 machine-readable quality identity manifest and matches tokenizer/corpus/fixture/evaluation identity to `fixed.quality_eval.*`.
-- I28 adds a companion quality-execution evidence gate: `capture_quality_eval.py` + `verify_quality_execution.py` bind the actual quality argv/result streams to the exact model, corpus and I27 identity artifact. I28 is not yet a required `verify_real_intake.py` argument, so run it before using quality evidence in a decision.
+- I28 captures and independently verifies the actual quality argv/result streams against the exact model, corpus and I27 identity artifact;
+- I29 makes the I28 four-file execution bundle mandatory for non-synthetic `verify_real_intake.py` admission while keeping its quality PACKET separate from the benchmark PACKET.
 
-Only the strengthened I07/I20/I22/I23/I24/I25/I26/I27 gate may return `INTAKE: READY`.
+Only the strengthened I07/I20/I22/I23/I24/I25/I26/I27/I29 admission gate may return `INTAKE: READY` for non-synthetic intake.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 

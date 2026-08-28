@@ -174,10 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #134
-run id 33158569119
-head 10e93deada5af2e0b72a8b22c5ee38c34c22b2f8
-job id 98807199018
+run #136
+run id 33159217898
+head 1651f040ff5e16a38102c33949525b3b991f5a69
+job id 98809329732
 conclusion success
 ~~~
 
@@ -190,10 +190,10 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21–I27 evidence-admission tests remain green;
-- I28 quality execution capture/verifier binds exact model + corpus argv, raw stdout/stderr and the I27 identity artifact;
-- recomputed PACKET cannot hide semantic quality argv or identity-artifact tampering;
-- non-zero quality execution remains auditable but blocked;
+- I21–I28 evidence capture/admission tests remain green;
+- I29 makes I28 quality execution evidence mandatory for non-synthetic intake;
+- a separate recomputed quality PACKET cannot hide semantic corpus-argv tampering;
+- the main benchmark PACKET and quality PACKET remain separate integrity domains;
 - the dedicated I19 market refresh self-test remains green.
 
 Evidence:
@@ -209,11 +209,12 @@ Evidence:
 - examples/evidence/intelligence-26-quality-corpus-artifact-gate.md
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
 - examples/evidence/intelligence-28-quality-execution-evidence.md
+- examples/evidence/intelligence-29-quality-execution-intake-gate.md
 
 ## Next
 
-1. Integrate I28 quality execution evidence into the non-synthetic verify_real_intake.py admission path (I29).
-2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23/I24/I25/I26/I27 + I28 companion gate.
+1. Bind the declared quality `evaluation_args` to the exact executed quality argv/config rather than leaving it as a free-form identity field (I30).
+2. Acquire the first learner-owned real Experiment 61 packet through I21 + I07/I20/I22/I23/I24/I25/I26/I27/I29.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
-5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
+5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility evidence exists.

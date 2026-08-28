@@ -369,6 +369,17 @@ The helper binds the exact -m/--model and -f/--file argv paths before launch, pr
 
 QUALITY EXECUTION: PASS is an evidence-binding result, not a quality or purchase claim.
 
+I29 makes that execution evidence mandatory for non-synthetic `verify_real_intake.py` admission. Supply all four:
+
+~~~text
+--quality-command-record /path/to/quality-command.json
+--quality-stdout /path/to/stdout.txt
+--quality-stderr /path/to/stderr.txt
+--quality-packet /path/to/quality/PACKET.json
+~~~
+
+The main benchmark PACKET and the quality PACKET remain separate integrity domains.
+
 ## 21. Self-test
 
 From repository root:
@@ -381,9 +392,10 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #134
+run #136
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
+QUALITY EXECUTION INTAKE SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
 
@@ -412,6 +424,7 @@ See:
 - examples/evidence/intelligence-26-quality-corpus-artifact-gate.md
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
 - examples/evidence/intelligence-28-quality-execution-evidence.md
+- examples/evidence/intelligence-29-quality-execution-intake-gate.md
 
 ## Non-goals
 

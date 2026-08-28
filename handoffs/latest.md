@@ -246,12 +246,29 @@ verify_quality_execution.py
 
 Run #134 is green, including the dedicated quality execution self-test.
 
-I28 intentionally does not parse PPL, and it is still a companion gate rather than a required verify_real_intake.py argument.
+I28 intentionally does not parse PPL.
+
+## I29 mandatory quality execution admission
+
+For non-synthetic intake, `verify_real_intake.py` now requires:
+
+~~~text
+--quality-command-record
+--quality-stdout
+--quality-stderr
+--quality-packet
+~~~
+
+These are checked against the same I22 model artifact, I26 corpus and I27 quality identity.
+
+The quality PACKET remains separate from the benchmark PACKET.
+
+Run #136 is green, including the new quality execution intake self-test and every prior Intelligence gate.
 
 ## Next work
 
-1. Integrate I28 into the non-synthetic verify_real_intake.py admission path (I29).
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27 plus I28.
+1. I30: bind the declared quality `evaluation_args` to the exact executed quality argv/config.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
