@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I54. The first-real operator bootstrap is intentionally unnumbered: it reduces setup friction without adding a new evidence gate. GitHub Actions run #176 verifies the complete suite plus the workspace bootstrap self-test.
+Phase 4 tooling currently implements I01–I54. The first-real operator bootstrap and hardware-profile assembler are intentionally unnumbered: they reduce setup friction without adding new evidence gates. GitHub Actions run #178 verifies the complete suite plus both operator-helper self-tests.
 
 ## 1. Validate a catalog
 
@@ -621,6 +621,28 @@ automatic_purchase_decision = NOT-PERMITTED
 
 This is an operator setup layer, not a new Intelligence evidence stage.
 
+### Assemble `profile.txt` from I54 evidence
+
+After I54 returns `READY-FOR-SEMANTIC-REVIEW`, build the single hardware-profile artifact required by I24/I53:
+
+~~~bash
+python3 tools/intelligence/assemble_hardware_profile.py \
+  /path/to/semantic-source-evidence/bundle.json \
+  --out /path/to/profile.txt
+~~~
+
+Required success:
+
+~~~text
+HARDWARE PROFILE ASSEMBLER: READY
+~~~
+
+The assembler re-hashes every referenced stdout/stderr file, rejects tampering/path escape, and embeds exact raw stream bytes losslessly as base64.
+
+It never infers device/runtime semantics and never edits an Experiment 61 manifest.
+
+This supports the existing I24 hardware-profile gate; it is not I55.
+
 ## 29. Capture semantic source observations
 
 Before manually filling the non-byte-derived Experiment 61 fields, capture the exact machine/runtime observations that support them.
@@ -742,7 +764,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #176
+run #178
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
@@ -769,6 +791,7 @@ QUALITY EXECUTION INTAKE SELFTEST: PASS
 REAL EVIDENCE SESSION SELFTEST: PASS
 REAL EVIDENCE SESSION PREPARE SELFTEST: PASS
 SEMANTIC SOURCE CAPTURE SELFTEST: PASS
+HARDWARE PROFILE ASSEMBLER SELFTEST: PASS
 REAL WORKSPACE BOOTSTRAP SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~

@@ -17,10 +17,10 @@ Latest implementation verification:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #176
-run id 33195115141
-head d53497366645254fa2d0bf96714a5d46dc4622b7
-job id 98930161758
+run #178
+run id 33195425859
+head d308acbc62f3d540ed26181d23ed8a1602d127d1
+job id 98931209062
 conclusion success
 Python 3.12
 Ubuntu 24.04
@@ -41,6 +41,18 @@ repository templates
 ~~~
 
 It creates no fake evidence, launches no benchmark, performs no ingestion, and does not change the I01–I54 evidence frontier.
+
+The unnumbered hardware-profile assembler is also verified in the same run:
+
+~~~text
+I54 READY bundle
+→ re-hash referenced raw streams
+→ lossless base64 embedding
+→ profile.txt
+→ existing I24/I53 profile path
+~~~
+
+It refuses blocked/tampered/path-escaping bundles and performs no semantic inference.
 
 ## Major verified chains
 
