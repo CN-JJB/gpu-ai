@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I20. GitHub Actions run #74 verifies the full Python self-test, the I20 raw benchmark identity gate, and the dedicated I19 market-refresh self-test.
+Phase 4 tooling currently implements I01–I21. GitHub Actions run #79 verifies the full Python self-test, the I21 real-benchmark capture self-test, and the dedicated I19 market-refresh self-test.
 
 ## 1. Validate a catalog
 
@@ -61,6 +61,30 @@ stale → STALE-REVALIDATE
 ~~~
 
 ## 5. Verify a real benchmark intake bundle
+
+### Recommended I21 capture path
+
+Before verification, capture the explicit benchmark argv into a sealed evidence directory:
+
+~~~bash
+python3 capture_real_benchmark.py \
+  --manifest /path/to/filled-manifest.json \
+  --out-dir /path/to/run-dir \
+  --include /path/to/profile.txt \
+  -- \
+  llama-bench -m /path/to/model.gguf -p 512 -n 128 -r 5 ... -o json
+~~~
+
+The helper:
+- executes the exact argv with `shell=False`;
+- preserves stdout, stderr, command identity and exit status;
+- hashes the resolved executable when available;
+- copies optional evidence files;
+- writes `PACKET.json`;
+- refuses a non-empty output directory;
+- preserves failed-run evidence but returns `CAPTURE: BLOCKED`.
+
+`CAPTURE: SEALED` is not intake admission.
 
 Before ingestion:
 
@@ -346,6 +370,7 @@ See:
 - examples/evidence/intelligence-18-append-only-market-refresh.md
 - examples/evidence/intelligence-19-market-refresh-helper.md
 - examples/evidence/intelligence-20-real-benchmark-raw-identity.md
+- examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 
 ## Non-goals
 
