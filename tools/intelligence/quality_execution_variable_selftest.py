@@ -281,7 +281,11 @@ def main():
         )
         assert "QUALITY VARIABLE COMPARISON: PASS" in out
         obj = json.loads(output.read_text(encoding="utf-8"))
-        assert obj["comparison_contract"] == "ppl-declared-execution-variable-v1"
+        assert obj["quality_comparison_schema_version"] == 2
+        assert obj["comparison_contract"] == "ppl-declared-execution-variable-v2"
+        assert obj["evidence"]["variable_contract_sha256"]
+        assert obj["evidence"]["baseline_metric_sha256"]
+        assert obj["evidence"]["candidate_metric_sha256"]
         assert obj["intentional_variable"] == "variant.execution.kv_k"
         assert obj["declared_variable"]["baseline_value"] == "f16"
         assert obj["declared_variable"]["candidate_value"] == "q8_0"
