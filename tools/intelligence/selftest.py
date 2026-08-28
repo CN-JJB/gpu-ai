@@ -202,16 +202,32 @@ def main():
     out = run([
         PY, str(HERE / "market_evidence_gate.py"),
         str(prod),
+        "--as-of", "2026-08-28",
     ])
     assert "observations=14" in out
     assert "M0=0" in out
     assert "M1=2" in out
     assert "M2=3" in out
     assert "M3=9" in out
+    assert "CURRENT=13" in out
+    assert "DUE-TODAY=1" in out
+    assert "ELIGIBLE=12" in out
+    assert "NEEDS-STRONGER-MARKET-EVIDENCE=1" in out
+    assert "REVALIDATE-NOW=1" in out
     assert "watchlist_market_gate=NEEDS-STRONGER-MARKET-EVIDENCE" in out
     assert "watchlist_market_gate=ELIGIBLE" in out
+    assert "watchlist_market_gate=REVALIDATE-NOW" in out
     assert "M3 is claim-scoped" in out
     assert "GATE: PASS" in out
+
+    out = run([
+        PY, str(HERE / "market_evidence_gate.py"),
+        str(prod),
+        "--as-of", "2026-09-05",
+    ])
+    assert "STALE=14" in out
+    assert "STALE-REVALIDATE=14" in out
+    assert "Due-today, stale or unscheduled market evidence must be revalidated" in out
 
     out = run([
         PY, str(HERE / "market_evidence_audit.py"),
@@ -337,6 +353,39 @@ def main():
         assert "MEDIAN_ASK requires sample object" in out
         assert "VALIDATION: FAIL" in out
 
+        revalidation_catalog = td / "revalidation-validation"
+        revalidation_catalog.mkdir()
+        for name in (
+            "hardware.jsonl",
+            "models.jsonl",
+            "runtimes.jsonl",
+            "market.jsonl",
+            "compatibility.jsonl",
+            "benchmarks.jsonl",
+        ):
+            shutil.copy2(prod / name, revalidation_catalog / name)
+
+        revalidation_rows = [
+            json.loads(line)
+            for line in (revalidation_catalog / "market.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        for row in revalidation_rows:
+            if row.get("price_state") == "MEDIAN_ASK":
+                row.pop("revalidate_after", None)
+                break
+        (revalidation_catalog / "market.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in revalidation_rows) + "\n",
+            encoding="utf-8",
+        )
+        out = run([
+            PY, str(HERE / "validate_catalog.py"),
+            str(revalidation_catalog),
+            "--as-of", "2026-08-28",
+        ], expect=2)
+        assert "production market record requires revalidate_after" in out
+        assert "VALIDATION: FAIL" in out
+
         grade_validation_catalog = td / "grade-validation"
         grade_validation_catalog.mkdir()
         for name in (
@@ -435,6 +484,30 @@ def main():
         ], expect=2)
         assert "confirmed_transaction_price must be false" in out
         assert "VALIDATION: FAIL" in out
+
+        watchlist = td / "watchlist.csv"
+        watchlist.write_text(
+            "candidate,exact_model,ask_cny,price_state,observed_at,revalidate_after,fit,software,performance,market_evidence,condition_evidence,max_sticker_cny,watch_band_pct,source,notes\n"
+            "CURRENT,RTX 3090,1000,ASK,2026-08-27,2026-08-29,PASS,PASS,PASS,M2,C3,1200,10,https://example.invalid,current\n"
+            "DUE,RTX 3090,1000,ASK,2026-08-27,2026-08-28,PASS,PASS,PASS,M2,C3,1200,10,https://example.invalid,due\n"
+            "STALE,RTX 3090,1000,ASK,2026-08-20,2026-08-27,PASS,PASS,PASS,M2,C3,1200,10,https://example.invalid,stale\n"
+            "INVALID,RTX 3090,1000,ASK,2026-08-27,not-a-date,PASS,PASS,PASS,M2,C3,1200,10,https://example.invalid,invalid\n",
+            encoding="utf-8",
+        )
+        out = run([
+            PY,
+            str(ROOT / "labs" / "experiments" / "38-real-candidate-watchlist" / "evaluate_watchlist.py"),
+            str(watchlist),
+            "--as-of", "2026-08-28T12:00:00+00:00",
+        ])
+        assert "CURRENT: BUY-CANDIDATE" in out
+        assert "freshness=CURRENT" in out
+        assert "DUE: NEEDS EVIDENCE" in out
+        assert "freshness=DUE-TODAY" in out
+        assert "STALE: NEEDS EVIDENCE" in out
+        assert "freshness=STALE" in out
+        assert "INVALID: NEEDS EVIDENCE" in out
+        assert "freshness=INVALID" in out
 
         bad_packet = td / "bad-PACKET.json"
         packet_obj = json.loads((exp / "PACKET.json").read_text(encoding="utf-8"))
@@ -582,6 +655,8 @@ def main():
     print("- SECONDARY_REPORTED falsely claiming confirmed sale is rejected")
     print("- market evidence gate maps production signals to M1/M2/M3 with claim-scoped watchlist eligibility")
     print("- mismatched market evidence grade is rejected")
+    print("- market evidence eligibility is freshness-aware and all real market rows require revalidation dates")
+    print("- Experiment 38 blocks due-today, stale and invalid market evidence from BUY-CANDIDATE")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
