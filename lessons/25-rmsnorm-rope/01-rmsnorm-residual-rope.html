@@ -1,207 +1,31 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 2：RMSNorm、Residual、RoPE</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
-<h1>LLM 架构 2 — RMSNorm、Residual、RoPE：尺度、信息和位置</h1>
-
-<p>这三个组件参数都不算模型里的“大块头”，但少一个都可能让整个模型函数变掉。</p>
-
-<h2>1. RMSNorm：它不是把均值变成 0</h2>
-
-<p>对 hidden vector：</p>
-
-<pre>x = [x₁, x₂, ... x_d]</pre>
-
-<p>先算：</p>
-
-<pre>RMS(x) = sqrt(mean(x²) + eps)</pre>
-
-<p>然后：</p>
-
-<pre>y = g ⊙ x / RMS(x)</pre>
-
-<p><code>g</code> 是训练出来的 scale。</p>
-
-<div class="callout"><strong>和 LayerNorm 最直观的区别：</strong>RMSNorm 不显式减掉 mean。</div>
-
-<h2>2. 为什么放大输入后，RMSNorm 输出不跟着放大？</h2>
-
-<p>忽略 epsilon：</p>
-
-<pre>RMS(3x) = 3 RMS(x)</pre>
-
-<p>所以：</p>
-
-<pre>3x / RMS(3x)
-=
-x / RMS(x)</pre>
-
-<p>这就是 re-scaling invariance 的直觉。</p>
-
-<h2>3. 参数很少，不等于免费</h2>
-
-<p>RMSNorm 的 learned weight 只有大约：</p>
-
-<pre>d</pre>
-
-<p>而一个大 linear 可能是：</p>
-
-<pre>d × d</pre>
-
-<p>但 inference 仍要做：</p>
-
-<pre>read
-→ square
-→ reduce
-→ rsqrt
-→ multiply</pre>
-
-<p>尤其 decode 的大矩阵利用率较低时，这类小 kernel/fusion 也会变得更显眼。</p>
-
-<h2>4. Residual：不要让每个 sublayer 都“从零重写” hidden state</h2>
-
-<pre>h = x + Attention(RMSNorm(x))
-y = h + MLP(RMSNorm(h))</pre>
-
-<p>心智模型：</p>
-
-<pre>已有表示
-+
-新学到的 update
-=
-下一层表示</pre>
-
-<p>Residual 本身没有几十亿参数，但它是 block 数据依赖的骨架。</p>
-
-<h2>5. 位置问题来了</h2>
-
-<p>Attention 如果不知道顺序，下面两句的 token 集合很像：</p>
-
-<pre>dog bites man
-man bites dog</pre>
-
-<p>但意思完全不同。</p>
-
-<p>RoPE 不直接给 embedding 加一个 position vector，而是对 <strong>Q 和 K</strong> 的维度对做旋转。</p>
-
-<h2>6. 先看二维旋转</h2>
-
-<pre>[x₀']   [ cosφ  -sinφ ] [x₀]
-[x₁'] = [ sinφ   cosφ ] [x₁]</pre>
-
-<p>旋转有个很重要的性质：</p>
-
-<pre>||x'|| = ||x||</pre>
-
-<p>它改变方向，不改变这个二维向量的长度。</p>
-
-<h2>7. RoPE：不同 position 转不同角度</h2>
-
-<p>第 i 对维度有自己的频率：</p>
-
-<pre>φᵢ(p) = p × ωᵢ</pre>
-
-<p>position 越不同，旋转关系越不同。</p>
-
-<h2>8. 为什么说它把“相对距离”放进 attention？</h2>
-
-<pre>q'_p = R(p)q
-k'_s = R(s)k</pre>
-
-<p>点积：</p>
-
-<pre>(q'_p)ᵀ k'_s
-≈
-qᵀ R(s-p) k</pre>
-
-<p>关键在：</p>
-
-<pre>s - p</pre>
-
-<p>所以如果把两个位置一起 +10，它们的相对 offset 没变，基础 RoPE 的这部分点积关系也不变。</p>
-
-<h2>9. 这和 KV Cache 有什么关系？</h2>
-
-<p>Prompt prefill 时，每个 historical K 对应自己的 position。</p>
-
-<pre>token at position 0 → K₀
-token at position 1 → K₁
-...
-token at position S-1 → Kₛ₋₁</pre>
-
-<p>Decode 的新 Q 在当前 position S。</p>
-
-<pre>Q_S
-→ compare with
-K_0 ... K_{S-1}</pre>
-
-<div class="callout"><strong>所以 KV cache 不只是“token 内容缓存”。Position/RoPE state 也是它逻辑身份的一部分。</strong></div>
-
-<h2>10. 为什么 Prefix Cache 不能只看字符串一样？</h2>
-
-<p>真正需要一致的是：</p>
-
-<pre>tokenization
-+ model
-+ context state
-+ position
-+ RoPE configuration</pre>
-
-<p>同样文本如果处在不同需要重映射的位置状态，不能无脑把 K/V 当完全同一个 cache object。</p>
-
-<h2>11. RoPE 不会让 KV 变宽</h2>
-
-<p>旋转前：</p>
-
-<pre>K [B,Hkv,S,Dh]</pre>
-
-<p>旋转后逻辑 shape 仍是：</p>
-
-<pre>K [B,Hkv,S,Dh]</pre>
-
-<p>所以 KV 主公式仍然是：</p>
-
-<pre>2 × layers × Hkv × Dh × bytes × tokens</pre>
-
-<h2>12. rope_theta 与 rope_scaling</h2>
-
-<p>真实 model config 经常有：</p>
-
-<pre>rope_theta
-rope_scaling</pre>
-
-<p>它们改变频率/位置映射。</p>
-
-<p>最危险的误区：</p>
-
-<pre>我显存够 128k KV
-→ 模型就一定能高质量跑 128k</pre>
-
-<p>错误。</p>
-
-<p>要分开：</p>
-
-<pre>memory capacity
-vs
-position extrapolation quality</pre>
-
-<h2>13. 三个组件各自解决什么？</h2>
-
-<table>
-<tr><th>组件</th><th>主要作用</th><th>大参数矩阵？</th></tr>
-<tr><td>RMSNorm</td><td>控制 hidden scale</td><td>否</td></tr>
-<tr><td>Residual</td><td>保留/累加表示</td><td>否</td></tr>
-<tr><td>RoPE</td><td>把 position 放进 Q/K geometry</td><td>否</td></tr>
-</table>
-
-<p>但任何一个错了，都不是“性能差一点”，而可能是模型函数错了。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — RMSNorm / Residual / RoPE</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0；真实模型 config 只需要本地文件或公开 config，不要求 GPU。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3>
-<ul><li>把公式/shape 连接到显存容量、带宽或矩阵工作量。</li><li>能从真实 config 验证结构，而不是凭模型名字猜。</li><li>遇到陌生模型时能迁移同一套分析步骤。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/44-rmsnorm-scale-model/README.md">Experiment 44：RMSNorm scale model</a> 和 <a href="../../labs/experiments/45-rope-relative-position-model/README.md">Experiment 45：RoPE relative-position model</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>RMSNorm 与 LayerNorm 最关键的计算/统计差异是什么？</li><li>为什么 residual path 对理解 pre-norm block 很重要？</li><li>RoPE 改的是 token 的位置索引还是 Q/K 向量的表示？</li><li>context extension 方法为什么不能只说“把 max_position_embeddings 改大”？</li></ol>
-<h3>完成证据</h3><p>用小向量手算/脚本验证一次 RMSNorm scale invariance，再画出 RoPE 对一对维度的旋转；写清两者分别影响数值稳定/位置信息的哪一层。</p>
-<h3>如何选择 / 迁移</h3><p>把结构字段转换成 <strong>resident bytes、KV bytes、per-token traffic、matrix shape</strong>，再回到 Slice 04/05 的 Roofline 与显存预算；不要用参数量一个数字替代结构分析。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://arxiv.org/abs/1910.07467">Root Mean Square Layer Normalization</a></li><li><a href="https://arxiv.org/abs/2104.09864">RoFormer / RoPE</a></li><li><a href="../../reference/llm/rmsnorm-residual-rope.md">Course Reference — RMSNorm / Residual / RoPE</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RMSNorm、Residual 与 RoPE</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Transformer Anatomy · L0→L1</p><h1>RMSNorm、Residual、RoPE：三个“小模块”为什么会影响精度、context 与 kernel？</h1><p class="lead">它们不像 attention/FFN 那样占据大部分参数，却决定信号如何在深层网络里保持稳定、位置信息如何进入 attention，以及 runtime 在长 context 下能否正确复现模型训练时的语义。</p>
+<h2>Prerequisite Check</h2><p>你应知道 decoder block 大致是 norm → attention → residual → norm → FFN → residual。不要求会线性代数。</p>
+<h2>真实问题：为什么同一个模型换了错误 RoPE 参数，仍能生成文字却质量明显变差？</h2><p>因为“程序能跑”只证明张量 shape/算子可以执行，不证明位置编码、归一化、tokenizer 等模型语义正确。很多质量问题不会以 crash 表现，而是静默地变笨。</p>
+<h2>1. Residual：为什么深层网络不断“加回原输入”？</h2><pre>x
+├───────────────┐
+└→ transform(x) ├→ x + transform(x)
+                ↓
+             next layer</pre><p>residual path 给信息和梯度提供一条更直接的通路。对推理学生最重要的是：每个 block 不是把旧 hidden state 丢掉，而是在其上叠加更新。</p>
+<h2>2. Norm：为什么每层都要控制尺度？</h2><p>深层网络反复做线性变换、attention、激活与 residual 相加，hidden values 的尺度可能变化。Normalization 让每层看到更可控的数值范围，提高训练/推理稳定性。</p>
+<h2>3. RMSNorm：只看 root mean square</h2><p>LayerNorm 常同时处理均值与方差；RMSNorm 采用更简化的尺度归一化。直觉公式：</p><pre>rms(x) = sqrt(mean(x²) + eps)
+y = x / rms(x) × learned_scale</pre><p>你不需要手算大向量，只要理解它要读取 hidden vector、做平方/归约、计算 scale，再逐元素缩放。</p>
+<h3>为什么 Norm kernel 也值得优化？</h3><p>它参数少，却每层都执行，而且是典型 reduction + vector operation。大模型里很多“小 kernel”累积起来会影响 latency，特别是 decode 每 token 都要经过所有层。</p>
+<h2>4. RoPE：把位置变成向量旋转</h2><p>Rotary Positional Embedding 的核心直觉是：把 query/key 向量的成对维度按位置相关角度旋转，使 attention dot-product 带上相对位置信息。</p><pre>position p
+→ angle depends on p and dimension frequency
+→ rotate pairs in Q/K
+→ attention score reflects relative positions</pre><p>你不必把 RoPE 当成“给 token 加一个位置向量”。它更像在 Q/K 空间中按位置做结构化变换。</p>
+<h2>5. RoPE base / scaling 为什么会成为长上下文配置？</h2><p>训练时模型学习的是某套位置频率分布。为了把 context 扩展到更长，一些模型/runtime 会使用 RoPE scaling、不同 frequency base、interpolation 等方法。</p><p>关键风险：</p><ul><li>模型 config 与 runtime 参数不一致；</li><li>错误套用别的模型 scaling；</li><li>只验证“能生成”，没验证长 context quality；</li><li>backend 对某种 scaling 实现不同/版本变化。</li></ul>
+<h2>Worked Example：为什么 4k 正常、32k 开始胡言乱语？</h2><p>可能原因很多，RoPE 只是一个候选：</p><ol><li>模型本身是否训练/支持目标 context？</li><li>runtime 是否读取正确 RoPE config？</li><li>是否使用了正确 scaling mode/base？</li><li>KV cache 是否被截断/sliding？</li><li>长上下文测试任务本身是否可验证？</li></ol><p>因此长 context 不能只用“模型没有 OOM”判定成功。</p>
+<h2>6. RoPE 与 KV cache 的关系</h2><p>不同实现可能在 K 写入 cache 前后处理 RoPE，具体细节由架构/runtime 决定。对证据的要求是：模型 config、runtime build、context/rope parameters 必须绑定。如果改变位置语义，就不能再把 quality comparison 当同一条件。</p>
+<h2>7. 数值精度：Norm/softmax 类 reduction 为什么对低精度敏感？</h2><p>reduction 会累积很多元素。即使模型权重使用低位量化，某些归约/累加仍可能需要更高精度保持稳定。这里再次出现“存储 dtype ≠ 计算/累加 dtype”。</p>
+<h2>Why it matters</h2><ul><li>解释为什么模型语义错误可能静默损害质量。</li><li>Norm 是小 kernel，却每层每 token 都出现。</li><li>RoPE 把 context length 从“内存问题”升级为“模型语义 + 质量问题”。</li><li>提醒你改变 context extension 参数后必须重新做 quality gate。</li></ul>
+<h2>常见误区</h2><ul><li>“RMSNorm 没参数/成本可以忽略”——有 learned scale 且每层执行。</li><li>“RoPE 就是给 token 加 position id”——实际作用在 Q/K 旋转。</li><li>“能开到 128k context 就代表模型支持 128k”——allocation 与 quality 不同。</li><li>“权重 Q4，所以所有计算都 4-bit”——norm/reduction 通常不是这样。</li></ul>
+<h2>小实验与预期观察</h2><p>纸面画一个 decoder block，标出 residual、RMSNorm、RoPE 发生位置。再设计一个长 context quality fixture：在不同 context 长度放置可验证信息，固定模型/runtime，只改变 context/合法的 RoPE setting。</p><p>预期你会学到：context extension 必须同时记录 latency、memory 与 retrieval/quality，不只记录“能加载”。</p>
+<h2>无 GPU 路径</h2><p>用小向量手算 RMS 与二维旋转即可。真机实验留到上课阶段。</p>
+<h2>排错</h2><ul><li>长 context 质量异常：先核 model config/rope/runtime，不先换 quant。</li><li>结果跨 runtime 不一致：确认 position scaling implementation 与 tokenizer/template。</li><li>Norm kernel 成热点：检查 profiler 中是否被 fusion、memory/reduction overhead。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>Residual path 为什么有助于深层网络传递信息？</li><li>RMSNorm 的最小直觉公式是什么？它需要哪些 kernel 操作？</li><li>RoPE 为什么更适合描述为 Q/K 旋转而不是位置加法？</li><li>“能分配 64k KV”为什么不能证明 64k quality？</li><li>改变 RoPE scaling 后为什么 quality comparison 不再是完全相同条件？</li><li>为什么权重量化位宽不能推导 Norm 的累加精度？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>长上下文能力必须同时通过 model-config/runtime semantic check、memory fit 和 quality fixture。任何手工 RoPE/scaling 改动都视为语义变量，不能只凭不崩溃宣布成功。</p></div>
+<h2>Transfer</h2><p>以后遇到 ALiBi、YaRN、不同 RoPE scaling 或新位置编码，都按“训练语义 → runtime implementation → memory cost → long-context quality”四层验证。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/1910.07467">RMSNorm</a></li><li><a href="https://arxiv.org/abs/2104.09864">RoFormer / RoPE</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
+</main></body></html>
