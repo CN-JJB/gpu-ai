@@ -11,8 +11,21 @@
 ~~~text
 Slices 01–49 implemented
 Experiments 01–93 exist
-Stable v1 mainline complete
+Stable v1 mainline structurally complete
+Student textbook completion pass: ACTIVE
 ~~~
+
+The learner will start only after the stable teaching material is substantively complete. Structural existence is no longer treated as sufficient student readiness.
+
+Authoring contract:
+
+~~~text
+docs/course/STUDENT-TEXTBOOK-COMPLETION.md
+~~~
+
+Every lesson is being reviewed for prerequisite recovery, mental model, mechanism, worked example, misconception boundary, explicit Why it matters, experiment expectations, troubleshooting, no-hardware fallback, retrieval practice, decision rule, transfer, and primary sources.
+
+Real learner-owned benchmark results are a later learning activity and are **not an authoring blocker**.
 
 ## Active Phase 4 frontier
 
@@ -30,6 +43,8 @@ I52       real Experiment 61 evidence session runner
 I53       byte-derived real-session materializer / preflight
 I54       raw semantic-source capture before manual manifest fill
 ~~~
+
+Intelligence implementation is sufficiently complete for the current authoring phase. Do not expand new decision gates merely to avoid writing the textbook.
 
 ## Structural status
 
@@ -70,6 +85,8 @@ real production benchmark rows = 0
 ~~~
 
 No synthetic PP/TG/PPL value is production evidence.
+
+This remains a valid evidence boundary but no longer pauses stable-course authorship. The textbook should fully explain how the future learner will acquire, interpret, troubleshoot, and review real evidence without inventing the final numbers.
 
 Real non-synthetic Experiment 61 intake still requires:
 
@@ -168,27 +185,7 @@ M3=9
 market observations=15
 ~~~
 
-Current active signals remain:
-
-~~~text
-GLOBAL-EBAY asks:
-RTX 3090      1499 USD
-RX 7900 XTX   1020 USD
-Arc A770       330 USD
-
-OfferUp SOLD-marked displayed examples/medians:
-RTX 3090       950 USD
-RX 7900 XTX    700 USD
-Arc A770       200 USD
-
-China secondary:
-RTX 3090      7400 CNY
-Arc A770      1400 CNY
-~~~
-
-OfferUp rows still preserve `confirmed_transaction_price=false`.
-
-China rows remain M1 secondary signals, not confirmed transactions.
+Market observations are dynamic Intelligence data. Stable lessons teach how to interpret provenance, freshness, cohorts, uncertainty, and transaction semantics; they must not freeze today's prices into permanent textbook claims.
 
 ## Latest implementation CI
 
@@ -203,36 +200,18 @@ conclusion success
 
 The complete suite passed through I54, including raw semantic-source capture, the unnumbered I54-to-profile assembler, byte-derived I53 preparation, the end-to-end I52 orchestration path, and the first-real workspace bootstrap.
 
-## Newest evidence
+## Newest authoring contract
 
-- examples/evidence/intelligence-42-unified-tradeoff-routing.md
-- examples/evidence/intelligence-43-decision-evidence-gap-matrix.md
-- examples/evidence/intelligence-44-used-gpu-acceptance-artifact.md
-- examples/evidence/intelligence-45-used-gpu-acceptance-readiness-bridge.md
-- examples/evidence/intelligence-46-performance-target-policy.md
-- examples/evidence/intelligence-47-performance-target-readiness-bridge.md
-- examples/evidence/intelligence-48-price-ceiling-policy.md
-- examples/evidence/intelligence-49-price-ceiling-readiness-bridge.md
-- examples/evidence/intelligence-50-condition-evidence-grades.md
-- examples/evidence/intelligence-51-condition-evidence-readiness-bridge.md
-- examples/evidence/intelligence-52-real-evidence-session-runner.md
-- examples/evidence/intelligence-53-real-evidence-session-materializer.md
-- examples/evidence/intelligence-54-semantic-source-capture.md
-- examples/evidence/operator-first-real-workspace-bootstrap.md
-- examples/evidence/operator-hardware-profile-assembler.md
+- docs/course/STUDENT-TEXTBOOK-COMPLETION.md
 
-## Next
+## Next — authoring priority
 
-1. Stop expanding decision gates by default.
-2. On the actual NVIDIA-first machine, run `bootstrap_real_evidence_workspace.py --profile rtx3090-qwen3-8b-llamacpp` into a new empty directory; optionally bind only real existing GGUF/corpus paths.
-3. Follow the generated `RUN.md`: review `semantic-probes.json`, run I54, and require `READY-FOR-SEMANTIC-REVIEW`.
-4. Run `assemble_hardware_profile.py` against the READY I54 bundle to create `profile.txt`; require `HARDWARE PROFILE ASSEMBLER: READY`.
-5. Review the retained probe/profile evidence, then deliberately fill Experiment 61 device/runtime/build/backend/model-source/execution semantics plus Experiment 57/59 source artifacts.
-6. Run I53; require `READY-TO-RUN-I52`.
-7. Run I52; require `REAL SESSION: READY`.
-8. Manually review the captured benchmark/quality evidence before any catalog ingestion.
-9. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
-10. Acquire the first real Experiment 87 / I44 acceptance packet, then fill I46/I48 and run I43.
-11. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
+1. Complete the student-textbook pass across every stable lesson before the learner starts.
+2. Prioritize thin architecture/vendor pages first: GPU evolution, NVIDIA, AMD, Apple Silicon, Intel Xe, and vendor-capstone pages.
+3. Continue through Transformer/model internals, serving/operations, and whole-machine hardware lessons.
+4. Expand experiment instructions with hypothesis, fixed variables, expected patterns, interpretation branches, troubleshooting, evidence requirements, and no-hardware fallback where valid.
+5. Run course-readiness plus a substantive depth audit; fix all remaining thin or shell-like teaching pages.
+6. Freeze a TEXTBOOK COMPLETE checkpoint only after the full stable lane passes review.
+7. After that checkpoint, the learner begins Lesson 01 and later performs real Experiment 61/93 evidence acquisition as part of learning.
 
-No auto-purchase or unsafe hardware modification.
+No fake benchmark results, no auto-purchase, and no unsafe hardware modification.
