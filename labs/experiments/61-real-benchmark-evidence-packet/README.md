@@ -143,7 +143,15 @@ Success here is only:
 CAPTURE: SEALED
 ```
 
-Then run `verify_real_intake.py` with canonical IDs. Only the strengthened I07/I20 gate may return `INTAKE: READY`.
+Then run `verify_real_intake.py` with canonical IDs **and the local model artifact**:
+
+```text
+--model-artifact /path/to/model.gguf
+```
+
+For non-synthetic intake, I22 hashes the local GGUF and requires its SHA256 + bytes to match the manifest before READY.
+
+Only the strengthened I07/I20/I22 gate may return `INTAKE: READY`.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 
