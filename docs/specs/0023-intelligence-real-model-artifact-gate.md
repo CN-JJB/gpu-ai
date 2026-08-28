@@ -1,6 +1,6 @@
 # Spec 0023 — Real Model Artifact Admission Gate
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -99,3 +99,21 @@ The verifier proves local artifact identity at intake time; it does not prove:
 - benchmark honesty;
 - causal validity;
 - purchase suitability.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #84
+run id 33155656857
+head 233414410c5b3a20ca9a873f411a54e830ef39b1
+job id 98797675678
+conclusion success
+```
+
+The dedicated artifact-gate self-test proves:
+- non-synthetic intake without `--model-artifact` is blocked;
+- matching local SHA256 + bytes passes;
+- a same-size, different-content artifact is blocked by SHA256.
+
+The full Intelligence, I21 capture and I19 market-refresh tests remain green.
