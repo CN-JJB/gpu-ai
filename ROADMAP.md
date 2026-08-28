@@ -70,7 +70,7 @@ Verified foundations:
 - [x] I54 raw semantic-source capture with no automatic manifest update
 
 Next:
-- [ ] on the actual benchmark machine, bootstrap a clean real workspace, then run I54 → human semantic review/fill → I53 → I52 to acquire the first real Experiment 61 Evidence Packet;
+- [ ] on the actual benchmark machine, bootstrap a clean real workspace, then run I54 → assemble `profile.txt` → human semantic review/fill → I53 → I52 to acquire the first real Experiment 61 Evidence Packet;
 - [ ] pass it through I07 intake and derive exact MEASURED_SUPPORTED;
 - [ ] add stronger direct-listing / confirmed-transaction evidence without mixing cohorts;
 - [ ] refresh observations when I10 marks them due/stale;
