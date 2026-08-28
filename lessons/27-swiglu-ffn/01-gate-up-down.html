@@ -1,214 +1,42 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 4：SwiGLU / FFN</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
-<h1>LLM 架构 4 — SwiGLU / FFN：Attention 之外的另一块“大肉”</h1>
-
-<p>很多 LLM 性能讨论只盯 Attention，但 dense decoder 每层还有一个很大的 FFN。</p>
-
-<h2>1. 先看老式两层 FFN</h2>
-
-<pre>x [M,d]
-→ W1 [d,d_ff]
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SwiGLU FFN：Gate、Up、Down</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Transformer Anatomy · L0→L1</p><h1>SwiGLU / FFN：为什么 Attention 之外还有一大块参数和计算？</h1><p class="lead">很多初学者把 Transformer 等同于 attention，但每层里的 Feed-Forward Network（FFN/MLP）通常同样是巨大的参数与计算来源。理解 gate/up/down 三个投影，你才能读懂模型参数量、权重字节、矩阵 shape，以及为什么 MoE 会从这里分叉。</p>
+<h2>Prerequisite Check</h2><p>你应知道一个 decoder block 包含 attention 与 FFN 两个主要子层，也知道矩阵权重会占模型文件/显存。</p>
+<h2>真实问题：一个 7B 模型的参数为什么不都在 attention？</h2><p>Attention 需要 Q/K/V/O 投影；FFN 则通常把 hidden vector 扩展到更大的 intermediate dimension，再压回 hidden size。这个扩展层可以非常宽，因此 FFN 权重占比很可观。</p>
+<h2>1. 最简单 FFN</h2><pre>x (hidden size H)
+→ W_up: H → I
 → activation
-→ W2 [d_ff,d]</pre>
-
-<p>忽略 bias：</p>
-
-<pre>参数 ≈ 2 × d × d_ff</pre>
-
-<h2>2. SwiGLU 为什么变成三块大矩阵？</h2>
-
-<pre>gate = x W_gate
-up   = x W_up
-
-z = SiLU(gate) ⊙ up
-
-out = z W_down</pre>
-
-<p>于是：</p>
-
-<pre>W_gate [d,d_ff]
-W_up   [d,d_ff]
-W_down [d_ff,d]</pre>
-
-<p>参数约：</p>
-
-<pre>3 × d × d_ff</pre>
-
-<div class="callout"><strong>这里的 gate 不是 MoE router。</strong>它是 dense vector gating；gate/up 两个大 projection 都要算。</div>
-
-<h2>3. SiLU 是什么？</h2>
-
-<pre>SiLU(x)
-=
-x × sigmoid(x)</pre>
-
-<p>然后它和另一条 up projection 做逐元素乘法：</p>
-
-<pre>SiLU(gate) ⊙ up</pre>
-
-<p>这给 FFN 加了乘法门控，而不是单纯 ReLU/GELU 一条支路。</p>
-
-<h2>4. 为什么 LLaMA 不是直接用 4d 的 SwiGLU？</h2>
-
-<p>经典 FFN 如果：</p>
-
-<pre>d_ff = 4d</pre>
-
-<p>两矩阵参数：</p>
-
-<pre>2d × 4d = 8d²</pre>
-
-<p>如果 SwiGLU 还保持 4d：</p>
-
-<pre>3d × 4d = 12d²</pre>
-
-<p>会明显膨胀。</p>
-
-<p>LLaMA 论文描述采用大约：</p>
-
-<pre>(2/3) × 4d = 8d/3</pre>
-
-<p>这样三矩阵的粗参数预算重新回到：</p>
-
-<pre>3d × 8d/3
-≈ 8d²</pre>
-
-<p>但真实模型一定以 config 的 <code>intermediate_size</code> 为准。</p>
-
-<h2>5. 一个 4096 hidden 的实际量级</h2>
-
-<p>用：</p>
-
-<pre>d = 4096
-d_ff = 11008</pre>
-
-<p>SwiGLU FFN 每层：</p>
-
-<pre>3 × 4096 × 11008
-=
-135,266,304 weights</pre>
-
-<p>而一个 4096-wide 的传统 MHA Q/K/V/O：</p>
-
-<pre>4 × 4096 × 4096
-=
-67,108,864 weights</pre>
-
-<p>FFN 是：</p>
-
-<pre>≈ 2.016×</pre>
-
-<p>attention projections。</p>
-
-<h2>6. 这和显存带宽有什么关系？</h2>
-
-<p>仅这层 FFN，如果 FP16：</p>
-
-<pre>135,266,304 × 2 bytes
-≈ 258 MiB</pre>
-
-<p>如果 effective 4.5 bpw：</p>
-
-<pre>≈ 72.56 MiB</pre>
-
-<p>这是一层，不是整个模型。</p>
-
-<p>Decode 每生成一个 token，又要使用这些 weight matrices。</p>
-
-<div class="callout"><strong>所以 TG 的 weight streaming 不只是 Attention weights，FFN 往往是更大的那一块。</strong></div>
-
-<h2>7. Prefill 为什么更容易吃满 GPU？</h2>
-
-<p>假设 prompt 512 token：</p>
-
-<pre>[512,4096] × [4096,11008]
-→ [512,11008]</pre>
-
-<p>同一份 weight matrix 为 512 行 token 做工作。</p>
-
-<p>矩阵很大，weight reuse / arithmetic intensity 高。</p>
-
-<h2>8. Decode 突然只剩一行</h2>
-
-<pre>[1,4096] × [4096,11008]
-→ [1,11008]</pre>
-
-<p>权重还是那么大，但有效 token rows 变成 1。</p>
-
-<p>所以：</p>
-
-<pre>compute per weight byte ↓
-memory-bandwidth importance ↑</pre>
-
-<h2>9. 一个只看 weight 的 Roofline 直觉</h2>
-
-<p>三块矩阵大约有：</p>
-
-<pre>6 M d d_ff FLOPs</pre>
-
-<p>权重存储：</p>
-
-<pre>3 d d_ff × bits/8 bytes</pre>
-
-<p>所以：</p>
-
-<pre>AI_weight ≈ 16M / bits</pre>
-
-<p>FP16 时：</p>
-
-<pre>M=1   → ~1 FLOP/byte
-M=512 → ~512 FLOP/byte</pre>
-
-<p>真实 kernel 还要算 activation、dequant、cache，所以这不是 benchmark；它只是解释 PP/TG 为什么进入不同 Roofline 区域。</p>
-
-<h2>10. FlashAttention 为什么可能 PP 大涨、TG 小涨？</h2>
-
-<p>因为 FlashAttention 优化的是 attention I/O。</p>
-
-<p>模型后面仍有：</p>
-
-<pre>Q/K/V/O
-+ FFN gate/up/down
-+ norm/residual
-+ LM head</pre>
-
-<p>如果 TG 的最大字节来源是 FFN/其他 weight streaming，那么 Attention 加速不会让整模型同比例加速。</p>
-
-<h2>11. Quant 为什么对 FFN 很关键？</h2>
-
-<p>FFN 是大权重块。</p>
-
-<pre>16-bit
-→ 8-bit
-→ 4.x bpw</pre>
-
-<p>可以大幅减少 storage / memory traffic。</p>
-
-<p>但是课程前面那条规则不变：</p>
-
-<pre>Q4 storage
-!= native INT4/FP4 matrix compute</pre>
-
-<p>backend/kernel 仍决定真正执行路径。</p>
-
-<h2>12. 以后看 config，别漏 intermediate_size</h2>
-
-<pre>hidden_size
-intermediate_size
-hidden_act</pre>
-
-<p>这几个字段会告诉你 FFN 到底有多宽。</p>
-
-<p>两个都叫“8B”的模型，FFN/attention 比例也可能不同。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — SwiGLU / Dense FFN</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0；真实模型 config 只需要本地文件或公开 config，不要求 GPU。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3>
-<ul><li>把公式/shape 连接到显存容量、带宽或矩阵工作量。</li><li>能从真实 config 验证结构，而不是凭模型名字猜。</li><li>遇到陌生模型时能迁移同一套分析步骤。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/48-dense-swiglu-ffn-model/README.md">Experiment 48：dense SwiGLU FFN model</a>；再做 <a href="../../labs/experiments/49-real-model-ffn-structure-compare/README.md">Experiment 49：real FFN structure compare</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>为什么 gated FFN 常有 gate/up/down 三个大矩阵？</li><li>d_ff 变大时，参数量和 decode weight traffic 大致怎样变化？</li><li>为什么只优化 attention 可能仍然不改变整模型 TG？</li><li>两个模型参数量接近但 FFN ratio 不同，会给硬件什么不同压力？</li></ol>
-<h3>完成证据</h3><p>从真实 config 估算 attention projection 与 FFN 的主要参数量/字节占比，并提出哪个部分更可能主导 decode weight streaming 的假设。</p>
-<h3>如何选择 / 迁移</h3><p>把结构字段转换成 <strong>resident bytes、KV bytes、per-token traffic、matrix shape</strong>，再回到 Slice 04/05 的 Roofline 与显存预算；不要用参数量一个数字替代结构分析。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://arxiv.org/abs/2002.05202">GLU Variants Improve Transformer</a></li><li><a href="https://arxiv.org/abs/2302.13971">LLaMA</a></li><li><a href="../../reference/llm/swiglu-ffn-weight-traffic.md">Course Reference — SwiGLU FFN Weight Traffic</a></li></ul>
-</section>
-</body></html>
+→ W_down: I → H
+→ residual add</pre><p>I（intermediate size）通常明显大于 H，所以两块大矩阵会带来大量参数与内存流量。</p>
+<h2>2. SwiGLU 为什么多了一个 Gate？</h2><p>现代 LLM 常用 gated FFN。粗略结构：</p><pre>up   = x · W_up
+gate = x · W_gate
+mixed = SiLU(gate) ⊙ up
+out = mixed · W_down
+</pre><p>也就是两个 H→I 投影，一个经过 SiLU 形成门控，再逐元素相乘，然后 I→H。</p>
+<h2>3. 参数量粗算</h2><p>忽略 bias 等小项：</p><pre>FFN params per layer ≈
+H×I (up)
++ H×I (gate)
++ I×H (down)
+= 3HI
+</pre><p>如果只看 attention heads 而忽略 I，就会严重低估参数、权重字节与 decode 内存流量。</p>
+<h2>Worked Example：H=4096，I=11008</h2><p>仅用于公式练习：</p><pre>3 × 4096 × 11008
+≈ 135 million parameters per FFN layer
+</pre><p>若模型有很多层，这部分会迅速累积。量化后每参数字节下降，但三个大矩阵仍然存在。</p>
+<h2>4. 为什么 FFN 对 Prefill 与 Decode 的形状不同？</h2><p>Prefill 同时有很多 token，W_up/W_gate/W_down 更像大 GEMM；decode 单 token/小 batch 时，矩阵的一边变得很窄，更容易受权重读取与 kernel overhead 影响。</p><p>因此 FFN 同样参与“PP compute-heavy、TG memory-heavy”的两阶段差异。</p>
+<h2>5. Gate 的语义不是“把一半神经元关掉就省一半计算”</h2><p>标准 dense SwiGLU 仍需要计算 up 和 gate 投影，然后逐元素门控。它不是稀疏 expert routing。不要把 gating 这个词与 MoE router 混淆。</p>
+<h2>6. Quantization 对 FFN 权重意味着什么？</h2><p>W_up/W_gate/W_down 是大型权重矩阵，量化可显著降低文件/显存字节。但具体 kernel 仍要解包/dequant/矩阵运算，因此：</p><pre>smaller weight bytes
+→ potentially less memory traffic
+but
+→ quant math/layout/kernel overhead also changes
+</pre><p>这解释了为什么更低 bit 通常能帮助 memory-bound decode，却不保证所有硬件/shape 都等比例提速。</p>
+<h2>7. FFN 与 MoE 的连接</h2><p>MoE 可以粗略理解成：不再每层只有一个 dense FFN，而是拥有多个 expert FFN，由 router 为 token 选择其中少数几个。</p><pre>dense FFN: every token → same FFN
+MoE:       token → router → selected expert FFN(s)</pre><p>因此下一节的“总参数很大但每 token active 参数较小”，主要就发生在 FFN/expert 这一侧。</p>
+<h2>Why it matters</h2><ul><li>解释模型参数量为什么大量来自 FFN，而非只有 attention。</li><li>帮助从 config 的 hidden/intermediate size 推权重规模。</li><li>解释量化为什么会显著影响 decode memory traffic。</li><li>为理解 MoE resident weights vs active weights 建立基础。</li></ul>
+<h2>常见误区</h2><ul><li>“Transformer 的大头全是 attention”——FFN 往往是主要参数块之一。</li><li>“SwiGLU gate 就是稀疏 routing”——dense gate 与 MoE router 不同。</li><li>“Q4 让 FFN 计算量变成四分之一”——字节减少不等于运算/时间线性减少。</li><li>“intermediate size 只是训练细节”——它直接影响权重与推理工作量。</li></ul>
+<h2>小实验</h2><p>拿一个公开 model config，记录 layers、hidden size、intermediate size。粗算 dense SwiGLU FFN 参数，再与总参数量比较。然后把 FP16、8-bit、4-bit 的理想纯权重字节按比例算出。</p><p><strong>预期观察：</strong>你会看到 intermediate size 对权重预算极其重要，但实际 GGUF 文件会因量化 metadata/分块等与理想位宽公式有差距。</p>
+<h2>无 GPU 路径</h2><p>本课全部可手算。真实 kernel 性能以后再测。</p>
+<h2>排错</h2><ul><li>参数粗算和模型总数差很多：还有 attention、embedding、norm、tie/untied output 等。</li><li>量化文件大小不等于参数×bits/8：考虑 quant block metadata、tensor dtype 混合。</li><li>FFN profiler 热点异常：检查 fusion、quant kernel、batch/shape、memory bandwidth。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>标准 dense FFN 与 SwiGLU 的结构差别是什么？</li><li>为什么 SwiGLU 每层粗略是 3HI 参数？</li><li>intermediate size 为什么是模型硬件预算的重要 config？</li><li>Gate 为什么不等于 MoE 稀疏 routing？</li><li>量化 FFN 权重为何可能帮助 decode，但不会保证线性加速？</li><li>Prefill 与 decode 的 FFN matrix shape 为什么不同？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>读模型硬件需求时，不只看参数总数；至少读取 hidden size、intermediate size、layers、attention/KV 结构。量化收益必须区分“权重字节减少”与“实际 kernel 速度变化”。</p></div>
+<h2>Transfer</h2><p>下一节 MoE 把多个 FFN expert 放进同一层。继续追踪三件事：总 resident 权重、每 token active expert、expert routing/数据移动。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/2002.05202">GLU Variants Improve Transformer</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
+</main></body></html>
