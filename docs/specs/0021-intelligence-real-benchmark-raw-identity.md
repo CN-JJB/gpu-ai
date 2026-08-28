@@ -1,6 +1,6 @@
 # Spec 0021 — Real Benchmark Raw-Identity Cross-Check
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -96,3 +96,24 @@ Synthetic fixture values remain synthetic and must never be presented as hardwar
 CI must reject a packet that is hash-consistent but whose manifest/raw identities disagree.
 
 This specifically closes the gap where simply recomputing `PACKET.json` after tampering could previously pass I07.
+
+## CI verification
+
+Implementation checkpoint:
+
+```text
+workflow: Intelligence Self-Test
+run #74
+run id 33155088741
+head 719c51d130ee4b932e6a0b8d7c26c3337af7d928
+job id 98795852292
+conclusion success
+```
+
+The successful job:
+- compiled every Intelligence Python tool;
+- ran the full existing Intelligence self-test;
+- passed a hash-consistent manifest/raw identity-tampering negative test;
+- kept the I19 market-refresh self-test green.
+
+Runs #70–#73 were intermediate migration heads and were not accepted as verification checkpoints.
