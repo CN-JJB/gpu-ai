@@ -330,6 +330,7 @@ def main():
     p.add_argument("--model-id", required=True)
     p.add_argument("--runtime-id", required=True)
     p.add_argument("--observed-at", required=True)
+    p.add_argument("--model-artifact", type=Path, help="Local model artifact to hash/size-check against the manifest")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
 
@@ -396,6 +397,48 @@ def main():
     if not positive_number(artifact_bytes):
         errors.append("manifest variant.model.artifact_bytes must be > 0")
 
+    model_record = models.get(a.model_id)
+    artifact_status = "NOT-CHECKED"
+    artifact_actual_sha256 = None
+    artifact_actual_bytes = None
+    if a.model_artifact is not None:
+        if not a.model_artifact.is_file():
+            errors.append(f"model artifact is not a file: {a.model_artifact}")
+            artifact_status = "BLOCKED"
+        else:
+            artifact_actual_bytes = a.model_artifact.stat().st_size
+            artifact_actual_sha256 = sha256(a.model_artifact)
+            expected_sha256 = str(
+                manifest.get("variant", {})
+                .get("model", {})
+                .get("artifact_sha256", "")
+            ).strip().lower()
+
+            if positive_number(artifact_bytes) and artifact_actual_bytes != int(artifact_bytes):
+                errors.append(
+                    "local model artifact bytes != manifest artifact_bytes: "
+                    f"{artifact_actual_bytes} vs {artifact_bytes}"
+                )
+                artifact_status = "BLOCKED"
+
+            if expected_sha256 and artifact_actual_sha256.lower() != expected_sha256:
+                errors.append(
+                    "local model artifact SHA256 != manifest artifact_sha256: "
+                    f"{artifact_actual_sha256} vs {expected_sha256}"
+                )
+                artifact_status = "BLOCKED"
+
+            if artifact_status != "BLOCKED":
+                artifact_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            artifact_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic model intake requires --model-artifact so the local artifact SHA256/bytes can be verified"
+        )
+        artifact_status = "BLOCKED"
+
     protocol = manifest.get("fixed", {}).get("protocol", {})
     for field in ("pp_tokens", "tg_tokens", "repetitions"):
         if not positive_number(protocol.get(field)):
@@ -446,6 +489,14 @@ def main():
         print(f"- {kind}={value}")
     print("RAW IDENTITY CROSS-CHECK")
     print("- manifest/runtime/device/model/execution fields are checked against selected PP/TG rows")
+    print("MODEL ARTIFACT")
+    print(f"- status={artifact_status}")
+    if a.model_artifact is not None:
+        print(f"- path={a.model_artifact}")
+    if artifact_actual_bytes is not None:
+        print(f"- bytes={artifact_actual_bytes}")
+    if artifact_actual_sha256 is not None:
+        print(f"- sha256={artifact_actual_sha256}")
 
     print("ERRORS")
     for x in errors:
