@@ -207,4 +207,15 @@ comparison
 =
 可复现结论
 </pre>
+
+<section class="student-closure">
+<h2>学生闭环 — Benchmark / Workload Manifest</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实模型/硬件只用于增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
+<h3>能力目标</h3><ul><li>把“模型/输入/质量/benchmark 身份”变成可审计对象。</li><li>能指出公式或配置的适用边界，不把近似写成事实。</li><li>为后续硬件选择提供可重复的 workload contract。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/60-benchmark-manifest-validator/README.md">Experiment 60：manifest validator</a>；真实硬件时做 <a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61：real Evidence Packet</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>什么叫 semantic variable，而不是“命令行恰好只改一个 token”？</li><li>为什么 model SHA、runtime build、prompt token identity 都应该进入 manifest？</li><li>A/B 两边同时换 model 和 backend 时还能归因给谁？</li><li>PACKET 的 hash 能证明文件没变，但不能证明哪些事情？</li></ol>
+<h3>完成证据</h3><p>写一对 baseline/candidate manifest，明确 comparison_id、intentional_variable、fixed fields、raw evidence paths；让 validator 能指出任何意外多变量变化。</p>
+<h3>如何选择 / 迁移</h3><p>遇到新模型或新 backend 时，优先冻结 <strong>身份 + 输入 + protocol</strong>，再谈性能或质量；不可比的数据宁可 BLOCKED，也不要硬排排行榜。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md">llama.cpp — llama-bench</a></li><li><a href="../../reference/system/benchmark-workload-manifest.md">Course Reference — Benchmark / Workload Manifest</a></li></ul>
+</section>
 </body></html>
