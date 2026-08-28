@@ -69,6 +69,7 @@ def main():
         wrong_profile.write_bytes(b"x" * len(profile_bytes))
         prompt_manifest = exp / "prompt-manifest.json"
         quality_corpus = exp / "quality-corpus.txt"
+        quality_manifest = exp / "quality-identity.json"
 
         manifest_obj = json.loads((exp / "manifest.json").read_text(encoding="utf-8"))
         manifest_obj["variant"]["hardware"]["profile_sha256"] = sha256_bytes(profile_bytes)
@@ -119,7 +120,7 @@ def main():
         packet.write_text(
             json.dumps({
                 "packet_schema_version": 1,
-                "file_count": 6,
+                "file_count": 7,
                 "files": [
                     packet_entry(manifest),
                     packet_entry(result),
@@ -127,6 +128,7 @@ def main():
                     packet_entry(profile),
                     packet_entry(prompt_manifest),
                     packet_entry(quality_corpus),
+                    packet_entry(quality_manifest),
                 ],
             }, indent=2) + "\n",
             encoding="utf-8",
@@ -158,6 +160,8 @@ def main():
             str(prompt_manifest),
             "--quality-corpus",
             str(quality_corpus),
+            "--quality-manifest",
+            str(quality_manifest),
         ]
 
         out = run(base, expect=2)
