@@ -178,8 +178,6 @@ print("Final estimate: PPL = 10.5000 +/- 0.10000")
                 "none",
                 "--flash-attn",
                 "true",
-                "--tensor-split",
-                "",
                 "-o",
                 "json",
             ],
