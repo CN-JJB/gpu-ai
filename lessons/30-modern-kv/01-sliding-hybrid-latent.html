@@ -1,208 +1,43 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 7：Sliding / Hybrid Attention / MLA</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
-<h1>LLM 架构 7 — 不是每层都要保存完整 KV：Sliding、Hybrid 与 Latent KV</h1>
-
-<h2>1. 先复习旧公式</h2>
-
-<pre>KV
-=
-2 × L × Hkv × Dh × bytes × context</pre>
-
-<p>它隐含了一个大前提：</p>
-
-<pre>每一层
-都缓存
-整个 context
-的普通 K/V</pre>
-
-<p>现代模型可能不满足。</p>
-
-<h2>2. Sliding Window：这一层只直接看最近 W 个位置</h2>
-
-<pre>sequence length = S
-window = W
-
-cached positions
-≈ min(S,W)</pre>
-
-<p>当：</p>
-
-<pre>S >> W</pre>
-
-<p>local layer 的 rolling KV 不再随完整 S 线性增长。</p>
-
-<h2>3. 但这不等于“模型只能记 W token”</h2>
-
-<p>上一层的 token 表示本身已经混入了更早的信息。</p>
-
-<p>多层 local attention 可以逐层传播信息。</p>
-
-<p>Hybrid 模型还可以穿插 full/global attention。</p>
-
-<div class="callout"><strong>Direct window、effective context、KV cache size 是三件不同的事。</strong></div>
-
-<h2>4. Hybrid 怎么算？</h2>
-
-<p>假设 32 层：</p>
-
-<pre>8 full
-24 local
-window = 4096</pre>
-
-<p>KV：</p>
-
-<pre>2 × Hkv × Dh × bytes
-×
-[
-8×S
-+
-24×min(S,4096)
-]</pre>
-
-<h2>5. 用 32k context 算</h2>
-
-<p>假设：</p>
-
-<pre>Hkv=8
-Dh=128
-FP16</pre>
-
-<table>
-<tr><th>结构</th><th>32k KV</th></tr>
-<tr><td>32 层全 full</td><td>4 GiB</td></tr>
-<tr><td>32 层全 local W=4k</td><td>0.5 GiB</td></tr>
-<tr><td>8 full + 24 local</td><td>1.375 GiB</td></tr>
-</table>
-
-<h2>6. 拉到 128k</h2>
-
-<table>
-<tr><th>结构</th><th>128k KV</th></tr>
-<tr><td>全 full</td><td>16 GiB</td></tr>
-<tr><td>全 local</td><td>0.5 GiB</td></tr>
-<tr><td>8 full + 24 local</td><td>4.375 GiB</td></tr>
-</table>
-
-<p>所以只看：</p>
-
-<pre>max_position_embeddings = 131072</pre>
-
-<p>根本不够判断显存。</p>
-
-<h2>7. Prefill compute 也变</h2>
-
-<p>Full attention：</p>
-
-<pre>O(T²)</pre>
-
-<p>Local attention：</p>
-
-<pre>O(TW)</pre>
-
-<p>概念上长 prompt 的 attention 工作也跟着下降。</p>
-
-<p>真实 kernel 仍要看 backend。</p>
-
-<h2>8. Decode 也少读历史</h2>
-
-<p>Full layer：</p>
-
-<pre>read S cached positions</pre>
-
-<p>Local layer：</p>
-
-<pre>read at most W</pre>
-
-<p>但是 FFN weights 还是照读。</p>
-
-<p>所以 KV/attention traffic 降低后，TG 可能更明显暴露 FFN weight bandwidth。</p>
-
-<h2>9. Hybrid 是现实里很重要的折中</h2>
-
-<p>例如 Gemma 2 就使用 local-global attention 交错的设计。</p>
-
-<p>思路是：</p>
-
-<pre>大多数层便宜地 local
-+
-部分层保留 global access</pre>
-
-<p>具体 pattern 不能靠猜，要看 model config/paper。</p>
-
-<h2>10. MLA 又走另一条路</h2>
-
-<p>Sliding Window 减的是：</p>
-
-<pre>缓存多少 position</pre>
-
-<p>MLA 类方法减的是：</p>
-
-<pre>每个 position 缓存多宽</pre>
-
-<p>DeepSeek-V2 的 Multi-head Latent Attention 会把 KV 信息压到较小 latent state，再围绕 attention 做投影。</p>
-
-<h2>11. 所以通用 KV 心智模型升级成</h2>
-
-<pre>KV/state bytes
-=
-Σ layers
-(
-cached positions
-× cached state width
-× bytes
-)</pre>
-
-<p>这比背：</p>
-
-<pre>2 × L × Hkv × Dh × S</pre>
-
-<p>更通用。</p>
-
-<h2>12. DeepSeek-style config 里你可能看到</h2>
-
-<pre>kv_lora_rank
-qk_rope_head_dim</pre>
-
-<p>在确认是对应 MLA 实现后，可以把它们当 compressed state 的关键维度来研究。</p>
-
-<div class="callout"><strong>但绝不能把 <code>kv_lora_rank + qk_rope_head_dim</code> 当全世界所有 latent attention 的万能公式。</strong></div>
-
-<h2>13. 压缩 KV 不是免费午餐</h2>
-
-<p>你通常在做：</p>
-
-<pre>less cached bytes
-↔
-more projection/reconstruction work</pre>
-
-<p>这对 bandwidth-bound decode 很可能是好交易，但实际速度仍要 benchmark。</p>
-
-<h2>14. 以后 Model Dossier 怎么写？</h2>
-
-<pre>full attention
-→ ordinary formula
-
-confirmed local layers
-→ min(S,W)
-
-hybrid
-→ per-layer sum
-
-latent/compressed KV
-→ model-specific cached state width
-
-unknown
-→ KV EXACTNESS = UNKNOWN</pre>
-
-<p>宁可写 UNKNOWN，也不要套错公式。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — Sliding / Hybrid / Latent KV</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实模型/硬件只用于增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3><ul><li>把“模型/输入/质量/benchmark 身份”变成可审计对象。</li><li>能指出公式或配置的适用边界，不把近似写成事实。</li><li>为后续硬件选择提供可重复的 workload contract。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/54-sliding-hybrid-kv-model/README.md">Experiment 54：sliding/hybrid KV model</a>；再做 <a href="../../labs/experiments/55-real-attention-kv-architecture/README.md">Experiment 55：real attention/KV architecture</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>Sliding Window Attention 为什么能限制部分层的 KV 增长，却不等于整个模型 KV 一定固定？</li><li>Hybrid local/global attention 的 KV 预算为什么要按层类型分开？</li><li>MLA/latent KV 为什么不能套标准 Hkv×Dh 公式直接算？</li><li>面对新 KV 结构，最安全的第一步是什么？</li></ol>
-<h3>完成证据</h3><p>选一个 sliding/hybrid/latent-KV 模型，写出标准公式哪里还适用、哪里失效，以及你从 config/论文/runtime 哪一处确认真实 cache 结构。</p>
-<h3>如何选择 / 迁移</h3><p>遇到新模型或新 backend 时，优先冻结 <strong>身份 + 输入 + protocol</strong>，再谈性能或质量；不可比的数据宁可 BLOCKED，也不要硬排排行榜。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://arxiv.org/abs/2310.06825">Mistral 7B</a></li><li><a href="https://arxiv.org/abs/2408.00118">Gemma 2</a></li><li><a href="https://arxiv.org/abs/2405.04434">DeepSeek-V2</a></li><li><a href="../../reference/llm/sliding-hybrid-latent-kv.md">Course Reference — Modern KV Architectures</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>现代 KV：Sliding、Hybrid、Latent</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Modern KV · L0→L1</p><h1>现代 KV 设计：Sliding Window、Hybrid Attention、Latent Cache 为什么让旧公式失效？</h1><p class="lead">“KV cache = 2×层数×context×KV heads×head dim×bytes”是非常好的起点，但不是所有现代模型的终点。有些层只看局部窗口，有些全局/局部交替，有些不直接保存传统完整 K/V。面对新架构，最重要的技能是识别<strong>历史状态到底保存什么、保存多久、每 token 读多少</strong>。</p>
+<h2>Prerequisite Check</h2><p>你应会 MHA/MQA/GQA 的传统 KV 公式，并知道长 context 会增加容量和 decode memory traffic。</p>
+<h2>真实问题：为什么某模型标称 128k context，却没有按“所有层全 128k KV”占掉预想那么多显存？</h2><p>可能因为它使用 sliding-window、hybrid/global-local attention、压缩/latent state 或其他稀疏历史机制。此时传统 dense full-attention KV 公式会高估或错误描述实际状态。</p>
+<h2>1. Sliding Window Attention：只保留/只关注最近 W 个 token</h2><p>最直观形式：</p><pre>full attention at token N:
+attend 1 ... N
+
+sliding window W:
+attend max(1, N-W+1) ... N
+</pre><p>当 N 远大于 W，单层需要参与 attention 的历史长度不再随总 context 无限增长，而接近固定窗口。</p>
+<h3>容量一定固定吗？</h3><p>取决于 runtime 是否真的丢弃窗口外 KV，还是为了别的用途仍保留。模型架构的“attention receptive field”与 runtime 的“KV allocation policy”要分开验证。</p>
+<h2>2. Hybrid Attention：不是所有层都采用同一历史范围</h2><p>某些模型让部分层做 local/sliding attention，间隔若干层做 global/full attention：</p><pre>Layer 1 local W
+Layer 2 local W
+Layer 3 global N
+Layer 4 local W
+...
+</pre><p>此时总 KV/compute 成本要按 layer type 分组，不能用单一窗口或单一 full-context 公式覆盖全部。</p>
+<h2>Worked Example：32 层，其中 24 层 window=4k，8 层 full context=32k</h2><p>忽略其他差异，只看“token-history length factor”：</p><pre>traditional all-full factor = 32 layers × 32k
+hybrid factor = 24×4k + 8×32k
+</pre><p>两者显著不同。这个例子只展示比例；真实 KV 还要乘 KV heads/head dim/dtype，并确认 runtime allocation。</p>
+<h2>3. Latent / Compressed KV：历史状态不一定直接保存完整 K/V</h2><p>一些现代 attention 设计尝试把历史信息存成更小的 latent representation，decode 时从 latent state 重构/使用需要的 attention 信息。</p><p>这种设计的核心 tradeoff：</p><pre>store less historical state
+→ lower memory capacity/traffic
+but
+→ extra projection/reconstruction compute
+→ specialized kernels/runtime support needed
+</pre><p>所以“KV 省很多”可能把瓶颈从 memory 往 compute/kernel 移动。</p>
+<h2>4. 为什么新 attention 架构特别容易出现 backend lag？</h2><p>传统 MHA/GQA kernel 已非常成熟；新结构可能需要新的 cache layout、fused kernel、quantization path。模型发布当天能被某框架“加载”，不代表所有 backend 已高效实现。</p><p>Model Dossier 要新增：</p><ul><li>attention type / layer pattern；</li><li>cache state type；</li><li>window/global schedule；</li><li>runtime implementation status；</li><li>quality/context validation。</li></ul>
+<h2>5. KV Quantization 与“架构级压缩”不同</h2><p>KV quant 是把保存的 K/V 用更低精度存储；sliding/latent 则改变保存历史的结构或长度。两者可以叠加，但属于不同语义变量。</p><pre>KV quant: same conceptual state, fewer bits
+Sliding:  fewer historical positions
+Latent:   different compressed state representation
+</pre>
+<h2>6. Paged KV 也不是 attention architecture</h2><p>Paged KV 主要解决 runtime 内存管理与碎片/动态分配：把 KV 分成 pages/blocks，便于多个序列增长与回收。它通常不改变模型“应该 attention 哪些 token”的数学语义。</p><p>因此要区分：</p><ul><li>模型层：MHA/GQA/sliding/latent；</li><li>存储精度层：FP16/Q8/Q4 KV；</li><li>runtime allocation 层：paged/block KV。</li></ul>
+<h2>7. Long context 的质量问题仍然存在</h2><p>省内存不代表模型真的能利用超长历史。Sliding window 可能天然看不到窗口外细节；hybrid/global layers 提供更远信息通路；latent 设计有自己的训练语义。必须用与架构匹配的 long-context fixture 验证质量。</p>
+<h2>Why it matters</h2><ul><li>避免用传统 full-KV 公式错误估算新模型。</li><li>帮助理解“128k context”背后的实际 memory/attention pattern。</li><li>区分模型架构优化、KV dtype 优化、runtime paging 三层。</li><li>提醒新模型可能因 backend kernel 未成熟而无法兑现架构优势。</li></ul>
+<h2>常见误区</h2><ul><li>“Sliding window 4k = 模型只能处理 4k 总 context”——可能有 global/hybrid 通路。</li><li>“有 sliding 就一定只分配 4k KV”——runtime policy 需验证。</li><li>“latent cache 就是 KV Q4”——结构压缩与低位存储不同。</li><li>“paged KV 减少模型理论 KV 大小”——主要解决分配/碎片管理。</li><li>“长 context 能 fit = 能正确利用远距离信息”——必须 quality test。</li></ul>
+<h2>小实验</h2><p>为三个 toy architecture 分别写 KV budget：全局 GQA、全 sliding、24 local + 8 global hybrid。只计算相对 token-history factor，再写需要补哪些字段才能得到真实 bytes。</p><p><strong>预期观察：</strong>architecture pattern 会显著改变 KV scaling；但 runtime 实际 allocation 仍需后续测量。</p>
+<h2>无 GPU 路径</h2><p>全部可用 config/纸面公式完成。真机阶段再核 runtime memory。</p>
+<h2>排错</h2><ul><li>实际 KV 比公式大：查 allocator pages、padding、full/global layers、buffer。</li><li>模型能长 context 但远信息找不到：检查 attention window/architecture 和 quality fixture。</li><li>新模型特别慢：确认 backend 是否有 native attention/cache kernel，而不是 generic fallback。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>Sliding window 如何改变每层历史长度 scaling？</li><li>Hybrid attention 为什么要按 layer type 分组预算？</li><li>Latent cache 用什么代价换更小历史状态？</li><li>KV quant、sliding、paged KV 三者分别改变哪一层？</li><li>为什么 architecture 支持与 runtime allocation 不能混为一谈？</li><li>长 context fit 为什么仍需 quality fixture？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>遇到新 attention architecture 时，暂停套传统 KV 公式。先确认每层保存的 state、历史范围、dtype 与 runtime allocation，再计算容量；任何“长上下文优势”还必须通过实际 backend 与质量验证。</p></div>
+<h2>Transfer</h2><p>未来出现新的 sparse/linear/recurrent attention，也用同一三问：保存什么状态？每个 token 读多少历史？额外计算/软件支持成本是什么？</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="../../reference/llm/">Course LLM Reference</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
+</main></body></html>
