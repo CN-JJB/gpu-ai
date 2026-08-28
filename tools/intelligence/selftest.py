@@ -152,7 +152,10 @@ def main():
     ])
     assert "DUE-SOON=1" in out
     assert "STALE=0" in out
+    assert "SUPERSEDED=1" in out
     assert "market:cn:rtx3090:secondary:2026-08-22" in out
+    assert "market:cn:a770-16g:secondary:2026-08-21" in out
+    assert "superseded_by=market:cn:a770-16g:secondary:2026-08-25" in out
     assert "FRESHNESS: REVALIDATION-QUEUE-PRESENT" in out
 
     out = run([
@@ -162,6 +165,8 @@ def main():
         "--within-days", "30",
     ])
     assert "market:cn:rtx3090:secondary:2026-08-22" in out
+    assert "market:cn:a770-16g:secondary:2026-08-21" in out
+    assert "SUPERSEDED=1" in out
     assert "compat:llama.cpp:cuda:rtx3090:qwen3-8b:2026-08-27" in out
     assert "FRESHNESS: STALE-REVALIDATION-REQUIRED" in out
 
@@ -197,28 +202,56 @@ def main():
     assert "observations=2" in out
     assert "contracts=1" in out
     assert "value=7400 CNY" in out
+    assert "value=1400 CNY" in out
+    assert "value=1450 CNY" not in out
+    assert "Superseded observations are hidden by default" in out
+
+    out = run([
+        PY, str(HERE / "market_matrix.py"),
+        str(prod),
+        "--geography", "CN",
+        "--channel", "secondary-summary",
+        "--cohort", "used-consumer",
+        "--condition", "working-unverified",
+        "--price-state", "SECONDARY_REPORTED",
+        "--currency", "CNY",
+        "--as-of", "2026-08-28",
+        "--include-superseded",
+    ])
+    assert "observations=3" in out
     assert "value=1450 CNY" in out
+    assert "superseded_by=market:cn:a770-16g:secondary:2026-08-25" in out
 
     out = run([
         PY, str(HERE / "market_evidence_gate.py"),
         str(prod),
         "--as-of", "2026-08-28",
     ])
-    assert "observations=14" in out
+    assert "observations=15" in out
     assert "M0=0" in out
-    assert "M1=2" in out
+    assert "M1=3" in out
     assert "M2=3" in out
     assert "M3=9" in out
-    assert "CURRENT=13" in out
-    assert "DUE-TODAY=1" in out
+    assert "CURRENT=14" in out
+    assert "SUPERSEDED=1" in out
     assert "ELIGIBLE=12" in out
-    assert "NEEDS-STRONGER-MARKET-EVIDENCE=1" in out
-    assert "REVALIDATE-NOW=1" in out
+    assert "NEEDS-STRONGER-MARKET-EVIDENCE=2" in out
+    assert "SUPERSEDED-USE-NEWER-OBSERVATION=1" in out
     assert "watchlist_market_gate=NEEDS-STRONGER-MARKET-EVIDENCE" in out
     assert "watchlist_market_gate=ELIGIBLE" in out
-    assert "watchlist_market_gate=REVALIDATE-NOW" in out
+    assert "watchlist_market_gate=SUPERSEDED-USE-NEWER-OBSERVATION" in out
     assert "M3 is claim-scoped" in out
     assert "GATE: PASS" in out
+
+    out = run([
+        PY, str(HERE / "market_evidence_gate.py"),
+        str(prod),
+        "--record-id", "market:cn:a770-16g:secondary:2026-08-25",
+        "--as-of", "2026-09-01",
+    ])
+    assert "DUE-TODAY=1" in out
+    assert "REVALIDATE-NOW=1" in out
+    assert "watchlist_market_gate=REVALIDATE-NOW" in out
 
     out = run([
         PY, str(HERE / "market_evidence_gate.py"),
@@ -226,7 +259,9 @@ def main():
         "--as-of", "2026-09-05",
     ])
     assert "STALE=14" in out
+    assert "SUPERSEDED=1" in out
     assert "STALE-REVALIDATE=14" in out
+    assert "SUPERSEDED-USE-NEWER-OBSERVATION=1" in out
     assert "Due-today, stale or unscheduled market evidence must be revalidated" in out
 
     out = run([
@@ -351,6 +386,39 @@ def main():
             "--as-of", "2026-08-28",
         ], expect=2)
         assert "MEDIAN_ASK requires sample object" in out
+        assert "VALIDATION: FAIL" in out
+
+        lineage_catalog = td / "lineage-validation"
+        lineage_catalog.mkdir()
+        for name in (
+            "hardware.jsonl",
+            "models.jsonl",
+            "runtimes.jsonl",
+            "market.jsonl",
+            "compatibility.jsonl",
+            "benchmarks.jsonl",
+        ):
+            shutil.copy2(prod / name, lineage_catalog / name)
+
+        lineage_rows = [
+            json.loads(line)
+            for line in (lineage_catalog / "market.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        for row in lineage_rows:
+            if row.get("record_id") == "market:cn:a770-16g:secondary:2026-08-25":
+                row["supersedes"] = "market:missing"
+                break
+        (lineage_catalog / "market.jsonl").write_text(
+            "\n".join(json.dumps(x) for x in lineage_rows) + "\n",
+            encoding="utf-8",
+        )
+        out = run([
+            PY, str(HERE / "validate_catalog.py"),
+            str(lineage_catalog),
+            "--as-of", "2026-08-28",
+        ], expect=2)
+        assert "supersedes references unknown market record" in out
         assert "VALIDATION: FAIL" in out
 
         revalidation_catalog = td / "revalidation-validation"
@@ -657,6 +725,9 @@ def main():
     print("- mismatched market evidence grade is rejected")
     print("- market evidence eligibility is freshness-aware and all real market rows require revalidation dates")
     print("- Experiment 38 blocks due-today, stale and invalid market evidence from BUY-CANDIDATE")
+    print("- append-only A770 refresh supersedes the old observation without deleting audit history")
+    print("- superseded observations leave active market/freshness/watchlist views by default")
+    print("- broken market refresh lineage is rejected")
     print("- explicit UNKNOWN remains valid and returns BLOCKED")
     print("- real benchmark intake accepts an intact packet and rejects a tampered packet")
     print("- Experiment 61 importer reproduces PP/TG")
