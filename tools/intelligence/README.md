@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I54. GitHub Actions run #174 verifies the complete suite, including raw semantic-source capture, byte-derived real-session preparation, and the end-to-end I52 evidence runner.
+Phase 4 tooling currently implements I01–I54. The first-real operator bootstrap is intentionally unnumbered: it reduces setup friction without adding a new evidence gate. GitHub Actions run #176 verifies the complete suite plus the workspace bootstrap self-test.
 
 ## 1. Validate a catalog
 
@@ -583,6 +583,44 @@ reference/hardware/condition-evidence-grades.md
 
 C3 means learner-owned, PACKET-bound, independently reproducible I44 technical evidence. ACCEPT/REVIEW/REJECT remains separate.
 
+## First-real workspace bootstrap — operator convenience, not I55
+
+Create a clean Experiment 61 workspace from repository templates:
+
+~~~bash
+python3 tools/intelligence/bootstrap_real_evidence_workspace.py \
+  --out-dir /path/to/e61-real \
+  --profile rtx3090-qwen3-8b-llamacpp
+~~~
+
+Optional explicit bindings are accepted only for files that already exist:
+
+~~~text
+--model-artifact /absolute/path/to/model.gguf
+--quality-corpus /absolute/path/to/corpus.txt
+--observed-at YYYY-MM-DD
+~~~
+
+The bootstrap:
+- binds repository/catalog/workspace paths;
+- copies the Experiment 61 manifest/session templates;
+- copies the Experiment 59 quality-identity template;
+- copies the selected I54 probe plan;
+- creates an empty `prompt-evidence/` directory;
+- writes `RUN.md` and `workspace.json`.
+
+It deliberately does **not** create a GGUF, hardware profile, prompt manifest, quality corpus, benchmark output, or quality output.
+
+It never launches I54/I53/I52 automatically and records:
+
+~~~text
+automatic_benchmark_launch = NOT-PERMITTED
+automatic_catalog_ingestion = NOT-PERMITTED
+automatic_purchase_decision = NOT-PERMITTED
+~~~
+
+This is an operator setup layer, not a new Intelligence evidence stage.
+
 ## 29. Capture semantic source observations
 
 Before manually filling the non-byte-derived Experiment 61 fields, capture the exact machine/runtime observations that support them.
@@ -704,7 +742,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #174
+run #176
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
@@ -731,6 +769,7 @@ QUALITY EXECUTION INTAKE SELFTEST: PASS
 REAL EVIDENCE SESSION SELFTEST: PASS
 REAL EVIDENCE SESSION PREPARE SELFTEST: PASS
 SEMANTIC SOURCE CAPTURE SELFTEST: PASS
+REAL WORKSPACE BOOTSTRAP SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
 

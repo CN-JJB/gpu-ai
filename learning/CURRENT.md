@@ -194,14 +194,14 @@ China rows remain M1 secondary signals, not confirmed transactions.
 
 ~~~text
 workflow: Intelligence Self-Test
-run #174
-run id 33194275501
-head f65da6ff82da6f0fb9983508f3bb0e3daa5034fa
-job id 98927303916
+run #176
+run id 33195115141
+head d53497366645254fa2d0bf96714a5d46dc4622b7
+job id 98930161758
 conclusion success
 ~~~
 
-The complete suite passed through I54, including raw semantic-source capture, byte-derived I53 preparation, and the end-to-end I52 orchestration path.
+The complete suite passed through I54, including raw semantic-source capture, byte-derived I53 preparation, the end-to-end I52 orchestration path, and the unnumbered first-real workspace bootstrap.
 
 ## Newest evidence
 
@@ -218,17 +218,19 @@ The complete suite passed through I54, including raw semantic-source capture, by
 - examples/evidence/intelligence-52-real-evidence-session-runner.md
 - examples/evidence/intelligence-53-real-evidence-session-materializer.md
 - examples/evidence/intelligence-54-semantic-source-capture.md
+- examples/evidence/operator-first-real-workspace-bootstrap.md
 
 ## Next
 
 1. Stop expanding decision gates by default.
-2. On the actual NVIDIA-first machine, copy/review `semantic-source-probes.rtx3090-llamacpp.json`, run I54, and require `READY-FOR-SEMANTIC-REVIEW`.
-3. Review the retained probe outputs, then deliberately fill the Experiment 61 device/runtime/build/backend/execution semantics and the local paths in `real-evidence-session.rtx3090-qwen3-8b-llamacpp.skeleton.json`.
-4. Run `prepare_real_evidence_session.py`; require `READY-TO-RUN-I52`.
-5. Run I52 using the prepared session; require `REAL SESSION: READY`.
-6. Manually review the captured benchmark/quality evidence before any catalog ingestion.
-7. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
-8. Acquire the first real Experiment 87 / I44 acceptance packet, then fill I46/I48 and run I43.
-9. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
+2. On the actual NVIDIA-first machine, run `bootstrap_real_evidence_workspace.py --profile rtx3090-qwen3-8b-llamacpp` into a new empty directory; optionally bind only real existing GGUF/corpus paths.
+3. Follow the generated `RUN.md`: review `semantic-probes.json`, run I54, and require `READY-FOR-SEMANTIC-REVIEW`.
+4. Review the retained probe outputs, then deliberately fill Experiment 61 device/runtime/build/backend/model-source/execution semantics plus Experiment 57/59 source artifacts.
+5. Run I53; require `READY-TO-RUN-I52`.
+6. Run I52; require `REAL SESSION: READY`.
+7. Manually review the captured benchmark/quality evidence before any catalog ingestion.
+8. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
+9. Acquire the first real Experiment 87 / I44 acceptance packet, then fill I46/I48 and run I43.
+10. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
 
 No auto-purchase or unsafe hardware modification.

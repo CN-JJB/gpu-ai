@@ -4,21 +4,47 @@ Use this on the actual benchmark machine.
 
 This checklist prepares evidence. It does not tell you which GPU/model to buy.
 
-## 0. Optional RTX 3090 canonical skeleton
+## 0. Preferred: bootstrap a clean real workspace
 
 For the first NVIDIA path:
 
 ~~~bash
-cp real-evidence-session.rtx3090-qwen3-8b-llamacpp.skeleton.json real-session.json
+python3 ../../../tools/intelligence/bootstrap_real_evidence_workspace.py \
+  --out-dir /absolute/path/to/e61-real \
+  --profile rtx3090-qwen3-8b-llamacpp
 ~~~
 
-This pre-fills only:
+If the real GGUF/corpus already exist, optionally add their **existing absolute paths** plus an explicit observation date.
+
+The bootstrap pre-fills only repository/template facts, including the existing canonical RTX 3090 / Qwen3-8B / llama.cpp IDs for that profile. It does not claim the physical machine actually matches them.
+
+It creates:
 
 ~~~text
-hardware_id = hw:nvidia:geforce-rtx-3090:24g
-model_id    = model:qwen:qwen3-8b
-runtime_id  = runtime:ggml-org:llama.cpp
+baseline-manifest.json
+quality-identity.json
+real-session.json
+semantic-probes.json
+prompt-evidence/
+workspace.json
+RUN.md
 ~~~
+
+It deliberately does not create:
+
+~~~text
+model GGUF
+profile.txt
+prompt-evidence/manifest.json
+quality corpus
+semantic-source-evidence/
+prepared-session/
+real-session-output/
+~~~
+
+Read `RUN.md`, then continue below.
+
+Manual fallback: copy `real-evidence-session.rtx3090-qwen3-8b-llamacpp.skeleton.json` and the probe templates yourself.
 
 Do not treat any remaining placeholder as a suggested value.
 
@@ -120,7 +146,9 @@ Do not infer quant or source revision from a filename unless that identity is ac
 
 ## 4. Fill the session JSON
 
-Start from:
+If you used the bootstrap, edit the generated `real-session.json`.
+
+Otherwise start from:
 
 ~~~bash
 cp real-evidence-session.template.json real-session.json

@@ -146,9 +146,29 @@ validator.txt
 Performance:
 - reuse Experiment 40.
 
-### Preferred I54 → I53 → I52 path
+### Preferred workspace → I54 → I53 → I52 path
 
-First preserve the same-machine semantic sources.
+On the actual machine, prefer creating a clean workspace first:
+
+~~~bash
+python3 ../../../tools/intelligence/bootstrap_real_evidence_workspace.py \
+  --out-dir /absolute/path/to/e61-real \
+  --profile rtx3090-qwen3-8b-llamacpp
+~~~
+
+If the exact real files already exist, you may additionally bind:
+
+~~~text
+--model-artifact /absolute/path/to/model.gguf
+--quality-corpus /absolute/path/to/corpus.txt
+--observed-at YYYY-MM-DD
+~~~
+
+Open the generated `RUN.md`.
+
+The bootstrap is not I55 and creates no evidence by itself. It only copies templates and binds paths.
+
+If bootstrapping manually instead, first preserve the same-machine semantic sources.
 
 For the NVIDIA-first path, copy and review:
 

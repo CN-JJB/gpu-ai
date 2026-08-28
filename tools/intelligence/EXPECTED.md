@@ -17,14 +17,30 @@ Latest implementation verification:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #174
-run id 33194275501
-head f65da6ff82da6f0fb9983508f3bb0e3daa5034fa
-job id 98927303916
+run #176
+run id 33195115141
+head d53497366645254fa2d0bf96714a5d46dc4622b7
+job id 98930161758
 conclusion success
 Python 3.12
 Ubuntu 24.04
 ~~~
+
+## Operator bootstrap boundary
+
+The unnumbered first-real workspace bootstrap was verified in the same run.
+
+It proves only setup behavior:
+
+~~~text
+repository templates
+→ clean workspace
+→ explicit absolute repo/catalog/workspace bindings
+→ optional binding of already-existing GGUF/corpus paths
+→ RUN.md
+~~~
+
+It creates no fake evidence, launches no benchmark, performs no ingestion, and does not change the I01–I54 evidence frontier.
 
 ## Major verified chains
 
