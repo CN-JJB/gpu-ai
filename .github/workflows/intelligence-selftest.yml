@@ -52,6 +52,8 @@ jobs:
         run: python tools/intelligence/quality_comparison_artifact_selftest.py
       - name: Run reproducible performance-quality binding self-test
         run: python tools/intelligence/joint_tradeoff_selftest.py
+      - name: Run joint tradeoff artifact self-test
+        run: python tools/intelligence/joint_tradeoff_artifact_selftest.py
       - name: Run quality execution-variable self-test
         run: python tools/intelligence/quality_execution_variable_selftest.py
       - name: Run quality execution + metric intake self-test

@@ -292,39 +292,50 @@ def perf_delta(baseline, candidate):
     }
 
 
-def main():
-    p = argparse.ArgumentParser(
-        description=(
-            "Bind an independently reproducible I33 model-quality A/B to the same "
-            "Experiment 61 one-variable performance A/B."
-        )
-    )
-    p.add_argument("--baseline-manifest", type=Path, required=True)
-    p.add_argument("--candidate-manifest", type=Path, required=True)
-    p.add_argument("--baseline-benchmark", type=Path, required=True)
-    p.add_argument("--candidate-benchmark", type=Path, required=True)
-    p.add_argument("--quality-comparison", type=Path, required=True)
-    p.add_argument("--baseline-quality-dir", type=Path, required=True)
-    p.add_argument("--candidate-quality-dir", type=Path, required=True)
-    p.add_argument("--baseline-model-artifact", type=Path, required=True)
-    p.add_argument("--candidate-model-artifact", type=Path, required=True)
-    p.add_argument("--quality-corpus", type=Path, required=True)
-    p.add_argument("--out", type=Path, required=True)
-    a = p.parse_args()
+def build_joint_tradeoff_evidence(
+    baseline_manifest_path,
+    candidate_manifest_path,
+    baseline_benchmark_path,
+    candidate_benchmark_path,
+    quality_comparison_path,
+    baseline_quality_dir,
+    candidate_quality_dir,
+    baseline_model_artifact,
+    candidate_model_artifact,
+    quality_corpus,
+):
+    baseline_manifest_path = Path(baseline_manifest_path)
+    candidate_manifest_path = Path(candidate_manifest_path)
+    baseline_benchmark_path = Path(baseline_benchmark_path)
+    candidate_benchmark_path = Path(candidate_benchmark_path)
+    quality_comparison_path = Path(quality_comparison_path)
+    baseline_quality_dir = Path(baseline_quality_dir)
+    candidate_quality_dir = Path(candidate_quality_dir)
+    baseline_model_artifact = Path(baseline_model_artifact)
+    candidate_model_artifact = Path(candidate_model_artifact)
+    quality_corpus = Path(quality_corpus)
 
     errors = []
-    baseline_manifest = load_object(a.baseline_manifest, "baseline manifest", errors)
-    candidate_manifest = load_object(a.candidate_manifest, "candidate manifest", errors)
-    baseline_benchmark = load_object(a.baseline_benchmark, "baseline benchmark", errors)
-    candidate_benchmark = load_object(a.candidate_benchmark, "candidate benchmark", errors)
+    baseline_manifest = load_object(
+        baseline_manifest_path, "baseline manifest", errors
+    )
+    candidate_manifest = load_object(
+        candidate_manifest_path, "candidate manifest", errors
+    )
+    baseline_benchmark = load_object(
+        baseline_benchmark_path, "baseline benchmark", errors
+    )
+    candidate_benchmark = load_object(
+        candidate_benchmark_path, "candidate benchmark", errors
+    )
 
     quality_result = verify_exact_quality_comparison_evidence(
-        a.quality_comparison,
-        a.baseline_quality_dir,
-        a.candidate_quality_dir,
-        a.baseline_model_artifact,
-        a.candidate_model_artifact,
-        a.quality_corpus,
+        quality_comparison_path,
+        baseline_quality_dir,
+        candidate_quality_dir,
+        baseline_model_artifact,
+        candidate_model_artifact,
+        quality_corpus,
     )
     errors.extend(
         "quality comparison evidence: " + error
@@ -411,7 +422,7 @@ def main():
                 ],
             },
             "quality_evidence": {
-                "comparison_sha256": sha256_file(a.quality_comparison),
+                "comparison_sha256": sha256_file(quality_comparison_path),
                 "comparison_contract": quality.get("comparison_contract"),
                 "baseline_metric_sha256": (quality.get("baseline") or {}).get(
                     "metric_sha256"
@@ -422,6 +433,49 @@ def main():
                 "verification": "INDEPENDENTLY-REPRODUCED-I36",
             },
         }
+
+    return {
+        "errors": errors,
+        "output": output,
+        "contract": contract,
+    }
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=(
+            "Bind an independently reproducible I33 model-quality A/B to the same "
+            "Experiment 61 one-variable performance A/B."
+        )
+    )
+    p.add_argument("--baseline-manifest", type=Path, required=True)
+    p.add_argument("--candidate-manifest", type=Path, required=True)
+    p.add_argument("--baseline-benchmark", type=Path, required=True)
+    p.add_argument("--candidate-benchmark", type=Path, required=True)
+    p.add_argument("--quality-comparison", type=Path, required=True)
+    p.add_argument("--baseline-quality-dir", type=Path, required=True)
+    p.add_argument("--candidate-quality-dir", type=Path, required=True)
+    p.add_argument("--baseline-model-artifact", type=Path, required=True)
+    p.add_argument("--candidate-model-artifact", type=Path, required=True)
+    p.add_argument("--quality-corpus", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True)
+    a = p.parse_args()
+
+    result = build_joint_tradeoff_evidence(
+        a.baseline_manifest,
+        a.candidate_manifest,
+        a.baseline_benchmark,
+        a.candidate_benchmark,
+        a.quality_comparison,
+        a.baseline_quality_dir,
+        a.candidate_quality_dir,
+        a.baseline_model_artifact,
+        a.candidate_model_artifact,
+        a.quality_corpus,
+    )
+    errors = result["errors"]
+    output = result["output"]
+    contract = result["contract"]
 
     print("PERFORMANCE × QUALITY A/B BINDING")
     if contract is not None:
