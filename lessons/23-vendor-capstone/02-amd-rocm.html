@@ -1,61 +1,45 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — AMD ROCm/HIP</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
-<h1>Vendor Capstone 2 — AMD ROCm/HIP</h1>
-
-<h2>1. AMD 第一身份不是“RX 7000”，是 exact gfx target</h2>
-<pre>amd-smi list
-rocminfo
-hipconfig --full</pre>
-
-<p>记录 exact GPU + <code>gfx*</code> + ROCm/HIP version。</p>
-
-<h2>2. 当前 llama.cpp HIP 构建</h2>
-<pre>HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-cmake -S . -B build \
-  -DGGML_HIP=ON \
-  -DGPU_TARGETS=&lt;exact-gfx-target&gt; \
-  -DCMAKE_BUILD_TYPE=Release
-
-cmake --build build --config Release -j</pre>
-
-<p>upstream 当前说明 <code>GPU_TARGETS</code> 可省略；课程显式写它是为了让 Evidence 更清楚。</p>
-
-<h2>3. 不要把 workaround 悄悄当官方支持</h2>
-<p>如果必须使用 gfx override、社区 patch、特殊 build：</p>
-<pre>support_state = community-enabled</pre>
-
-<p>这会进入 TCO/维护成本。</p>
-
-<h2>4. 第一轮优化仍由证据选</h2>
-<ul>
-<li>PP 弱 → FA/backend；</li>
-<li>TG 接近 bandwidth roof → quant/memory traffic；</li>
-<li>长 context 内存紧 → KV/context；</li>
-<li>设备根本不在当前官方支持矩阵 → 先解决 support gate。</li>
-</ul>
-
-<section class="student-closure">
-<h2>学生闭环 — AMD ROCm</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0 preflight；有对应硬件时 L1/L2 做真机增强。</p>
-<p><strong>成本：</strong>0 元主路径，不要求集齐四个生态。</p>
-<p><strong>风险：</strong>safe；只做 build/device/runtime 检查和 benchmark。</p>
-<p><strong>替代路径：</strong>没有 AMD ROCm 硬件就只做 Experiment 41 的 preflight，并用已有 Evidence/官方资料完成生态映射。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>把 hardware identity、driver/runtime、backend build、model artifact、execution config 分层记录。</li>
-<li>把同一 benchmark contract 迁移到 AMD ROCm，只替换厂商特有的 discovery/build 命令。</li>
-<li>知道“能运行”与“使用预期加速路径”是两个不同结论。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/41-vendor-capstone-preflight/README.md">Experiment 41：vendor capstone preflight</a>。真机时再把对应厂商的 exact version / device / backend log 填进 Experiment Card。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么 HIP 语法近似 CUDA 不等于底层执行细节完全相同？</li><li>rocminfo/amd-smi 和实际 LLM backend log 各证明哪一层？</li><li>为什么 gfx target/ROCm version 必须进入 Evidence？</li><li>如果某 AMD 卡理论很强但 backend fallback，你会把问题归到硬件还是软件层？</li></ol>
-<h3>完成证据</h3>
-<p>提交一张 AMD ROCm evidence ladder：<strong>device identity → driver/runtime → backend build → model identity → exact argv → PP/TG/quality</strong>；每一层写“由什么命令或文件证明”。</p>
-<h3>如何迁移</h3>
-<p>四生态真正应该共用的是 Evidence 结构，而不是命令。换厂商后保持问题不变：<strong>我跑了谁、在哪跑、用什么路径、测了什么、什么仍未知</strong>。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD HIP Programming Model</a></li><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD HIP Hardware Implementation</a></li><li><a href="../../reference/system/vendor-capstone-runbooks.md">Course Reference — Vendor Capstone Runbooks</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone：AMD / ROCm</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Vendor Capstone · AMD · L0→L2</p><h1>AMD / ROCm 实战闭环：从设备支持到 HIP LLM 真实 offload</h1><p class="lead">AMD 的 capstone 核心不是“把 ROCm 装上”。你要学会把 exact GPU、OS/kernel driver、ROCm runtime、HIP libraries、应用 backend、model kernel 与 benchmark 绑定成一条可复现证据链。这样即使未来 ROCm 支持矩阵变化，你仍知道怎样重新验证。</p>
+<h2>Prerequisite Check</h2><p>完成 GCN/RDNA/CDNA 课程，知道 CU/wave/LDS 是硬件层概念，也知道“AMD GPU 有计算能力”不等于“当前 ROCm 支持 exact device”。</p>
+<h2>真实问题：为什么 AMD 本地 LLM 最怕一句“理论上支持”？</h2><p>因为“理论上”常混合了不同命题：ISA 能执行、Linux driver 能枚举、ROCm 官方支持、HIP runtime 能打开、llama.cpp build 含 HIP、目标 quant 有 GPU kernel。真正可用必须逐层通过。</p>
+<h2>1. ROCm evidence chain</h2><pre>exact PCI device / ASIC
+→ kernel GPU driver
+→ ROCm userspace runtime
+→ HIP compiler/runtime + libraries
+→ application HIP backend
+→ target model/quant kernels
+→ offload observed
+→ fixed PP/TG + quality
+</pre><p>稳定教材永远保留这条链；具体版本号则在你学习时查询官方 support matrix。</p>
+<h2>2. “ROCm supported”到底要记录什么？</h2><p>不要只写 yes/no。至少记录：</p><ul><li>exact GPU/device family；</li><li>OS/distribution；</li><li>kernel/driver path；</li><li>ROCm version；</li><li>官方支持、community/unsupported workaround 还是其他 backend；</li><li>目标 application build/runtime；</li><li>测试日期。</li></ul><p>这让未来升级后可以判断是硬件问题还是支持生命周期变化。</p>
+<h2>3. HIP：源码可移植不等于 kernel 自动最优</h2><p>HIP 允许很多 CUDA 风格代码迁移到 AMD，但 warp/wave、memory hierarchy、matrix instruction、library 和 compiler behavior 都可能不同。一个“能编译”的 kernel 不代表充分利用 AMD。</p><p>性能问题应检查：</p><ul><li>wave utilization / divergence；</li><li>VGPR/LDS resource pressure；</li><li>memory coalescing/cache；</li><li>matrix/low-precision kernel coverage；</li><li>launch/host overhead。</li></ul>
+<h2>4. 应用是否真的用 HIP backend？</h2><p>从应用日志或 build info 找证据：检测到哪个 AMD device、分配了多少 VRAM/HBM、offload 多少 layer/tensor、使用哪种 kernel path、是否出现 CPU fallback。</p><p>如果只有“程序成功生成文本”，你尚未证明 GPU inference。</p>
+<h2>5. Radeon 与 Instinct：同一 ROCm 生态，不同部署风险</h2><p>消费 Radeon 更容易放进普通台式机，但 exact ROCm support 与 kernel maturity 需查；Instinct 可能有 HBM/计算优势，却可能要求服务器散热、特殊形态、更多功耗与平台条件。</p><p>因此不要写“AMD = Radeon”或“MI = 便宜大显存神卡”。</p>
+<h2>Worked Example：ROCm 应用能启动，但速度和 CPU 差不多</h2><pre>Step 1: verify device chosen by app
+Step 2: verify GPU layers / tensors offloaded
+Step 3: inspect VRAM/HBM allocation
+Step 4: look for unsupported quant / CPU fallback
+Step 5: separate PP and TG
+Step 6: monitor clocks, power, temperature
+Step 7: keep same model/build/protocol and change one variable</pre><p>如果 offload 很少，先修 fit/config/kernel；如果全部 offload 但 TG 低，检查 memory/quant kernel；如果 PP/TG 都低，检查 build、device clocks、driver/runtime。</p>
+<h2>6. Vulkan 等 alternative backend 怎么定位？</h2><p>一个 Radeon 可能通过 Vulkan backend 工作，即使当前 ROCm path 不合适。这并不矛盾。你应把结论精确写成：</p><pre>exact device + Vulkan backend = measured usable
+exact device + ROCm/HIP backend = blocked / unverified
+</pre><p>而不是泛化成“这卡支持/不支持 LLM”。</p>
+<h2>7. Benchmark 与质量</h2><p>固定 model artifact、quant、prompt/token identity、context、GPU offload、KV type、flash-attention setting、runtime build、warmup/repetition。性能至少分 PP/TG，改变 quant/backend 时配套固定质量 corpus 或任务。</p>
+<h2>Why it matters</h2><ul><li>ROCm 支持矩阵会变化，方法必须比版本表寿命更长。</li><li>AMD 潜在价格/显存优势只有通过应用 backend 后才真实存在。</li><li>精确的 blocked conclusion 比“AMD 不行”更可迁移。</li><li>Radeon/Instinct 的物理部署差异可直接改变垃圾佬性价比。</li></ul>
+<h2>常见误区</h2><ul><li>“ROCm 安装成功 = 应用 HIP 加速成功”——缺 application/kernel/offload。</li><li>“HIP 是 CUDA 翻译器，所以性能一样”——硬件与优化不同。</li><li>“官方不支持 = GPU 完全不能算”——其他 backend 可能工作，但证据等级不同。</li><li>“Vulkan 能跑 = ROCm 也能跑”——两条独立 software path。</li><li>“MI 卡 HBM 大就适合桌面”——服务器物理/散热/供电可能拦截。</li></ul>
+<h2>实践路径</h2><p>作者阶段完成 support worksheet、实验说明和 evidence schema；你以后上课时根据当时 ROCm 官方文档选择 exact supported path，再运行受控 benchmark。若无 AMD 卡，使用文档/fixtures 完成 L0。</p>
+<h2>排错树</h2><pre>PCI device visible?
+ no → hardware/platform
+ yes → ROCm runtime sees exact GPU?
+        no → driver/support/version
+        yes → app HIP backend active?
+              no → build/config
+              yes → target model offloaded?
+                    no → fit/kernel/config
+                    yes → profile PP/TG/memory/thermal</pre>
+<h2>Retrieval Practice</h2><ol><li>为什么“ROCm 支持”必须记录 device+OS+version+date？</li><li>HIP code 能编译为什么不保证 AMD 上高效？</li><li>怎样证明 LLM 应用真的通过 HIP offload？</li><li>Vulkan 可用、ROCm 不可用时应如何写精确结论？</li><li>Radeon 与 Instinct 的硬件优势为什么需要不同系统 gate？</li><li>改变 quant/backend 时为什么必须配质量检查？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>AMD 路径只有 exact device × current runtime × application backend × model kernel × measured workload 全链通过后，才进入购买/性能比较。Unsupported workaround 可以学习，但不能冒充官方支持或生产级稳定性。</p></div>
+<h2>Transfer</h2><p>这套“多个 backend 可独立成立”的思维尤其适用于 Intel/AMD。换 NVIDIA/Apple 时同样记录 exact backend，而不是只写厂商品牌。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/">AMD ROCm Documentation</a></li><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/">AMD HIP Documentation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 Evidence Packet</a></li></ul>
+</main></body></html>
