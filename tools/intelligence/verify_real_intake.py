@@ -366,6 +366,7 @@ def main():
     p.add_argument("--hardware-profile", type=Path, help="Hardware profile artifact to SHA-check against manifest variant.hardware.profile_sha256")
     p.add_argument("--prompt-manifest", type=Path, help="Experiment 57 prompt evidence manifest to bind variant.prompt identity")
     p.add_argument("--quality-corpus", type=Path, help="Quality-evaluation corpus to SHA-check against fixed.quality_eval.corpus_sha256")
+    p.add_argument("--quality-manifest", type=Path, help="Experiment 59 quality identity manifest to bind fixed.quality_eval identity")
     p.add_argument("--command-record", type=Path, help="I21 command.json to bind exact argv to the verified model artifact")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
@@ -502,6 +503,56 @@ def main():
             "non-synthetic intake requires --quality-corpus so fixed.quality_eval.corpus_sha256 has a real artifact"
         )
         quality_corpus_status = "BLOCKED"
+
+    quality_identity_status = "NOT-CHECKED"
+    quality_identity_obj = {}
+    if a.quality_manifest is not None:
+        if not a.quality_manifest.is_file():
+            errors.append(f"quality manifest is not a file: {a.quality_manifest}")
+            quality_identity_status = "BLOCKED"
+        else:
+            try:
+                quality_identity_obj = json.loads(a.quality_manifest.read_text(encoding="utf-8"))
+            except Exception as exc:
+                errors.append(f"invalid quality manifest JSON: {exc}")
+                quality_identity_status = "BLOCKED"
+
+            if quality_identity_obj and not isinstance(quality_identity_obj, dict):
+                errors.append("quality manifest must be one JSON object")
+                quality_identity_status = "BLOCKED"
+                quality_identity_obj = {}
+
+            if quality_identity_obj:
+                if quality_identity_obj.get("quality_identity_schema_version") != 1:
+                    errors.append("quality_identity_schema_version must be 1")
+                    quality_identity_status = "BLOCKED"
+
+                manifest_quality = manifest.get("fixed", {}).get("quality_eval", {})
+                for field in (
+                    "tokenizer_identity",
+                    "corpus_sha256",
+                    "fixture_revision",
+                    "evaluation_args",
+                ):
+                    expected = manifest_quality.get(field)
+                    actual = quality_identity_obj.get(field)
+                    if actual != expected:
+                        errors.append(
+                            f"quality manifest {field} != Experiment 61 manifest: "
+                            f"{actual!r} vs {expected!r}"
+                        )
+                        quality_identity_status = "BLOCKED"
+
+                if quality_identity_status != "BLOCKED":
+                    quality_identity_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            quality_identity_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic intake requires --quality-manifest so fixed.quality_eval identity has a machine-readable evidence artifact"
+        )
+        quality_identity_status = "BLOCKED"
 
     prompt_status = "NOT-CHECKED"
     prompt_obj = {}
@@ -729,6 +780,8 @@ def main():
                 packet_paths.append(a.prompt_manifest)
             if a.quality_corpus is not None:
                 packet_paths.append(a.quality_corpus)
+            if a.quality_manifest is not None:
+                packet_paths.append(a.quality_manifest)
             if a.command_record is not None:
                 packet_paths.append(a.command_record)
             for path in packet_paths:
@@ -755,6 +808,10 @@ def main():
         print(f"- bytes={profile_actual_bytes}")
     if profile_actual_sha256 is not None:
         print(f"- sha256={profile_actual_sha256}")
+    print("QUALITY IDENTITY")
+    print(f"- status={quality_identity_status}")
+    if a.quality_manifest is not None:
+        print(f"- quality_manifest={a.quality_manifest}")
     print("QUALITY CORPUS")
     print(f"- status={quality_corpus_status}")
     if a.quality_corpus is not None:
