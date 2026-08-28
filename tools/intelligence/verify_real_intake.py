@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from verify_quality_execution import verify_quality_execution_evidence
+from verify_quality_metric import verify_quality_metric_evidence
 
 PLACEHOLDERS = {"", "TODO", "TBD", "REPLACE", "UNKNOWN", "N/A"}
 RAW_SHARED_FIELDS = (
@@ -374,6 +375,7 @@ def main():
     p.add_argument("--quality-stdout", type=Path, help="I28 raw quality stdout.txt")
     p.add_argument("--quality-stderr", type=Path, help="I28 raw quality stderr.txt")
     p.add_argument("--quality-packet", type=Path, help="I28 quality PACKET.json")
+    p.add_argument("--quality-metric", type=Path, help="I31 machine-readable PPL artifact derived from sealed quality output")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
 
@@ -822,6 +824,55 @@ def main():
         )
         quality_execution_status = "BLOCKED"
 
+    quality_metric_status = "NOT-CHECKED"
+    if a.quality_metric is not None:
+        if quality_execution_status != "PASS":
+            errors.append(
+                "quality metric verification requires QUALITY EXECUTION status=PASS"
+            )
+            quality_metric_status = "BLOCKED"
+        elif (
+            a.model_artifact is None
+            or a.quality_corpus is None
+            or a.quality_manifest is None
+            or a.quality_command_record is None
+            or a.quality_stdout is None
+            or a.quality_stderr is None
+            or a.quality_packet is None
+        ):
+            errors.append(
+                "quality metric verification is missing required quality execution anchors"
+            )
+            quality_metric_status = "BLOCKED"
+        else:
+            quality_metric_result = verify_quality_metric_evidence(
+                a.quality_metric,
+                a.quality_command_record,
+                a.quality_stdout,
+                a.quality_stderr,
+                a.quality_packet,
+                a.model_artifact,
+                a.quality_corpus,
+                a.quality_manifest,
+            )
+            if quality_metric_result["errors"]:
+                errors.extend(
+                    "quality metric: " + error
+                    for error in quality_metric_result["errors"]
+                )
+                quality_metric_status = "BLOCKED"
+            else:
+                quality_metric_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            quality_metric_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic intake requires --quality-metric so the quality number "
+            "is independently reproducible from sealed raw output"
+        )
+        quality_metric_status = "BLOCKED"
+
     protocol = manifest.get("fixed", {}).get("protocol", {})
     for field in ("pp_tokens", "tg_tokens", "repetitions"):
         if not positive_number(protocol.get(field)):
@@ -929,6 +980,10 @@ def main():
         print(f"- stderr={a.quality_stderr}")
     if a.quality_packet is not None:
         print(f"- packet={a.quality_packet}")
+    print("QUALITY METRIC")
+    print(f"- status={quality_metric_status}")
+    if a.quality_metric is not None:
+        print(f"- quality_metric={a.quality_metric}")
 
     print("ERRORS")
     for x in errors:

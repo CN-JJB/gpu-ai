@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Synthetic-only support for Intelligence gate self-tests.
 
-This module writes tiny quality-execution evidence fixtures. It must never be
-used as measured model-quality evidence or copied into the production catalog.
+This module writes tiny quality-execution and quality-metric evidence fixtures.
+They must never be used as measured model-quality evidence or copied into the
+production catalog.
 """
 
 import hashlib
 import json
 from pathlib import Path
+
+
+SYNTHETIC_FINAL_LINE = b"Final estimate: PPL = 123.0000 +/- 0.50000"
 
 
 def sha256_bytes(data):
@@ -18,6 +22,14 @@ def packet_entry(path):
     data = path.read_bytes()
     return {
         "path": path.name,
+        "bytes": len(data),
+        "sha256": sha256_bytes(data),
+    }
+
+
+def evidence_record(path):
+    data = path.read_bytes()
+    return {
         "bytes": len(data),
         "sha256": sha256_bytes(data),
     }
@@ -59,9 +71,10 @@ def write_quality_execution_fixture(root, model, corpus, quality_manifest):
     identity.write_bytes(quality_manifest.read_bytes())
 
     stdout = root / "stdout.txt"
-    stdout.write_text(
-        "SYNTHETIC QUALITY EXECUTION FIXTURE ONLY; no measured PPL or task score.\n",
-        encoding="utf-8",
+    stdout.write_bytes(
+        b"SYNTHETIC QUALITY EXECUTION FIXTURE ONLY; no measured PPL or task score.\n"
+        + SYNTHETIC_FINAL_LINE
+        + b"\n"
     )
     stderr = root / "stderr.txt"
     stderr.write_bytes(b"")
@@ -117,10 +130,35 @@ def write_quality_execution_fixture(root, model, corpus, quality_manifest):
     packet = root / "PACKET.json"
     write_packet(packet, [command, stdout, stderr, identity])
 
+    metric = root / "quality-metric.json"
+    metric_obj = {
+        "quality_metric_schema_version": 1,
+        "parser_contract": "llama-perplexity-final-estimate-v1",
+        "metric": "PPL",
+        "value": 123.0,
+        "reported_uncertainty": 0.5,
+        "source": {
+            "stream": "stdout",
+            "line_number": 2,
+            "line_sha256": sha256_bytes(SYNTHETIC_FINAL_LINE),
+        },
+        "evidence": {
+            "quality_command": evidence_record(command),
+            "quality_identity": evidence_record(identity),
+            "stdout": evidence_record(stdout),
+            "stderr": evidence_record(stderr),
+        },
+    }
+    metric.write_text(
+        json.dumps(metric_obj, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
     return {
         "command": command,
         "stdout": stdout,
         "stderr": stderr,
         "packet": packet,
         "identity": identity,
+        "metric": metric,
     }

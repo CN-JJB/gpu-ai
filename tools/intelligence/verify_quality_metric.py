@@ -23,6 +23,81 @@ def load_metric(path, errors):
     return obj
 
 
+def verify_quality_metric_evidence(
+    quality_metric,
+    quality_command_record,
+    stdout,
+    stderr,
+    packet,
+    model_artifact,
+    quality_corpus,
+    quality_manifest,
+):
+    quality_metric = Path(quality_metric)
+    quality_command_record = Path(quality_command_record)
+    stdout = Path(stdout)
+    stderr = Path(stderr)
+    packet = Path(packet)
+    model_artifact = Path(model_artifact)
+    quality_corpus = Path(quality_corpus)
+    quality_manifest = Path(quality_manifest)
+
+    errors = []
+    if not quality_metric.is_file():
+        errors.append(f"quality metric is not a file: {quality_metric}")
+
+    execution = verify_quality_execution_evidence(
+        quality_command_record,
+        stdout,
+        stderr,
+        packet,
+        model_artifact,
+        quality_corpus,
+        quality_manifest,
+    )
+    errors.extend("execution evidence: " + x for x in execution["errors"])
+
+    metric_obj = {}
+    if quality_metric.is_file():
+        metric_obj = load_metric(quality_metric, errors)
+
+    if metric_obj:
+        if metric_obj.get("quality_metric_schema_version") != 1:
+            errors.append("quality_metric_schema_version must be 1")
+        if metric_obj.get("parser_contract") != PARSER_CONTRACT:
+            errors.append(f"parser_contract must be {PARSER_CONTRACT!r}")
+        if metric_obj.get("metric") != "PPL":
+            errors.append("quality metric name must be PPL")
+
+    parsed = None
+    if not execution["errors"]:
+        try:
+            parsed = parse_final_estimate(stdout, stderr)
+        except Exception as exc:
+            errors.append(str(exc))
+
+    expected = None
+    if parsed is not None:
+        expected = build_metric_artifact(
+            quality_command_record,
+            stdout,
+            stderr,
+            quality_manifest,
+            parsed,
+        )
+        if metric_obj != expected:
+            errors.append(
+                "quality metric artifact does not exactly match independently reparsed evidence"
+            )
+
+    return {
+        "errors": errors,
+        "metric": metric_obj,
+        "expected": expected,
+        "execution": execution,
+    }
+
+
 def main():
     p = argparse.ArgumentParser(
         description=(
@@ -40,11 +115,8 @@ def main():
     p.add_argument("--quality-manifest", type=Path, required=True)
     a = p.parse_args()
 
-    errors = []
-    if not a.quality_metric.is_file():
-        errors.append(f"quality metric is not a file: {a.quality_metric}")
-
-    execution = verify_quality_execution_evidence(
+    result = verify_quality_metric_evidence(
+        a.quality_metric,
         a.quality_command_record,
         a.stdout,
         a.stderr,
@@ -53,53 +125,20 @@ def main():
         a.quality_corpus,
         a.quality_manifest,
     )
-    errors.extend("execution evidence: " + x for x in execution["errors"])
-
-    metric_obj = {}
-    if a.quality_metric.is_file():
-        metric_obj = load_metric(a.quality_metric, errors)
-
-    parsed = None
-    try:
-        if not errors:
-            parsed = parse_final_estimate(a.stdout, a.stderr)
-    except Exception as exc:
-        errors.append(str(exc))
-
-    if metric_obj:
-        if metric_obj.get("quality_metric_schema_version") != 1:
-            errors.append("quality_metric_schema_version must be 1")
-        if metric_obj.get("parser_contract") != PARSER_CONTRACT:
-            errors.append(
-                f"parser_contract must be {PARSER_CONTRACT!r}"
-            )
-        if metric_obj.get("metric") != "PPL":
-            errors.append("quality metric name must be PPL")
-
-    if parsed is not None:
-        expected = build_metric_artifact(
-            a.quality_command_record,
-            a.stdout,
-            a.stderr,
-            a.quality_manifest,
-            parsed,
-        )
-        if metric_obj != expected:
-            errors.append(
-                "quality metric artifact does not exactly match independently reparsed evidence"
-            )
 
     print("QUALITY METRIC VERIFICATION")
-    if metric_obj:
-        print(f"parser_contract={metric_obj.get('parser_contract')}")
-        print(f"metric={metric_obj.get('metric')}")
-        print(f"value={metric_obj.get('value')}")
-        print(f"reported_uncertainty={metric_obj.get('reported_uncertainty')}")
+    if result["metric"]:
+        print(f"parser_contract={result['metric'].get('parser_contract')}")
+        print(f"metric={result['metric'].get('metric')}")
+        print(f"value={result['metric'].get('value')}")
+        print(
+            f"reported_uncertainty={result['metric'].get('reported_uncertainty')}"
+        )
     print("ERRORS")
-    for error in errors:
+    for error in result["errors"]:
         print("- " + error)
 
-    if errors:
+    if result["errors"]:
         print("QUALITY METRIC: BLOCKED")
         raise SystemExit(2)
 

@@ -179,6 +179,8 @@ def main():
             str(quality_exec["stderr"]),
             "--quality-packet",
             str(quality_exec["packet"]),
+            "--quality-metric",
+            str(quality_exec["metric"]),
         ]
 
         out = run(base, expect=2)

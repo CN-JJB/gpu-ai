@@ -210,8 +210,19 @@ def main():
             "--quality-packet",
             str(quality_exec["packet"]),
         ]
-        out = run(base + exec_args)
+        out = run(base + exec_args, expect=2)
+        assert "non-synthetic intake requires --quality-metric" in out
+        assert "QUALITY METRIC" in out
+        assert "status=BLOCKED" in out
+        assert "INTAKE: BLOCKED" in out
+
+        full_args = exec_args + [
+            "--quality-metric",
+            str(quality_exec["metric"]),
+        ]
+        out = run(base + full_args)
         assert "QUALITY EXECUTION" in out
+        assert "QUALITY METRIC" in out
         assert "status=PASS" in out
         assert "RAW IDENTITY: PASS" in out
         assert "INTAKE: READY" in out
@@ -252,6 +263,8 @@ def main():
             str(quality_exec["stderr"]),
             "--quality-packet",
             str(tampered_packet),
+            "--quality-metric",
+            str(quality_exec["metric"]),
         ]
         out = run(base + tampered_args, expect=2)
         assert (
@@ -264,7 +277,8 @@ def main():
 
     print("QUALITY EXECUTION INTAKE SELFTEST: PASS")
     print("- non-synthetic intake cannot reach READY without I28 execution evidence")
-    print("- valid separate quality PACKET admits the existing I26/I27 contract")
+    print("- valid quality execution plus machine metric admits the existing I26/I27 contract")
+    print("- missing quality metric blocks non-synthetic intake")
     print("- recomputed quality PACKET cannot hide semantic corpus-argv tampering")
     print("- synthetic fixture output is not a measured PPL or production benchmark")
 
