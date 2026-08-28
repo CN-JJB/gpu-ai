@@ -103,7 +103,27 @@ semantic-source-evidence/probes/*.stderr.txt
 
 The capture is raw source evidence only. It does not authorize automatic manifest edits.
 
-## 3. Fill semantic fields manually
+## 3. Assemble the hardware profile artifact
+
+After I54 is READY, generate the exact `profile.txt` path already referenced by the bootstrap session:
+
+~~~bash
+python3 ../../../tools/intelligence/assemble_hardware_profile.py \
+  semantic-source-evidence/bundle.json \
+  --out profile.txt
+~~~
+
+Required output:
+
+~~~text
+HARDWARE PROFILE ASSEMBLER: READY
+~~~
+
+The assembler verifies the I54 stream hashes and embeds their exact bytes. It does not decide what GPU/runtime those bytes mean.
+
+Review `profile.txt` together with the original I54 bundle.
+
+## 4. Fill semantic fields manually
 
 Use the source map:
 
@@ -144,7 +164,7 @@ Do not infer a runtime/build identity from the GPU name.
 
 Do not infer quant or source revision from a filename unless that identity is actually established.
 
-## 4. Fill the session JSON
+## 5. Fill the session JSON
 
 If you used the bootstrap, edit the generated `real-session.json`.
 
@@ -171,7 +191,7 @@ Do not use shell command strings.
 
 Do not leave the literal `...` token in either argv.
 
-## 5. Prepare byte-derived identity
+## 6. Prepare byte-derived identity
 
 Run:
 
@@ -205,7 +225,7 @@ I53 should have materialized:
 
 It should not have changed your runtime/device/execution semantics.
 
-## 6. Check the current executables yourself
+## 7. Check the current executables yourself
 
 Before running the session, re-check the actual binaries on this machine if anything changed after the I54 capture:
 
@@ -219,7 +239,7 @@ Use the flags supported by the installed build.
 
 Do not copy a stale command line only because it worked on another revision.
 
-## 7. Run I52
+## 8. Run I52
 
 Run:
 
@@ -246,7 +266,7 @@ Do not edit the sealed output to force a pass.
 
 Fix the source input and create a new empty output directory.
 
-## 8. Review before ingestion
+## 9. Review before ingestion
 
 Review at minimum:
 
@@ -263,7 +283,7 @@ real-session-output/session-summary.json
 
 Confirm the observed hardware/runtime/model/execution identity is what you intended to test.
 
-## 9. Only then ingest deliberately
+## 10. Only then ingest deliberately
 
 After review, use the existing real-ingest helper.
 
@@ -271,7 +291,7 @@ Do not append a failed, synthetic, stale-identity or unexplained run to the prod
 
 After reviewed ingestion, derive exact measured compatibility only for that exact hardware/model/runtime/build path.
 
-## 10. Production boundary
+## 11. Production boundary
 
 Until a learner-owned real session passes and is manually reviewed:
 
