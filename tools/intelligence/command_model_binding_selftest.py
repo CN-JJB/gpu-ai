@@ -65,6 +65,7 @@ def main():
         profile_bytes = b"tiny-hardware-profile-for-i23\n"
         profile = td / "profile.txt"
         profile.write_bytes(profile_bytes)
+        prompt_manifest = exp / "prompt-manifest.json"
 
         wrong_model = td / "wrong.gguf"
         wrong_model.write_bytes(b"x" * len(model_bytes))
@@ -103,6 +104,8 @@ def main():
             str(model),
             "--include",
             str(profile),
+            "--include",
+            str(prompt_manifest),
             "--",
             PY,
             str(fake),
@@ -138,6 +141,8 @@ def main():
             "2026-08-28",
             "--hardware-profile",
             str(sealed / "evidence" / "profile.txt"),
+            "--prompt-manifest",
+            str(sealed / "evidence" / "prompt-manifest.json"),
             "--model-artifact",
             str(model),
             "--command-record",
@@ -175,6 +180,7 @@ def main():
             shutil.copy2(sealed / name, tampered / name)
         (tampered / "evidence").mkdir()
         shutil.copy2(sealed / "evidence" / "profile.txt", tampered / "evidence" / "profile.txt")
+        shutil.copy2(sealed / "evidence" / "prompt-manifest.json", tampered / "evidence" / "prompt-manifest.json")
 
         tampered_command_path = tampered / "command.json"
         tampered_command = json.loads(tampered_command_path.read_text(encoding="utf-8"))
@@ -188,13 +194,14 @@ def main():
 
         packet = {
             "packet_schema_version": 1,
-            "file_count": 5,
+            "file_count": 6,
             "files": [
                 packet_entry(tampered, tampered / "manifest.json"),
                 packet_entry(tampered, tampered / "result.json"),
                 packet_entry(tampered, tampered / "stderr.txt"),
                 packet_entry(tampered, tampered / "command.json"),
                 packet_entry(tampered, tampered / "evidence" / "profile.txt"),
+                packet_entry(tampered, tampered / "evidence" / "prompt-manifest.json"),
             ],
         }
         (tampered / "PACKET.json").write_text(
@@ -222,6 +229,8 @@ def main():
             "2026-08-28",
             "--hardware-profile",
             str(tampered / "evidence" / "profile.txt"),
+            "--prompt-manifest",
+            str(tampered / "evidence" / "prompt-manifest.json"),
             "--model-artifact",
             str(model),
             "--command-record",
