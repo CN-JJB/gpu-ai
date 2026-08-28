@@ -16,15 +16,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I26 implemented and CI verified
+I01–I27 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #122
-run id 33157231636
-head 2695939652bf57128aee5bbeaf1d5f9b28a5596b
+run #133
+run id 33157503815
+head 96c805572b7e4f3c9f2882ec175045e25674a672
+job id 98803698443
 conclusion success
 full SELFTEST: PASS
 market refresh SELFTEST: PASS
@@ -216,10 +217,18 @@ Its SHA256 must match `fixed.quality_eval.corpus_sha256`, and the artifact must 
 
 CI run #122 is green.
 
+## I27 quality identity gate
+
+Experiment 59 now has a machine-readable quality identity artifact.
+
+Tokenizer identity, corpus SHA, fixture revision and evaluation args must match Experiment 61 `fixed.quality_eval.*` and be PACKET-indexed.
+
+CI run #133 is green.
+
 ## Next work
 
-1. Add machine-readable quality identity evidence for tokenizer / fixture revision / evaluation args.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26.
+1. Bind executed quality command/result evidence to the I26/I27 corpus + identity contract.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
