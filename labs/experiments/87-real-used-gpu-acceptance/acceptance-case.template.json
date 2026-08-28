@@ -1,0 +1,32 @@
+{
+  "acceptance_case_schema_version": 1,
+  "case_id": "REPLACE",
+  "hardware_id": "REPLACE",
+  "synthetic": false,
+  "claim": {
+    "vram_gib": 0
+  },
+  "observed": {
+    "vram_gib": 0,
+    "driver_recognized": false,
+    "target_runtime_recognized": false
+  },
+  "workload": {
+    "sustained_completed": false,
+    "tg_first": 0,
+    "tg_last": 0
+  },
+  "errors": {
+    "uncorrectable": null
+  },
+  "pcie": {
+    "max_width": null,
+    "current_width": null,
+    "expected_platform_width": null,
+    "observed_under_load": false
+  },
+  "physical": {
+    "display_required": false,
+    "display_outputs_tested": false
+  }
+}

@@ -66,6 +66,8 @@ jobs:
         run: python tools/intelligence/unified_tradeoff_route_selftest.py
       - name: Run decision evidence gap self-test
         run: python tools/intelligence/decision_evidence_gap_selftest.py
+      - name: Run used GPU acceptance self-test
+        run: python tools/intelligence/used_gpu_acceptance_selftest.py
       - name: Run quality execution + metric intake self-test
         run: python tools/intelligence/quality_execution_intake_selftest.py
       - name: Run market refresh self-test
