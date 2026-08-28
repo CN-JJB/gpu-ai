@@ -1,6 +1,6 @@
 # Spec 0027 — Quality Corpus Artifact Admission Gate
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -87,3 +87,21 @@ It does not yet prove:
 - quality result correctness;
 - benchmark honesty;
 - purchase suitability.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #120
+run id 33157154448
+head ecc41744bbbf464af88cbc9a67388cca868afc7c
+job id 98802553888
+conclusion success
+```
+
+The dedicated I26 self-test proves:
+- non-synthetic intake without `--quality-corpus` is blocked;
+- a matching corpus SHA256 plus PACKET coverage pass;
+- a same-size wrong corpus remains blocked after PACKET is freshly recomputed.
+
+Runs #112 and #114–#117 were intermediate fixture migration heads. #118 restored the prior suite; #120 is the accepted I26 checkpoint.
