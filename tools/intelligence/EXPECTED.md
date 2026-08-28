@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I24. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv to that artifact, and I24 verifies the hardware-profile artifact SHA256 + PACKET coverage. The I24 implementation checkpoint is GitHub Actions run #98 on 2026-08-28:
+Full Python execution is verified through I25. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv to that artifact, I24 verifies hardware-profile evidence, and I25 verifies Experiment 57 prompt identity evidence. The I25 implementation checkpoint is GitHub Actions run #108 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #98 checked out head 536fcf7b5857639a3c3530bdc76b294551bab222, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, command-model binding, hardware profile gate, and market refresh self-tests.
+Run #108 checked out head 195ffb4fd583d6f7df0b5136a27b340c5ce4c812, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated real benchmark capture, model artifact gate, command-model binding, hardware profile gate, prompt evidence gate, and market refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #98
-run id 33156607865
-job id 98800758535
+workflow run #108
+run id 33156832189
+job id 98801504416
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -187,3 +187,15 @@ The dedicated hardware-profile gate self-test confirms:
 
 Evidence:
 - examples/evidence/intelligence-24-hardware-profile-artifact-gate.md
+
+
+## I25 assertions included in run #108
+
+The dedicated prompt evidence self-test confirms:
+- non-synthetic intake requires an Experiment 57-style prompt manifest;
+- messages, chat-template, rendered, token-ID hashes and token count must match Experiment 61 `variant.prompt.*`;
+- the prompt evidence artifact must be PACKET-indexed;
+- semantic prompt mismatch remains blocked after PACKET is recomputed.
+
+Evidence:
+- examples/evidence/intelligence-25-prompt-evidence-manifest-gate.md
