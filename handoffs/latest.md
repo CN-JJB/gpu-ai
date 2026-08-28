@@ -16,16 +16,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I21 implemented and CI verified
+I01–I22 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #81
-run id 33155511018
-head f145d272d7288ab977f6b2066340f74f2f2cc89e
-job id 98797214814
+run #86
+run id 33155742355
+head 99dc1d9326e2daca9095a249cf5fe06c4e25c542
+job id 98797950974
 full SELFTEST: PASS
 market refresh SELFTEST: PASS
 ~~~
@@ -168,10 +168,24 @@ The sealed bundle must still pass I07/I20.
 
 CI run #81 keeps the full suite, I21 capture self-test and I19 refresh self-test green.
 
+## I22 local model artifact gate
+
+For non-synthetic intake:
+
+```text
+--model-artifact MODEL.gguf
+→ local bytes + SHA256
+↔ manifest artifact_bytes + artifact_sha256
+↔ I20 raw llama-bench model_size
+→ MODEL ARTIFACT status=PASS
+```
+
+CI run #86 keeps full, capture, artifact and refresh tests green.
+
 ## Next work
 
-1. Add local GGUF SHA/byte verification to real intake; raw llama-bench does not emit the artifact SHA.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20.
+1. Bind I21 command argv to the I22-verified artifact.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
