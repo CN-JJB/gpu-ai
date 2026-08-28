@@ -201,6 +201,7 @@ goal/workload
 | I19 | reusable append-only market refresh helper + lineage preflight/self-test | verified |
 | I20 | Experiment 61 manifest ↔ raw llama-bench identity/config cross-check | verified |
 | I21 | explicit-argv real benchmark capture/seal + failure-preserving Evidence Packet | verified |
+| I22 | non-synthetic local model artifact SHA256/bytes admission gate | verified |
 
 当前稳定边界：
 
