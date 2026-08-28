@@ -1,6 +1,6 @@
 # Spec 0022 — Real Benchmark Capture / Seal Helper
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -142,3 +142,23 @@ The helper does not prove:
 - purchase suitability.
 
 It only makes raw execution evidence harder to lose or silently rewrite.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #79
+run id 33155422668
+head 628418be644caee5255eb65dfa5331802b40f729
+job id 98796936578
+conclusion success
+```
+
+The successful job compiled all Intelligence tools and passed:
+- the complete Intelligence self-test;
+- the dedicated real benchmark capture self-test;
+- the dedicated market refresh self-test.
+
+The capture self-test seals a synthetic Experiment 61 run, sends the sealed bundle through I07/I20, and requires `RAW IDENTITY: PASS` + `INTAKE: READY`.
+
+It also proves that a non-zero benchmark exit remains auditable but returns `CAPTURE: BLOCKED`, and that a non-empty output directory is never overwritten.
