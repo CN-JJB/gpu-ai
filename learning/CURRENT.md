@@ -35,6 +35,7 @@ I15 China secondary watch
 I16 stable M0–M3 market evidence selection gate
 I17 freshness-aware watchlist gate
 I18 append-only market refresh lineage
+I19 reusable market refresh helper + CI self-test
 ~~~
 
 ## Benchmark boundary
@@ -169,10 +170,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #62
-run id 33137884125
-head 373b2ff6dd78f7018fd026e76b9714519204fbbe
-job id 98741901113
+run #67
+run id 33154549739
+head 8ab1d5435e867570c2a5c2a48cc94d45c533179f
+job id 98794100639
 conclusion success
 ~~~
 
@@ -182,19 +183,22 @@ Result:
 SELFTEST: PASS
 ~~~
 
-Log explicitly confirms:
-- append-only A770 refresh;
-- superseded records leave active views;
-- broken lineage is rejected.
+Log/steps explicitly confirm:
+- the original full Intelligence self-test still passes;
+- the reusable market refresh helper compiles;
+- the dedicated market refresh self-test passes;
+- reciprocal lineage is created without deleting history;
+- already-superseded tails, cross-hardware links and non-newer dates are rejected.
 
 Evidence:
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
 - examples/evidence/intelligence-18-append-only-market-refresh.md
+- examples/evidence/intelligence-19-market-refresh-helper.md
 
 ## Next
 
-1. Apply append-only refresh lineage to future due/stale observations.
-2. Refresh RTX 3090 China secondary evidence when a stronger/newer source is available.
+1. Use market_refresh.py for future due/stale observation replacement instead of manual lineage edits.
+2. Refresh RTX 3090 China secondary evidence when a stronger/newer source is available; current public evidence remains M1 around 7400 CNY.
 3. Acquire the first real Experiment 61 Evidence Packet.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
