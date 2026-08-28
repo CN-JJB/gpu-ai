@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I16. GitHub Actions run #48 verifies the full Python self-test through I16.
+Phase 4 tooling currently implements I01–I17. GitHub Actions run #54 verifies the full Python self-test through I17.
 
 ## 1. Validate a catalog
 
@@ -202,6 +202,14 @@ SOLD_MARKED_LISTING_PRICE → M3 → ELIGIBLE
 
 M3 does not imply a confirmed transaction amount.
 
+Freshness is evaluated separately:
+
+~~~text
+CURRENT + M2/M3 → ELIGIBLE
+DUE-TODAY → REVALIDATE-NOW
+STALE → STALE-REVALIDATE
+~~~
+
 ## 16. Comparable benchmark view
 
 ~~~bash
@@ -267,7 +275,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #48
+run #54
 SELFTEST: PASS
 ~~~
 
@@ -284,6 +292,7 @@ See:
 - examples/evidence/intelligence-15-cn-secondary-watch.md
 - examples/evidence/intelligence-16-market-evidence-selection-gate.md
 - examples/evidence/intelligence-i01-i16-ci-selftest.md
+- examples/evidence/intelligence-17-freshness-aware-watchlist.md
 
 ## Non-goals
 
