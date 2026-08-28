@@ -54,6 +54,36 @@ def resolve_executable(value):
     return Path(found).resolve() if found else None
 
 
+def extract_model_arg(command):
+    matches = []
+    i = 0
+    while i < len(command):
+        arg = command[i]
+        if arg in ("-m", "--model"):
+            if i + 1 >= len(command):
+                raise SystemExit(f"CAPTURE: FAIL\n{arg} is missing its model path")
+            matches.append(command[i + 1])
+            i += 2
+            continue
+        if arg.startswith("--model="):
+            matches.append(arg.split("=", 1)[1])
+        i += 1
+
+    if len(matches) != 1:
+        raise SystemExit(
+            "CAPTURE: FAIL\n"
+            f"expected exactly one -m/--model path when --model-artifact is supplied; found {len(matches)}"
+        )
+    return matches[0]
+
+
+def resolve_recorded_path(value, cwd):
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = Path(cwd) / path
+    return path.resolve()
+
+
 def packet_entry(root, path):
     rel = path.relative_to(root)
     return {
@@ -89,6 +119,11 @@ def main():
     p.add_argument("--manifest", type=Path, required=True)
     p.add_argument("--out-dir", type=Path, required=True)
     p.add_argument(
+        "--model-artifact",
+        type=Path,
+        help="Local model file that must be the exact -m/--model argv target.",
+    )
+    p.add_argument(
         "--include",
         action="append",
         default=[],
@@ -114,6 +149,27 @@ def main():
         raise SystemExit(f"CAPTURE: FAIL\nmanifest is not valid UTF-8 JSON: {exc}")
     if not isinstance(manifest_obj, dict):
         raise SystemExit("CAPTURE: FAIL\nmanifest must be one JSON object")
+
+    model_binding = None
+    if a.model_artifact is not None:
+        if not a.model_artifact.is_file():
+            raise SystemExit(f"CAPTURE: FAIL\nmodel artifact is not a file: {a.model_artifact}")
+        argv_model = extract_model_arg(command)
+        cwd = Path.cwd()
+        argv_model_resolved = resolve_recorded_path(argv_model, cwd)
+        supplied_model_resolved = a.model_artifact.expanduser().resolve()
+        if argv_model_resolved != supplied_model_resolved:
+            raise SystemExit(
+                "CAPTURE: FAIL\n"
+                "command model path does not match --model-artifact: "
+                f"argv={argv_model_resolved} supplied={supplied_model_resolved}"
+            )
+        model_binding = {
+            "argv_value": argv_model,
+            "resolved": str(supplied_model_resolved),
+            "bytes": supplied_model_resolved.stat().st_size,
+            "sha256": sha256_file(supplied_model_resolved),
+        }
 
     include_sources = []
     seen_names = set()
@@ -194,6 +250,7 @@ def main():
             "bytes": len(manifest_bytes),
             "sha256": sha256_bytes(manifest_bytes),
         },
+        "model_artifact": model_binding,
     }
     command_out.write_text(
         json.dumps(command_record, indent=2, sort_keys=True) + "\n",
@@ -229,6 +286,7 @@ def main():
     print(f"packet={packet_out}")
     print(f"files={packet['file_count']}")
     print(f"exit_code={exit_code}")
+    print(f"model_binding={'PASS' if model_binding is not None else 'NOT-RECORDED'}")
 
     if errors:
         print("ERRORS")
