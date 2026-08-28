@@ -72,9 +72,9 @@ An independent verifier rebuilds the object.
 
 ## Synthetic boundary
 
-Synthetic market fixtures require explicit `--allow-synthetic` and remain labeled.
+Synthetic market fixtures require explicit `--allow-synthetic`, must retain the stable synthetic M0 grade, and are marked `market_gate=SYNTHETIC-TEST-ONLY`.
 
-A later readiness bridge must reject them as production evidence.
+That allowance exists only to exercise price arithmetic. A later readiness bridge must reject them as production evidence.
 
 ## Trust boundary
 

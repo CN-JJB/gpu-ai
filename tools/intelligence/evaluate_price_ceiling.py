@@ -133,8 +133,14 @@ def build_price_ceiling_result(
 
         fresh = freshness(record, as_of_date)
         gate = watchlist_gate(grade, fresh)
-        if gate != "ELIGIBLE":
-            errors.append(f"market evidence is not Experiment 38 eligible: {gate}")
+        if synthetic and allow_synthetic:
+            if fresh not in {"CURRENT", "DUE-TODAY", "STALE", "UNSCHEDULED", "SUPERSEDED"}:
+                errors.append(f"synthetic market freshness is invalid: {fresh}")
+            market_gate = "SYNTHETIC-TEST-ONLY"
+        else:
+            market_gate = gate
+            if gate != "ELIGIBLE":
+                errors.append(f"market evidence is not Experiment 38 eligible: {gate}")
 
         price = record.get("price") or {}
         currency = price.get("currency")
@@ -154,6 +160,7 @@ def build_price_ceiling_result(
             "value": float(value) if finite_positive(value) else value,
             "market_evidence_grade": grade,
             "freshness": fresh,
+            "market_gate": market_gate,
             "synthetic": synthetic,
         }
 

@@ -70,7 +70,7 @@ def main():
             "price": {"currency": "USD", "value": 950},
             "observed_at": "2026-08-28",
             "revalidate_after": "2026-09-04",
-            "market_evidence_grade": "M2",
+            "market_evidence_grade": "M0",
             "market_evidence_scope": "synthetic I48 arithmetic fixture",
             "synthetic": True,
         }
@@ -96,6 +96,7 @@ def main():
         assert "PRICE CEILING: WITHIN-CEILING" in out
         obj = json.loads(within.read_text(encoding="utf-8"))
         assert obj["synthetic_input"] is True
+        assert obj["market"]["market_gate"] == "SYNTHETIC-TEST-ONLY"
         assert obj["decision"] == "WITHIN-CEILING"
 
         out = run(
