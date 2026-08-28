@@ -31,3 +31,16 @@ The dedicated self-test confirms:
 All PPL numbers in the self-test are parser fixtures only.
 
 They are not real model-quality measurements and must never be promoted into production benchmark/catalog data.
+
+## CI verification
+
+~~~text
+workflow: Intelligence Self-Test
+run #139
+run id: 33169511764
+head: fd8dc8065c790e72871e40994a70cdd1b35f9965
+job id: 98842925807
+conclusion: success
+~~~
+
+The job explicitly passed the dedicated quality metric self-test and every earlier Intelligence gate.

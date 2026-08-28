@@ -37,3 +37,21 @@ The I29 intake self-test now explicitly proves:
 The helper metric value exists only inside synthetic tests.
 
 Production benchmark data remains empty until learner-owned real evidence is acquired.
+
+## CI verification
+
+~~~text
+workflow: Intelligence Self-Test
+run #140
+run id: 33169768819
+head: 0f1b2f2c18be98e9b701ef7666fb75c399d75e3d
+job id: 98843766211
+conclusion: success
+~~~
+
+The job explicitly passed:
+- quality execution self-test;
+- quality evaluation argv self-test;
+- quality metric self-test;
+- quality execution + metric intake self-test;
+- every earlier gate and market refresh.

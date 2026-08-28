@@ -16,7 +16,7 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I30 implemented and CI verified
+I01–I32 implemented and CI verified
 ~~~
 
 ## Latest CI
@@ -284,10 +284,38 @@ Quality command records are schema v2 and store the derived evaluation token lis
 
 Run #138 is green, including the dedicated I30 self-test plus every prior Intelligence gate.
 
+## I31 fail-closed quality metric extraction
+
+Supported raw contract:
+
+~~~text
+Final estimate: PPL = VALUE +/- UNCERTAINTY
+~~~
+
+Exactly one matching line across sealed stdout/stderr is required.
+
+Chunk-only output is not promoted to a final metric.
+
+The machine-readable artifact is independently reconstructed from raw evidence.
+
+## I32 mandatory metric admission
+
+For non-synthetic intake:
+
+~~~text
+--quality-metric quality-metric.json
+~~~
+
+is now required after I28/I30 execution PASS.
+
+Only independently reproducible metric evidence can satisfy QUALITY METRIC status=PASS.
+
+Run #140 is green, including I31 metric parsing, I32 intake behavior, every historical evidence gate and market refresh.
+
 ## Next work
 
-1. I31: add fail-closed machine-readable quality metric extraction/admission from sealed raw output.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29/I30.
+1. I33: exact quality A/B comparability gate before computing PPL delta/ratio.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 

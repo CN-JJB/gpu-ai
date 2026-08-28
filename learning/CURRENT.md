@@ -174,10 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #138
-run id 33169307905
-head d976103ecdaf848cf72dc6d28b9b53babb3dfdee
-job id 98842259986
+run #140
+run id 33169768819
+head 0f1b2f2c18be98e9b701ef7666fb75c399d75e3d
+job id 98843766211
 conclusion success
 ~~~
 
@@ -190,10 +190,11 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21–I29 evidence capture/admission tests remain green;
-- I30 upgrades quality identity/capture to schema v2 and binds exact evaluation argv tokens;
-- declared evaluation_args, recorded evaluation_args and argv-derived tokens must match exactly;
-- recomputed quality PACKET cannot hide evaluation-argv tampering;
+- I21–I30 evidence capture/admission tests remain green;
+- I31 extracts only a unique supported Final estimate PPL line and independently verifies the machine metric artifact;
+- chunk-only or ambiguous quality output is blocked rather than guessed;
+- I32 makes the reproducible quality metric mandatory for non-synthetic intake;
+- old I22–I27 non-synthetic regression gates remain green with synthetic-only metric fixtures;
 - the main benchmark PACKET and quality PACKET remain separate integrity domains;
 - the dedicated I19 market refresh self-test remains green.
 
@@ -212,11 +213,13 @@ Evidence:
 - examples/evidence/intelligence-28-quality-execution-evidence.md
 - examples/evidence/intelligence-29-quality-execution-intake-gate.md
 - examples/evidence/intelligence-30-quality-evaluation-argv-binding.md
+- examples/evidence/intelligence-31-quality-metric-extraction.md
+- examples/evidence/intelligence-32-quality-metric-intake-gate.md
 
 ## Next
 
-1. Add a fail-closed machine-readable quality metric extraction/admission layer over the sealed raw quality output (I31).
-2. Acquire the first learner-owned real Experiment 61 packet through I21 + I07/I20/I22/I23/I24/I25/I26/I27/I29/I30.
+1. Add an exact quality A/B comparability gate that only computes PPL delta/ratio when tokenizer + corpus + fixture + evaluation argv contracts match (I33).
+2. Acquire the first learner-owned real Experiment 61 packet through I21 + I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility evidence exists.
