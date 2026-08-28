@@ -66,6 +66,7 @@ def main():
         profile = td / "profile.txt"
         profile.write_bytes(profile_bytes)
         prompt_manifest = exp / "prompt-manifest.json"
+        quality_corpus = exp / "quality-corpus.txt"
 
         wrong_model = td / "wrong.gguf"
         wrong_model.write_bytes(b"x" * len(model_bytes))
@@ -106,6 +107,8 @@ def main():
             str(profile),
             "--include",
             str(prompt_manifest),
+            "--include",
+            str(quality_corpus),
             "--",
             PY,
             str(fake),
@@ -143,6 +146,8 @@ def main():
             str(sealed / "evidence" / "profile.txt"),
             "--prompt-manifest",
             str(sealed / "evidence" / "prompt-manifest.json"),
+            "--quality-corpus",
+            str(sealed / "evidence" / "quality-corpus.txt"),
             "--model-artifact",
             str(model),
             "--command-record",
@@ -181,6 +186,7 @@ def main():
         (tampered / "evidence").mkdir()
         shutil.copy2(sealed / "evidence" / "profile.txt", tampered / "evidence" / "profile.txt")
         shutil.copy2(sealed / "evidence" / "prompt-manifest.json", tampered / "evidence" / "prompt-manifest.json")
+        shutil.copy2(sealed / "evidence" / "quality-corpus.txt", tampered / "evidence" / "quality-corpus.txt")
 
         tampered_command_path = tampered / "command.json"
         tampered_command = json.loads(tampered_command_path.read_text(encoding="utf-8"))
@@ -194,7 +200,7 @@ def main():
 
         packet = {
             "packet_schema_version": 1,
-            "file_count": 6,
+            "file_count": 7,
             "files": [
                 packet_entry(tampered, tampered / "manifest.json"),
                 packet_entry(tampered, tampered / "result.json"),
@@ -202,6 +208,7 @@ def main():
                 packet_entry(tampered, tampered / "command.json"),
                 packet_entry(tampered, tampered / "evidence" / "profile.txt"),
                 packet_entry(tampered, tampered / "evidence" / "prompt-manifest.json"),
+                packet_entry(tampered, tampered / "evidence" / "quality-corpus.txt"),
             ],
         }
         (tampered / "PACKET.json").write_text(
@@ -231,6 +238,8 @@ def main():
             str(tampered / "evidence" / "profile.txt"),
             "--prompt-manifest",
             str(tampered / "evidence" / "prompt-manifest.json"),
+            "--quality-corpus",
+            str(tampered / "evidence" / "quality-corpus.txt"),
             "--model-artifact",
             str(model),
             "--command-record",
