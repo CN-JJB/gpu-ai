@@ -1,0 +1,31 @@
+{
+  "real_evidence_session_schema_version": 1,
+  "working_directory": ".",
+  "catalog": "../../../intelligence/catalog",
+  "manifest": "baseline-manifest.json",
+  "model_artifact": "REPLACE_WITH_ABSOLUTE_GGUF_PATH",
+  "hardware_profile": "profile.txt",
+  "prompt_manifest": "prompt-evidence/manifest.json",
+  "quality_corpus": "REPLACE_WITH_ABSOLUTE_QUALITY_CORPUS_PATH",
+  "quality_identity": "quality-identity.json",
+  "hardware_id": "hw:nvidia:geforce-rtx-3090:24g",
+  "model_id": "model:qwen:qwen3-8b",
+  "runtime_id": "runtime:ggml-org:llama.cpp",
+  "observed_at": "YYYY-MM-DD",
+  "benchmark_argv": [
+    "llama-bench",
+    "-m",
+    "REPLACE_WITH_ABSOLUTE_GGUF_PATH",
+    "REPLACE_WITH_FLAGS_VERIFIED_FROM_THIS_BUILD_HELP",
+    "-o",
+    "json"
+  ],
+  "quality_argv": [
+    "llama-perplexity",
+    "-m",
+    "REPLACE_WITH_ABSOLUTE_GGUF_PATH",
+    "-f",
+    "REPLACE_WITH_ABSOLUTE_QUALITY_CORPUS_PATH",
+    "REPLACE_WITH_FLAGS_THAT_EXACTLY_MATCH_QUALITY_IDENTITY_EVALUATION_ARGS"
+  ]
+}

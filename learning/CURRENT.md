@@ -220,7 +220,7 @@ The complete suite passed through I53, including byte-derived session preparatio
 ## Next
 
 1. Stop expanding decision gates by default.
-2. On the learner's actual machine, copy and fill `labs/experiments/61-real-benchmark-evidence-packet/real-evidence-session.template.json` plus the explicitly observed semantic manifest fields.
+2. For the NVIDIA-first path, copy `real-evidence-session.rtx3090-qwen3-8b-llamacpp.skeleton.json`; otherwise use the generic session template. Fill all local paths and explicitly observed semantic manifest fields on the actual machine.
 3. Run `prepare_real_evidence_session.py`; require `READY-TO-RUN-I52`.
 4. Run I52 using the prepared session; require `REAL SESSION: READY`.
 5. Manually review the captured evidence before any catalog ingestion.

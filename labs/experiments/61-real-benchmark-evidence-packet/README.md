@@ -21,6 +21,26 @@ hardware
 → raw evidence hashes
 ```
 
+## 0. Canonical RTX 3090 / Qwen3-8B / llama.cpp skeleton
+
+For the NVIDIA-first real acquisition path, start from:
+
+~~~text
+real-evidence-session.rtx3090-qwen3-8b-llamacpp.skeleton.json
+~~~
+
+It pre-fills only the existing production catalog IDs:
+
+~~~text
+hw:nvidia:geforce-rtx-3090:24g
+model:qwen:qwen3-8b
+runtime:ggml-org:llama.cpp
+~~~
+
+It deliberately leaves local paths and command flags unresolved.
+
+See `CANONICAL-IDS.md` for the current production IDs.
+
 ## 1. Start from template
 
 ```bash

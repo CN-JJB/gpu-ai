@@ -4,6 +4,24 @@ Use this on the actual benchmark machine.
 
 This checklist prepares evidence. It does not tell you which GPU/model to buy.
 
+## 0. Optional RTX 3090 canonical skeleton
+
+For the first NVIDIA path:
+
+~~~bash
+cp real-evidence-session.rtx3090-qwen3-8b-llamacpp.skeleton.json real-session.json
+~~~
+
+This pre-fills only:
+
+~~~text
+hardware_id = hw:nvidia:geforce-rtx-3090:24g
+model_id    = model:qwen:qwen3-8b
+runtime_id  = runtime:ggml-org:llama.cpp
+~~~
+
+Do not treat any remaining placeholder as a suggested value.
+
 ## 1. Prepare real source artifacts
 
 Have these real files ready:
