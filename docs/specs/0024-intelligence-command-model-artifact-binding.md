@@ -1,6 +1,6 @@
 # Spec 0024 — Benchmark Command ↔ Model Artifact Binding
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -104,3 +104,22 @@ It does not prove:
 - thermal equivalence;
 - causal validity;
 - purchase suitability.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #91
+run id 33155944603
+head b875a4f76a5ec306b9a1764cc6caa2bde1b2e823
+job id 98798617756
+conclusion success
+```
+
+The dedicated I23 self-test proves:
+- capture binds `--model-artifact` to exactly one `-m/--model` argv path before launch;
+- command.json records the bound local artifact SHA256 + bytes;
+- intake independently reparses argv and requires command.json to be PACKET-indexed;
+- a tampered argv pointing to another same-size file remains blocked even after PACKET is freshly recomputed.
+
+Run #88 was an intermediate migration head before the I22 self-test was carried through the new command-evidence requirement. Runs #89–#91 restored the full suite; #91 is the accepted I23 checkpoint.
