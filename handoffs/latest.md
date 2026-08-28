@@ -16,16 +16,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I25 implemented and CI verified
+I01–I26 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #110
-run id 33156905724
-head 4577bbd5e3893eae3df810d036564aa911066856
-job id 98801746914
+run #122
+run id 33157231636
+head 2695939652bf57128aee5bbeaf1d5f9b28a5596b
+conclusion success
 full SELFTEST: PASS
 market refresh SELFTEST: PASS
 ~~~
@@ -208,10 +208,18 @@ For non-synthetic intake, the prompt-evidence manifest must be PACKET-indexed an
 
 CI run #110 keeps the full suite green.
 
+## I26 quality corpus gate
+
+Non-synthetic intake now requires the concrete quality corpus.
+
+Its SHA256 must match `fixed.quality_eval.corpus_sha256`, and the artifact must be PACKET-indexed.
+
+CI run #122 is green.
+
 ## Next work
 
-1. Bind the quality corpus file to `fixed.quality_eval.corpus_sha256`.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25.
+1. Add machine-readable quality identity evidence for tokenizer / fixture revision / evaluation args.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
