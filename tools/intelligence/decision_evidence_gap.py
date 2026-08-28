@@ -14,6 +14,7 @@ from market_evidence_gate import (
 from verify_tradeoff_route import verify_tradeoff_route
 from verify_used_gpu_acceptance import verify_used_gpu_acceptance_artifact
 from verify_performance_target import verify_performance_target_result
+from verify_price_ceiling import verify_price_ceiling_result
 
 
 def evaluate_real_benchmark(label, record):
@@ -453,6 +454,83 @@ def evaluate_performance_target_component(
     }
 
 
+def evaluate_price_ceiling_component(
+    result_path,
+    policy_path,
+    catalog,
+    as_of,
+    market_record_id,
+):
+    supplied = [result_path, policy_path]
+    if all(x is None for x in supplied):
+        return {
+            "status": "BLOCKED",
+            "reason": "no I48 price ceiling result/policy supplied",
+            "decision": "MISSING",
+        }
+    if any(x is None for x in supplied):
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "price ceiling bridge requires --price-ceiling-result "
+                "and --price-ceiling-policy together"
+            ),
+            "decision": "INCOMPLETE",
+        }
+
+    verified = verify_price_ceiling_result(
+        result_path,
+        catalog,
+        policy_path,
+        as_of,
+        allow_synthetic=True,
+    )
+    if verified["errors"]:
+        return {
+            "status": "BLOCKED",
+            "reason": "; ".join(verified["errors"]),
+            "decision": "INVALID",
+        }
+
+    result = verified["supplied"]
+    if result.get("market_record_id") != market_record_id:
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "price ceiling result market_record_id does not match the I43 "
+                "market-evidence record"
+            ),
+            "decision": result.get("decision"),
+            "policy_id": result.get("policy_id"),
+        }
+    if result.get("synthetic_input", False):
+        return {
+            "status": "BLOCKED",
+            "reason": "synthetic price ceiling result is not production price evidence",
+            "decision": result.get("decision"),
+            "policy_id": result.get("policy_id"),
+        }
+    if result.get("decision") != "WITHIN-CEILING":
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "selected current market price is not within the explicit sticker ceiling; "
+                f"actual={result.get('decision')!r}"
+            ),
+            "decision": result.get("decision"),
+            "policy_id": result.get("policy_id"),
+        }
+
+    return {
+        "status": "PASS",
+        "reason": (
+            "the same current market observation is within the explicit personal sticker ceiling"
+        ),
+        "decision": "WITHIN-CEILING",
+        "policy_id": result.get("policy_id"),
+    }
+
+
 def main():
     p = argparse.ArgumentParser(
         description=(
@@ -480,6 +558,8 @@ def main():
     p.add_argument("--used-gpu-acceptance-packet", type=Path)
     p.add_argument("--performance-target-result", type=Path)
     p.add_argument("--performance-target-policy", type=Path)
+    p.add_argument("--price-ceiling-result", type=Path)
+    p.add_argument("--price-ceiling-policy", type=Path)
     p.add_argument("--as-of", default=date.today().isoformat())
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
@@ -578,6 +658,14 @@ def main():
         a.variable_contract,
     )
 
+    price_ceiling_component = evaluate_price_ceiling_component(
+        a.price_ceiling_result,
+        a.price_ceiling_policy,
+        a.catalog,
+        a.as_of,
+        a.market_record_id,
+    )
+
     unresolved = {
         "condition_acceptance": {
             "status": "BLOCKED",
@@ -587,14 +675,6 @@ def main():
                 "mapping remains undefined and is not inferred."
             ),
             "next_evidence": "stable explicit C0–C4 mapping contract",
-        },
-        "price_ceiling": {
-            "status": "BLOCKED",
-            "reason": (
-                "Experiment 38 personal max sticker / watch-band policy is not supplied "
-                "to this evidence-only gate"
-            ),
-            "next_evidence": "explicit personal price-ceiling policy",
         },
     }
 
@@ -606,6 +686,7 @@ def main():
         "whole_machine_feasibility": feasibility_component,
         "used_gpu_acceptance": used_gpu_component,
         "performance_target": performance_target_component,
+        "price_ceiling": price_ceiling_component,
         **unresolved,
     }
 
