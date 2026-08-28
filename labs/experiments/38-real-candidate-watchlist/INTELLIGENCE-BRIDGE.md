@@ -113,3 +113,39 @@ In the watchlist row also preserve:
 - freshness.
 
 Do not translate one Intelligence observation into a timeless "fair price".
+
+
+## Freshness is a second gate
+
+A copied M2/M3 grade is not enough.
+
+Run the Intelligence gate with the decision date:
+
+```bash
+python3 tools/intelligence/market_evidence_gate.py intelligence/catalog \
+  --record-id market:... \
+  --as-of YYYY-MM-DD
+```
+
+For purchase use:
+
+```text
+M2/M3 + CURRENT
+→ market-evidence component ELIGIBLE
+
+DUE-TODAY
+→ REVALIDATE-NOW
+
+STALE
+→ STALE-REVALIDATE
+```
+
+The watchlist CSV now includes:
+
+```text
+revalidate_after
+```
+
+When present, Experiment 38 treats it as authoritative.
+
+A stale or due-today market record must not produce BUY-CANDIDATE.
