@@ -174,10 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #93
-run id 33156449183
-head 19f67777035f90aec7062f9fb205729ddb568b0b
-job id 98800246711
+run #110
+run id 33156905724
+head 4577bbd5e3893eae3df810d036564aa911066856
+job id 98801746914
 conclusion success
 ~~~
 
@@ -190,8 +190,8 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21 capture and I22 local-artifact tests remain green;
-- I23 binds exact benchmark -m/--model argv to the same locally verified artifact and blocks hash-consistent argv tampering;
+- I21 capture, I22 artifact, I23 command-model and I24 hardware-profile tests remain green;
+- I25 requires Experiment 57 prompt evidence and blocks semantic prompt mismatch even after PACKET recomputation;
 - the dedicated I19 market refresh self-test remains green.
 
 Evidence:
@@ -205,8 +205,8 @@ Evidence:
 
 ## Next
 
-1. Verify the real hardware profile artifact against manifest.variant.hardware.profile_sha256 and require PACKET coverage.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23 admission.
+1. Bind fixed.quality_eval.corpus_sha256 to a real local quality corpus artifact and PACKET coverage.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23/I24/I25 admission.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
