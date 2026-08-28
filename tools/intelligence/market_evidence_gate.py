@@ -35,6 +35,9 @@ def grade_gate(grade):
 
 
 def freshness(record, as_of):
+    if record.get("superseded_by"):
+        return "SUPERSEDED"
+
     value = record.get("revalidate_after")
     if not value:
         return "UNSCHEDULED"
@@ -50,6 +53,8 @@ def freshness(record, as_of):
 
 
 def watchlist_gate(grade, freshness_state):
+    if freshness_state == "SUPERSEDED":
+        return "SUPERSEDED-USE-NEWER-OBSERVATION"
     if freshness_state == "STALE":
         return "STALE-REVALIDATE"
     if freshness_state == "DUE-TODAY":
@@ -104,6 +109,8 @@ def main():
             "grade_gate": grade_gate(grade),
             "watchlist_gate": watchlist_gate(grade, fresh),
             "transaction_amount_proven": transaction_amount_proven(r),
+            "superseded_by": r.get("superseded_by"),
+            "supersedes": r.get("supersedes"),
         })
 
     rows.sort(key=lambda x: str(x["record_id"]))
@@ -127,7 +134,8 @@ def main():
             f"expected_grade={x['expected']} | grade_match={x['grade_match']} | "
             f"freshness={x['freshness']} | grade_gate={x['grade_gate']} | "
             f"watchlist_market_gate={x['watchlist_gate']} | "
-            f"transaction_amount_proven={'YES' if x['transaction_amount_proven'] else 'NO'}"
+            f"transaction_amount_proven={'YES' if x['transaction_amount_proven'] else 'NO'} | "
+            f"superseded_by={x['superseded_by']} | supersedes={x['supersedes']}"
         )
         print(f"  scope={x['scope']}")
 
@@ -136,7 +144,7 @@ def main():
         print(f"- {grade}={grade_counts.get(grade, 0)}")
 
     print("FRESHNESS COUNTS")
-    for state in ("CURRENT", "DUE-TODAY", "STALE", "UNSCHEDULED", "INVALID"):
+    for state in ("CURRENT", "DUE-TODAY", "STALE", "UNSCHEDULED", "INVALID", "SUPERSEDED"):
         print(f"- {state}={freshness_counts.get(state, 0)}")
 
     print("WATCHLIST GATE COUNTS")
@@ -146,6 +154,7 @@ def main():
         "REVALIDATE-NOW",
         "STALE-REVALIDATE",
         "REVALIDATION-SCHEDULE-REQUIRED",
+        "SUPERSEDED-USE-NEWER-OBSERVATION",
     ):
         print(f"- {state}={gate_counts.get(state, 0)}")
 
@@ -168,6 +177,7 @@ def main():
 
     print("M2/M3 may satisfy only the market-evidence component of Experiment 38 while current.")
     print("Due-today, stale or unscheduled market evidence must be revalidated before purchase use.")
+    print("Superseded market evidence remains historical audit evidence but must not be used as the active purchase observation.")
     print("FIT, SOFTWARE, PERFORMANCE, CONDITION and price-ceiling gates remain independent.")
     print("M3 is claim-scoped: it does not imply a confirmed transaction amount unless that exact amount is independently proven.")
 
