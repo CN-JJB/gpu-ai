@@ -8,15 +8,15 @@
 
 ## Stable course
 
-```text
+~~~text
 Slices 01–49 implemented
 Experiments 01–93 exist
 Stable v1 mainline complete
-```
+~~~
 
 ## Active Phase 4 frontier
 
-```text
+~~~text
 I01 catalog + benchmark bridge
 I02 compatibility preflight
 I03 exact measured compatibility
@@ -34,17 +34,18 @@ I14 cross-market signal comparison
 I15 China secondary watch
 I16 stable M0–M3 market evidence selection gate
 I17 freshness-aware watchlist gate
-```
+I18 append-only market refresh lineage
+~~~
 
 ## Benchmark boundary
 
-```text
+~~~text
 real production benchmark rows = 0
-```
+~~~
 
 Required admission:
 
-```text
+~~~text
 Experiment 61 manifest
 + raw result
 + PACKET.json
@@ -53,135 +54,147 @@ Experiment 61 manifest
 → ingest
 → validate
 → exact MEASURED_SUPPORTED
-```
+~~~
 
 ## Market evidence grades
 
-```text
+~~~text
 SECONDARY_REPORTED        → M1
 MEDIAN_ASK                → M2
 SOLD_MARKED_LISTING_PRICE → M3
-```
+~~~
 
-Current counts:
+Current production count after I18:
 
-```text
-M1=2
+~~~text
+M1=3
 M2=3
 M3=9
-```
+market observations=15
+~~~
 
-M3 remains claim-scoped and does not imply a confirmed transaction amount.
+One M1 A770 record is historical/superseded.
 
-## Freshness-aware market eligibility
-
-I17 requires:
-
-```text
-market grade
-+
-freshness
-```
-
-Current mapping:
-
-```text
-CURRENT + M2/M3
-→ ELIGIBLE
-
-CURRENT + M0/M1
-→ NEEDS-STRONGER-MARKET-EVIDENCE
-
-DUE-TODAY
-→ REVALIDATE-NOW
-
-STALE
-→ STALE-REVALIDATE
-
-UNSCHEDULED / INVALID
-→ REVALIDATION-SCHEDULE-REQUIRED
-```
-
-Every real market record now requires revalidate_after.
-
-Experiment 38 was corrected so due-today/stale/unknown/invalid price evidence cannot remain BUY-CANDIDATE.
-
-## Experiment 38 deterministic test
-
-The CI self-test proves:
-
-```text
-CURRENT + PASS + M2 + C3 + under ceiling
-→ BUY-CANDIDATE
-
-DUE-TODAY
-→ NEEDS EVIDENCE
-
-STALE
-→ NEEDS EVIDENCE
-
-INVALID revalidate_after
-→ NEEDS EVIDENCE
-```
-
-## CI
-
-Latest verified Intelligence run:
-
-```text
-workflow: Intelligence Self-Test
-run #54
-run id 33137613634
-head bbf624e44579cbc765974bf8b5070330002f294e
-job id 98741045301
-Python 3.12.14
-Ubuntu 24.04.4
-conclusion success
-```
-
-Log:
-
-```text
-SELFTEST: PASS
-- market evidence eligibility is freshness-aware and all real market rows require revalidation dates
-- Experiment 38 blocks due-today, stale and invalid market evidence from BUY-CANDIDATE
-```
-
-Evidence:
-- examples/evidence/intelligence-17-freshness-aware-watchlist.md
-
-## Current production market signals
+## Current active market signals
 
 ### eBay active asks
 
-```text
+~~~text
 RTX 3090      1499 USD
 RX 7900 XTX   1020 USD
 Arc A770       330 USD
-```
+~~~
 
-### OfferUp sold-marked displayed medians
+### OfferUp SOLD-marked displayed medians
 
-```text
+~~~text
 RTX 3090      950 USD
 RX 7900 XTX   700 USD
 Arc A770      200 USD
-```
+~~~
 
-All nine OfferUp rows now revalidate on 2026-09-04.
+Every OfferUp row remains:
+
+~~~text
+confirmed_transaction_price=false
+~~~
 
 ### China secondary watch
 
-```text
-RTX 3090 → 7400 CNY
-Arc A770 → 1450 CNY
-```
+Current active records:
 
-The A770 2026-08-21 scalar observation reaches its revalidation boundary on 2026-08-28.
+~~~text
+RTX 3090 → 7400 CNY
+Arc A770 → 1400 CNY
+~~~
+
+Historical A770 record:
+
+~~~text
+2026-08-21 → 1450 CNY
+superseded_by
+2026-08-25 → 1400 CNY
+~~~
+
+The current 1400 CNY observation is still M1 secondary evidence:
+- direct_listing_capture=false;
+- confirmed_sale=false;
+- revalidate_after=2026-09-01.
+
+## I17 freshness-aware purchase use
+
+~~~text
+CURRENT + M2/M3 → ELIGIBLE
+CURRENT + M0/M1 → NEEDS-STRONGER-MARKET-EVIDENCE
+DUE-TODAY → REVALIDATE-NOW
+STALE → STALE-REVALIDATE
+UNSCHEDULED / INVALID → REVALIDATION-SCHEDULE-REQUIRED
+~~~
+
+Experiment 38 blocks due-today/stale/unknown/invalid market evidence from BUY-CANDIDATE.
+
+## I18 append-only refresh
+
+Refresh does not overwrite old market evidence.
+
+Lineage:
+
+~~~text
+old.superseded_by = new
+new.supersedes = old
+~~~
+
+Default behavior:
+- market_matrix hides superseded rows;
+- freshness_report removes superseded rows from active revalidation queue;
+- market_evidence_gate returns SUPERSEDED-USE-NEWER-OBSERVATION.
+
+Audit history remains available with:
+
+~~~text
+--include-superseded
+~~~
+
+Validator checks:
+- reference existence;
+- reciprocal lineage;
+- same hardware_id;
+- newer timestamp;
+- no self-reference;
+- no cycle.
+
+## Latest CI
+
+GitHub Actions:
+
+~~~text
+workflow: Intelligence Self-Test
+run #62
+run id 33137884125
+head 373b2ff6dd78f7018fd026e76b9714519204fbbe
+job id 98741901113
+conclusion success
+~~~
+
+Result:
+
+~~~text
+SELFTEST: PASS
+~~~
+
+Log explicitly confirms:
+- append-only A770 refresh;
+- superseded records leave active views;
+- broken lineage is rejected.
+
+Evidence:
+- examples/evidence/intelligence-17-freshness-aware-watchlist.md
+- examples/evidence/intelligence-18-append-only-market-refresh.md
 
 ## Next
 
-1. I18: append a newer A770 China range observation without inventing a midpoint.
-2. Preserve observation history with explicit refresh lineage so old records do not remain forever in the active revalidation queue.
-3. Acquire first real Experiment 61 Evidence Packet.
-4. Delay ranking/recommendation until real benchmark + quality/SLO + feasibility Evidence exists.
+1. Apply append-only refresh lineage to future due/stale observations.
+2. Refresh RTX 3090 China secondary evidence when a stronger/newer source is available.
+3. Acquire the first real Experiment 61 Evidence Packet.
+4. Add stronger direct/confirmed transaction evidence only when auditable.
+5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
