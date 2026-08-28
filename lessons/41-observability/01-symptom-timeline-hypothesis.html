@@ -207,4 +207,15 @@ follow-up A/B
 </pre>
 
 <p>有用得多。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Observability / Incident Diagnosis</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模拟/设计主路径；真实服务或 Linux/NVIDIA 机器是增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe；不通过危险电气/固件修改来“制造”故障。</p></div>
+<h3>能力目标</h3><ul><li>把长期运行问题拆成可观察、可复现、可回滚的工程问题。</li><li>区分 startup / steady state / failure recovery / energy 等不同系统边界。</li><li>任何优化或升级都保留 exact identity 与 rollback/evidence。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/76-incident-diagnosis-cases/README.md">Experiment 76：incident diagnosis cases</a>；真实服务做 <a href="../../labs/experiments/77-real-incident-evidence/README.md">Experiment 77：real incident evidence</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么“GPU 利用率 100%”不是足够的 root cause？</li><li>latency、traffic、errors、saturation 四类信号如何帮助缩小范围？</li><li>为什么 incident timeline 要记录 config/deploy/temperature/queue 等变化点？</li><li>只有一个相关性图时，什么时候还不能声称因果？</li></ol>
+<h3>完成证据</h3><p>完成一个 incident report：symptom、timeline、至少三个 hypothesis、支持/反驳证据、最小复现/下一测量、最终结论与 non-claims。</p>
+<h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://sre.google/sre-book/monitoring-distributed-systems/">Google SRE — Monitoring Distributed Systems</a></li><li><a href="https://sre.google/workbook/monitoring/">Google SRE Workbook — Monitoring</a></li><li><a href="../../reference/llm/observability-incident-diagnosis.md">Course Reference — Observability / Incident Diagnosis</a></li></ul>
+</section>
 </body></html>

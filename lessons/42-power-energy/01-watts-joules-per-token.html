@@ -85,4 +85,15 @@ J/token
 平台成本
 软件风险</pre>
 <p>而不是只看 TDP。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Power / Energy Efficiency</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模拟/设计主路径；真实服务或 Linux/NVIDIA 机器是增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe；不通过危险电气/固件修改来“制造”故障。</p></div>
+<h3>能力目标</h3><ul><li>把长期运行问题拆成可观察、可复现、可回滚的工程问题。</li><li>区分 startup / steady state / failure recovery / energy 等不同系统边界。</li><li>任何优化或升级都保留 exact identity 与 rollback/evidence。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/78-power-energy-model/README.md">Experiment 78：power/energy model</a>；NVIDIA 真机可做 <a href="../../labs/experiments/79-real-nvidia-energy/README.md">Experiment 79：real energy</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>功率 W 与能量 J 的区别是什么？</li><li>为什么更高瞬时功率的配置反而可能每 token 更省电？</li><li>J/token 与 tok/s、平均功率之间是什么关系？</li><li>只测 GPU board power 为什么不等于整机电费？</li></ol>
+<h3>完成证据</h3><p>对两个假设配置计算 watts、time、joules、J/token 和日电费；真机时记录测量窗口、采样工具和系统边界。</p>
+<h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://docs.nvidia.com/deploy/nvidia-smi/index.html">NVIDIA nvidia-smi Documentation</a></li><li><a href="https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html">AMD SMI CLI</a></li><li><a href="../../reference/llm/power-energy-efficiency.md">Course Reference — Power / Energy Efficiency</a></li></ul>
+</section>
 </body></html>

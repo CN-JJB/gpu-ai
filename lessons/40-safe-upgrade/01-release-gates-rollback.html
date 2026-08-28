@@ -207,4 +207,15 @@ known-good baseline
 </pre>
 
 <p>这就是本地 LLM 也值得有的 release discipline。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Safe Upgrade / Rollback</h2>
+<div class="callout"><p><strong>硬件门槛：</strong>L0 模拟/设计主路径；真实服务或 Linux/NVIDIA 机器是增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe；不通过危险电气/固件修改来“制造”故障。</p></div>
+<h3>能力目标</h3><ul><li>把长期运行问题拆成可观察、可复现、可回滚的工程问题。</li><li>区分 startup / steady state / failure recovery / energy 等不同系统边界。</li><li>任何优化或升级都保留 exact identity 与 rollback/evidence。</li></ul>
+<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/74-release-gate-model/README.md">Experiment 74：release-gate model</a>；真实环境做 <a href="../../labs/experiments/75-real-release-gate-rollback/README.md">Experiment 75：real rollback</a>。</p>
+<h3>Retrieval Practice</h3><ol><li>为什么“新版本能启动”不是升级 PASS？</li><li>升级前必须固定哪些 model/workload/quality/SLO Evidence？</li><li>rollback 如果没有 exact old build/artifact，还算真正 rollback 吗？</li><li>什么时候应该因为性能变快但质量回退而拒绝升级？</li></ol>
+<h3>完成证据</h3><p>写一个 release gate：旧/新 exact version、build flags、model hash、benchmark/quality/SLO threshold、rollback artifact；模拟一次 FAIL 并回滚。</p>
+<h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
+<h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp Upstream Repository</a></li><li><a href="../../reference/llm/safe-upgrade-rollback.md">Course Reference — Safe Upgrade / Rollback</a></li></ul>
+</section>
 </body></html>
