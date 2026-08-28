@@ -30,5 +30,7 @@ jobs:
         run: python tools/intelligence/capture_real_benchmark_selftest.py
       - name: Run model artifact gate self-test
         run: python tools/intelligence/model_artifact_gate_selftest.py
+      - name: Run command-model binding self-test
+        run: python tools/intelligence/command_model_binding_selftest.py
       - name: Run market refresh self-test
         run: python tools/intelligence/market_refresh_selftest.py
