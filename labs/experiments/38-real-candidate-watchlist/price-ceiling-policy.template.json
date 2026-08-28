@@ -1,0 +1,11 @@
+{
+  "price_ceiling_policy_schema_version": 1,
+  "policy_id": "REPLACE",
+  "market_record_id": "REPLACE",
+  "hardware_id": "REPLACE",
+  "max_sticker": {
+    "currency": "CNY",
+    "value": 0
+  },
+  "watch_band_pct": 10
+}
