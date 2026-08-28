@@ -1,219 +1,37 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 架构 8：Tokenizer、Chat Template 与 Sampling</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style></head><body>
-<h1>LLM 架构 8 — 你输入一句话，模型实际看到了什么？</h1>
-
-<h2>1. UI 里的消息不是模型输入</h2>
-
-<p>你看到：</p>
-
-<pre>User: Hello!</pre>
-
-<p>模型可能真正收到：</p>
-
-<pre>&lt;system&gt;
-...
-&lt;end&gt;
-&lt;user&gt;
-Hello!
-&lt;end&gt;
-&lt;assistant&gt;</pre>
-
-<p>或者完全另一套控制格式。</p>
-
-<h2>2. 正确数据流</h2>
-
-<pre>messages
-→ chat template
-→ rendered prompt
-→ tokenizer
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tokenizer、Chat Template、Logits 与 Sampling</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Tokenizer & Sampling · L0→L1</p><h1>Tokenizer、Chat Template、Logits、Sampler：同一个模型为什么“提示词看起来一样”却可能不是同一 workload？</h1><p class="lead">性能和质量实验最容易被“文本看起来一样”骗到。模型实际接收的是 token IDs；聊天模型还会经过 chat template；输出则由 logits 和 sampler 决定。只要这些身份改变，你就可能已经换了实验 workload。</p>
+<h2>Prerequisite Check</h2><p>你应知道输入文本先变 token，再经过模型生成下一 token。无需理解 BPE/Unigram 的全部训练算法。</p>
+<h2>真实问题：为什么同一句“你好”，不同 runtime 可能得到不同 token 数、不同 TTFT，甚至不同回答？</h2><p>可能因为 tokenizer revision、special token policy、chat template、BOS/EOS、generation prompt、encoding bug 或 sampling 参数不同。</p>
+<h2>1. Tokenizer：文本不是模型的直接输入</h2><pre>UTF-8 text
+→ tokenizer rules/vocabulary
 → token IDs
-→ model
-→ logits
+→ embedding vectors
+→ model</pre><p>不同 tokenizer 会把同一字符串切成不同 token sequence。性能上，prompt token 数改变会改变 prefill 工作；质量上，token boundary 也会改变模型实际看到的序列。</p>
+<h2>2. Tokenizer identity 不只是 vocab 文件名</h2><p>可复现时至少考虑：</p><ul><li>tokenizer files/revision；</li><li>normalization/pre-tokenization；</li><li>special token map；</li><li>BOS/EOS policy；</li><li>added tokens；</li><li>runtime tokenizer implementation。</li></ul><p>课程 Experiment 57 会保存 rendered bytes 与 token-ID SHA，就是为了把“提示词身份”变成证据。</p>
+<h2>3. Chat Template：用户消息怎样变成模型训练过的格式？</h2><p>聊天模型通常不是直接接：</p><pre>User: 你好
+</pre><p>而是按模型定义渲染 role token、分隔符、system prompt、assistant prefix 等：</p><pre>[special system tokens] ...
+[special user tokens] 你好 ...
+[special assistant prefix]
+</pre><p>模板错了，模型仍可能输出文字，但质量/停止条件/角色行为都可能异常。</p>
+<h2>4. Rendered text 与 token IDs 都要固定</h2><p>两个 runtime 可以渲染出看起来相同的文本，但 special-token parsing 不同；也可以 token IDs 相同但日志显示文本形式不同。严谨实验同时保存：</p><ul><li>messages JSON/hash；</li><li>chat template hash；</li><li>rendered bytes/hash；</li><li>token IDs/hash；</li><li>token count。</li></ul>
+<h2>5. Logits：模型不是直接“选择答案”</h2><p>每一步模型输出 vocabulary 上的一组分数（logits）。经过 softmax 等处理后可以理解为 next-token probability distribution。</p><pre>hidden state
+→ vocab projection
+→ logits for every token
 → sampler
-→ next token ID
-→ decode text</pre>
-
-<div class="callout"><strong>Chat Template 是模型接口的一部分，不是换皮。</strong></div>
-
-<h2>3. 为什么模板错了会影响回答？</h2>
-
-<p>Instruction-tuned 模型是在特定控制 token / role 格式上训练的。</p>
-
-<p>你把：</p>
-
-<pre>&lt;|user|&gt;
-...
-&lt;|assistant|&gt;</pre>
-
-<p>换成模型没学过的格式，模型看到的 token 序列已经不同。</p>
-
-<h2>4. Special Token</h2>
-
-<p>常见：</p>
-
-<pre>BOS
-EOS
-system/user/assistant
-message start/end
-tool call
-image/video placeholder</pre>
-
-<p>这些 token 的字符串和 ID 都是模型/tokenizer-specific。</p>
-
-<h2>5. 双 BOS 陷阱</h2>
-
-<p>模板已经生成：</p>
-
-<pre>&lt;BOS&gt; ...</pre>
-
-<p>你又让 tokenizer：</p>
-
-<pre>add_special_tokens=True</pre>
-
-<p>可能变成：</p>
-
-<pre>&lt;BOS&gt; &lt;BOS&gt; ...</pre>
-
-<p>这不是“多一个无所谓”，而是模型输入变了。</p>
-
-<h2>6. add_generation_prompt</h2>
-
-<p>很多 chat 模型需要最后告诉它：</p>
-
-<pre>现在轮到 assistant 开始生成</pre>
-
-<p>比如追加一个 assistant header。</p>
-
-<p>漏掉它，prompt 结构可能不完整。</p>
-
-<h2>7. Token 数为什么和 GPU 有关系？</h2>
-
-<pre>template 更长
-→ token 数更多
-→ Prefill 更多
-→ KV 更多
-→ context 剩余更少
-→ TTFT 可能更长</pre>
-
-<p>所以“系统 prompt 只是几段文字”其实是硬件 workload。</p>
-
-<h2>8. Tools/RAG 更容易偷走 context</h2>
-
-<p>用户只问一句：</p>
-
-<pre>查一下天气</pre>
-
-<p>runtime 可能还塞进去：</p>
-
-<pre>20 个工具 schema
-+ JSON 参数定义
-+ system policy
-+ conversation history</pre>
-
-<p>最终 prompt 可能远大于用户输入。</p>
-
-<h2>9. Benchmark 要 hash prompt</h2>
-
-<p>至少保存：</p>
-
-<pre>messages SHA
-template SHA
-rendered prompt SHA
-token IDs SHA
-token count</pre>
-
-<p>这样以后才能知道两次 benchmark 到底是不是同一个 workload。</p>
-
-<h2>10. 模型输出的不是文字</h2>
-
-<p>最后一层输出：</p>
-
-<pre>logits
-=
-每个 vocab token 的分数</pre>
-
-<p>Sampler 才决定选哪一个 token。</p>
-
-<h2>11. Greedy</h2>
-
-<pre>argmax(logits)</pre>
-
-<p>选择最高分 token。</p>
-
-<p>它不需要随机抽样，但不同 kernel 的微小数值差异在极接近的候选上仍可能改变 argmax。</p>
-
-<h2>12. Temperature</h2>
-
-<pre>pᵢ ∝ exp(logitᵢ / T)</pre>
-
-<ul>
-<li>T 小：更尖锐</li>
-<li>T 大：更平</li>
-</ul>
-
-<p>T=0 通常由 runtime 特殊处理成 greedy 语义，不是真的除以 0。</p>
-
-<h2>13. Top-k 与 Top-p 完全不同</h2>
-
-<p>Top-k：</p>
-
-<pre>只保留固定 k 个最高候选</pre>
-
-<p>Top-p：</p>
-
-<pre>按概率排序
-保留累计概率达到 p 的最小集合</pre>
-
-<p>所以 top-p 每一步留下多少 token 都可能不同。</p>
-
-<h2>14. Sampler 有顺序</h2>
-
-<pre>penalty
-→ top-k
-→ top-p
-→ temperature
-→ sample</pre>
-
-<p>只是一个例子。</p>
-
-<p>如果顺序变了，结果也可能变。</p>
-
-<h2>15. Seed 为什么不是万能复现键？</h2>
-
-<p>同 seed 要想复现，还需要：</p>
-
-<pre>same token input
-same logits
-same sampler implementation
-same sampler order
-same parameters</pre>
-
-<p>只写：</p>
-
-<pre>seed=42</pre>
-
-<p>不够。</p>
-
-<h2>16. 和前面所有 Slice 汇合</h2>
-
-<pre>Chat Template
-→ token count
-→ PP
-→ KV
-→ Prefix Cache identity
-→ TTFT
-→ Sampling
-→ end-to-end UX</pre>
-
-<p>这就是为什么部署模型时，“Prompt 怎么进模型”必须和 GPU/backend 一样被记录。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — Tokenizer / Chat Template / Sampling Identity</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实模型/硬件只用于增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3><ul><li>把“模型/输入/质量/benchmark 身份”变成可审计对象。</li><li>能指出公式或配置的适用边界，不把近似写成事实。</li><li>为后续硬件选择提供可重复的 workload contract。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/56-chat-template-special-token-model/README.md">Experiment 56：chat-template model</a>；再做 <a href="../../labs/experiments/57-real-prompt-token-identity/README.md">Experiment 57：real prompt/token identity</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>同一段可见文字为什么可能在不同 chat template 下变成不同 token sequence？</li><li>为什么重复添加 BOS/EOS/special token 会让 benchmark/质量比较失真？</li><li>temperature/top-p 改的是 logits 后的 sampling，还是模型权重本身？</li><li>要复现实验 prompt，为什么保存原文字还不够？</li></ol>
-<h3>完成证据</h3><p>保存 messages、chat template、rendered bytes、token IDs、special-token policy、sampler 配置的身份；至少能用 hash 证明两次测试输入完全相同。</p>
-<h3>如何选择 / 迁移</h3><p>遇到新模型或新 backend 时，优先冻结 <strong>身份 + 输入 + protocol</strong>，再谈性能或质量；不可比的数据宁可 BLOCKED，也不要硬排排行榜。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://huggingface.co/docs/transformers/chat_templating_writing">Hugging Face — Writing Chat Templates</a></li><li><a href="https://huggingface.co/docs/transformers/main/en/chat_template_basics">Hugging Face — Chat Template Basics</a></li><li><a href="../../reference/llm/prompt-tokenizer-sampling-identity.md">Course Reference — Prompt / Tokenizer / Sampling Identity</a></li></ul>
-</section>
-</body></html>
+→ chosen token
+</pre><p>模型 weights 固定时，logits 还会受到 context/token sequence 与数值/kernel 影响；最终 token 则进一步受到 sampler 影响。</p>
+<h2>6. Temperature：不是“创造力按钮”这么简单</h2><p>temperature 改变 logits 分布的尖锐程度。低 temperature 更集中在高分 token；高 temperature 让低分 token 相对更有机会。</p><p>但它不修复错误 prompt，也不保证高温更“聪明”。</p>
+<h2>7. Top-k / Top-p / Min-p：候选集过滤</h2><ul><li><strong>top-k：</strong>只保留最高的 k 个候选；</li><li><strong>top-p：</strong>保留累计概率达到阈值的最小候选集合；</li><li><strong>min-p：</strong>按相对最高概率的阈值过滤低概率 token（具体实现语义应查 runtime）。</li></ul><p>不同 sampler 可以组合，且执行顺序/实现细节可能影响结果。比较质量时必须记录完整 sampler chain。</p>
+<h2>Worked Example：为什么 greedy 更适合某些可复现质量 fixture？</h2><p>如果你的目标是比较 quant/backend 是否改变 deterministic JSON 输出，随机 sampling 会引入额外噪声。可以使用 greedy/固定 deterministic policy，让输出差异更容易归因模型/runtime。</p><p>但如果目标是评估真实聊天创作体验，则固定一个合理 sampler/seed，多次采样更接近实际使用。实验设计取决于问题。</p>
+<h2>8. Seed 为什么也不是“绝对复现保证”？</h2><p>固定 seed 只控制随机数的一部分。不同 runtime、不同 kernel、不同浮点顺序可能产生稍微不同 logits，随后 sampling 分叉。精确 token-for-token 复现还需要更严格的环境一致性。</p>
+<h2>9. Stop tokens / EOS：为什么模型会不停说或提前停？</h2><p>chat template 与 tokenizer 定义了 special EOS/end-of-turn token；runtime 必须正确识别。错误 stop config 可能让模型：</p><ul><li>生成到 max tokens；</li><li>泄露下一角色模板；</li><li>过早截断。</li></ul>
+<h2>Why it matters</h2><ul><li>性能实验必须固定 token identity，否则 prompt 长度不一致。</li><li>质量实验必须固定 chat template/sampler，否则不是同 workload。</li><li>解释跨 runtime “同模型不同回答”的大量来源。</li><li>为 perplexity、quality gate、benchmark manifest 建立身份基础。</li></ul>
+<h2>常见误区</h2><ul><li>“文本一样 = prompt 一样”——token/template 可能不同。</li><li>“temperature=0 就保证跨 runtime 完全一样”——数值/实现仍可能分叉。</li><li>“seed 固定就绝对复现”——环境差异仍可影响。</li><li>“chat template 只是 UI 格式”——它是模型输入语义。</li><li>“top-p 数值一样就等价”——sampler order/implementation 需确认。</li></ul>
+<h2>小实验</h2><p>使用 Experiment 57 或纸面路径：同一 messages 用两个不同 template 渲染，比较 rendered bytes、token count、token IDs。再设计 greedy 与随机 sampler 两种质量 fixture，说明各自适合回答什么问题。</p><p><strong>预期观察：</strong>少量模板字符/special token 就可能改变 token sequence；随机 sampling 会扩大输出方差。</p>
+<h2>无 GPU 路径</h2><p>Tokenizer/模板实验可以完全在 CPU/L0 完成，不需要生成大模型。</p>
+<h2>排错</h2><ul><li>输出角色错乱：先查 chat template/end-of-turn，不先怪量化。</li><li>不同 runtime PP 不可比：核 token count/token-ID SHA。</li><li>固定 seed 仍不同：确认 tokenizer/template/model/runtime 与 deterministic capability。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么文本字符串不是完整 prompt identity？</li><li>chat template 怎样改变模型实际输入？</li><li>为什么 rendered SHA 和 token-ID SHA 都值得保存？</li><li>temperature/top-k/top-p 分别改变 sampling 哪一层？</li><li>固定 seed 为什么不保证跨 runtime token-for-token 一致？</li><li>什么时候 greedy fixture 比随机聊天更适合质量 A/B？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>任何性能/质量对比先固定 tokenizer、chat template、rendered/token IDs 与 sampler semantics。只要 token identity 或 sampler chain 改变，就把它当作新的 workload/语义变量，而不是“同一句 prompt”。</p></div>
+<h2>Transfer</h2><p>以后做 RAG、agent/tool calling、structured output 时，prompt identity 会更复杂；仍用 messages → template → rendered bytes → tokens → sampler/stop 的链记录。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://huggingface.co/docs/transformers/chat_templating">Hugging Face — Chat templates</a></li><li><a href="../../labs/experiments/57-real-prompt-token-identity/README.md">Experiment 57 — Prompt Token Identity</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
+</main></body></html>
