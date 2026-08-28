@@ -207,6 +207,33 @@ goal/workload
 | I25 | Experiment 57 prompt evidence manifest ↔ Experiment 61 prompt identity gate | verified |
 | I26 | real quality corpus SHA256 artifact ↔ fixed quality-eval corpus gate | verified |
 | I27 | Experiment 59 quality identity manifest ↔ fixed quality-eval identity gate | verified |
+| I28 | sealed quality execution command/raw evidence | verified |
+| I29 | quality execution evidence ↔ real intake admission | verified |
+| I30 | exact quality evaluation argv ↔ identity binding | verified |
+| I31 | machine-readable PPL metric extraction | verified |
+| I32 | quality metric ↔ real intake admission | verified |
+| I33 | exact model-artifact quality A/B comparability | verified |
+| I34 | performance × quality A/B binding | verified |
+| I35 | execution-variable ↔ quality argv contract | verified |
+| I36 | reproducible model quality comparison artifact | verified |
+| I37 | reproducible model performance × quality binding | verified |
+| I38 | full model joint-tradeoff artifact verification | verified |
+| I39 | reproducible execution-variable quality comparison | verified |
+| I40 | execution performance × quality binding | verified |
+| I41 | full execution joint-tradeoff artifact verification | verified |
+| I42 | automatic verified tradeoff route selection | verified |
+| I43 | decision evidence gap matrix | verified |
+| I44 | PACKET-bound used-GPU acceptance artifact | verified |
+| I45 | used-GPU acceptance readiness bridge | verified |
+| I46 | explicit PP/TG/PPL performance-target policy | verified |
+| I47 | performance-target readiness bridge | verified |
+| I48 | explicit personal price-ceiling policy | verified |
+| I49 | price-ceiling readiness bridge | verified |
+| I50 | C0–C4 condition-evidence provenance grades | verified |
+| I51 | condition-evidence readiness bridge | verified |
+| I52 | real Experiment 61 evidence session runner | verified |
+| I53 | byte-derived real-session materializer / preflight | verified |
+| I54 | raw semantic-source capture before manual manifest fill | verified |
 
 当前稳定边界：
 

@@ -10,17 +10,17 @@ python tools/intelligence/selftest.py
 ## Current verified frontier
 
 ~~~text
-I01–I53
+I01–I54
 ~~~
 
 Latest implementation verification:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #172
-run id 33193068222
-head 0f40cc26466c21730bdea2e2b7e2a1e687b28612
-job id 98923186654
+run #174
+run id 33194275501
+head f65da6ff82da6f0fb9983508f3bb0e3daa5034fa
+job id 98927303916
 conclusion success
 Python 3.12
 Ubuntu 24.04
@@ -83,6 +83,26 @@ explicit session JSON
 The dedicated self-test proves the runner can reach `REAL SESSION: READY` through the existing gates, preserves failed-step evidence, never overwrites a non-empty output directory, and indexes profile/prompt/corpus/quality identity in the main benchmark PACKET.
 
 All I52 self-test metrics are synthetic fixtures only.
+
+### I54 — raw semantic-source capture
+
+~~~text
+explicit argv probe plan
+→ raw stdout/stderr + command identity
+→ SHA256-indexed source bundle
+→ READY-FOR-SEMANTIC-REVIEW
+→ deliberate human semantic fill
+~~~
+
+The dedicated self-test verifies:
+- no shell interpretation;
+- stdout/stderr byte hashes reproduce;
+- optional failure remains auditable;
+- required failure blocks while retaining raw evidence;
+- unsafe probe IDs and non-empty output directories are rejected;
+- no Experiment 61 manifest is rewritten.
+
+I54 produces no manifest truth, PP/TG/PPL values, compatibility claim, or purchase decision.
 
 ### I53 — byte-derived session preparation
 

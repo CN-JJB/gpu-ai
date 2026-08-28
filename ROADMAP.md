@@ -61,9 +61,16 @@ Verified foundations:
 - [x] I17 freshness-aware market/watchlist gate; stale evidence cannot remain BUY-CANDIDATE
 - [x] I18 append-only market refresh lineage; superseded observations leave active views
 - [x] I01–I18 GitHub Actions Python compile + end-to-end self-test
+- [x] I19 append-only market refresh helper + lineage self-test
+- [x] I20–I32 real benchmark/model/profile/prompt/quality admission chain
+- [x] I33–I42 reproducible performance × quality tradeoff paths + automatic route selection
+- [x] I43–I51 explicit decision-readiness evidence contracts without auto-purchase
+- [x] I52 real Experiment 61 benchmark/quality session orchestration
+- [x] I53 byte-derived real-session materializer / preflight
+- [x] I54 raw semantic-source capture with no automatic manifest update
 
 Next:
-- [ ] acquire/receive the first real Experiment 61 benchmark Evidence Packet;
+- [ ] run I54 on the actual benchmark machine, review the raw semantic-source bundle, deliberately fill the manifest, then pass I53 → I52 to acquire the first real Experiment 61 Evidence Packet;
 - [ ] pass it through I07 intake and derive exact MEASURED_SUPPORTED;
 - [ ] add stronger direct-listing / confirmed-transaction evidence without mixing cohorts;
 - [ ] refresh observations when I10 marks them due/stale;

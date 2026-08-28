@@ -146,9 +146,33 @@ validator.txt
 Performance:
 - reuse Experiment 40.
 
-### Preferred I53 → I52 path
+### Preferred I54 → I53 → I52 path
 
-Start with the real session template and fill:
+First preserve the same-machine semantic sources.
+
+For the NVIDIA-first path, copy and review:
+
+~~~text
+semantic-source-probes.rtx3090-llamacpp.json
+~~~
+
+Then run:
+
+~~~bash
+python3 ../../../tools/intelligence/capture_semantic_sources.py \
+  semantic-source-probes.rtx3090-llamacpp.json \
+  --out-dir semantic-source-evidence
+~~~
+
+Require:
+
+~~~text
+SEMANTIC SOURCE CAPTURE: READY-FOR-SEMANTIC-REVIEW
+~~~
+
+Review `semantic-source-evidence/bundle.json` and the raw probe streams. I54 does not fill the manifest for you.
+
+Now start with the real session template and fill:
 - canonical IDs;
 - exact source paths;
 - exact benchmark and quality argv;

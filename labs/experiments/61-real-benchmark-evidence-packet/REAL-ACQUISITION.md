@@ -41,7 +41,43 @@ The hardware profile should be captured on the machine that will run the benchma
 
 The quality corpus must be the exact corpus used by the quality command.
 
-## 2. Fill semantic fields manually
+## 2. Capture same-machine semantic sources
+
+For the NVIDIA-first path, start from:
+
+~~~bash
+cp semantic-source-probes.rtx3090-llamacpp.json semantic-probes.json
+~~~
+
+Review the argv arrays against the binaries actually installed on this machine. Remove or replace probes that do not match the build rather than pretending a stale command succeeded.
+
+Do not put passwords, API tokens, cookies, SSH keys or other secrets in probe argv.
+
+Run:
+
+~~~bash
+python3 ../../../tools/intelligence/capture_semantic_sources.py \
+  semantic-probes.json \
+  --out-dir semantic-source-evidence
+~~~
+
+Required output:
+
+~~~text
+SEMANTIC SOURCE CAPTURE: READY-FOR-SEMANTIC-REVIEW
+~~~
+
+Review:
+
+~~~text
+semantic-source-evidence/bundle.json
+semantic-source-evidence/probes/*.stdout.txt
+semantic-source-evidence/probes/*.stderr.txt
+~~~
+
+The capture is raw source evidence only. It does not authorize automatic manifest edits.
+
+## 3. Fill semantic fields manually
 
 Use the source map:
 
@@ -82,7 +118,7 @@ Do not infer a runtime/build identity from the GPU name.
 
 Do not infer quant or source revision from a filename unless that identity is actually established.
 
-## 3. Fill the session JSON
+## 4. Fill the session JSON
 
 Start from:
 
@@ -107,7 +143,7 @@ Do not use shell command strings.
 
 Do not leave the literal `...` token in either argv.
 
-## 4. Prepare byte-derived identity
+## 5. Prepare byte-derived identity
 
 Run:
 
@@ -141,9 +177,9 @@ I53 should have materialized:
 
 It should not have changed your runtime/device/execution semantics.
 
-## 5. Check the current executables yourself
+## 6. Check the current executables yourself
 
-Before running the session, inspect the actual binaries on this machine:
+Before running the session, re-check the actual binaries on this machine if anything changed after the I54 capture:
 
 ~~~bash
 llama-bench --version
@@ -155,7 +191,7 @@ Use the flags supported by the installed build.
 
 Do not copy a stale command line only because it worked on another revision.
 
-## 6. Run I52
+## 7. Run I52
 
 Run:
 
@@ -182,7 +218,7 @@ Do not edit the sealed output to force a pass.
 
 Fix the source input and create a new empty output directory.
 
-## 7. Review before ingestion
+## 8. Review before ingestion
 
 Review at minimum:
 
@@ -199,7 +235,7 @@ real-session-output/session-summary.json
 
 Confirm the observed hardware/runtime/model/execution identity is what you intended to test.
 
-## 8. Only then ingest deliberately
+## 9. Only then ingest deliberately
 
 After review, use the existing real-ingest helper.
 
@@ -207,7 +243,7 @@ Do not append a failed, synthetic, stale-identity or unexplained run to the prod
 
 After reviewed ingestion, derive exact measured compatibility only for that exact hardware/model/runtime/build path.
 
-## 9. Production boundary
+## 10. Production boundary
 
 Until a learner-owned real session passes and is manually reviewed:
 

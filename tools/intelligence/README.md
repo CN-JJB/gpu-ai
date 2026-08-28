@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I53. GitHub Actions run #172 verifies the complete suite, including byte-derived real-session preparation and the end-to-end I52 evidence runner.
+Phase 4 tooling currently implements I01–I54. GitHub Actions run #174 verifies the complete suite, including raw semantic-source capture, byte-derived real-session preparation, and the end-to-end I52 evidence runner.
 
 ## 1. Validate a catalog
 
@@ -583,7 +583,41 @@ reference/hardware/condition-evidence-grades.md
 
 C3 means learner-owned, PACKET-bound, independently reproducible I44 technical evidence. ACCEPT/REVIEW/REJECT remains separate.
 
-## 29. Prepare one real evidence session
+## 29. Capture semantic source observations
+
+Before manually filling the non-byte-derived Experiment 61 fields, capture the exact machine/runtime observations that support them.
+
+For the NVIDIA-first path, start from:
+
+~~~text
+labs/experiments/61-real-benchmark-evidence-packet/semantic-source-probes.rtx3090-llamacpp.json
+~~~
+
+Review the argv arrays against the executables actually installed on the benchmark machine, then run:
+
+~~~bash
+python3 tools/intelligence/capture_semantic_sources.py \
+  /path/to/semantic-probes.json \
+  --out-dir /path/to/semantic-source-evidence
+~~~
+
+Required success:
+
+~~~text
+SEMANTIC SOURCE CAPTURE: READY-FOR-SEMANTIC-REVIEW
+~~~
+
+I54 preserves each explicit argv, stdout/stderr, return code, timestamps and SHA256 in a fresh output directory.
+
+It never parses those observations into Experiment 61 fields and always records:
+
+~~~text
+automatic_manifest_update = NOT-PERMITTED
+~~~
+
+Review the bundle and deliberately fill the semantic manifest fields from the retained sources.
+
+## 30. Prepare one real evidence session
 
 After filling the semantic fields and source paths in a session JSON, materialize only byte-derived identity:
 
@@ -617,7 +651,7 @@ Then use:
 
 as the I52 input.
 
-## 30. Run one real evidence session
+## 31. Run one real evidence session
 
 Copy and fill:
 
@@ -658,7 +692,7 @@ The output also contains:
 
 Review the real evidence before ingestion. READY is not benchmark truth or purchase approval.
 
-## 31. Self-test
+## 32. Self-test
 
 From repository root:
 
@@ -670,7 +704,7 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #172
+run #174
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
 QUALITY EVALUATION ARGS SELFTEST: PASS
@@ -696,6 +730,7 @@ CONDITION EVIDENCE READINESS BRIDGE SELFTEST: PASS
 QUALITY EXECUTION INTAKE SELFTEST: PASS
 REAL EVIDENCE SESSION SELFTEST: PASS
 REAL EVIDENCE SESSION PREPARE SELFTEST: PASS
+SEMANTIC SOURCE CAPTURE SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
 
@@ -769,6 +804,8 @@ See:
 - examples/evidence/intelligence-52-real-evidence-session-runner.md
 
 - examples/evidence/intelligence-53-real-evidence-session-materializer.md
+
+- examples/evidence/intelligence-54-semantic-source-capture.md
 
 ## Non-goals
 

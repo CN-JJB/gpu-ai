@@ -18,16 +18,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I53 implemented
-latest implementation CI: run #172 success
+I01–I54 implemented
+latest implementation CI: run #174 success
 ~~~
 
 CI identity:
 
 ~~~text
-run id 33193068222
-head 0f40cc26466c21730bdea2e2b7e2a1e687b28612
-job id 98923186654
+run id 33194275501
+head f65da6ff82da6f0fb9983508f3bb0e3daa5034fa
+job id 98927303916
 ~~~
 
 ## Production boundary
@@ -176,6 +176,30 @@ On success it emits `REAL SESSION: READY`, `session-summary.json`, and `intake-a
 
 Do not ingest automatically. Review the real evidence first.
 
+## I54 semantic source capture
+
+Before manually filling the semantic fields that I53 refuses to infer, use:
+
+~~~text
+tools/intelligence/capture_semantic_sources.py
+~~~
+
+The NVIDIA-first probe plan is:
+
+~~~text
+labs/experiments/61-real-benchmark-evidence-packet/semantic-source-probes.rtx3090-llamacpp.json
+~~~
+
+I54 runs only explicit argv arrays with no shell and preserves raw stdout/stderr, return codes, timestamps and SHA256.
+
+It always records:
+
+~~~text
+automatic_manifest_update = NOT-PERMITTED
+~~~
+
+A successful capture emits `READY-FOR-SEMANTIC-REVIEW`, not manifest truth. Review the raw sources and deliberately fill device/runtime/build/backend/execution semantics.
+
 ## I53 real session materializer
 
 Before I52, prefer:
@@ -206,20 +230,23 @@ Those must already be explicitly filled or I53 blocks before any benchmark launc
 Main acquisition order:
 
 ~~~text
-explicit semantic inputs
+explicit probe plan
+→ I54 READY-FOR-SEMANTIC-REVIEW
+→ human semantic review/fill
 → I53 READY-TO-RUN-I52
 → I52 REAL SESSION: READY
-→ human evidence review
+→ human benchmark/quality review
 → deliberate ingestion
 ~~~
 
 ## Next work
 
-1. Fill explicit device/runtime/model-source/execution semantics on the actual benchmark machine.
-2. Run I53 and require `READY-TO-RUN-I52`.
-3. Run the prepared session through I52 and require `REAL SESSION: READY`; manually review before ingestion.
-4. After reviewed ingestion, derive exact measured compatibility.
-5. Acquire real Experiment 87/I44 acceptance, create I46/I48 policies, and run I43.
-6. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
+1. Run the I54 probe plan on the actual benchmark machine and require `READY-FOR-SEMANTIC-REVIEW`.
+2. Review those raw observations and deliberately fill explicit device/runtime/model-source/execution semantics.
+3. Run I53 and require `READY-TO-RUN-I52`.
+4. Run the prepared session through I52 and require `REAL SESSION: READY`; manually review before ingestion.
+5. After reviewed ingestion, derive exact measured compatibility.
+6. Acquire real Experiment 87/I44 acceptance, create I46/I48 policies, and run I43.
+7. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
 
 No auto-purchase, no unsafe hardware modification.

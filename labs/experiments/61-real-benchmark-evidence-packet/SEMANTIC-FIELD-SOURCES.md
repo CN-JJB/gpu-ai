@@ -24,6 +24,24 @@ Do not substitute:
 - a remembered default;
 - a value copied from another machine.
 
+## Capture sources without turning them into claims
+
+I54 exists to retain source observations before you fill these fields:
+
+~~~text
+tools/intelligence/capture_semantic_sources.py
+~~~
+
+For the NVIDIA-first path, use/review:
+
+~~~text
+semantic-source-probes.rtx3090-llamacpp.json
+~~~
+
+A successful I54 run gives `READY-FOR-SEMANTIC-REVIEW` plus raw stdout/stderr and hashes. It does **not** mean the tool has interpreted those bytes correctly for any manifest field.
+
+The learner must still review the observations and make the semantic claim deliberately.
+
 ## Experiment identity
 
 | Field | Source | Rule |
@@ -211,7 +229,17 @@ The sealed I52 directories become the authoritative executed-command evidence.
 
 ## Before I53
 
-A good source session should therefore contain two kinds of information.
+Prefer to retain an I54 semantic-source bundle from the actual benchmark machine before making the explicit semantic claims.
+
+A good source session should therefore contain three kinds of information.
+
+### Raw semantic source bundle
+
+~~~text
+semantic-source-evidence/bundle.json
+semantic-source-evidence/probes/*.stdout.txt
+semantic-source-evidence/probes/*.stderr.txt
+~~~
 
 ### Explicit semantic facts
 
