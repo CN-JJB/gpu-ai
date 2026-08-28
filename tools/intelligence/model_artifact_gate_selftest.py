@@ -64,6 +64,7 @@ def main():
         profile_bytes = b"tiny-hardware-profile-for-i22\n"
         profile = td / "profile.txt"
         profile.write_bytes(profile_bytes)
+        prompt_manifest = exp / "prompt-manifest.json"
 
         manifest_obj = json.loads((exp / "manifest.json").read_text(encoding="utf-8"))
         manifest_obj["variant"]["hardware"]["profile_sha256"] = sha256_bytes(profile_bytes)
@@ -114,12 +115,13 @@ def main():
         packet.write_text(
             json.dumps({
                 "packet_schema_version": 1,
-                "file_count": 4,
+                "file_count": 5,
                 "files": [
                     packet_entry(manifest),
                     packet_entry(result),
                     packet_entry(command_record),
                     packet_entry(profile),
+                    packet_entry(prompt_manifest),
                 ],
             }, indent=2) + "\n",
             encoding="utf-8",
@@ -145,6 +147,8 @@ def main():
             "2026-08-28",
             "--hardware-profile",
             str(profile),
+            "--prompt-manifest",
+            str(prompt_manifest),
             "--command-record",
             str(command_record),
         ]
