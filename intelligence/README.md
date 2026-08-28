@@ -23,6 +23,7 @@ Phase 4 specs：
 - docs/specs/0016-intelligence-cn-secondary-watch-signals.md
 - docs/specs/0017-intelligence-market-evidence-selection-gate.md
 - docs/specs/0018-intelligence-freshness-aware-watchlist-gate.md
+- docs/specs/0019-intelligence-append-only-market-refresh-lineage.md
 
 Schema：
 - intelligence/schema/README.md
@@ -327,6 +328,34 @@ Experiment 38 also blocks due-today, stale, unknown and invalid market evidence 
 
 GitHub Actions run #54 verifies this behavior.
 
+## Append-only market refresh
+
+Dynamic observations are refreshed by appending a newer record, not overwriting history.
+
+Current A770 lineage:
+
+~~~text
+2026-08-21 / 1450 CNY / M1
+        ↓ superseded_by
+2026-08-25 / 1400 CNY / M1
+~~~
+
+Default current views hide superseded observations.
+
+Audit history remains available with:
+
+~~~bash
+python3 tools/intelligence/market_matrix.py intelligence/catalog   --geography CN   --channel secondary-summary   --cohort used-consumer   --condition working-unverified   --price-state SECONDARY_REPORTED   --currency CNY   --include-superseded
+~~~
+
+Freshness reports superseded records separately, and watchlist use returns:
+
+~~~text
+SUPERSEDED-USE-NEWER-OBSERVATION
+~~~
+
+SUPERSEDED means a newer observation exists; it does not mean the historical record was false.
+
 ## Comparable benchmark view
 
 ~~~text
@@ -369,11 +398,11 @@ TCO does not override:
 
 ## Verification
 
-I01–I17 GitHub Actions compile and end-to-end self-test:
+I01–I18 GitHub Actions compile and end-to-end self-test:
 
 ~~~text
-run #54
-head bbf624e44579cbc765974bf8b5070330002f294e
+run #62
+head 373b2ff6dd78f7018fd026e76b9714519204fbbe
 SELFTEST: PASS
 ~~~
 
@@ -390,6 +419,7 @@ Evidence:
 - examples/evidence/intelligence-16-market-evidence-selection-gate.md
 - examples/evidence/intelligence-i01-i16-ci-selftest.md
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
+- examples/evidence/intelligence-18-append-only-market-refresh.md
 
 The previous I11–I16 verification split is closed: GitHub Actions run #48 executed py_compile and the complete selftest successfully.
 
