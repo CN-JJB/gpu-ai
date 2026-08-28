@@ -105,7 +105,7 @@ p.add_argument("--type-v",required=True)
 p.add_argument("-ngl",type=int,required=True)
 p.add_argument("--split-mode",required=True)
 p.add_argument("--flash-attn",required=True)
-p.add_argument("--tensor-split",default="")
+p.add_argument("--tensor-split",default="0.00")
 p.add_argument("-o",required=True)
 a=p.parse_args()
 size=__import__("pathlib").Path(a.model).stat().st_size
