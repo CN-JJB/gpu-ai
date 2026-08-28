@@ -17,13 +17,32 @@
 - 硬件情报站 + LLM 部署情报站 + 可复现 Benchmark
 - 主线里程碑 + Challenge Lab + 毕业项目
 
-## 先读这些
+## 我是学生，从这里开始
+
+**第一入口：[curriculum/README.md](curriculum/README.md)**
+
+不要求你先会 Linux、Python、CUDA、机器学习或高等数学，也不要求现在就有独立 GPU。
+
+第一次按：
+
+~~~text
+学生入口
+→ Foundations（按需）
+→ Slice 01–49
+→ 每节实验 / Retrieval Practice / Evidence
+→ Graduation Capstone
+→ Challenge Labs（选修）
+~~~
+
+真实 GPU 实验暂时没有硬件时，按课程标记 `DEFERRED-HARDWARE`，先完成 L0/设计路径并继续下一课。
+
+## 项目建设者 / 维护者入口
 
 1. [MISSION.md](MISSION.md) — 为什么做、为谁做、成功标准和边界
 2. [COURSE-MAP.md](COURSE-MAP.md) — 能力图与课程主线
 3. [CONTEXT.md](CONTEXT.md) — 项目统一术语
 4. [AGENTS.md](AGENTS.md) — Agent / ChatGPT 工作规则
-5. [skills/SKILL-MAP.md](skills/SKILL-MAP.md) — Matt Pocock skills 与项目任务如何映射
+5. [skills/SKILL-MAP.md](skills/SKILL-MAP.md) — skills 与项目任务如何映射
 6. [learning/CURRENT.md](learning/CURRENT.md) — 当前建设/学习状态
 
 ## 仓库是外部记忆
