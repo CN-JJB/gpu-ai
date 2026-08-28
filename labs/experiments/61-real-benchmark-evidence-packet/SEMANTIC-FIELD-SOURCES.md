@@ -87,7 +87,15 @@ Do **not** copy only the catalog marketing name if the runtime reports a more sp
 
 Do not type this manually.
 
-I53 hashes the actual profile file.
+For the preferred real path, first assemble `profile.txt` from the READY I54 semantic-source bundle with:
+
+~~~text
+tools/intelligence/assemble_hardware_profile.py
+~~~
+
+The assembler re-verifies every referenced stdout/stderr stream and stores the exact bytes losslessly without semantic interpretation.
+
+I53 then hashes the resulting profile file.
 
 ## Runtime
 
