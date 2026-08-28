@@ -120,6 +120,33 @@ validator.txt
 Performance:
 - reuse Experiment 40.
 
+### Recommended capture/seal path
+
+After the manifest is filled, prefer the Intelligence capture helper for the raw performance command:
+
+```bash
+python3 ../../../tools/intelligence/capture_real_benchmark.py \
+  --manifest baseline-manifest.json \
+  --out-dir baseline-run \
+  --include profile.txt \
+  -- \
+  llama-bench -m /path/to/model.gguf -p 512 -n 128 -r 5 ... -o json
+```
+
+Use the exact current `llama-bench --help` for the argv after `--`.
+
+The helper does not invent flags. It executes the argv without a shell, preserves stdout/stderr/command identity, and builds a PACKET integrity index.
+
+Success here is only:
+
+```text
+CAPTURE: SEALED
+```
+
+Then run `verify_real_intake.py` with canonical IDs. Only the strengthened I07/I20 gate may return `INTAKE: READY`.
+
+For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
+
 Prompt identity:
 - reuse Experiment 57.
 
