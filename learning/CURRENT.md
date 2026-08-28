@@ -194,14 +194,14 @@ China rows remain M1 secondary signals, not confirmed transactions.
 
 ~~~text
 workflow: Intelligence Self-Test
-run #176
-run id 33195115141
-head d53497366645254fa2d0bf96714a5d46dc4622b7
-job id 98930161758
+run #178
+run id 33195425859
+head d308acbc62f3d540ed26181d23ed8a1602d127d1
+job id 98931209062
 conclusion success
 ~~~
 
-The complete suite passed through I54, including raw semantic-source capture, byte-derived I53 preparation, the end-to-end I52 orchestration path, and the unnumbered first-real workspace bootstrap.
+The complete suite passed through I54, including raw semantic-source capture, the unnumbered I54-to-profile assembler, byte-derived I53 preparation, the end-to-end I52 orchestration path, and the first-real workspace bootstrap.
 
 ## Newest evidence
 
@@ -219,18 +219,20 @@ The complete suite passed through I54, including raw semantic-source capture, by
 - examples/evidence/intelligence-53-real-evidence-session-materializer.md
 - examples/evidence/intelligence-54-semantic-source-capture.md
 - examples/evidence/operator-first-real-workspace-bootstrap.md
+- examples/evidence/operator-hardware-profile-assembler.md
 
 ## Next
 
 1. Stop expanding decision gates by default.
 2. On the actual NVIDIA-first machine, run `bootstrap_real_evidence_workspace.py --profile rtx3090-qwen3-8b-llamacpp` into a new empty directory; optionally bind only real existing GGUF/corpus paths.
 3. Follow the generated `RUN.md`: review `semantic-probes.json`, run I54, and require `READY-FOR-SEMANTIC-REVIEW`.
-4. Review the retained probe outputs, then deliberately fill Experiment 61 device/runtime/build/backend/model-source/execution semantics plus Experiment 57/59 source artifacts.
-5. Run I53; require `READY-TO-RUN-I52`.
-6. Run I52; require `REAL SESSION: READY`.
-7. Manually review the captured benchmark/quality evidence before any catalog ingestion.
-8. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
-9. Acquire the first real Experiment 87 / I44 acceptance packet, then fill I46/I48 and run I43.
-10. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
+4. Run `assemble_hardware_profile.py` against the READY I54 bundle to create `profile.txt`; require `HARDWARE PROFILE ASSEMBLER: READY`.
+5. Review the retained probe/profile evidence, then deliberately fill Experiment 61 device/runtime/build/backend/model-source/execution semantics plus Experiment 57/59 source artifacts.
+6. Run I53; require `READY-TO-RUN-I52`.
+7. Run I52; require `REAL SESSION: READY`.
+8. Manually review the captured benchmark/quality evidence before any catalog ingestion.
+9. Derive exact `MEASURED_SUPPORTED` compatibility only after reviewed real ingestion.
+10. Acquire the first real Experiment 87 / I44 acceptance packet, then fill I46/I48 and run I43.
+11. Refresh market evidence only with stronger/newer provenance; keep ranking blocked until real candidate evidence exists.
 
 No auto-purchase or unsafe hardware modification.
