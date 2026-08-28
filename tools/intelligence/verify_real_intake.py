@@ -364,6 +364,7 @@ def main():
     p.add_argument("--observed-at", required=True)
     p.add_argument("--model-artifact", type=Path, help="Local model artifact to hash/size-check against the manifest")
     p.add_argument("--hardware-profile", type=Path, help="Hardware profile artifact to SHA-check against manifest variant.hardware.profile_sha256")
+    p.add_argument("--prompt-manifest", type=Path, help="Experiment 57 prompt evidence manifest to bind variant.prompt identity")
     p.add_argument("--command-record", type=Path, help="I21 command.json to bind exact argv to the verified model artifact")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
@@ -465,6 +466,52 @@ def main():
             "non-synthetic hardware intake requires --hardware-profile so manifest profile_sha256 has a real artifact"
         )
         profile_status = "BLOCKED"
+
+    prompt_status = "NOT-CHECKED"
+    prompt_obj = {}
+    if a.prompt_manifest is not None:
+        if not a.prompt_manifest.is_file():
+            errors.append(f"prompt manifest is not a file: {a.prompt_manifest}")
+            prompt_status = "BLOCKED"
+        else:
+            try:
+                prompt_obj = json.loads(a.prompt_manifest.read_text(encoding="utf-8"))
+            except Exception as exc:
+                errors.append(f"invalid prompt manifest JSON: {exc}")
+                prompt_status = "BLOCKED"
+
+            if prompt_obj and not isinstance(prompt_obj, dict):
+                errors.append("prompt manifest must be one JSON object")
+                prompt_status = "BLOCKED"
+                prompt_obj = {}
+
+            if prompt_obj:
+                manifest_prompt = manifest.get("variant", {}).get("prompt", {})
+                for field in (
+                    "messages_sha256",
+                    "chat_template_sha256",
+                    "rendered_sha256",
+                    "token_ids_sha256",
+                    "token_count",
+                ):
+                    expected = manifest_prompt.get(field)
+                    actual = prompt_obj.get(field)
+                    if actual != expected:
+                        errors.append(
+                            f"prompt manifest {field} != Experiment 61 manifest: "
+                            f"{actual!r} vs {expected!r}"
+                        )
+                        prompt_status = "BLOCKED"
+                if prompt_status != "BLOCKED":
+                    prompt_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            prompt_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic intake requires --prompt-manifest so variant.prompt identity is backed by Experiment 57 evidence"
+        )
+        prompt_status = "BLOCKED"
 
     model_record = models.get(a.model_id)
     artifact_status = "NOT-CHECKED"
@@ -643,6 +690,8 @@ def main():
             packet_paths = [a.manifest, a.result]
             if a.hardware_profile is not None:
                 packet_paths.append(a.hardware_profile)
+            if a.prompt_manifest is not None:
+                packet_paths.append(a.prompt_manifest)
             if a.command_record is not None:
                 packet_paths.append(a.command_record)
             for path in packet_paths:
@@ -669,6 +718,10 @@ def main():
         print(f"- bytes={profile_actual_bytes}")
     if profile_actual_sha256 is not None:
         print(f"- sha256={profile_actual_sha256}")
+    print("PROMPT EVIDENCE")
+    print(f"- status={prompt_status}")
+    if a.prompt_manifest is not None:
+        print(f"- prompt_manifest={a.prompt_manifest}")
     print("MODEL ARTIFACT")
     print(f"- status={artifact_status}")
     if a.model_artifact is not None:
