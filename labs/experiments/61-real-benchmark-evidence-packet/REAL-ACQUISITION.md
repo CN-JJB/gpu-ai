@@ -43,6 +43,14 @@ The quality corpus must be the exact corpus used by the quality command.
 
 ## 2. Fill semantic fields manually
 
+Use the source map:
+
+~~~text
+SEMANTIC-FIELD-SOURCES.md
+~~~
+
+It distinguishes learner-defined experiment policy from machine/runtime observations and model provenance.
+
 In the Experiment 61 manifest, explicitly fill the facts that cannot be derived from bytes:
 
 ~~~text

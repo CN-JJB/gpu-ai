@@ -41,6 +41,12 @@ It deliberately leaves local paths and command flags unresolved.
 
 See `CANONICAL-IDS.md` for the current production IDs.
 
+For every field that I53 deliberately refuses to infer, see:
+
+~~~text
+SEMANTIC-FIELD-SOURCES.md
+~~~
+
 ## 1. Start from template
 
 ```bash
