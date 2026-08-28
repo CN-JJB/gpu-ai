@@ -180,6 +180,8 @@ def main():
 
             market_grade = str(r.get("market_evidence_grade", "")).upper()
             market_scope = r.get("market_evidence_scope")
+            if not r.get("synthetic", False) and not present(r.get("revalidate_after")):
+                errors.append(f"{loc}: production market record requires revalidate_after")
             if market_grade not in {"M0", "M1", "M2", "M3"}:
                 errors.append(f"{loc}: invalid market_evidence_grade {market_grade!r}")
             if not present(market_scope):
