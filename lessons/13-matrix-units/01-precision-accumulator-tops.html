@@ -145,5 +145,41 @@ achieved
 
 <h2>15. Apple 留到单独生态章节</h2>
 <p>Apple 的 GPU、Neural Engine、统一内存不能拿一个 TOPS 数字机械映射到 NVIDIA Tensor Core。后续 Apple 专节会单独拆 Metal GPU 路径与 ANE 路径。</p>
+
+<section class="student-closure">
+<h2>学生闭环：学完这一页你要能做什么</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0；真机增强路径 L1/L2。</p>
+<p><strong>成本：</strong>0 元主路径。</p>
+<p><strong>风险：</strong>safe。</p>
+<p><strong>替代路径：</strong>无对应矩阵硬件也能完成理论 roof 与 shape 实验；真机只用于验证 kernel/precision 路径。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>把 model quant、storage dtype、compute operand、matrix instruction、accumulator precision 分开。</li>
+<li>解释峰值 TOPS/TFLOPS 为什么不是 LLM 实测速度。</li>
+<li>判断一个 shape/precision 是否有机会落到 Tensor Core / MFMA / XMX，而不是只看产品页。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>先做 <a href="../../labs/experiments/21-tops-vs-roofline-model/README.md">Experiment 21：TOPS vs Roofline</a>；有 GPU 时做 <a href="../../labs/experiments/22-real-matmul-shape-precision/README.md">Experiment 22：real matmul shape / precision</a>。</p>
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 Q4 GGUF 不等价于“4-bit Tensor Core 运算”？</li>
+<li>FP16 输入、FP32 accumulate 描述的是哪两层？</li>
+<li>什么情况下 2 倍理论矩阵吞吐可能几乎不改变 TG？</li>
+<li>比较两张卡 AI 算力前，至少要对齐哪四项 precision/稀疏/频率条件？</li>
+</ol>
+<h3>完成证据</h3>
+<p>选一个以后可能使用的模型量化，写出从“文件权重表示”到“runtime kernel / matrix instruction / accumulator”的四层映射；未知处明确写 UNKNOWN。</p>
+<h3>如何迁移</h3>
+<p>NVIDIA Tensor Core、AMD Matrix Core/MFMA、Intel XMX 名字不同，但判断方法相同：<strong>operand dtype + tile/shape + instruction/kernel availability + accumulation + memory roof</strong>。</p>
+<h3>Primary Sources / Reference</h3>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD HIP Hardware Implementation</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/latest/intel-xe-gpu-architecture.html">Intel Xe GPU Architecture</a></li>
+<li><a href="../../reference/gpu/matrix-units-precision-tops.md">Course Reference — Matrix Units / Precision / TOPS</a></li>
+</ul>
+</section>
 </body>
 </html>

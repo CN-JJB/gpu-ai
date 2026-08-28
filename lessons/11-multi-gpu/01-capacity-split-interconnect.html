@@ -123,5 +123,41 @@ E_N = S_N / N</pre>
 <p>Apple Silicon 的统一内存 SoC 不能机械套用“两块独立 VRAM 经 PCIe P2P 相连”的模型。但可迁移的问题仍然成立：总容量、有效带宽、工作是否跨设备边界、并行策略和同步代价。</p>
 
 <div class="callout"><strong>结论：</strong>多 GPU 不是“把显存和算力做加法”，而是<strong>先分工作，再为跨设备边界付通信和同步成本</strong>。垃圾佬真正要买的不是“第二张卡”，而是一个经过拓扑、P2P 和 workload 验证的系统方案。</div>
+
+<section class="student-closure">
+<h2>学生闭环：学完这一页你要能做什么</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0；真机增强路径 L3（两张可用 GPU）。</p>
+<p><strong>成本：</strong>教学主路径 0 元；不要求为了本课购买第二张卡。</p>
+<p><strong>风险：</strong>safe。只做模拟、只读 topology 与 benchmark，不刷 BIOS、不改电压。</p>
+<p><strong>替代路径：</strong>没有双卡就完成 Experiment 17；真实双卡 Experiment 18 留到以后。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>把“总显存变大”和“单 token 更快”分成两个不同问题。</li>
+<li>解释模型切分为什么会引入跨 GPU traffic，以及 PCIe / NVLink / XGMI 为什么会改变收益。</li>
+<li>双卡缩放差时，先检查 split、P2P/topology、每卡工作量和通信，而不是直接怪某张卡。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>先做 <a href="../../labs/experiments/17-multi-gpu-interconnect-roof-model/README.md">Experiment 17：multi-GPU interconnect roof model</a>。有真实双卡时再做 <a href="../../labs/experiments/18-real-multi-gpu-scaling/README.md">Experiment 18：real multi-GPU scaling</a>。</p>
+<p>正确观察不是“2 张卡 = 2 倍速度”，而是把 <strong>capacity fit、compute work、communication bytes、link bandwidth</strong> 分开记账。</p>
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么两张 24 GiB 卡能让 40 GiB 模型“装得下”，却不保证 TG 翻倍？</li>
+<li>如果切分点每层都要跨卡传大 tensor，最先要估算什么？</li>
+<li>PCIe 与高速专用互联的差异在什么 workload 下最可能暴露？</li>
+<li>如果 GPU0 90% 忙、GPU1 30% 忙，你会先怀疑哪三类配置？</li>
+</ol>
+<h3>完成证据</h3>
+<p>提交一张“双卡容量/通信账本”：模型如何切分、每卡驻留什么、哪里跨卡、预计 bottleneck 在 compute / memory / interconnect 哪一项，并注明尚未由真机证明的部分。</p>
+<h3>如何迁移</h3>
+<p>跨 NVIDIA/AMD/Intel 都问同一组问题：<strong>状态放哪里、算在哪里、每一步搬多少、链路多快、同步几次</strong>。</p>
+<h3>Primary Sources / Reference</h3>
+<ul>
+<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
+<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD HIP Programming Model</a></li>
+<li><a href="../../reference/gpu/multi-gpu-split-interconnect.md">Course Reference — Multi-GPU Split / Interconnect</a></li>
+</ul>
+</section>
 </body>
 </html>

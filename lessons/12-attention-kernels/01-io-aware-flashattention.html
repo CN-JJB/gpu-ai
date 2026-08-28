@@ -120,5 +120,40 @@ a' = α a + Σ exp(score - m') V</pre>
 <li>把 prefill 与 decode 分开 benchmark。</li>
 <li>backend 是否真的启用 FlashAttention，必须用当前 runtime Evidence 确认。</li>
 </ol>
+
+<section class="student-closure">
+<h2>学生闭环：学完这一页你要能做什么</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0；真机增强路径 L1/L2。</p>
+<p><strong>成本：</strong>0 元主路径。</p>
+<p><strong>风险：</strong>safe。</p>
+<p><strong>替代路径：</strong>无 GPU 时做 online-softmax / I/O 模型；真机只用于验证 backend 是否真的选中目标 kernel。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>区分 attention 的数学复杂度、HBM I/O 和 kernel 实现三层。</li>
+<li>解释 FlashAttention 为什么是 exact attention 的 I/O 优化，而不是把 attention 近似掉。</li>
+<li>明白“支持 FlashAttention”必须绑定具体 runtime、device、dtype、shape。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>做 <a href="../../labs/experiments/19-attention-online-softmax-io-model/README.md">Experiment 19：online softmax I/O model</a>；有可用 GPU/backend 时做 <a href="../../labs/experiments/20-real-sdpa-backend-probe/README.md">Experiment 20：real SDPA backend probe</a>。</p>
+<p>反馈重点：确认减少的是中间矩阵的高成本读写，而不是偷偷改变 softmax 数学结果。</p>
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么“数学上有 S×S score matrix”不等于 runtime 必须把它完整写回 HBM？</li>
+<li>online softmax 需要维护哪类 running state 才能分块仍保持 exact？</li>
+<li>FlashAttention 对短序列一定更快吗？为什么不能只凭算法名判断？</li>
+<li>如果 backend 日志显示 fallback，你还能把结果记作 FlashAttention benchmark 吗？</li>
+</ol>
+<h3>完成证据</h3>
+<p>画出 naive attention 与 tiled/online-softmax 的 HBM↔on-chip 数据流，并写出“此证据不证明什么”：它不自动证明你的当前 runtime 已使用目标 kernel。</p>
+<h3>如何迁移</h3>
+<p>遇到任何新 attention kernel，先问：减少哪一级 memory traffic？改变数学吗？哪些 shape/dtype 生效？fallback 条件是什么？</p>
+<h3>Primary Sources / Reference</h3>
+<ul>
+<li><a href="https://arxiv.org/abs/2205.14135">FlashAttention — Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li>
+<li><a href="../../reference/gpu/attention-io-online-softmax.md">Course Reference — Attention I/O / Online Softmax</a></li>
+</ul>
+</section>
 </body>
 </html>
