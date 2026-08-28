@@ -16,47 +16,20 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ```text
-I01–I16 implemented and full-CI verified
+I01–I17 implemented and CI verified
 ```
 
-## CI
-
-GitHub Actions run #48:
+## Latest CI
 
 ```text
-head 097c8d4839314851e1f4b07267b3c7b2102d50e0
-run id 33137329016
-job id 98740118394
-Python 3.12.14
+run #54
+run id 33137613634
+head bbf624e44579cbc765974bf8b5070330002f294e
+job id 98741045301
 SELFTEST: PASS
 ```
 
-The successful log includes all I11–I16 market assertions and negative validator cases.
-
-## Compatibility
-
-```text
-3090/CUDA    → NEEDS-TEST
-7900XTX/HIP  → NEEDS-TEST
-M4Max/Metal  → NEEDS-TEST
-A770/SYCL    → NEEDS-TEST
-```
-
-No real benchmark Evidence yet.
-
-## Benchmark admission
-
-```text
-manifest + raw result + PACKET + canonical IDs
-→ I07 READY
-→ ingest
-→ validate
-→ exact MEASURED_SUPPORTED
-```
-
-Production benchmark catalog remains empty.
-
-## Market evidence states
+## Market evidence gate
 
 ```text
 SECONDARY_REPORTED        → M1
@@ -64,27 +37,37 @@ MEDIAN_ASK                → M2
 SOLD_MARKED_LISTING_PRICE → M3
 ```
 
-Current counts:
+M3 is claim-scoped.
+
+## Freshness gate
 
 ```text
-M1=2
-M2=3
-M3=9
+CURRENT + M2/M3 → ELIGIBLE
+DUE-TODAY → REVALIDATE-NOW
+STALE → STALE-REVALIDATE
+UNSCHEDULED / INVALID → REVALIDATION-SCHEDULE-REQUIRED
 ```
 
-Experiment 38 market sub-gate:
+Every real market row requires revalidate_after.
+
+## Experiment 38 fix
+
+Old possible state:
 
 ```text
-M0/M1 → NEEDS STRONGER
-M2/M3 → ELIGIBLE
+BUY-CANDIDATE + stale=YES
 ```
 
-M3 remains claim-scoped. Current OfferUp rows do not prove actual transaction amount.
+is no longer allowed.
+
+CI verifies:
+- current evidence can produce BUY-CANDIDATE;
+- due-today/stale/invalid evidence produces NEEDS EVIDENCE.
 
 ## Current market signals
 
 ```text
-eBay asks:
+eBay active asks:
 3090 1499
 7900 XTX 1020
 A770 330 USD
@@ -94,24 +77,30 @@ OfferUp SOLD-marked displayed medians:
 7900 XTX 700
 A770 200 USD
 
-China secondary watch:
+China secondary:
 3090 7400
 A770 1450 CNY
 ```
 
-## Freshness gap discovered
+## Active next defect/data need
 
-Experiment 38 currently prints stale age but its decision status is computed before freshness.
+The newer China A770 source reports a range:
 
-Therefore a stale M2/M3 observation can still appear as BUY-CANDIDATE.
+```text
+1200–1600 CNY
+```
 
-This is the active I17 defect to fix.
+not a scalar.
 
-## Next work
+Do not invent a midpoint merely to satisfy the current scalar market schema.
 
-1. I17: freshness-aware watchlist market gate.
-2. Refresh due/stale dynamic observations.
-3. Ingest real benchmark only after I07 READY.
-4. No recommendation leaderboard yet.
+I18 should add:
+- range-valued SECONDARY_REPORTED support;
+- append-only refresh lineage;
+- superseded observations excluded from active refresh/purchase use while history remains preserved.
+
+## Benchmark boundary
+
+Production benchmark catalog remains empty until real Experiment 61 Evidence passes I07.
 
 No auto-purchase or unsafe hardware modification.
