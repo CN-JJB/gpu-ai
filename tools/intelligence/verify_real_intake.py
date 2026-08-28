@@ -167,6 +167,38 @@ def text_identity_match(manifest_value, raw_value):
     return bool(m and r and (m == r or m in r or r in m))
 
 
+def extract_model_arg(argv):
+    if not isinstance(argv, list) or not all(isinstance(x, str) for x in argv):
+        raise ValueError("command argv must be a list of strings")
+
+    matches = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("-m", "--model"):
+            if i + 1 >= len(argv):
+                raise ValueError(f"{arg} is missing its model path")
+            matches.append(argv[i + 1])
+            i += 2
+            continue
+        if arg.startswith("--model="):
+            matches.append(arg.split("=", 1)[1])
+        i += 1
+
+    if len(matches) != 1:
+        raise ValueError(
+            f"expected exactly one -m/--model path in command argv; found {len(matches)}"
+        )
+    return matches[0]
+
+
+def resolve_recorded_path(value, cwd):
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = Path(cwd) / path
+    return path.resolve()
+
+
 def raw_protocol_rows(rows, protocol, errors):
     pp_tokens = int_like(protocol.get("pp_tokens"))
     tg_tokens = int_like(protocol.get("tg_tokens"))
@@ -331,6 +363,7 @@ def main():
     p.add_argument("--runtime-id", required=True)
     p.add_argument("--observed-at", required=True)
     p.add_argument("--model-artifact", type=Path, help="Local model artifact to hash/size-check against the manifest")
+    p.add_argument("--command-record", type=Path, help="I21 command.json to bind exact argv to the verified model artifact")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
 
@@ -439,6 +472,104 @@ def main():
         )
         artifact_status = "BLOCKED"
 
+    command_status = "NOT-CHECKED"
+    command_obj = {}
+    if a.command_record is not None:
+        if not a.command_record.is_file():
+            errors.append(f"command record is not a file: {a.command_record}")
+            command_status = "BLOCKED"
+        else:
+            try:
+                command_obj = json.loads(a.command_record.read_text(encoding="utf-8"))
+            except Exception as exc:
+                errors.append(f"invalid command record JSON: {exc}")
+                command_status = "BLOCKED"
+
+            if command_obj and not isinstance(command_obj, dict):
+                errors.append("command record must be one JSON object")
+                command_status = "BLOCKED"
+                command_obj = {}
+
+            if command_obj:
+                if command_obj.get("capture_schema_version") != 1:
+                    errors.append("command record capture_schema_version must be 1")
+                    command_status = "BLOCKED"
+                if command_obj.get("exit_code") != 0:
+                    errors.append(
+                        f"command record exit_code must be 0, got {command_obj.get('exit_code')!r}"
+                    )
+                    command_status = "BLOCKED"
+                if command_obj.get("launch_error"):
+                    errors.append(
+                        f"command record contains launch_error: {command_obj.get('launch_error')!r}"
+                    )
+                    command_status = "BLOCKED"
+
+                manifest_record = command_obj.get("manifest")
+                if not isinstance(manifest_record, dict):
+                    errors.append("command record missing manifest identity")
+                    command_status = "BLOCKED"
+                elif a.manifest.is_file():
+                    actual_manifest_sha = sha256(a.manifest)
+                    actual_manifest_bytes = a.manifest.stat().st_size
+                    if manifest_record.get("sha256") != actual_manifest_sha:
+                        errors.append(
+                            "command record manifest SHA256 does not match supplied manifest"
+                        )
+                        command_status = "BLOCKED"
+                    if manifest_record.get("bytes") != actual_manifest_bytes:
+                        errors.append(
+                            "command record manifest byte count does not match supplied manifest"
+                        )
+                        command_status = "BLOCKED"
+
+                bound_artifact = command_obj.get("model_artifact")
+                if not isinstance(bound_artifact, dict):
+                    errors.append("command record missing model_artifact binding")
+                    command_status = "BLOCKED"
+                elif artifact_actual_sha256 is not None and artifact_actual_bytes is not None:
+                    if bound_artifact.get("sha256") != artifact_actual_sha256:
+                        errors.append(
+                            "command record model artifact SHA256 does not match supplied local artifact"
+                        )
+                        command_status = "BLOCKED"
+                    if bound_artifact.get("bytes") != artifact_actual_bytes:
+                        errors.append(
+                            "command record model artifact byte count does not match supplied local artifact"
+                        )
+                        command_status = "BLOCKED"
+
+                try:
+                    argv_model = extract_model_arg(command_obj.get("argv"))
+                    cwd = command_obj.get("cwd")
+                    if not present(cwd):
+                        raise ValueError("command record cwd is missing")
+                    argv_model_resolved = resolve_recorded_path(argv_model, cwd)
+                    if a.model_artifact is None:
+                        raise ValueError(
+                            "cannot bind command argv without --model-artifact"
+                        )
+                    supplied_model_resolved = a.model_artifact.expanduser().resolve()
+                    if argv_model_resolved != supplied_model_resolved:
+                        raise ValueError(
+                            "command model path does not match --model-artifact: "
+                            f"argv={argv_model_resolved} supplied={supplied_model_resolved}"
+                        )
+                except Exception as exc:
+                    errors.append(str(exc))
+                    command_status = "BLOCKED"
+
+                if command_status != "BLOCKED":
+                    command_status = "PASS"
+    elif model_record is not None and model_record.get("synthetic", False):
+        if a.allow_synthetic:
+            command_status = "SKIPPED-SYNTHETIC"
+    elif model_record is not None:
+        errors.append(
+            "non-synthetic model intake requires --command-record so exact benchmark argv can be bound to the verified artifact"
+        )
+        command_status = "BLOCKED"
+
     protocol = manifest.get("fixed", {}).get("protocol", {})
     for field in ("pp_tokens", "tg_tokens", "repetitions"):
         if not positive_number(protocol.get(field)):
@@ -473,7 +604,10 @@ def main():
         if not isinstance(packet.get("files"), list):
             errors.append("packet.files must be a list")
         else:
-            for path in (a.manifest, a.result):
+            packet_paths = [a.manifest, a.result]
+            if a.command_record is not None:
+                packet_paths.append(a.command_record)
+            for path in packet_paths:
                 if path.is_file():
                     ok, message = packet_match(packet, path)
                     if not ok:
@@ -497,6 +631,10 @@ def main():
         print(f"- bytes={artifact_actual_bytes}")
     if artifact_actual_sha256 is not None:
         print(f"- sha256={artifact_actual_sha256}")
+    print("COMMAND ↔ ARTIFACT BINDING")
+    print(f"- status={command_status}")
+    if a.command_record is not None:
+        print(f"- command_record={a.command_record}")
 
     print("ERRORS")
     for x in errors:
