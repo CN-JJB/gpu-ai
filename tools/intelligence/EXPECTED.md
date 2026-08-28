@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I20. I19 retains its dedicated market-refresh self-test, while I20 strengthens real benchmark intake with manifest ↔ raw llama-bench identity checking. The I20 implementation checkpoint is GitHub Actions run #74 on 2026-08-28:
+Full Python execution is verified through I21. I19 retains its dedicated market-refresh self-test, I20 strengthens real benchmark intake identity, and I21 adds an evidence-preserving explicit-argv capture/seal helper. The I21 implementation checkpoint is GitHub Actions run #79 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #74 checked out head 719c51d130ee4b932e6a0b8d7c26c3337af7d928, compiled every Intelligence Python tool, executed the complete self-test including the new hash-consistent identity-tampering negative case, and then executed the dedicated market refresh self-test.
+Run #79 checked out head 628418be644caee5255eb65dfa5331802b40f729, compiled every Intelligence Python tool, executed the complete Intelligence self-test, executed the dedicated real benchmark capture self-test, and then executed the dedicated market refresh self-test.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #74
-run id 33155088741
-job id 98795852292
+workflow run #79
+run id 33155422668
+job id 98796936578
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -132,3 +132,20 @@ Evidence:
 - examples/evidence/intelligence-20-real-benchmark-raw-identity.md
 
 The gate remains an internal-consistency check. It is not benchmark truth, causal proof, or a purchase recommendation.
+
+
+## I21 assertions included in run #79
+
+The dedicated capture self-test confirms:
+- an explicit argv is executed with no shell interpolation;
+- stdout, stderr, exact command identity and executable hash are preserved;
+- optional evidence is copied into the sealed directory;
+- PACKET.json indexes the sealed evidence files;
+- a sealed synthetic Experiment 61 bundle passes the strengthened I07/I20 verifier;
+- a non-zero benchmark exit remains auditable but returns CAPTURE: BLOCKED;
+- a non-empty output directory is never overwritten.
+
+Evidence:
+- examples/evidence/intelligence-21-real-benchmark-capture-seal.md
+
+`CAPTURE: SEALED` is not `INTAKE: READY`.
