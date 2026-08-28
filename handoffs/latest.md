@@ -225,10 +225,33 @@ Tokenizer identity, corpus SHA, fixture revision and evaluation args must match 
 
 CI run #133 is green.
 
+## I28 quality execution evidence
+
+Experiment 59 quality execution now has a dedicated capture + verification lane:
+
+~~~text
+capture_quality_eval.py
+→ exact argv, shell=False
+→ exact -m/--model + -f/--file bindings
+→ model/corpus SHA256 + bytes
+→ I27 quality identity artifact binding
+→ raw stdout.txt + stderr.txt
+→ quality-command.json + PACKET.json
+→ QUALITY CAPTURE: SEALED
+
+verify_quality_execution.py
+→ independent argv reparse + re-hash
+→ QUALITY EXECUTION: PASS
+~~~
+
+Run #134 is green, including the dedicated quality execution self-test.
+
+I28 intentionally does not parse PPL, and it is still a companion gate rather than a required verify_real_intake.py argument.
+
 ## Next work
 
-1. Bind executed quality command/result evidence to the I26/I27 corpus + identity contract.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27.
+1. Integrate I28 into the non-synthetic verify_real_intake.py admission path (I29).
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23/I24/I25/I26/I27 plus I28.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 

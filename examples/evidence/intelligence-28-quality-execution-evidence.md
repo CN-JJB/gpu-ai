@@ -46,3 +46,21 @@ quality metric correctness
 !=
 purchase recommendation
 ~~~
+
+## CI verification
+
+~~~text
+workflow: Intelligence Self-Test
+run #134
+run id: 33158569119
+head: 10e93deada5af2e0b72a8b22c5ee38c34c22b2f8
+job id: 98807199018
+conclusion: success
+~~~
+
+The job explicitly passed:
+- Compile intelligence tools;
+- Run quality identity gate self-test;
+- Run quality execution self-test;
+- Run market refresh self-test.
+

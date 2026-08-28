@@ -174,11 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #133
-run id 33157503815
-head 96c805572b7e4f3c9f2882ec175045e25674a672
-job id 98803698443
-conclusion success
+run #134
+run id 33158569119
+head 10e93deada5af2e0b72a8b22c5ee38c34c22b2f8
+job id 98807199018
 conclusion success
 ~~~
 
@@ -191,8 +190,10 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21–I26 evidence-admission tests remain green;
-- I27 requires a machine-readable Experiment 59 quality identity manifest and blocks semantic tokenizer/corpus/fixture/evaluation mismatch even after PACKET recomputation;
+- I21–I27 evidence-admission tests remain green;
+- I28 quality execution capture/verifier binds exact model + corpus argv, raw stdout/stderr and the I27 identity artifact;
+- recomputed PACKET cannot hide semantic quality argv or identity-artifact tampering;
+- non-zero quality execution remains auditable but blocked;
 - the dedicated I19 market refresh self-test remains green.
 
 Evidence:
@@ -203,11 +204,16 @@ Evidence:
 - examples/evidence/intelligence-21-real-benchmark-capture-seal.md
 - examples/evidence/intelligence-22-real-model-artifact-gate.md
 - examples/evidence/intelligence-23-command-model-artifact-binding.md
+- examples/evidence/intelligence-24-hardware-profile-artifact-gate.md
+- examples/evidence/intelligence-25-prompt-evidence-manifest-gate.md
+- examples/evidence/intelligence-26-quality-corpus-artifact-gate.md
+- examples/evidence/intelligence-27-quality-identity-manifest-gate.md
+- examples/evidence/intelligence-28-quality-execution-evidence.md
 
 ## Next
 
-1. Bind quality execution command/result evidence to the I26/I27 corpus + identity contract.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23/I24/I25/I26/I27 admission.
+1. Integrate I28 quality execution evidence into the non-synthetic verify_real_intake.py admission path (I29).
+2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23/I24/I25/I26/I27 + I28 companion gate.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.

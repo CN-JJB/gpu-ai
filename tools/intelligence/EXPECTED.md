@@ -224,7 +224,7 @@ The dedicated quality-identity gate self-test confirms:
 Evidence:
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
 
-## I28 quality execution assertions
+## I28 assertions included in run #134
 
 The dedicated quality execution self-test confirms:
 - capture refuses a model/corpus argv path that differs from the explicitly supplied artifacts before launch;
