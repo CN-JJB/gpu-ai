@@ -174,9 +174,10 @@ GitHub Actions:
 
 ~~~text
 workflow: Intelligence Self-Test
-run #122
-run id 33157231636
-head 2695939652bf57128aee5bbeaf1d5f9b28a5596b
+run #133
+run id 33157503815
+head 96c805572b7e4f3c9f2882ec175045e25674a672
+job id 98803698443
 conclusion success
 conclusion success
 ~~~
@@ -190,8 +191,8 @@ SELFTEST: PASS
 Log/steps explicitly confirm:
 - every Intelligence Python tool compiles;
 - the full Intelligence self-test passes;
-- I21–I25 evidence-admission tests remain green;
-- I26 requires the concrete quality corpus, validates SHA256 against fixed.quality_eval.corpus_sha256, and blocks same-size wrong corpus even after PACKET recomputation;
+- I21–I26 evidence-admission tests remain green;
+- I27 requires a machine-readable Experiment 59 quality identity manifest and blocks semantic tokenizer/corpus/fixture/evaluation mismatch even after PACKET recomputation;
 - the dedicated I19 market refresh self-test remains green.
 
 Evidence:
@@ -205,8 +206,8 @@ Evidence:
 
 ## Next
 
-1. Back fixed.quality_eval tokenizer_identity / fixture_revision / evaluation_args with a machine-readable quality identity artifact.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23/I24/I25/I26 admission.
+1. Bind quality execution command/result evidence to the I26/I27 corpus + identity contract.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 capture + I07/I20/I22/I23/I24/I25/I26/I27 admission.
 3. Use market_refresh.py for due/stale observations; refresh RTX 3090 China evidence only when stronger/newer provenance exists.
 4. Add stronger direct/confirmed transaction evidence only when auditable.
 5. Delay recommendation/ranking until real benchmark + quality/SLO + feasibility Evidence exists.
