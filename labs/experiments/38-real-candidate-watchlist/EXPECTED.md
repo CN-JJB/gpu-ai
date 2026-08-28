@@ -2,7 +2,7 @@
 
 The template row should produce:
 
-```
+```text
 NEEDS EVIDENCE
 ```
 
@@ -12,14 +12,37 @@ because:
 - condition is C0;
 - max sticker is unset/zero.
 
-This is intentional.
-
 A BUY-CANDIDATE requires:
 - FIT PASS;
 - SOFTWARE PASS;
 - PERFORMANCE PASS;
-- market evidence at least M2;
+- market evidence M2/M3;
 - condition evidence C3/C4;
+- current market evidence;
 - ask <= personal max sticker.
+
+Freshness is now a decision gate.
+
+```text
+CURRENT
+→ may continue through the remaining gates
+
+DUE-TODAY
+STALE
+UNKNOWN
+INVALID
+→ NEEDS EVIDENCE
+```
+
+If `revalidate_after` is present, it is authoritative.
+
+If it is absent, the evaluator retains the older fallback:
+
+```text
+observed_at age > 7 days
+→ STALE
+```
+
+A stale row must not print BUY-CANDIDATE.
 
 The script still does not purchase or contact a seller.
