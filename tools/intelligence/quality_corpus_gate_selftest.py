@@ -71,6 +71,7 @@ def main():
         corpus = td / "quality-corpus.txt"
         corpus.write_bytes((exp / "quality-corpus.txt").read_bytes())
         corpus_bytes = corpus.read_bytes()
+        quality_manifest = exp / "quality-identity.json"
 
         wrong_corpus = td / "wrong-quality-corpus.txt"
         wrong_corpus.write_bytes(b"x" * len(corpus_bytes))
@@ -125,7 +126,7 @@ def main():
         packet.write_text(
             json.dumps({
                 "packet_schema_version": 1,
-                "file_count": 6,
+                "file_count": 7,
                 "files": [
                     packet_entry(manifest),
                     packet_entry(result),
@@ -133,6 +134,7 @@ def main():
                     packet_entry(profile),
                     packet_entry(prompt),
                     packet_entry(corpus),
+                    packet_entry(quality_manifest),
                 ],
             }, indent=2) + "\n",
             encoding="utf-8",
@@ -153,6 +155,7 @@ def main():
             "--prompt-manifest", str(prompt),
             "--model-artifact", str(model),
             "--command-record", str(command),
+            "--quality-manifest", str(quality_manifest),
         ]
 
         out = run(base, expect=2)
