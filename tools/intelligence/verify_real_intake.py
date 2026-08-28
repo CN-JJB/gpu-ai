@@ -363,6 +363,7 @@ def main():
     p.add_argument("--runtime-id", required=True)
     p.add_argument("--observed-at", required=True)
     p.add_argument("--model-artifact", type=Path, help="Local model artifact to hash/size-check against the manifest")
+    p.add_argument("--hardware-profile", type=Path, help="Hardware profile artifact to SHA-check against manifest variant.hardware.profile_sha256")
     p.add_argument("--command-record", type=Path, help="I21 command.json to bind exact argv to the verified model artifact")
     p.add_argument("--allow-synthetic", action="store_true")
     a = p.parse_args()
@@ -429,6 +430,41 @@ def main():
     )
     if not positive_number(artifact_bytes):
         errors.append("manifest variant.model.artifact_bytes must be > 0")
+
+    hardware_record = hardware.get(a.hardware_id)
+    profile_status = "NOT-CHECKED"
+    profile_actual_sha256 = None
+    profile_actual_bytes = None
+    if a.hardware_profile is not None:
+        if not a.hardware_profile.is_file():
+            errors.append(f"hardware profile is not a file: {a.hardware_profile}")
+            profile_status = "BLOCKED"
+        else:
+            profile_actual_bytes = a.hardware_profile.stat().st_size
+            profile_actual_sha256 = sha256(a.hardware_profile)
+            expected_profile_sha256 = str(
+                manifest.get("variant", {})
+                .get("hardware", {})
+                .get("profile_sha256", "")
+            ).strip().lower()
+
+            if expected_profile_sha256 and profile_actual_sha256.lower() != expected_profile_sha256:
+                errors.append(
+                    "hardware profile SHA256 != manifest variant.hardware.profile_sha256: "
+                    f"{profile_actual_sha256} vs {expected_profile_sha256}"
+                )
+                profile_status = "BLOCKED"
+
+            if profile_status != "BLOCKED":
+                profile_status = "PASS"
+    elif hardware_record is not None and hardware_record.get("synthetic", False):
+        if a.allow_synthetic:
+            profile_status = "SKIPPED-SYNTHETIC"
+    elif hardware_record is not None:
+        errors.append(
+            "non-synthetic hardware intake requires --hardware-profile so manifest profile_sha256 has a real artifact"
+        )
+        profile_status = "BLOCKED"
 
     model_record = models.get(a.model_id)
     artifact_status = "NOT-CHECKED"
@@ -605,6 +641,8 @@ def main():
             errors.append("packet.files must be a list")
         else:
             packet_paths = [a.manifest, a.result]
+            if a.hardware_profile is not None:
+                packet_paths.append(a.hardware_profile)
             if a.command_record is not None:
                 packet_paths.append(a.command_record)
             for path in packet_paths:
@@ -623,6 +661,14 @@ def main():
         print(f"- {kind}={value}")
     print("RAW IDENTITY CROSS-CHECK")
     print("- manifest/runtime/device/model/execution fields are checked against selected PP/TG rows")
+    print("HARDWARE PROFILE")
+    print(f"- status={profile_status}")
+    if a.hardware_profile is not None:
+        print(f"- path={a.hardware_profile}")
+    if profile_actual_bytes is not None:
+        print(f"- bytes={profile_actual_bytes}")
+    if profile_actual_sha256 is not None:
+        print(f"- sha256={profile_actual_sha256}")
     print("MODEL ARTIFACT")
     print(f"- status={artifact_status}")
     if a.model_artifact is not None:
