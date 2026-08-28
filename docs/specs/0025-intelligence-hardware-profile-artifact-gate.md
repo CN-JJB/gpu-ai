@@ -1,6 +1,6 @@
 # Spec 0025 — Hardware Profile Artifact Admission Gate
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -103,3 +103,21 @@ It does not prove:
 - causal validity;
 - quality;
 - purchase suitability.
+
+## CI verification
+
+```text
+workflow: Intelligence Self-Test
+run #98
+run id 33156607865
+head 536fcf7b5857639a3c3530bdc76b294551bab222
+job id 98800758535
+conclusion success
+```
+
+The dedicated I24 self-test proves:
+- non-synthetic hardware intake without `--hardware-profile` is blocked;
+- a matching profile SHA256 + PACKET entry passes;
+- a same-size wrong profile remains blocked after PACKET is freshly recomputed.
+
+Runs #94–#95 were intermediate migration heads while I22/I23 non-synthetic fixtures were being carried through the new profile requirement. Runs #96–#98 restored the full suite; #98 is the accepted I24 checkpoint.
