@@ -16,16 +16,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I19 implemented and CI verified
+I01–I20 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #67
-run id 33154549739
-head 8ab1d5435e867570c2a5c2a48cc94d45c533179f
-job id 98794100639
+run #76
+run id 33155172914
+head 24f797883fc09c96b8dc8422ccfd4724c8e0b08a
+job id 98796127099
 full SELFTEST: PASS
 market refresh SELFTEST: PASS
 ~~~
@@ -135,11 +135,27 @@ The helper creates reciprocal append-only lineage and rejects:
 
 CI run #67 verifies the helper and keeps the original full self-test green.
 
+## I20 raw benchmark identity gate
+
+```text
+verify_real_intake.py
+→ PACKET hash/bytes
++ exact PP/TG protocol rows
++ manifest ↔ raw llama-bench identity/config agreement
+→ RAW IDENTITY: PASS
+→ INTAKE: READY
+```
+
+The verifier now blocks a recomputed, hash-consistent packet when the manifest claims a different GPU/backend/build/model/config than the raw benchmark evidence.
+
+Implementation checkpoint: run #74.  
+Final documented head: run #76, success.
+
 ## Next work
 
-1. Use the helper for the next due/stale market refresh.
-2. Find stronger/newer RTX 3090 China evidence; do not promote the current 7400 CNY M1 signal without stronger provenance.
-3. Ingest real benchmark only after I07 READY.
+1. Acquire the first learner-owned real Experiment 61 packet through I07/I20.
+2. Reduce manual capture friction without weakening provenance.
+3. Use the market refresh helper for due/stale evidence and find stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
 No auto-purchase or unsafe hardware modification.
