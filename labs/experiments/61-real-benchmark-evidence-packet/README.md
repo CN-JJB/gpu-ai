@@ -192,6 +192,22 @@ SEMANTIC SOURCE CAPTURE: READY-FOR-SEMANTIC-REVIEW
 
 Review `semantic-source-evidence/bundle.json` and the raw probe streams. I54 does not fill the manifest for you.
 
+Build the concrete hardware profile from that verified bundle:
+
+~~~bash
+python3 ../../../tools/intelligence/assemble_hardware_profile.py \
+  semantic-source-evidence/bundle.json \
+  --out profile.txt
+~~~
+
+Require:
+
+~~~text
+HARDWARE PROFILE ASSEMBLER: READY
+~~~
+
+This profile is a lossless container for the verified I54 streams; it is not an interpreted device claim.
+
 Now start with the real session template and fill:
 - canonical IDs;
 - exact source paths;
