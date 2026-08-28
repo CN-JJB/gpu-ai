@@ -1,153 +1,38 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AMD 架构 1：GCN 与 Vega</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>AMD 架构 1 — GCN → Vega：Wave64、CU、SGPR/VGPR、LDS</h1>
-
-<p>如果你只学过 NVIDIA，最容易犯的错误就是把 AMD 术语硬翻译成“AMD 的 warp / SM / CUDA Core”。这一节先用 AMD 自己的语言。</p>
-
-<h2>1. GCN 的最基本执行单位：Wave64</h2>
-<p>经典 GCN 把 64 个 work-item 组成一个 wavefront。</p>
-<pre>work-item × 64
-→ one wave64</pre>
-
-<p>经典 GCN CU 的 SIMD 只有 16 lane 宽，因此一条 wave64 vector instruction 要分四拍执行：</p>
-<pre>lanes  0..15  → cycle 0
-lanes 16..31  → cycle 1
-lanes 32..47  → cycle 2
-lanes 48..63  → cycle 3</pre>
-
-<div class="callout"><strong>关键：</strong>“wave64”描述的是逻辑执行组，不代表硬件一定有 64 个并排 ALU 一拍吃完。</div>
-
-<h2>2. CU — Compute Unit</h2>
-<pre>GCN CU
-├─ scalar path
-├─ SIMD0
-├─ SIMD1
-├─ SIMD2
-├─ SIMD3
-├─ register files
-└─ LDS</pre>
-
-<p>多个 wave 可以同时 resident。当一个 wave 在等 global memory 时，scheduler 可以切到别的 ready wave。</p>
-<p>这和前面的 latency hiding 模型完全一致。</p>
-
-<h2>3. AMD 很重要的一组寄存器：SGPR vs VGPR</h2>
-
-<h3>VGPR</h3>
-<pre>one value per lane</pre>
-
-<p>例如每个线程自己的：</p>
-<ul>
-<li>坐标；</li>
-<li>activation；</li>
-<li>指针偏移；</li>
-<li>partial result。</li>
-</ul>
-
-<h3>SGPR</h3>
-<pre>one scalar value shared across the whole wave</pre>
-
-<p>例如整个 wave 都一样的：</p>
-<ul>
-<li>base pointer；</li>
-<li>uniform loop bound；</li>
-<li>constant；</li>
-<li>wave-uniform condition。</li>
-</ul>
-
-<p>如果一个值所有 lane 都相同，却塞进 VGPR，就是在浪费 vector register capacity。</p>
-
-<h2>4. LDS — Local Data Share</h2>
-<p>LDS 是 workgroup 内的低延迟共享 scratchpad。</p>
-<pre>global memory
-→ LDS tile
-→ many waves reuse
-→ output</pre>
-
-<p>它就是你把 Slice 03 的：</p>
-<ul>
-<li>tiling；</li>
-<li>bank conflict；</li>
-<li>reuse；</li>
-<li>occupancy/resource pressure；</li>
-</ul>
-<p>迁移到 AMD 时最重要的落点。</p>
-
-<h2>5. GCN occupancy 为什么也会被寄存器卡住？</h2>
-<pre>more VGPR per thread
-→ fewer waves fit
-→ less latency hiding</pre>
-
-<p>SGPR、VGPR、LDS 都是有限的。</p>
-<p>所以 AMD kernel tuning 不是“wave 越多越好”，而是和 NVIDIA 一样要平衡：</p>
-<pre>resource per wave
-× active waves
-× useful ILP
-× memory behavior</pre>
-
-<h2>6. Vega：GCN 路线开始认真拥抱低精度和 HBM</h2>
-
-<h3>Rapid Packed Math</h3>
-<p>如果算法允许较低精度，就可以把较小数据打包进同一个 datapath，提高吞吐。</p>
-<pre>32-bit datapath slot
-→ two lower-precision values
-→ more ops per clock</pre>
-
-<p>这是现代 FP16/INT8/FP8 AI 路线之前的重要阶段。</p>
-
-<h3>HBM2 与 High Bandwidth Cache</h3>
-<p>Vega 高端产品把 HBM2 带进消费/compute 产品。</p>
-<p>真正的长期趋势：</p>
-<pre>GPU compute gets faster
-→ memory bandwidth becomes more important
-→ package/memory architecture becomes a first-class design axis</pre>
-
-<h2>7. 为什么 Vega 是分叉点</h2>
-<p>从这里以后，AMD 不再让一个架构同时承担所有目标：</p>
-<pre>GCN / Vega ancestry
-      ├─ RDNA → graphics / low-latency
-      └─ CDNA → HPC / AI / throughput</pre>
-
-<p>所以后面千万不要说：</p>
-<pre>RDNA2 → RDNA3 → CDNA3</pre>
-
-<p>这是两条不同产品/架构路线。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — GCN / Vega</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意受支持 AMD GPU）。</p>
-<p><strong>成本：</strong>0 元主路径；课程不要求为了这一节购买 AMD 卡。</p>
-<p><strong>风险：</strong>safe。</p>
-<p><strong>替代路径：</strong>无 AMD 卡完成 terminology trap + 官方架构调查；有卡才做 ROCm inventory。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>正确使用 CU / WGP / wave32-wave64 / LDS / matrix path 等术语，不把 NVIDIA 名词硬翻译过去。</li>
-<li>区分 RDNA 图形导向与 CDNA 计算导向的产品目标。</li>
-<li>把“硬件有能力”和“ROCm/具体 backend 当前可用”分开。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/25-amd-generation-terminology-traps/README.md">Experiment 25：AMD generation terminology traps</a>。有 AMD 卡时增强做 <a href="../../labs/experiments/26-real-amd-rocm-inventory/README.md">Experiment 26：real AMD ROCm inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>GCN 的 wave64/CU/LDS 心智模型为什么不能机械套到后来的 RDNA？</li>
-<li>RDNA 的 wave32 与 CDNA 常见 wave64 对“warp=32”这种跨厂商说法有什么警告？</li>
-<li>一张 AMD 卡支持某硬件指令，为什么还不能立刻推导 llama.cpp/vLLM 当前高效支持？</li>
-<li>二手 AMD 卡便宜很多时，你要把哪些软件兼容成本计入 TCO？</li>
-</ol>
-<h3>完成证据</h3>
-<p>提交一张 GCN / Vega “术语→硬件→LLM”卡：execution group、compute block、on-chip memory、matrix path、memory system、当前 runtime 待验证项。</p>
-<h3>如何迁移</h3>
-<p>比较 NVIDIA/AMD 时只映射功能角色，不强求名词一一对应：warp↔wave、SM↔CU/WGP 只是近似层级，具体 scheduler/cache/resource 仍按架构查。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD HIP — Hardware Implementation</a></li>
-<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD HIP — Programming Model</a></li>
-<li><a href="../../reference/gpu/amd-generation-spine.md">Course Reference — AMD Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — AMD primary-source index</a></li>
-</ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 1：GCN 与 Vega</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">AMD Architecture · 1/4 · L0→L1</p><h1>AMD 架构主线（一）：GCN → Vega</h1><p class="lead">AMD 不能用“NVIDIA 换名词版”来学。你需要先建立自己的 AMD 执行模型：CU、wavefront、SIMD、VGPR/SGPR、LDS 与 HBM/GDDR，然后再理解 GCN 为什么既服务图形又成为早期 ROCm/HPC 的重要基础。</p>
+<h2>Prerequisite Check</h2><p>你应知道 GPU 通过成组线程和大量并行工作隐藏延迟，也知道 register/shared/cache/VRAM 是不同层级。无需会 HIP/OpenCL。</p>
+<h2>真实问题：为什么“64 个 CU”不能直接换算成“多少个 NVIDIA SM”？</h2><p>CU 和 SM 都是 GPU 的大粒度计算组织，但内部 scheduler、SIMD 宽度、wave/warp 语义、寄存器资源、指令吞吐与每代变化都不同。把它们做一比一换算，会像把“汽车发动机缸数”和“电机数量”直接换算一样失真。</p>
+<h2>1. GCN 的基本执行图</h2><pre>work-items / threads
+      ↓ grouped as
+wavefront
+      ↓ scheduled on
+Compute Unit (CU)
+      ├─ SIMD execution
+      ├─ vector registers (VGPR)
+      ├─ scalar path / SGPR
+      └─ LDS (on-chip shared data)</pre><p>这张图是你以后读 AMD kernel tuning 的起点。CUDA 的 thread/warp/SM/shared memory 可以帮助建立直觉，但不要因此假设内部完全等价。</p>
+<h3>Wavefront 是什么？</h3><p>程序看到许多 work-item/thread，硬件把它们成组执行。GCN 经典语境中常见 wave64。遇到分支时，同一 wave 中不同 lane 走不同路径可能需要序列化部分工作，这和 SIMT/SIMD divergence 的一般规律一致。</p>
+<h2>2. Scalar + Vector：为什么地址/控制工作不必占满所有 lane？</h2><p>如果某个值对整个 wave 都相同，例如某个循环计数或统一地址计算，把它在每个 vector lane 重算会浪费资源。GCN 提供 scalar 资源处理适合 wave-uniform 的工作，让 vector datapath 专注逐 lane 数据。</p><div class="callout"><strong>长期规律：</strong>GPU 高吞吐不仅来自“更多向量 ALU”，也来自把控制、地址、标量与向量工作放到合适的数据路径。</div>
+<h2>3. LDS：AMD 的片上协作存储</h2><p>Local Data Share（LDS）是 CU 内用于 workgroup 协作的低延迟片上存储。它承担的教学角色与 CUDA shared memory 类似：</p><pre>global memory → cooperatively load tile → LDS → reuse → compute</pre><p>但相似不代表所有 bank、容量、同步和 occupancy 规则相同。写跨厂商 kernel 时必须读对应 ISA/tuning guide。</p>
+<h2>4. VGPR 压力为什么会限制 occupancy？</h2><p>每个 wave 需要一定数量的 vector registers。一个 kernel 如果为每个 thread 使用大量 VGPR，同一个 CU 能同时驻留的 wave 数就会减少。</p><pre>fixed register file
+÷ registers per active wave
+≈ maximum resident waves (one of several limits)</pre><p>因此“减少寄存器”有时提高并发，但如果过度减少导致 spill 到更慢的 memory，性能反而下降。这个 tradeoff 与 NVIDIA 一样存在，但具体阈值要按 AMD 架构测。</p>
+<h2>5. GCN 为什么长期存在？</h2><p>GCN 是一条持续多代演化的 ISA/架构家族，覆盖消费图形、APU、专业与计算产品。它为 AMD 后续 ROCm/HIP 计算生态提供了重要硬件基础，但“GCN”本身跨度很大，不能把一个时代的功能套到所有 GCN SKU。</p>
+<h2>6. Vega：更强 memory/compute 方向与 HBM 产品</h2><p>Vega 时代继续优化 CU/graphics pipeline，并在部分产品中使用 HBM，强调高带宽与高吞吐计算。对 LLM 学习最有价值的是：</p><ul><li>开始更认真地区分 consumer Vega 与 compute-oriented Vega/Instinct；</li><li>理解 HBM 的容量/带宽/封装特征；</li><li>理解低精度/packed operations 的硬件能力仍需要软件映射。</li></ul>
+<h2>Worked Example：Vega 64 和某 Instinct Vega 产品为什么不能只说“都是 Vega”？</h2><ol><li>先确认 exact chip / SKU；</li><li>记录显存类型与容量；</li><li>记录 memory bandwidth；</li><li>记录对应 precision claims；</li><li>确认显示输出、散热、供电与机箱适配；</li><li>最关键：确认今天目标 ROCm/runtime/backend 是否支持 exact device。</li></ol><p>最后一项尤其重要：旧 AMD 计算卡的硬件能力可能仍在，但软件支持矩阵会随 ROCm 版本变化。</p>
+<h2>7. 为什么早期 AMD GPGPU 生态学习起来“更容易踩版本坑”？</h2><p>硬件、驱动、ROCm、HIP runtime、kernel library、Linux distribution、应用 backend 形成一条兼容链。任何一层不支持，纸面规格都不能转化成可用 LLM。</p><pre>GPU ISA/device
+→ kernel driver
+→ ROCm runtime
+→ HIP/library
+→ llama.cpp / PyTorch / other backend
+→ model workload</pre><p>因此 AMD 课程必须把“当前兼容性”放到 Intelligence，而不是在稳定教材里写死一个永远有效的支持列表。</p>
+<h2>Why it matters</h2><ul><li>建立 AMD 自己的执行模型，避免把 CU 当 SM 的简单别名。</li><li>理解 wave/LDS/VGPR 后，才能读 HIP kernel、occupancy 和性能分析。</li><li>解释为什么旧 Vega/Instinct 卡“规格诱人”却必须先过当前软件支持 gate。</li><li>为 RDNA wave32 与 CDNA matrix-compute 分叉做准备。</li><li>理解 HBM/大带宽为何对部分模型/计算 workload 有吸引力。</li></ul>
+<h2>常见误区</h2><ul><li>“1 CU = 1 SM”——没有固定换算关系。</li><li>“wave64 就是 AMD 的 warp32 ×2”——只可做非常粗的成组执行类比，内部语义/吞吐不同。</li><li>“Vega 有 HBM，所以一定适合所有 LLM”——容量、runtime、kernel、功耗同样关键。</li><li>“ROCm 支持 AMD，所以所有 AMD 卡都支持”——必须 exact device + exact ROCm version。</li></ul>
+<h2>小实验与预期观察</h2><p>建立一张 GCN/Vega capability card：CU、wave size、LDS、VRAM、bandwidth、current ROCm status 分列。不要填推测值。预期你会发现“架构事实”和“当前软件事实”必须分两栏维护。</p>
+<h2>无 AMD 硬件路径</h2><p>L0 使用 ROCm/HIP hardware implementation 文档与课程 reference 完成。不要为验证历史架构购买旧卡。若将来有真实 AMD GPU，再用只读工具收集 device/runtime identity。</p>
+<h2>排错</h2><ul><li>ROCm 安装成功但应用看不到 GPU：分别检查 kernel driver、runtime device list、应用 build/backend。</li><li>程序能跑但 CPU 很忙/GPU 很闲：确认是否 fallback 或只有部分 layers offload。</li><li>理论带宽高但模型慢：检查 quant kernel、wave utilization、memory clock、power/thermal 与 host transfer。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 CU 与 SM 不能按数量直接换算？</li><li>scalar path 对 wave-uniform 工作有什么意义？</li><li>LDS 解决什么问题？为什么它不是无限快的替代 VRAM？</li><li>VGPR 使用过多怎样影响 resident waves？为什么一味减少 VGPR 也可能失败？</li><li>为什么 Vega 的 HBM 不能单独决定本地 LLM 价值？</li><li>写出 AMD 从 GPU 到应用 backend 的软件兼容链。</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>可以用 CU/wave/LDS/VGPR 解释 GCN/Vega 的执行与片上复用；不能仅凭 CU 数、HBM 或历史计算定位推荐旧 AMD 卡。当前 ROCm/backend 支持必须作为 hard gate 重新验证。</p></div>
+<h2>Transfer</h2><p>下一节进入 RDNA。重点观察 AMD 为什么为图形效率改变 wave/执行组织，以及这会如何影响从 GCN/HIP 迁移来的直觉。再下一条 CDNA 线则会更明确面向 HPC/AI。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
