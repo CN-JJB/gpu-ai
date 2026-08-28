@@ -7,7 +7,7 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Full Python execution is verified through I29. I19 retains its market-refresh self-test, I20 checks raw benchmark identity, I21 seals explicit argv evidence, I22 verifies local model-artifact SHA256/bytes, I23 binds exact benchmark argv, I24 verifies hardware-profile evidence, I25 verifies prompt identity evidence, I26 verifies the quality corpus artifact, I27 verifies the machine-readable quality identity manifest, I28 seals/verifies executed quality evidence, and I29 makes I28 mandatory for non-synthetic intake. The I29 implementation checkpoint is GitHub Actions run #136 on 2026-08-28:
+Full Python execution is verified through I33. I19 retains its market-refresh self-test; I20–I29 cover benchmark and quality execution admission; I30 binds exact quality evaluation argv; I31 extracts and independently verifies a narrow machine-readable PPL artifact; I32 makes that artifact mandatory for non-synthetic intake; I33 gates exact-contract quality A/B arithmetic. The I33 implementation checkpoint is GitHub Actions run #141 on 2026-08-28:
 
 ~~~text
 SELFTEST: PASS
@@ -30,7 +30,7 @@ SELFTEST: PASS
 - broken canonical hardware reference is rejected
 ~~~
 
-Run #136 checked out head 1651f040ff5e16a38102c33949525b3b991f5a69, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated capture, model-artifact, command-model, hardware-profile, prompt-evidence, quality-corpus, quality-identity, quality-execution, quality-execution-intake and market-refresh self-tests.
+Run #141 checked out head 2070476cd272f904476dff4100779a12ec534f59, compiled every Intelligence Python tool, executed the complete Intelligence self-test, then passed the dedicated capture, model-artifact, command-model, hardware-profile, prompt-evidence, quality-corpus, quality-identity, quality-execution, quality-evaluation-argv, quality-metric, quality-comparison, quality execution + metric intake and market-refresh self-tests.
 
 Detailed evidence:
 
@@ -56,9 +56,9 @@ The same checks are defined in:
 Verified CI identity:
 
 ~~~text
-workflow run #136
-run id 33159217898
-job id 98809329732
+workflow run #141
+run id 33169970758
+job id 98844439875
 conclusion success
 Python 3.12.14
 Ubuntu 24.04.4
@@ -253,4 +253,48 @@ Evidence:
 - examples/evidence/intelligence-29-quality-execution-intake-gate.md
 
 I29 is still evidence-completeness/internal-consistency, not PPL truth or a purchase recommendation.
+
+## I30 assertions included in run #138
+
+The exact evaluation-argv self-test confirms:
+- quality identity schema v2 stores `evaluation_args` as exact argv tokens;
+- capture blocks declared/executed token mismatches before launch;
+- command-record tokens are independently rederived;
+- recomputed PACKET cannot hide evaluation-argv tampering.
+
+Evidence:
+- examples/evidence/intelligence-30-quality-evaluation-argv-binding.md
+
+## I31 assertions included in run #139
+
+The quality metric self-test confirms:
+- one supported Final estimate line becomes a machine-readable PPL artifact;
+- verification reparses raw streams instead of trusting copied numbers;
+- chunk-only output is blocked instead of guessed;
+- multiple Final estimate lines are ambiguous and blocked.
+
+Evidence:
+- examples/evidence/intelligence-31-quality-metric-extraction.md
+
+## I32 assertions included in run #140
+
+The intake regression confirms:
+- non-synthetic intake requires `--quality-metric`;
+- metric evidence is independently reproducible from sealed raw output;
+- I22–I27 historical non-synthetic-style gates remain green with synthetic-only metric fixtures.
+
+Evidence:
+- examples/evidence/intelligence-32-quality-metric-intake-gate.md
+
+## I33 assertions included in run #141
+
+The exact quality comparison self-test confirms:
+- both sides independently pass I31/I32 verification;
+- tokenizer/corpus/fixture/evaluation argv/parser/metric/executable identity must match;
+- changed evaluation argv blocks comparison;
+- changed quality executable bytes block comparison;
+- only exact-contract inputs emit descriptive PPL delta/ratio/percent change.
+
+Evidence:
+- examples/evidence/intelligence-33-quality-ab-comparability.md
 

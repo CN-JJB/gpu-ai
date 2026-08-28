@@ -365,7 +365,9 @@ python3 verify_quality_execution.py \
   --quality-manifest /tmp/quality-run/quality-identity.json
 ~~~
 
-The helper binds the exact -m/--model and -f/--file argv paths before launch, preserves both raw streams, and does not parse or invent a PPL metric.
+The helper binds the exact -m/--model and -f/--file argv paths before launch, preserves both raw streams, and does not invent a PPL metric.
+
+I30 upgrades the quality identity/capture contract to schema v2: `evaluation_args` is an exact JSON argv-token list. Capture and verification strip only executable + model/corpus selectors, then require exact token/order equality.
 
 QUALITY EXECUTION: PASS is an evidence-binding result, not a quality or purchase claim.
 
@@ -380,7 +382,45 @@ I29 makes that execution evidence mandatory for non-synthetic `verify_real_intak
 
 The main benchmark PACKET and the quality PACKET remain separate integrity domains.
 
-## 21. Self-test
+## 21. Machine-readable quality metric
+
+After a sealed quality run passes, extract only the supported final-estimate contract:
+
+~~~bash
+python3 extract_quality_metric.py \
+  --quality-command-record /tmp/quality-run/quality-command.json \
+  --stdout /tmp/quality-run/stdout.txt \
+  --stderr /tmp/quality-run/stderr.txt \
+  --packet /tmp/quality-run/PACKET.json \
+  --model-artifact /path/to/model.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --quality-manifest /tmp/quality-run/quality-identity.json \
+  --out /tmp/quality-run/quality-metric.json
+~~~
+
+I31 accepts exactly one supported `Final estimate: PPL = VALUE +/- UNCERTAINTY` line across stdout/stderr. Chunk-only or ambiguous output is BLOCKED.
+
+I32 makes `--quality-metric` mandatory for non-synthetic `verify_real_intake.py` admission.
+
+## 22. Exact quality A/B comparison
+
+When baseline and candidate quality bundles are complete:
+
+~~~bash
+python3 compare_quality_metrics.py \
+  --baseline-dir /path/to/baseline-quality-run \
+  --candidate-dir /path/to/candidate-quality-run \
+  --baseline-model /path/to/baseline.gguf \
+  --candidate-model /path/to/candidate.gguf \
+  --quality-corpus /path/to/corpus.txt \
+  --out /tmp/quality-comparison.json
+~~~
+
+I33 independently verifies both sides and requires exact tokenizer/corpus/fixture/evaluation-argv/parser/metric/executable identity before descriptive PPL delta/ratio arithmetic.
+
+This is not a significance test, causal claim, task-quality verdict, or recommendation.
+
+## 23. Self-test
 
 From repository root:
 
@@ -392,9 +432,12 @@ python tools/intelligence/selftest.py
 GitHub Actions verified result:
 
 ~~~text
-run #136
+run #141
 SELFTEST: PASS
 QUALITY EXECUTION SELFTEST: PASS
+QUALITY EVALUATION ARGS SELFTEST: PASS
+QUALITY METRIC SELFTEST: PASS
+QUALITY COMPARISON SELFTEST: PASS
 QUALITY EXECUTION INTAKE SELFTEST: PASS
 MARKET REFRESH SELFTEST: PASS
 ~~~
@@ -425,6 +468,10 @@ See:
 - examples/evidence/intelligence-27-quality-identity-manifest-gate.md
 - examples/evidence/intelligence-28-quality-execution-evidence.md
 - examples/evidence/intelligence-29-quality-execution-intake-gate.md
+- examples/evidence/intelligence-33-quality-ab-comparability.md
+- examples/evidence/intelligence-32-quality-metric-intake-gate.md
+- examples/evidence/intelligence-31-quality-metric-extraction.md
+- examples/evidence/intelligence-30-quality-evaluation-argv-binding.md
 
 ## Non-goals
 
