@@ -38,4 +38,30 @@ Intel iGPU → shared system memory</pre>
 </ul>
 
 <div class="callout"><strong>XMX 是硬件能力，不是“任何 Q4 都自动加速”的证据。</strong></div>
+
+<section class="student-closure">
+<h2>学生闭环 — Intel SYCL/XPU</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0 preflight；有对应硬件时 L1/L2 做真机增强。</p>
+<p><strong>成本：</strong>0 元主路径，不要求集齐四个生态。</p>
+<p><strong>风险：</strong>safe；只做 build/device/runtime 检查和 benchmark。</p>
+<p><strong>替代路径：</strong>没有 Intel SYCL/XPU 硬件就只做 Experiment 41 的 preflight，并用已有 Evidence/官方资料完成生态映射。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>把 hardware identity、driver/runtime、backend build、model artifact、execution config 分层记录。</li>
+<li>把同一 benchmark contract 迁移到 Intel SYCL/XPU，只替换厂商特有的 discovery/build 命令。</li>
+<li>知道“能运行”与“使用预期加速路径”是两个不同结论。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>做 <a href="../../labs/experiments/41-vendor-capstone-preflight/README.md">Experiment 41：vendor capstone preflight</a>。真机时再把对应厂商的 exact version / device / backend log 填进 Experiment Card。</p>
+<h3>Retrieval Practice</h3>
+<ol><li>为什么 Level Zero/SYCL device 可见不等于 llama.cpp 当前走高效 XMX path？</li><li>oneAPI、PyTorch XPU、llama.cpp SYCL 之间是什么关系？</li><li>如果同一模型在 CPU fallback 也能跑，如何证明 benchmark 真在 Intel GPU？</li><li>Intel 生态变化快时，哪些信息应该放 Intelligence 而不是稳定 Lesson？</li></ol>
+<h3>完成证据</h3>
+<p>提交一张 Intel SYCL/XPU evidence ladder：<strong>device identity → driver/runtime → backend build → model identity → exact argv → PP/TG/quality</strong>；每一层写“由什么命令或文件证明”。</p>
+<h3>如何迁移</h3>
+<p>四生态真正应该共用的是 Evidence 结构，而不是命令。换厂商后保持问题不变：<strong>我跑了谁、在哪跑、用什么路径、测了什么、什么仍未知</strong>。</p>
+<h3>Primary Sources / Reference</h3>
+<ul><li><a href="https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/latest/intel-xe-gpu-architecture.html">Intel Xe GPU Architecture</a></li><li><a href="https://docs.pytorch.org/docs/stable/xpu.html">PyTorch XPU</a></li><li><a href="../../reference/system/vendor-capstone-runbooks.md">Course Reference — Vendor Capstone Runbooks</a></li></ul>
+</section>
 </body></html>

@@ -34,4 +34,30 @@ cmake --build build --config Release</pre>
 
 <h2>5. Neural Engine 边界</h2>
 <p>Metal GPU benchmark 不自动代表 ANE。M5 GPU Neural Accelerator 也必须有 runtime/kernel Evidence。</p>
+
+<section class="student-closure">
+<h2>学生闭环 — Apple Metal</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0 preflight；有对应硬件时 L1/L2 做真机增强。</p>
+<p><strong>成本：</strong>0 元主路径，不要求集齐四个生态。</p>
+<p><strong>风险：</strong>safe；只做 build/device/runtime 检查和 benchmark。</p>
+<p><strong>替代路径：</strong>没有 Apple Metal 硬件就只做 Experiment 41 的 preflight，并用已有 Evidence/官方资料完成生态映射。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>把 hardware identity、driver/runtime、backend build、model artifact、execution config 分层记录。</li>
+<li>把同一 benchmark contract 迁移到 Apple Metal，只替换厂商特有的 discovery/build 命令。</li>
+<li>知道“能运行”与“使用预期加速路径”是两个不同结论。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>做 <a href="../../labs/experiments/41-vendor-capstone-preflight/README.md">Experiment 41：vendor capstone preflight</a>。真机时再把对应厂商的 exact version / device / backend log 填进 Experiment Card。</p>
+<h3>Retrieval Practice</h3>
+<ol><li>为什么 Unified Memory 让“CPU offload vs GPU VRAM”这套离散卡语言需要改写？</li><li>Metal device 可见与 MLX/llama.cpp Metal backend 可用分别证明什么？</li><li>为什么 working-set headroom 要和模型文件大小分开？</li><li>Apple GPU/ANE 都存在时，为什么不能把两者性能混成一个 AI TOPS？</li></ol>
+<h3>完成证据</h3>
+<p>提交一张 Apple Metal evidence ladder：<strong>device identity → driver/runtime → backend build → model identity → exact argv → PP/TG/quality</strong>；每一层写“由什么命令或文件证明”。</p>
+<h3>如何迁移</h3>
+<p>四生态真正应该共用的是 Evidence 结构，而不是命令。换厂商后保持问题不变：<strong>我跑了谁、在哪跑、用什么路径、测了什么、什么仍未知</strong>。</p>
+<h3>Primary Sources / Reference</h3>
+<ul><li><a href="https://developer.apple.com/documentation/metal/setting-resource-storage-modes">Apple Metal — Resource Storage Modes</a></li><li><a href="https://ml-explore.github.io/mlx/">MLX Documentation</a></li><li><a href="../../reference/system/vendor-capstone-runbooks.md">Course Reference — Vendor Capstone Runbooks</a></li></ul>
+</section>
 </body></html>
