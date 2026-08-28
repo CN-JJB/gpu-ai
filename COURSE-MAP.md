@@ -199,6 +199,7 @@ goal/workload
 | I17 | freshness-aware market evidence + Experiment 38 stale BUY-CANDIDATE fix | verified |
 | I18 | append-only A770 market refresh lineage + superseded active-view semantics | verified |
 | I19 | reusable append-only market refresh helper + lineage preflight/self-test | verified |
+| I20 | Experiment 61 manifest ↔ raw llama-bench identity/config cross-check | verified |
 
 当前稳定边界：
 
