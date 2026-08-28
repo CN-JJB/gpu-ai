@@ -12,7 +12,7 @@
     },
     "quality_eval": {
       "tokenizer_identity": "fixture-tokenizer",
-      "corpus_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "corpus_sha256": "3c2c831fab0811436a1b078e872904ba6ec0cc0ed849fb37d7e2618b66f3866f",
       "fixture_revision": "fixture",
       "evaluation_args": "fixture"
     }
