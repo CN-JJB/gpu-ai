@@ -1,0 +1,33 @@
+name: Course Readiness
+
+on:
+  push:
+    paths:
+      - "README.md"
+      - "COURSE-MAP.md"
+      - "curriculum/**"
+      - "lessons/**"
+      - "labs/experiments/**"
+      - "labs/challenges/**"
+      - "reference/**"
+      - "tools/course/**"
+      - ".github/workflows/course-readiness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile audit
+        run: python -m py_compile tools/course/audit_student_readiness.py
+      - name: Audit student course readiness
+        run: python tools/course/audit_student_readiness.py
