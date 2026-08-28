@@ -1,157 +1,28 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NVIDIA 架构 4：Ampere、Ada</title>
-<link rel="stylesheet" href="../../assets/course.css">
-<style>
-body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}
-pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}
-.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}
-table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}
-</style>
-</head>
-<body>
-
-<h1>NVIDIA 架构 4 — Ampere → Ada：现代 LLM kernel 的直接祖先</h1>
-
-<h2>1. Ampere 先解决的是“怎么让数据及时到 Tensor Core”</h2>
-<p>矩阵算力越来越高以后，新问题变成：</p>
-<pre>Tensor Core can consume data very fast
-but
-global memory is far away</pre>
-<p>所以 kernel 需要 pipeline：</p>
-<pre>tile 0 compute
-while
-tile 1 load
-while
-tile 2 address/schedule</pre>
-
-<h2>2. Async global → shared copy</h2>
-<p>Ampere 加入硬件支持，让数据从 global memory 异步搬到 shared memory，并减少普通 register staging。</p>
-<pre>old:
-global → register → shared
-
-Ampere async path:
-global ───────────→ shared
-          while compute continues</pre>
-<p>这正是现代 CUTLASS / fused GEMM / attention pipeline 的核心原语之一。</p>
-
-<h2>3. Split arrive/wait barrier</h2>
-<p>生产者和消费者不必每一步都做一个全 block 的粗 barrier。</p>
-<p>可以表达：</p>
-<pre>producer: tile ready
-consumer: wait tile
-→ compute
-producer: prepare next tile</pre>
-
-<h2>4. Third-generation Tensor Core：precision 成为架构设计中心</h2>
-<ul>
-<li>FP16；</li>
-<li>BF16；</li>
-<li>TF32；</li>
-<li>INT8/INT4；</li>
-<li>相关 structured sparsity path；</li>
-<li>FP64 Tensor Core（特定 compute products）。</li>
-</ul>
-
-<h3>TF32 再提醒一次</h3>
-<pre>FP32 storage
-→ Tensor Core converts multiply input precision
-→ FP32 accumulation</pre>
-<p>它不是一种“把模型保存成 TF32”的文件格式。</p>
-
-<h2>5. Ampere 不是一个统一 SM</h2>
-<p>GA100（cc 8.0）和 GA10x（cc 8.6）有明显差异。</p>
-<p>官方 tuning guide 特别指出 8.6 每 SM 每周期 FP32 operation capacity 与 8.0 不同。</p>
-<div class="callout"><strong>第五次重要抽象：</strong>从 Pascal 开始，必须把“架构 family”和“compute capability / die variant”同时看。</div>
-
-<h2>6. A100 的大 L2 / residency control</h2>
-<p>GA100 把 L2 capacity 大幅提高，并允许 programmer 提示 persistence。</p>
-<p>核心思想：</p>
-<pre>if data reuse can hit L2
-→ less HBM traffic
-→ higher effective arithmetic intensity</pre>
-
-<h2>7. Ada：把重点转向 cache、效率和 RTX AI</h2>
-
-<h3>Fourth-generation Tensor Cores</h3>
-<p>Ada 进入 FP8-era 的 RTX inference 路径。</p>
-
-<h3>AD102 的 96 MB L2</h3>
-<p>NVIDIA whitepaper 给出的 full AD102 L2 为 96 MB，相比 GA102 6 MB 是巨大跃升。</p>
-
-<p>为什么消费者 GPU 要这么大 L2？</p>
-<pre>GDDR traffic expensive
-+
-graphics / ray tracing / compute working sets
-benefit from locality
-→ larger last-level cache</pre>
-
-<p>对本地 LLM：</p>
-<ul>
-<li>权重 streaming 通常仍大于 cache；</li>
-<li>但 metadata、小 tensor、重复访问仍可能受益；</li>
-<li>不能把 96 MB L2 当成“额外 VRAM”。</li>
-</ul>
-
-<h3>SER</h3>
-<p>Shader Execution Reordering 是 Ada 的重要 graphics feature，但不要硬说它会提升 llama.cpp token/s。</p>
-<p>可迁移的概念只有：</p>
-<pre>irregular/divergent work
-can sometimes be regrouped
-to restore execution coherence</pre>
-
-<h3>AV1</h3>
-<p>Ada 的 NVENC 增加 AV1 encode。对于 multimodal/creator workstation 很实用，但不是 LLM core compute。</p>
-
-<h2>8. Ampere/Ada 对本地 LLM 的真正判断</h2>
-<table>
-<tr><th>feature</th><th>LLM relevance</th></tr>
-<tr><td>Tensor precision</td><td>高：backend/kernel 能否映射低精度 GEMM</td></tr>
-<tr><td>memory bandwidth</td><td>高：decode weight streaming</td></tr>
-<tr><td>VRAM</td><td>高：模型/KV capacity</td></tr>
-<tr><td>async copy/shared pipeline</td><td>高：现代 fused kernel</td></tr>
-<tr><td>large L2</td><td>中：取决于 reuse pattern</td></tr>
-<tr><td>SER/RT</td><td>对纯 LLM 低</td></tr>
-<tr><td>AV1</td><td>多媒体/多模态系统有用</td></tr>
-</table>
-
-
-<section class="student-closure">
-<h2>学生闭环 — Ampere / Ada</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意 NVIDIA GPU 均可做 capability inventory）。</p>
-<p><strong>成本：</strong>0 元主路径；不要求为历史架构买卡。</p>
-<p><strong>风险：</strong>safe；只读资料、设备信息与 benchmark。</p>
-<p><strong>替代路径：</strong>没有对应年代 GPU 也能完成 Experiment 23；有 NVIDIA 卡才做 Experiment 24。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>从“上一代瓶颈 → 本代机制 → 今天 LLM 的影响”解释本页，而不是背型号。</li>
-<li>把 architecture family 与具体 SKU 的显存、带宽、互联、precision、功耗和软件生命周期分开。</li>
-<li>识别哪些是稳定架构事实，哪些必须在当前 driver/runtime 上重新验证。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/23-nvidia-generation-feature-traps/README.md">Experiment 23：NVIDIA generation feature traps</a>。如果手里有 NVIDIA 卡，再做 <a href="../../labs/experiments/24-real-nvidia-capability-inventory/README.md">Experiment 24：real NVIDIA capability inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>更大的 cache、异步数据搬运、Tensor precision 与消费/数据中心分支如何改变实际瓶颈？</li>
-<li>为什么 Ampere/Ada 的 Tensor 峰值不能直接预测 llama.cpp TG？</li>
-<li>如果一张旧 NVIDIA 卡理论算力不错，但最新 runtime 不再支持，你的结论属于“架构能力”还是“当前可用性”？</li>
-<li>为什么“同一 architecture”也必须继续查 memory system、SKU cut-down、power 和 software support？</li>
-</ol>
-<h3>完成证据</h3>
-<p>做一张 Ampere / Ada 代际卡片：<strong>前代瓶颈 / 本代改变 / LLM 影响 / 二手价值可能受什么影响 / 当前软件支持仍需查什么</strong>。禁止写“某代一定更值”。</p>
-<h3>如何迁移</h3>
-<p>以后看到 NVIDIA 新架构时沿用同一模板：execution、data movement、numerics、memory/interconnect、software enablement；最后再落到具体 SKU。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
-<li><a href="../../reference/gpu/nvidia-generation-spine.md">Course Reference — NVIDIA Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — NVIDIA primary-source index</a></li>
-</ul>
-</section>
-</body>
-</html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 4：Ampere 与 Ada</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">NVIDIA Architecture · 4/5 · L0→L2</p><h1>NVIDIA 架构主线（四）：Ampere → Ada</h1><p class="lead">这是本地 LLM 玩家最常遇到的 NVIDIA 世代区间之一。重点不是背 RTX 型号，而是理解：Ampere 如何继续扩大矩阵/低精度能力并分化消费与数据中心产品，Ada 又如何在能效、cache、图形/AI 专用资源上继续演化；真正买卡时则必须回到具体 SKU 的显存、带宽、功耗与软件支持。</p>
+<h2>Prerequisite Check</h2><p>先能解释 Tensor Core 只是矩阵 datapath，且 token/s 可能受显存带宽而不是矩阵峰值限制。</p>
+<h2>真实问题：为什么 RTX 30/40 系“新一代更快”不能直接回答本地 LLM 买哪张？</h2><p>本地 LLM 常先撞到显存容量 hard gate。一个更先进但显存更小的 SKU，可能根本放不下目标模型；一张较旧但 24 GB 的卡可能因为容量与带宽仍有独特价值。架构和 SKU 必须分开分析。</p>
+<h2>1. Ampere：矩阵路径继续扩大，但 family 内部分化非常重要</h2><p>Ampere 同时覆盖消费 RTX 与数据中心加速器。它延续 Tensor Core 路线，并在不同产品上提供不同的数值、memory、互联和可靠性组合。学习 Ampere 最重要的不是把某个白皮书参数套到所有 GA10x/GA100 产品，而是养成“family → die → SKU”的层级意识。</p>
+<h3>结构化稀疏为什么是“条件式峰值”？</h3><p>某些 Tensor Core 能在满足特定稀疏结构时跳过部分零值，从而提高有效吞吐。这里最重要的词是<strong>满足条件</strong>：</p><pre>hardware supports sparse acceleration
++ model actually has required sparsity pattern
++ runtime/kernel uses sparse path
+= possible acceleration</pre><p>没有模型转换、稀疏模式和 kernel 支持，仅看到“sparse TOPS”并不能得到收益。</p>
+<h3>TF32 为什么值得理解？</h3><p>TF32 可以把它理解成针对深度学习/HPC 某些场景设计的数值计算模式：它试图在 FP32 使用体验与 Tensor Core 吞吐之间取得折中。关键不是记 mantissa 位数，而是学会问：输入/累加语义是什么？软件库默认是否启用？目标推理 workload 是否真的走这条路径？</p>
+<h2>2. 消费 Ampere 为什么在“二手 LLM”里存在特殊地位？</h2><p>不是因为“30 系最好”，而是历史市场形成了一些大显存、高带宽、成熟 CUDA 生态的 SKU。对于本地模型，容量可以把候选集合直接切开：</p><pre>model + KV + runtime buffers > VRAM
+→ 纯显存路径不成立
+→ 必须降量化 / 降上下文 / 部分 offload / 多 GPU / 换卡</pre><p>因此 24 GB 与 12 GB 的差异可能比同代核心数量差异更决定“能不能跑”。这也是为什么课程始终把 fit 放在 benchmark 前。</p>
+<h2>3. Ada：更高能效、更大的缓存思路与新一代专用单元</h2><p>Ada 继续提升每瓦性能，并显著强化片上 cache 等数据路径设计。对 LLM 的直接价值要按 workload 判断：cache 能减少部分外部 DRAM 流量，但如果模型工作集远大于 cache、每 token 仍需流式读取大量权重，显存带宽仍可能是主导上限。</p>
+<h3>大 cache 什么时候有帮助？</h3><ul><li>热点数据能重复命中；</li><li>working set 的一部分具有明显局部性；</li><li>减少 metadata / activation /重复访问的 DRAM 流量。</li></ul><p>什么时候不能神化？当 workload 本质上需要持续读取远大于 cache 的独特权重字节时，cache 不会把 DRAM 需求变没。</p>
+<h2>4. Ampere vs Ada：把“代际”拆成五张表</h2><table><tr><th>表</th><th>要记录</th></tr><tr><td>Compute</td><td>SM 组织、general FP/INT、Tensor numeric modes</td></tr><tr><td>Memory</td><td>VRAM、bus、bandwidth、cache</td></tr><tr><td>Fit</td><td>模型权重、KV、runtime buffer 是否能放下</td></tr><tr><td>System</td><td>TGP、连接器、散热、机箱、PSU</td></tr><tr><td>Software</td><td>driver/runtime/backend/current model-format support</td></tr></table><p>只有把五张表放在一起，才有资格谈“这代更适合我的本地 LLM”。</p>
+<h2>Worked Example：24 GB Ampere vs 16 GB Ada</h2><p>假设目标模型在某量化下连同合理 KV/buffer 需要约 19 GB 可用显存。此时：</p><ul><li>24 GB 卡首先通过 capacity hard gate；</li><li>16 GB 卡即使每瓦性能更高，也需要降低模型/上下文或 offload；</li><li>若目标换成 8B、总工作集只有约 7 GB，capacity 差异不再是 hard gate，此时 Ada 的能效、kernel、价格才更有可能主导。</li></ul><p>这不是推荐某张卡，而是展示<strong>约束顺序</strong>：先能不能做，再比较做得多快/多省。</p>
+<h2>5. PCIe 代际不是显存带宽</h2><p>初学者常把 PCIe bandwidth 与 VRAM bandwidth 混在一起。前者连接 host 与 GPU，后者连接 GPU 与本地显存。模型完全驻留显存并持续 decode 时，最常见的权重流量发生在 GPU↔VRAM；只有发生 host/device transfer、offload、多设备通信时，PCIe 才可能成为更明显瓶颈。</p>
+<h2>Why it matters</h2><ul><li>Ampere/Ada 是大量现实候选卡所在世代，架构知识必须能落到 SKU。</li><li>大显存可以是 hard gate，而架构代际通常是 soft tradeoff。</li><li>Tensor/sparse/TF32 等峰值都有明确条件，不能当通用 LLM 分数。</li><li>cache、VRAM bandwidth、PCIe 是不同数据路径。</li><li>能效会影响长期电费、噪声、热稳态和 PSU/机箱设计。</li></ul>
+<h2>常见误区</h2><ul><li>“40 系一定比 30 系适合 LLM”——忽略容量、带宽和价格。</li><li>“PCIe 4.0 x16 很快，所以显存也很快”——两条不同链路。</li><li>“Sparse TOPS 可以直接算 token/s”——前提通常不成立。</li><li>“大 L2 等于不吃显存带宽”——working set 与访问模式决定实际命中。</li><li>“同为 Ampere 就有相同 Tensor/FP64/HBM 能力”——数据中心/消费 SKU 分化。</li></ul>
+<h2>小实验：做一张真实候选卡约束表</h2><p>不需要购买。选择两个具体 SKU（最好一个 Ampere、一个 Ada），记录 exact VRAM、官方 memory bandwidth、TGP、physical form factor、当前目标 runtime support。再用一份假设模型预算做 fit 判断。</p><p><strong>预期观察：</strong>你会发现“architecture 更先进”并不能覆盖所有 hard gates，且不同 workload 会改变排序。</p>
+<h2>没有这些 GPU 怎么办？</h2><p>用规格页 + 课程 fit worksheet 完成 L0。真实 benchmark 等你上课后拥有/能访问对应硬件再做。教材阶段不填假 token/s。</p>
+<h2>排错</h2><ul><li>显存明明够却 OOM：检查 runtime buffer、KV、context、并发 slot、driver reservation。</li><li>新卡比预期慢：确认 GPU offload、backend、quant kernel、power/thermal、batch/workload。</li><li>PCIe utilization 高：检查是否发生部分 offload/频繁 host transfer，而不是先怪 VRAM bandwidth。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 architecture family 与 exact SKU 必须分开？</li><li>结构化稀疏峰值需要哪三层条件同时成立？</li><li>大 L2 cache 为什么可能帮忙，却不能消除大模型的 DRAM 流量？</li><li>解释 PCIe bandwidth 与 VRAM bandwidth 的区别。</li><li>为什么 24 GB 较旧卡可能对某模型比 16 GB 新卡更实用？什么时候这个结论会反过来？</li><li>列出比较 Ampere/Ada 本地 LLM 候选时的五张表。</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>先做 fit hard gate，再比较 memory/compute/software/system/cost。任何“新一代一定更值”“AI TOPS 更高一定更快”的结论都不合格；必须落到 exact SKU + exact model/runtime/workload。</p></div>
+<h2>Transfer</h2><p>下一节 Hopper/Blackwell 进入更偏数据中心与现代 AI system 的设计。继续用同一框架，但额外关注高速互联、HBM、低精度新格式、transformer-specific acceleration 与多 GPU system scaling。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
