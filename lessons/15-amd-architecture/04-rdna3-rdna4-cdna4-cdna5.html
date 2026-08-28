@@ -1,154 +1,35 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AMD 架构 4：RDNA3、RDNA4、CDNA4、CDNA5</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>AMD 架构 4 — RDNA3 / RDNA4 + CDNA4 / CDNA5：AI 时代两条线都在加速</h1>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 4：RDNA3/4 与 CDNA4/5</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">AMD Architecture · 4/4 · L0→L2</p><h1>AMD 架构主线（四）：RDNA3 / RDNA4 与 CDNA4 / CDNA5</h1><p class="lead">这一节的目标不是追逐“最新型号”，而是学会读现代 AMD 的两条并行路线：RDNA 继续面向高性能图形与消费 AI，CDNA 则围绕大规模 AI/HPC 的矩阵、HBM、chiplet 与互联。现代产品变化快，所以稳定教材只保留架构方向，具体 SKU/支持矩阵必须在你学习时重新查询。</p>
+<h2>Prerequisite Check</h2><p>你应能分别解释 RDNA 的图形效率目标与 CDNA 的计算/HBM/互联目标，并知道 current runtime support 属于动态事实。</p>
+<h2>真实问题：AMD 现在都宣传 AI accelerator，RDNA 与 CDNA 是否已经“变成一回事”？</h2><p>没有。两条线都可以加入 AI/矩阵加速能力，但产品目标仍不同。消费图形 GPU 需要平衡 raster、ray tracing、display、成本和游戏能效；Instinct 计算加速器则可以把更多面积、封装和功耗预算投入矩阵吞吐、HBM、可靠性与 GPU-to-GPU fabric。</p>
+<h2>1. RDNA3：chiplet 思维进入高端消费 GPU</h2><p>RDNA3 把 chiplet/分离 die 的思路用于部分高端 GPU，把不同功能放在不同 die 上。你不需要记每个 die 名称，只需理解现代 GPU 可以把“计算”和“memory/cache/I/O”在封装内重新组合。</p><pre>monolithic mental model:
+one large die
 
-<h2>1. RDNA3：消费 GPU 也进入 chiplet</h2>
-<pre>GCD
-→ compute / core GPU logic
-
-MCD
-→ memory controller + Infinity Cache</pre>
-
-<p>这不是把两个完整 GPU 拼起来，而是把功能拆到不同 chiplet。</p>
-
-<h2>2. Dual-Issue VALU — 不是免费 2×</h2>
-<p>RDNA3 ISA 的 VOPD 可以在一个编码里打包两条 independent VALU operation，并行执行。</p>
-
-<p>必须满足：</p>
-<ul>
-<li>Wave32；</li>
-<li>两条 instruction independent；</li>
-<li>register bank constraints；</li>
-<li>operand restrictions；</li>
-<li>compiler 成功配对。</li>
-</ul>
-
-<pre>peak dual issue
-!=
-every shader 2x throughput</pre>
-
-<h2>3. RDNA3 第一次明确加入 AI Accelerator</h2>
-<p>消费 Radeon 开始有专门 AI acceleration。</p>
-<p>但：</p>
-<pre>RDNA3 AI accelerator
-!=
-CDNA3 Matrix Core ecosystem</pre>
-
-<p>一个面向 graphics/desktop，另一个面向 Instinct AI/HPC。</p>
-
-<h2>4. RDNA4：FP8 / INT4 更靠近消费 GPU</h2>
-<p>当前 AMD RDNA4 页面明确写：</p>
-<ul>
-<li>第二代 AI accelerators；</li>
-<li>FP8 / INT4；</li>
-<li>第三代 Infinity Cache；</li>
-<li>改进 on-chip scheduling。</li>
-</ul>
-
-<p>AMD 还公开说明 FSR4 使用 RDNA4 的 FP8 WMMA 路径。</p>
-
-<div class="callout"><strong>对本地 LLM 的正确结论：</strong>硬件已经有低精度 AI 能力。<br><strong>不能推出：</strong>llama.cpp / PyTorch 的某个 Q4 一定已经映射到这些单元。</div>
-
-<h2>5. RDNA4 仍支持 Wave32 / Wave64</h2>
-<p>当前 ISA 同时支持两种 wave size。</p>
-
-<p>Wave64 的部分 vector/memory instruction 在硬件上会分低 32 lane / 高 32 lane 两次处理。</p>
-<p>所以 wave size 不是纯语法选项，它影响：</p>
-<ul>
-<li>issue；</li>
-<li>divergence；</li>
-<li>register/resource；</li>
-<li>latency。</li>
-</ul>
-
-<h2>6. CDNA4：MI350 继续拉高低精度 + HBM</h2>
-<p>当前 AMD CDNA 页面记录：</p>
-<ul>
-<li>HBM3E；</li>
-<li>Matrix Core；</li>
-<li>MXFP4/MXFP6/MXFP8；</li>
-<li>sparse low-precision paths；</li>
-<li>gfx950 当前 ROCm 支持。</li>
-</ul>
-
-<h2>7. 2026 最新：CDNA5 / MI400</h2>
-<p>截至 2026-08-27，AMD 已公布/推出 CDNA5 路线。</p>
-
-<p>最值得注意的不是数字，而是架构方向：</p>
-<pre>new WGP
-+ Wave32
-+ AI math engine
-+ MXFP4/6/8
-+ HBM4
-+ rackscale fabric</pre>
-
-<p>这很有意思：</p>
-<pre>Wave32 / WGP
-曾经是 RDNA 的代表性变化
-
-现在
-CDNA5 compute branch
-也使用新的 WGP / Wave32 方向</pre>
-
-<p>说明两条线虽然用途不同，但执行组织会互相吸收有效思想。</p>
-
-<h2>8. 但当前 ROCm 支持要单独看</h2>
-<p>硬件页面已经有 CDNA5；当前 ROCm 7.14 标准支持矩阵主要列到 CDNA4。</p>
-
-<pre>new hardware exists
-!=
-your chosen stable ROCm package already supports it</pre>
-
-<h2>9. AMD 垃圾佬的最终检查顺序</h2>
-<ol>
-<li>exact Radeon/Instinct model；</li>
-<li>architecture；</li>
-<li>gfx target；</li>
-<li>official ROCm support；</li>
-<li>VRAM/HBM/GDDR capacity；</li>
-<li>memory bandwidth / Infinity Cache；</li>
-<li>matrix/AI data types；</li>
-<li>llama.cpp / PyTorch current backend；</li>
-<li>PP/TG benchmark；</li>
-<li>电源/散热/二手风险。</li>
-</ol>
-
-<section class="student-closure">
-<h2>学生闭环 — RDNA3 / RDNA4 / CDNA4+</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（任意受支持 AMD GPU）。</p>
-<p><strong>成本：</strong>0 元主路径；课程不要求为了这一节购买 AMD 卡。</p>
-<p><strong>风险：</strong>safe。</p>
-<p><strong>替代路径：</strong>无 AMD 卡完成 terminology trap + 官方架构调查；有卡才做 ROCm inventory。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>正确使用 CU / WGP / wave32-wave64 / LDS / matrix path 等术语，不把 NVIDIA 名词硬翻译过去。</li>
-<li>区分 RDNA 图形导向与 CDNA 计算导向的产品目标。</li>
-<li>把“硬件有能力”和“ROCm/具体 backend 当前可用”分开。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/25-amd-generation-terminology-traps/README.md">Experiment 25：AMD generation terminology traps</a>。有 AMD 卡时增强做 <a href="../../labs/experiments/26-real-amd-rocm-inventory/README.md">Experiment 26：real AMD ROCm inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol>
-<li>为什么越新的 AMD family 越不能只用“多少 CU”跨代比较？</li>
-<li>RDNA 的 wave32 与 CDNA 常见 wave64 对“warp=32”这种跨厂商说法有什么警告？</li>
-<li>一张 AMD 卡支持某硬件指令，为什么还不能立刻推导 llama.cpp/vLLM 当前高效支持？</li>
-<li>二手 AMD 卡便宜很多时，你要把哪些软件兼容成本计入 TCO？</li>
-</ol>
-<h3>完成证据</h3>
-<p>提交一张 RDNA3 / RDNA4 / CDNA4+ “术语→硬件→LLM”卡：execution group、compute block、on-chip memory、matrix path、memory system、当前 runtime 待验证项。</p>
-<h3>如何迁移</h3>
-<p>比较 NVIDIA/AMD 时只映射功能角色，不强求名词一一对应：warp↔wave、SM↔CU/WGP 只是近似层级，具体 scheduler/cache/resource 仍按架构查。</p>
-<h3>Primary Sources / Reference</h3>
-<ul>
-<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD HIP — Hardware Implementation</a></li>
-<li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html">AMD HIP — Programming Model</a></li>
-<li><a href="../../reference/gpu/amd-generation-spine.md">Course Reference — AMD Generation Spine</a></li>
-<li><a href="../../resources/RESOURCES.md">Course Resources — AMD primary-source index</a></li>
-</ul>
-</section>
-</body></html>
+chiplet/package mental model:
+compute die(s) ↔ package fabric ↔ memory/cache related die(s)</pre><p>这样做可以改善制造与扩展灵活性，但也引入新的片上/封装数据移动问题。对应用而言，理想情况是软件隐藏这些复杂性；对性能分析而言，数据 locality 仍值得关注。</p>
+<h2>2. RDNA4：消费 GPU 的 AI acceleration 更显式</h2><p>AMD 官方将 RDNA4 描述为继续提升每 CU 性能/能效，并强化光追与 AI acceleration 的一代。对于本地 LLM 学习，最重要的不是宣传中的某个倍数，而是：</p><ul><li>RDNA 消费架构正在增加更明确的 AI/矩阵相关硬件能力；</li><li>“硬件存在”仍不等于 llama.cpp/框架立即拥有高效 kernel；</li><li>exact Radeon SKU 的 VRAM、bandwidth 与当前 ROCm/backend 支持仍决定真实价值。</li></ul>
+<h3>为什么“AI accelerator”不能直接和 Tensor Core/XMX 计数横比？</h3><p>厂商的命名与计数口径不同。跨厂商比较应回到：</p><pre>supported operation/data type
+× operations per instruction/cycle
+× number of units
+× clocks
+× utilization
+× memory/data movement
+× software kernel</pre><p>只比较“AI accelerator 数量”没有统一物理意义。</p>
+<h2>3. CDNA4：更低精度、更高矩阵吞吐与 HBM3E</h2><p>AMD 的 CDNA4 官方资料继续强调矩阵核心、向量/矩阵吞吐、低精度 AI 数值格式、HBM3E 与 Infinity Fabric。稳定的学习结论是：<strong>AI 数据中心加速器正在用更多硬件与封装资源换取更高 memory capacity/bandwidth 和更密集的低精度矩阵计算。</strong></p>
+<h3>FP4/FP6/FP8 等更低精度为什么出现？</h3><p>降低位宽可以减少存储和传输字节，并提高理论矩阵吞吐，但数值误差、动态范围、scaling 和模型适配压力上升。因此：</p><pre>lower bits
+→ less memory traffic + more potential compute
+→ stricter numerical/format requirements
+→ needs model + kernel + runtime cooperation</pre><p>“支持 FP4”绝不等于“任意 4-bit 模型都以峰值 FP4 跑”。</p>
+<h2>4. CDNA5：如何写“未来/新一代”而不让教材马上过期？</h2><p>AMD 已在官方 CDNA generation overview 中列出 CDNA5，并继续强调更先进制程、HBM 与 AI/HPC 计算扩展。稳定教材不冻结发布时的营销峰值，而教你将任何新代际放进固定模板：</p><ol><li>Compute Unit / WGP 是否改变？</li><li>Matrix/vector numeric modes 增加什么？</li><li>HBM 容量与带宽如何变化？</li><li>package/chiplet/fabric 拓扑如何变化？</li><li>runtime/library/framework 何时真正支持？</li><li>目标 workload 是否命中新能力？</li></ol><p>第 5、6 项尤其重要，因为新硬件发布和开源/应用 backend 成熟往往不是同一天。</p>
+<h2>5. RDNA4 与 CDNA4：同一个“4”没有比较意义</h2><table><tr><th>维度</th><th>RDNA4 路线</th><th>CDNA4 路线</th></tr><tr><td>首要目标</td><td>消费图形性能/效率 + AI features</td><td>AI/HPC compute throughput</td></tr><tr><td>内存</td><td>消费 GPU VRAM 体系</td><td>HBM3E 等高带宽大容量体系</td></tr><tr><td>专用资源</td><td>图形、光追、AI 等平衡</td><td>矩阵/向量计算优先</td></tr><tr><td>系统</td><td>桌面/工作站/消费平台</td><td>服务器、OAM、多加速器互联</td></tr><tr><td>本地 LLM 判断</td><td>SKU fit + backend + price</td><td>部署/软件/形态 gate 先行</td></tr></table>
+<h2>Worked Example：一张新 RDNA4 消费卡和一张退役 CDNA 卡怎么比较？</h2><p>先拒绝“哪个架构更高级”这个问题。改问：</p><ol><li>我的模型/上下文需要多少真实可用显存？</li><li>目标 runtime 在我的 OS 上支持哪张？</li><li>目标 quant/model kernel 哪边成熟？</li><li>是否需要显示输出、普通风冷、桌面机箱？</li><li>持续功耗/噪声/PSU 能否接受？</li><li>真实 PP/TG/PPL 与价格差多少？</li></ol><p>CDNA 可能在 HBM/matrix 上压倒性强，却在家用部署上付出巨大成本；RDNA 可能更易装机，却需要验证 AI backend。系统目标决定答案。</p>
+<h2>Why it matters</h2><ul><li>帮助你读现代 AMD，而不是把“AI”三个字当成统一能力。</li><li>理解 chiplet/package 已成为 GPU 架构的一部分。</li><li>学会处理更低精度格式：位宽越低，越需要数值与软件证据。</li><li>把“新架构发布”与“我的 runtime 可用”拆成两条时间线。</li><li>形成不会被下一代产品名打乱的长期阅读模板。</li></ul>
+<h2>常见误区</h2><ul><li>“RDNA4 有 AI accelerator，所以等于消费版 CDNA”——产品目标仍不同。</li><li>“FP4 = 任何 4-bit quant”——数值格式与权重量化 scheme 不同。</li><li>“CDNA5 在官方表里，所以今天我的框架一定支持”——硬件路线与软件 readiness 不同步。</li><li>“chiplet 一定比 monolithic 快”——封装方法本身不是应用性能结论。</li><li>“厂商 AI 单元数量可以直接横比”——口径不统一。</li></ul>
+<h2>小实验与预期观察</h2><p>做一张“new-generation claim ledger”：每条 claim 标记为 architecture fact、exact-SKU fact、software-support fact、measured fact。任选 RDNA4/CDNA4 各一项能力。预期你会看到大部分购买结论至少需要后三类证据之一，不能停在 architecture marketing。</p>
+<h2>无硬件路径</h2><p>本节就是为无新硬件学习设计：只用 AMD 官方 architecture/ISA/ROCm 文档完成。真正性能数字以后在课程实验里测，不在教材里编造。</p>
+<h2>排错</h2><ul><li>新 GPU 驱动能装但 ROCm 应用失败：查 exact device support 与 application build。</li><li>硬件宣称低精度支持但模型没加速：查 quant format → kernel → instruction path。</li><li>跨代规格看起来矛盾：确认比较的是 CU、WGP、matrix core 还是 marketing processor，避免口径错位。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>RDNA 与 CDNA 都能谈 AI，为什么仍不能合并成一条产品线理解？</li><li>chiplet 解决哪些制造/扩展问题，同时引入什么数据移动问题？</li><li>为什么 FP4 支持不等于任意 4-bit LLM 量化获得 FP4 峰值？</li><li>如何写一个不会随下一代发布过期的“新 GPU 架构调查模板”？</li><li>为什么 RDNA4 与 CDNA4 名称中的“4”没有性能比较意义？</li><li>列出 architecture fact、SKU fact、software fact、measured fact 的区别。</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>新架构只负责提出候选能力，不负责给出购买答案。对现代 AMD，必须把 exact SKU、current ROCm/backend、model fit、real workload、system feasibility 和价格证据接上，才能进入决策。</p></div>
+<h2>Transfer</h2><p>以后任何 AMD 新一代都沿用 claim ledger。换 NVIDIA/Intel/Apple 时也一样：把发布会 claim 降级成待验证假设，再通过规格、软件支持和真实 measurement 逐层升级证据。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.amd.com/en/technologies/rdna.html">AMD RDNA Architecture</a></li><li><a href="https://www.amd.com/en/technologies/cdna.html">AMD CDNA Architecture</a></li><li><a href="https://docs.amd.com/v/u/en-US/rdna4-instruction-set-architecture">AMD RDNA4 ISA Reference</a></li><li><a href="https://rocm.docs.amd.com/">AMD ROCm Documentation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li></ul>
+</main></body></html>
