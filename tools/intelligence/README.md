@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I15. I01–I10 have a full Python self-test PASS; I11–I15 have exact-main contract verification pending a fresh full Python rerun.
+Phase 4 tooling currently implements I01–I16. GitHub Actions run #48 verifies the full Python self-test through I16.
 
 ## 1. Validate a catalog
 
@@ -184,7 +184,25 @@ python3 market_matrix.py ../../intelligence/catalog   --geography CN   --channel
 
 SECONDARY_REPORTED rows must keep direct_listing_capture=false and confirmed_sale=false.
 
-## 15. Comparable benchmark view
+## 15. Market evidence selection gate
+
+~~~bash
+python3 market_evidence_gate.py ../../intelligence/catalog
+~~~
+
+This reuses stable M0–M3 grades and reports whether an observation can satisfy only Experiment 38's market-evidence component.
+
+Current mapping:
+
+~~~text
+SECONDARY_REPORTED        → M1 → NEEDS-STRONGER
+MEDIAN_ASK                → M2 → ELIGIBLE
+SOLD_MARKED_LISTING_PRICE → M3 → ELIGIBLE
+~~~
+
+M3 does not imply a confirmed transaction amount.
+
+## 16. Comparable benchmark view
 
 ~~~bash
 python3 comparable_benchmarks.py fixtures/catalog \
@@ -202,7 +220,7 @@ Comparison grouping requires the same:
 
 Rows are descriptive system comparisons, not automatically causal A/B claims.
 
-## 16. Explicit price/performance
+## 17. Explicit price/performance
 
 ~~~bash
 python3 price_performance.py fixtures/catalog \
@@ -218,7 +236,7 @@ The tool never auto-selects a “latest price”.
 
 Selected market records must share the same geography/channel/cohort/condition/price-state/currency contract.
 
-## 17. TCO worksheet
+## 18. TCO worksheet
 
 ~~~bash
 python3 tco_worksheet.py fixtures/catalog \
@@ -237,7 +255,7 @@ Scenario TCO exposes:
 
 TCO is not a feasibility gate or purchase recommendation.
 
-## 18. Self-test
+## 19. Self-test
 
 From repository root:
 
@@ -246,9 +264,10 @@ python -m py_compile tools/intelligence/*.py
 python tools/intelligence/selftest.py
 ~~~
 
-Verified result:
+GitHub Actions verified result:
 
 ~~~text
+run #48
 SELFTEST: PASS
 ~~~
 
@@ -263,6 +282,8 @@ See:
 - examples/evidence/intelligence-13-sold-marked-listings.md
 - examples/evidence/intelligence-14-cross-market-signal.md
 - examples/evidence/intelligence-15-cn-secondary-watch.md
+- examples/evidence/intelligence-16-market-evidence-selection-gate.md
+- examples/evidence/intelligence-i01-i16-ci-selftest.md
 
 ## Non-goals
 
