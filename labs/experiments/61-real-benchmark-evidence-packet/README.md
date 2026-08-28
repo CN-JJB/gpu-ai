@@ -151,6 +151,7 @@ Then run `verify_real_intake.py` with canonical IDs **and the local model artifa
 --hardware-profile baseline-run/evidence/profile.txt
 --prompt-manifest baseline-run/evidence/prompt-manifest.json
 --quality-corpus /path/to/quality-corpus.txt
+--quality-manifest /path/to/quality-identity.json
 --model-artifact /path/to/model.gguf
 --command-record baseline-run/command.json
 ```
@@ -160,9 +161,10 @@ For non-synthetic intake:
 - I23 requires command.json to be PACKET-indexed and reparses exact `-m/--model` argv to the same local GGUF;
 - I24 hashes the captured hardware profile, requires it to match `variant.hardware.profile_sha256`, and requires PACKET coverage;
 - I25 requires an Experiment 57 prompt-evidence manifest and matches messages/template/rendered/token-ID hashes plus token count to `variant.prompt.*`;
-- I26 hashes the real quality corpus, matches `fixed.quality_eval.corpus_sha256`, and requires PACKET coverage.
+- I26 hashes the real quality corpus, matches `fixed.quality_eval.corpus_sha256`, and requires PACKET coverage;
+- I27 requires the Experiment 59 machine-readable quality identity manifest and matches tokenizer/corpus/fixture/evaluation identity to `fixed.quality_eval.*`.
 
-Only the strengthened I07/I20/I22/I23/I24/I25/I26 gate may return `INTAKE: READY`.
+Only the strengthened I07/I20/I22/I23/I24/I25/I26/I27 gate may return `INTAKE: READY`.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 
