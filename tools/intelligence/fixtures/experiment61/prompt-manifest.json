@@ -1,0 +1,14 @@
+{
+  "model_dir": "synthetic-fixture",
+  "tokenizer_class": "SyntheticTokenizer",
+  "add_generation_prompt": true,
+  "messages_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "chat_template_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "rendered_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "rendered_bytes": 2048,
+  "token_ids_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "token_count": 512,
+  "special_tokens_map": {},
+  "bos_token_id": 1,
+  "eos_token_id": 2
+}
