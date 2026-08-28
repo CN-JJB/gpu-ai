@@ -130,6 +130,7 @@ python3 ../../../tools/intelligence/capture_real_benchmark.py \
   --out-dir baseline-run \
   --model-artifact /path/to/model.gguf \
   --include profile.txt \
+  --include prompt-evidence/manifest.json \
   -- \
   llama-bench -m /path/to/model.gguf -p 512 -n 128 -r 5 ... -o json
 ```
@@ -148,6 +149,7 @@ Then run `verify_real_intake.py` with canonical IDs **and the local model artifa
 
 ```text
 --hardware-profile baseline-run/evidence/profile.txt
+--prompt-manifest baseline-run/evidence/prompt-manifest.json
 --model-artifact /path/to/model.gguf
 --command-record baseline-run/command.json
 ```
@@ -155,9 +157,10 @@ Then run `verify_real_intake.py` with canonical IDs **and the local model artifa
 For non-synthetic intake:
 - I22 hashes the local GGUF and requires SHA256 + bytes to match the manifest;
 - I23 requires command.json to be PACKET-indexed and reparses exact `-m/--model` argv to the same local GGUF;
-- I24 hashes the captured hardware profile, requires it to match `variant.hardware.profile_sha256`, and requires PACKET coverage.
+- I24 hashes the captured hardware profile, requires it to match `variant.hardware.profile_sha256`, and requires PACKET coverage;
+- I25 requires an Experiment 57 prompt-evidence manifest and matches messages/template/rendered/token-ID hashes plus token count to `variant.prompt.*`.
 
-Only the strengthened I07/I20/I22/I23/I24 gate may return `INTAKE: READY`.
+Only the strengthened I07/I20/I22/I23/I24/I25 gate may return `INTAKE: READY`.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 
