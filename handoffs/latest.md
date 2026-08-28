@@ -19,16 +19,16 @@ v1 stable mainline complete
 
 ~~~text
 I01–I54 implemented
-operator bootstrap added without creating I55
-latest implementation CI: run #176 success
+operator bootstrap + hardware-profile assembler added without creating I55
+latest implementation CI: run #178 success
 ~~~
 
 CI identity:
 
 ~~~text
-run id 33195115141
-head d53497366645254fa2d0bf96714a5d46dc4622b7
-job id 98930161758
+run id 33195425859
+head d308acbc62f3d540ed26181d23ed8a1602d127d1
+job id 98931209062
 ~~~
 
 ## Production boundary
@@ -199,6 +199,28 @@ It deliberately creates no fake hardware/model/prompt/corpus/benchmark evidence 
 
 This tool is operator ergonomics, not I55.
 
+## Hardware profile assembler
+
+After a READY I54 bundle, use:
+
+~~~text
+tools/intelligence/assemble_hardware_profile.py
+~~~
+
+Preferred workspace command:
+
+~~~bash
+python3 tools/intelligence/assemble_hardware_profile.py \
+  /path/to/e61-real/semantic-source-evidence/bundle.json \
+  --out /path/to/e61-real/profile.txt
+~~~
+
+The assembler re-hashes every referenced raw stream, embeds the exact bytes losslessly, and refuses blocked/tampered/path-escaping bundles.
+
+It performs no semantic inference and does not modify the manifest.
+
+It exists to produce the concrete profile artifact already required by I24/I53; it is not I55.
+
 ## I54 semantic source capture
 
 Before manually filling the semantic fields that I53 refuses to infer, use:
@@ -256,6 +278,7 @@ Main acquisition order:
 clean real workspace bootstrap
 → explicit probe plan
 → I54 READY-FOR-SEMANTIC-REVIEW
+→ assemble verified profile.txt
 → human semantic review/fill
 → I53 READY-TO-RUN-I52
 → I52 REAL SESSION: READY
@@ -267,11 +290,12 @@ clean real workspace bootstrap
 
 1. Bootstrap a clean NVIDIA-first real workspace on the actual benchmark machine.
 2. Follow its `RUN.md`: run I54 and require `READY-FOR-SEMANTIC-REVIEW`.
-3. Review raw observations and deliberately fill explicit device/runtime/model-source/execution semantics plus real Experiment 57/59 artifacts.
-4. Run I53 and require `READY-TO-RUN-I52`.
-5. Run the prepared session through I52 and require `REAL SESSION: READY`; manually review before ingestion.
-6. After reviewed ingestion, derive exact measured compatibility.
-7. Acquire real Experiment 87/I44 acceptance, create I46/I48 policies, and run I43.
-8. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
+3. Assemble `profile.txt` from that READY bundle and require `HARDWARE PROFILE ASSEMBLER: READY`.
+4. Review raw/profile observations and deliberately fill explicit device/runtime/model-source/execution semantics plus real Experiment 57/59 artifacts.
+5. Run I53 and require `READY-TO-RUN-I52`.
+6. Run the prepared session through I52 and require `REAL SESSION: READY`; manually review before ingestion.
+7. After reviewed ingestion, derive exact measured compatibility.
+8. Acquire real Experiment 87/I44 acceptance, create I46/I48 policies, and run I43.
+9. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
 
 No auto-purchase, no unsafe hardware modification.
