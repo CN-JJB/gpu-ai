@@ -80,6 +80,8 @@ jobs:
         run: python tools/intelligence/price_ceiling_readiness_bridge_selftest.py
       - name: Run condition evidence grade self-test
         run: python tools/intelligence/condition_evidence_grade_selftest.py
+      - name: Run condition evidence readiness bridge self-test
+        run: python tools/intelligence/condition_evidence_readiness_bridge_selftest.py
       - name: Run quality execution + metric intake self-test
         run: python tools/intelligence/quality_execution_intake_selftest.py
       - name: Run market refresh self-test

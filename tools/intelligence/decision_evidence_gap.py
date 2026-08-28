@@ -15,6 +15,7 @@ from verify_tradeoff_route import verify_tradeoff_route
 from verify_used_gpu_acceptance import verify_used_gpu_acceptance_artifact
 from verify_performance_target import verify_performance_target_result
 from verify_price_ceiling import verify_price_ceiling_result
+from verify_condition_evidence_grade import verify_condition_evidence_grade
 
 
 def evaluate_real_benchmark(label, record):
@@ -531,6 +532,80 @@ def evaluate_price_ceiling_component(
     }
 
 
+def evaluate_condition_evidence_component(
+    result_path,
+    acceptance,
+    case,
+    packet,
+    candidate_hardware_id,
+):
+    if result_path is None:
+        return {
+            "status": "BLOCKED",
+            "reason": "no I50 condition evidence artifact supplied",
+            "grade": "MISSING",
+        }
+    if any(x is None for x in (acceptance, case, packet)):
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "condition evidence verification requires the same I44 acceptance, "
+                "case and PACKET roots"
+            ),
+            "grade": "INCOMPLETE",
+        }
+
+    verified = verify_condition_evidence_grade(
+        result_path,
+        acceptance,
+        case,
+        packet,
+    )
+    if verified["errors"]:
+        return {
+            "status": "BLOCKED",
+            "reason": "; ".join(verified["errors"]),
+            "grade": "INVALID",
+        }
+
+    result = verified["supplied"]
+    if result.get("hardware_id") != candidate_hardware_id:
+        return {
+            "status": "BLOCKED",
+            "reason": "condition evidence hardware_id does not match candidate benchmark",
+            "grade": result.get("evidence_grade"),
+            "acceptance_decision": result.get("acceptance_decision"),
+        }
+    if result.get("synthetic_input", False):
+        return {
+            "status": "BLOCKED",
+            "reason": "synthetic condition evidence is not production C3/C4 evidence",
+            "grade": result.get("evidence_grade"),
+            "acceptance_decision": result.get("acceptance_decision"),
+        }
+
+    grade = result.get("evidence_grade")
+    if grade not in {"C3", "C4"}:
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "Experiment 38 condition evidence requires C3/C4 provenance; "
+                f"actual={grade!r}"
+            ),
+            "grade": grade,
+            "acceptance_decision": result.get("acceptance_decision"),
+        }
+
+    return {
+        "status": "PASS",
+        "reason": (
+            "condition evidence has independently reproducible C3/C4 provenance strength"
+        ),
+        "grade": grade,
+        "acceptance_decision": result.get("acceptance_decision"),
+    }
+
+
 def main():
     p = argparse.ArgumentParser(
         description=(
@@ -556,6 +631,7 @@ def main():
     p.add_argument("--used-gpu-acceptance", type=Path)
     p.add_argument("--used-gpu-acceptance-case", type=Path)
     p.add_argument("--used-gpu-acceptance-packet", type=Path)
+    p.add_argument("--condition-evidence-result", type=Path)
     p.add_argument("--performance-target-result", type=Path)
     p.add_argument("--performance-target-policy", type=Path)
     p.add_argument("--price-ceiling-result", type=Path)
@@ -666,17 +742,13 @@ def main():
         a.market_record_id,
     )
 
-    unresolved = {
-        "condition_acceptance": {
-            "status": "BLOCKED",
-            "reason": (
-                "Experiment 38 requires C3/C4 condition evidence. I44 can now provide "
-                "reproducible ACCEPT/REVIEW/REJECT evidence, but the ACCEPT ↔ C3/C4 "
-                "mapping remains undefined and is not inferred."
-            ),
-            "next_evidence": "stable explicit C0–C4 mapping contract",
-        },
-    }
+    condition_component = evaluate_condition_evidence_component(
+        a.condition_evidence_result,
+        a.used_gpu_acceptance,
+        a.used_gpu_acceptance_case,
+        a.used_gpu_acceptance_packet,
+        candidate.get("hardware_id") if candidate else None,
+    )
 
     components = {
         "verified_tradeoff": route_component,
@@ -687,7 +759,7 @@ def main():
         "used_gpu_acceptance": used_gpu_component,
         "performance_target": performance_target_component,
         "price_ceiling": price_ceiling_component,
-        **unresolved,
+        "condition_acceptance": condition_component,
     }
 
     blockers = [
