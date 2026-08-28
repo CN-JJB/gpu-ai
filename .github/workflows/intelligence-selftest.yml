@@ -36,5 +36,7 @@ jobs:
         run: python tools/intelligence/hardware_profile_gate_selftest.py
       - name: Run prompt evidence gate self-test
         run: python tools/intelligence/prompt_evidence_gate_selftest.py
+      - name: Run quality corpus gate self-test
+        run: python tools/intelligence/quality_corpus_gate_selftest.py
       - name: Run market refresh self-test
         run: python tools/intelligence/market_refresh_selftest.py
