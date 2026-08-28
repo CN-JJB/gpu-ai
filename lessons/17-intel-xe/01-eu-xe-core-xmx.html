@@ -1,157 +1,27 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Intel Xe 1：EU、Xe-Core、XMX</title><link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem;vertical-align:top}</style>
-</head><body>
-<h1>Intel Xe 1 — EU → Xe-Core → XMX：别拿“核心数”跨生态硬比</h1>
-
-<h2>1. Intel 老 GPU 常见术语：EU</h2>
-<p>Intel Gen Graphics / Xe-LP 时代最常见：</p>
-<pre>EU = Execution Unit</pre>
-
-<p>EU 是多线程 SIMD execution building block。</p>
-
-<div class="callout"><strong>第一条规则：</strong><code>1 EU ≠ 1 CUDA core</code>。它们不是相同粒度的硬件单位。</div>
-
-<h2>2. Xe 架构开始换一套更清楚的层级</h2>
-<p>Intel 当前 Xe 文档使用：</p>
-<pre>GPU
-→ Xe Stack
-→ Xe-Core
-→ Vector Engine
-→ hardware threads
-→ SIMD lanes</pre>
-
-<h2>3. Vector Engine</h2>
-<p>Intel 当前定义它为 Xe GPU 最小的 thread-level building block。</p>
-
-<p>一个 Vector Engine：</p>
-<ul>
-<li>有多个 hardware thread；</li>
-<li>每个 thread 有 GRF；</li>
-<li>执行 SIMD 16/32 等向量指令；</li>
-<li>支持 FP/INT 多种 datatype。</li>
-</ul>
-
-<h2>4. Xe-Core</h2>
-<p>一个 Xe-Core 里可以有：</p>
-<pre>Vector Engines
-+ XMX Matrix Engines
-+ shared L1
-+ SLM</pre>
-
-<p>这比只看“EU 数”更接近现代 Intel GPU 的资源组织。</p>
-
-<h2>5. SLM</h2>
-<p>Intel 的低延迟 cooperative scratchpad：</p>
-<pre>SLM = Shared Local Memory</pre>
-
-<table>
-<tr><th>生态</th><th>workgroup-local scratchpad</th></tr>
-<tr><td>NVIDIA</td><td>shared memory</td></tr>
-<tr><td>AMD</td><td>LDS</td></tr>
-<tr><td>Apple</td><td>threadgroup memory</td></tr>
-<tr><td>Intel</td><td>SLM</td></tr>
-</table>
-
-<p>同样适合：</p>
-<ul>
-<li>GEMM tile；</li>
-<li>attention tile；</li>
-<li>reduction；</li>
-<li>softmax。</li>
-</ul>
-
-<h2>6. XMX：Intel 的 matrix engine</h2>
-<pre>XMX
-= Xe Matrix Extensions</pre>
-
-<p>它面向 systolic / DPAS-style matrix/dot-product 工作。</p>
-
-<p>正确比较方式：</p>
-<pre>NVIDIA Tensor Core
-AMD MFMA
-Intel XMX
-
-→ all accelerate matrix workloads
-→ but instruction/data/layout differ</pre>
-
-<p>错误：</p>
-<pre>160 XMX
-÷
-320 Tensor Core
-= half performance</pre>
-
-<h2>7. Xe-LP 与 Xe-HPG 不要混</h2>
-<p>集成 Iris Xe / Xe-LP 的 EU 结构和 Arc Alchemist 的 Xe-Core/XMX 结构不是同一件事。</p>
-
-<p>所以：</p>
-<pre>"Intel Xe"
-</pre>
-<p>仍然不够具体。</p>
-
-<h2>8. Alchemist / Xe-HPG</h2>
-<p>Arc A 系列把：</p>
-<ul>
-<li>Xe-Core；</li>
-<li>XMX；</li>
-<li>独立 GDDR VRAM；</li>
-<li>现代 media/RT block；</li>
-</ul>
-<p>带进 Intel 消费 dGPU。</p>
-
-<h2>9. Battlemage / Xe2</h2>
-<p>Arc B 系列进入 Xe2：</p>
-<ul>
-<li>第二代 Xe-Core；</li>
-<li>更新 Vector Engine；</li>
-<li>更新 XMX；</li>
-<li>cache/execution 继续调整。</li>
-</ul>
-
-<p>不要把 Battlemage 理解成：</p>
-<pre>A-series
-+ more cores
-</pre>
-
-<p>它是新的 Xe2 generation。</p>
-
-<h2>10. Subgroup width 也不是固定 32</h2>
-<p>Intel current architecture tables 对不同家族列出：</p>
-<pre>8 / 16 / 32
-or
-16 / 32</pre>
-
-<p>所以跨生态统一结论应该是：</p>
-<pre>query / compile for actual subgroup model
-</pre>
-<p>而不是背一个数字。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — EU → Xe-Core / XMX</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0；真机增强 L1/L2（受支持 Intel GPU）。</p>
-<p><strong>成本：</strong>0 元主路径；课程不要求购买对应平台。</p>
-<p><strong>风险：</strong>safe。</p>
-<p><strong>替代路径：</strong>没有 Intel GPU 就完成 terminology trap；有 Arc/Xe 再做 XPU/SYCL inventory。</p>
-</div>
-<h3>能力目标</h3>
-<ul><li>区分 EU-era 与 Xe-Core-era 的执行结构和 XMX matrix path。</li>
-<li>解释 oneAPI/SYCL、Level Zero、PyTorch XPU、llama.cpp SYCL 是不同软件层。</li>
-<li>把 Intel GPU 的低价/显存优势与 backend maturity、驱动、kernel 支持一起评估。</li></ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/29-intel-xe-terminology-traps/README.md">Experiment 29：Intel Xe terminology traps</a>；有 Intel GPU 时做 <a href="../../labs/experiments/30-real-intel-xpu-sycl-inventory/README.md">Experiment 30：real Intel XPU/SYCL inventory</a>。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么旧 Intel EU 术语与 Xe-HPG/HPC 的 Xe-Core/Vector/Matrix Engine 不能混着数？</li>
-<li>为什么 XMX 的存在只证明 hardware capability，不能证明某 quant/backend 的实际 kernel path？</li>
-<li>用什么证据区分“驱动看到了 Arc”和“LLM runtime 正在用正确 backend”？</li>
-<li>如果 A770 价格很低，但常用框架缺功能，时间成本应该放到哪一类 TCO？</li></ol>
-<h3>完成证据</h3>
-<p>提交一张 Intel software ladder：GPU identity → driver/Level Zero → SYCL/XPU runtime → LLM backend → exact model/quant path，并标出每层证据来源。</p>
-<h3>如何迁移</h3>
-<p>以后碰到任何“新 GPU 支持 AI”的宣传，都沿同一条链验证：硬件 matrix capability → compiler/runtime exposure → framework/backend integration → model-format/kernel coverage → workload measurement。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/latest/intel-xe-gpu-architecture.html">Intel — Xe GPU Architecture</a></li>
-<li><a href="../../reference/gpu/intel-xe-arc-xmx.md">Course Reference — Intel Xe / Arc / XMX</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Intel Xe 1：EU、Xe-core、XMX</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Intel Xe · 1/2 · L0→L1</p><h1>Intel Xe（一）：EU → Xe-core → XMX，应该怎样建立执行模型？</h1><p class="lead">Intel GPU 的术语变化很容易让人迷路：EU、Xe-core、subgroup、XMX、oneAPI。不要急着和 CUDA Core 做数量换算。本节先建立 Intel 自己的“并行执行 + 矩阵专用 + memory hierarchy”模型。</p>
+<h2>Prerequisite Check</h2><p>你应理解 GPU 线程会被成组调度，也知道 NVIDIA warp / AMD wave / Apple SIMD-group 只能做功能类比。</p>
+<h2>真实问题：为什么“多少 EU”或“多少 Xe-core”不能直接变成 token/s？</h2><p>因为产品代际改变了执行组织，且 LLM 性能还受 XMX/低精度 kernel、显存带宽、容量和软件 backend 影响。计数单位只有在同一架构、同一工作条件下才可能作为粗指标。</p>
+<h2>1. 从 EU 到 Xe-core：名称变化背后要看资源组织</h2><p>Intel 早期/集成 GPU 文档常用 Execution Unit（EU）描述可编程执行资源；Xe 世代更常以 Xe-core 等更高层组织呈现。你应该问：</p><ul><li>一个调度组如何组织 threads/subgroups？</li><li>vector/ALU datapath 在哪里？</li><li>register/local memory/cache 怎样共享？</li><li>matrix/XMX 是否在同一 core tile 内？</li></ul><p>而不是问“一个 Xe-core 等于几个 SM”。</p>
+<h2>2. Subgroup：Intel/SYCL 世界里的 lane group</h2><p>SYCL/OpenCL 等模型使用 work-item/work-group，并提供 subgroup 抽象来描述一组在硬件上紧密协作的 lanes。</p><pre>ND-range
+└─ work-group
+   └─ work-items
+      └─ subgroup (hardware-coordinated lanes)</pre><p>subgroup 可以做 shuffle、vote、reduction 等低层协作。它与 warp/wave/SIMD-group 属于相近抽象类别，但实际宽度和能力要查询设备。</p>
+<h2>3. XMX：Intel 的矩阵加速路径</h2><p>Xe Matrix Extensions（XMX）是面向矩阵/AI 的专用计算资源。正确的比较方法与 Tensor/Matrix Core 一样：</p><pre>hardware XMX
++ supported numeric mode
++ library/kernel mapping
++ application dispatch
+= usable matrix acceleration</pre><p>如果应用走的是普通 vector path，XMX 峰值不会自动出现。</p>
+<h2>4. DPAS/矩阵指令概念：为什么 layout 很重要？</h2><p>矩阵专用指令通常要求特定 tile、数据布局和数据类型。高层 library 会负责大量映射，但 kernel 编写者必须考虑如何把 packed data 喂给指令。</p><p>这也解释了为什么模型量化格式与硬件位宽看起来“都 4-bit/8-bit”，仍可能需要专门 kernel 转换/解包。</p>
+<h2>5. Cache / local memory：Intel GPU 仍然受数据移动约束</h2><p>不论叫 SLM（shared local memory）还是其他层级，核心思想相同：把可复用 tile 放到更近的片上资源，减少显存往返。Arc 等离散 GPU 还要区分本地 VRAM 与 PCIe host transfer。</p>
+<h2>Worked Example：Arc 16 GB 卡为什么可能很有吸引力，却仍不能只看显存？</h2><p>大显存可以让某些模型通过 fit gate，但接下来必须确认：</p><ol><li>目标 OS/driver 对 exact GPU 的稳定性；</li><li>oneAPI/Level Zero/SYCL 或应用使用的 backend；</li><li>目标 LLM runtime 是否拥有 Intel GPU kernel；</li><li>quant format 是否能利用 XMX/适合的数据路径；</li><li>memory bandwidth、power/thermal 与真实 token/s；</li><li>价格是否补偿生态成熟度差异。</li></ol><p>因此 Intel 候选卡常常是“规格看起来很好，软件证据决定最后能不能兑现”的典型教材。</p>
+<h2>Why it matters</h2><ul><li>让你能读 Intel GPU 而不依赖 NVIDIA 术语翻译。</li><li>理解 XMX 只是矩阵 datapath，应用必须有 kernel 映射。</li><li>建立 subgroup/SLM 的跨厂商并行算法迁移能力。</li><li>为判断 Arc 的大显存/价格优势是否能转化为 LLM 价值打基础。</li></ul>
+<h2>常见误区</h2><ul><li>“EU 数可以与 CUDA Core 直接换算”——执行组织/吞吐口径不同。</li><li>“XMX 数多就等于 AI token/s 高”——还缺模型格式、kernel、memory。</li><li>“SYCL 是 Intel 专属语言”——SYCL 是跨厂商异构编程标准/生态，但实现和 backend 能力有差异。</li><li>“16 GB 显存通过 fit 就够了”——support/performance/quality/system/cost 仍要过 gate。</li></ul>
+<h2>小实验与预期观察</h2><p>建立四厂商术语映射表，只允许写“功能类别”而非等号：NVIDIA warp、AMD wave、Apple SIMD-group、Intel subgroup；NVIDIA shared、AMD LDS、Apple threadgroup memory、Intel SLM。为每项加一列“不可假设相同的参数”。</p><p>预期你会发现跨厂商知识真正可迁移的是数据流与调度问题，而不是计数单位。</p>
+<h2>无 Intel GPU 路径</h2><p>L0 使用 Intel oneAPI/SYCL 与 GPU architecture 文档即可。后续如果有 Arc，再读取 device capabilities 和运行受控 benchmark；不要求购买。</p>
+<h2>排错</h2><ul><li>系统看到 Arc 但应用没 GPU：检查应用 backend/build，而不是只看设备管理器。</li><li>XMX 没利用：确认数据类型、library/kernel、model format 和 dispatch。</li><li>不同驱动版本表现差异：保留 driver/runtime identity，避免把动态软件行为写成架构事实。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>为什么 EU/Xe-core 数不能与 SM/CUDA Core 直接换算？</li><li>subgroup 在并行编程里解决什么问题？</li><li>XMX 要通过哪几层才能变成 LLM 实际加速？</li><li>为什么 matrix instruction 对 layout/packing 敏感？</li><li>Arc 大显存通过了哪个 gate？还有哪些 gate 没过？</li><li>四厂商的 lane-group 抽象可以迁移什么，不能迁移什么？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>Intel 候选必须先证明 exact driver/runtime/backend + model kernel 可用，再让显存、带宽、XMX 和价格进入比较。没有软件证据时，纸面 XMX/TOPS 只算潜在能力。</p></div>
+<h2>Transfer</h2><p>下一节进入 Arc/oneAPI/LLM 软件路线。把这一节的硬件层与下一节的软件层接成完整 evidence chain。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-spine.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+</main></body></html>
