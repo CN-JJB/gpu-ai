@@ -1,6 +1,6 @@
 # Spec 0020 — Market Refresh Helper
 
-Status: implementation pending CI verification  
+Status: implemented and CI verified  
 Date: 2026-08-28
 
 ## Problem
@@ -104,3 +104,19 @@ As of 2026-08-28, the current public China-side RTX 3090 signal remains the 2026
 No stronger auditable direct-listing or confirmed-transaction source was found in this pass.
 
 Therefore this implementation does not fabricate an RTX 3090 refresh and does not promote M1 to M2/M3.
+
+## CI
+
+GitHub Actions:
+
+```text
+run #67
+run id 33154549739
+head 8ab1d5435e867570c2a5c2a48cc94d45c533179f
+job id 98794100639
+conclusion success
+```
+
+The job compiled every Intelligence Python tool, ran the existing full self-test, then ran `market_refresh_selftest.py`.
+
+Both passed.
