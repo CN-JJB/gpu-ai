@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -8,12 +9,20 @@ from experiment61_ab_contract import get_path, validate_manifest_pair
 from verify_quality_metric import verify_quality_metric_evidence
 
 
-COMPARISON_CONTRACT = "ppl-declared-execution-variable-v1"
+COMPARISON_CONTRACT = "ppl-declared-execution-variable-v2"
 FIXED_QUALITY_FIELDS = (
     "tokenizer_identity",
     "corpus_sha256",
     "fixture_revision",
 )
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def load_object(path, label, errors):
@@ -87,6 +96,7 @@ def verify_bundle(label, root, model, corpus, errors):
         return None
 
     return {
+        "paths": paths,
         "identity": identity,
         "command": command,
         "metric": result["metric"],
@@ -126,7 +136,7 @@ def validate_declared_contract(
         and intentional_variable.startswith("variant.execution.")
     ):
         errors.append(
-            "I35 supports only declared variant.execution.* quality-variable contracts"
+            "I35/I39 supports only declared variant.execution.* quality-variable contracts"
         )
         return
 
@@ -179,36 +189,46 @@ def validate_declared_contract(
             )
 
 
-def main():
-    p = argparse.ArgumentParser(
-        description=(
-            "Compare two verified quality bundles for a declared Experiment 61 execution "
-            "variable whose baseline/candidate evaluation argv are explicitly contracted."
-        )
-    )
-    p.add_argument("--baseline-manifest", type=Path, required=True)
-    p.add_argument("--candidate-manifest", type=Path, required=True)
-    p.add_argument("--baseline-dir", type=Path, required=True)
-    p.add_argument("--candidate-dir", type=Path, required=True)
-    p.add_argument("--baseline-model", type=Path, required=True)
-    p.add_argument("--candidate-model", type=Path, required=True)
-    p.add_argument("--quality-corpus", type=Path, required=True)
-    p.add_argument("--variable-contract", type=Path, required=True)
-    p.add_argument("--out", type=Path, required=True)
-    a = p.parse_args()
+def build_execution_variable_quality_comparison(
+    baseline_manifest_path,
+    candidate_manifest_path,
+    baseline_dir,
+    candidate_dir,
+    baseline_model,
+    candidate_model,
+    quality_corpus,
+    variable_contract_path,
+):
+    baseline_manifest_path = Path(baseline_manifest_path)
+    candidate_manifest_path = Path(candidate_manifest_path)
+    baseline_dir = Path(baseline_dir)
+    candidate_dir = Path(candidate_dir)
+    baseline_model = Path(baseline_model)
+    candidate_model = Path(candidate_model)
+    quality_corpus = Path(quality_corpus)
+    variable_contract_path = Path(variable_contract_path)
 
     errors = []
     for label, path in (
-        ("baseline model", a.baseline_model),
-        ("candidate model", a.candidate_model),
-        ("quality corpus", a.quality_corpus),
+        ("baseline model", baseline_model),
+        ("candidate model", candidate_model),
+        ("quality corpus", quality_corpus),
+        ("quality variable contract", variable_contract_path),
     ):
         if not path.is_file():
             errors.append(f"{label} is not a file: {path}")
 
-    baseline_manifest = load_object(a.baseline_manifest, "baseline manifest", errors)
-    candidate_manifest = load_object(a.candidate_manifest, "candidate manifest", errors)
-    variable_contract = load_object(a.variable_contract, "quality variable contract", errors)
+    baseline_manifest = load_object(
+        baseline_manifest_path, "baseline manifest", errors
+    )
+    candidate_manifest = load_object(
+        candidate_manifest_path, "candidate manifest", errors
+    )
+    variable_contract = {}
+    if variable_contract_path.is_file():
+        variable_contract = load_object(
+            variable_contract_path, "quality variable contract", errors
+        )
 
     manifest_contract = None
     if baseline_manifest and candidate_manifest:
@@ -221,23 +241,23 @@ def main():
 
     baseline_bundle = None
     candidate_bundle = None
-    if not any(not path.is_file() for path in (
-        a.baseline_model,
-        a.candidate_model,
-        a.quality_corpus,
-    )):
+    if (
+        baseline_model.is_file()
+        and candidate_model.is_file()
+        and quality_corpus.is_file()
+    ):
         baseline_bundle = verify_bundle(
             "baseline",
-            a.baseline_dir,
-            a.baseline_model,
-            a.quality_corpus,
+            baseline_dir,
+            baseline_model,
+            quality_corpus,
             errors,
         )
         candidate_bundle = verify_bundle(
             "candidate",
-            a.candidate_dir,
-            a.candidate_model,
-            a.quality_corpus,
+            candidate_dir,
+            candidate_model,
+            quality_corpus,
             errors,
         )
 
@@ -292,58 +312,122 @@ def main():
         and manifest_contract is not None
         and baseline_bundle is not None
         and candidate_bundle is not None
+        and variable_contract
     ):
         bppl = float(baseline_bundle["metric"]["value"])
         cppl = float(candidate_bundle["metric"]["value"])
-        ratio = cppl / bppl
-        output = {
-            "quality_comparison_schema_version": 1,
-            "comparison_contract": COMPARISON_CONTRACT,
-            "comparison_id": manifest_contract["comparison_id"],
-            "intentional_variable": manifest_contract["intentional_variable"],
-            "metric": "PPL",
-            "lower_is_better": True,
-            "baseline": {
-                "value": bppl,
-                "reported_uncertainty": baseline_bundle["metric"].get(
-                    "reported_uncertainty"
-                ),
-                "model_sha256": baseline_bundle["model_sha256"],
-                "model_bytes": baseline_bundle["model_bytes"],
-            },
-            "candidate": {
-                "value": cppl,
-                "reported_uncertainty": candidate_bundle["metric"].get(
-                    "reported_uncertainty"
-                ),
-                "model_sha256": candidate_bundle["model_sha256"],
-                "model_bytes": candidate_bundle["model_bytes"],
-            },
-            "delta_candidate_minus_baseline": cppl - bppl,
-            "ratio_candidate_to_baseline": ratio,
-            "percent_change": (ratio - 1.0) * 100.0,
-            "fixed_quality_identity": {
-                field: baseline_bundle["identity"].get(field)
-                for field in FIXED_QUALITY_FIELDS
-            },
-            "evaluation_args": {
-                "baseline": baseline_bundle["identity"].get("evaluation_args"),
-                "candidate": candidate_bundle["identity"].get("evaluation_args"),
-            },
-            "declared_variable": {
-                "path": manifest_contract["intentional_variable"],
-                "baseline_value": get_path(
-                    baseline_manifest, manifest_contract["intentional_variable"]
-                ),
-                "candidate_value": get_path(
-                    candidate_manifest, manifest_contract["intentional_variable"]
-                ),
-            },
-            "quality_executable": {
-                "sha256": baseline_bundle["executable_sha256"],
-                "bytes": baseline_bundle["executable_bytes"],
-            },
-        }
+        if (
+            not math.isfinite(bppl)
+            or bppl <= 0
+            or not math.isfinite(cppl)
+            or cppl <= 0
+        ):
+            errors.append("PPL values must be finite and > 0")
+        else:
+            ratio = cppl / bppl
+            output = {
+                "quality_comparison_schema_version": 2,
+                "comparison_contract": COMPARISON_CONTRACT,
+                "comparison_id": manifest_contract["comparison_id"],
+                "intentional_variable": manifest_contract["intentional_variable"],
+                "metric": "PPL",
+                "lower_is_better": True,
+                "baseline": {
+                    "value": bppl,
+                    "reported_uncertainty": baseline_bundle["metric"].get(
+                        "reported_uncertainty"
+                    ),
+                    "model_sha256": baseline_bundle["model_sha256"],
+                    "model_bytes": baseline_bundle["model_bytes"],
+                    "metric_sha256": sha256_file(
+                        baseline_bundle["paths"]["metric"]
+                    ),
+                },
+                "candidate": {
+                    "value": cppl,
+                    "reported_uncertainty": candidate_bundle["metric"].get(
+                        "reported_uncertainty"
+                    ),
+                    "model_sha256": candidate_bundle["model_sha256"],
+                    "model_bytes": candidate_bundle["model_bytes"],
+                    "metric_sha256": sha256_file(
+                        candidate_bundle["paths"]["metric"]
+                    ),
+                },
+                "delta_candidate_minus_baseline": cppl - bppl,
+                "ratio_candidate_to_baseline": ratio,
+                "percent_change": (ratio - 1.0) * 100.0,
+                "fixed_quality_identity": {
+                    field: baseline_bundle["identity"].get(field)
+                    for field in FIXED_QUALITY_FIELDS
+                },
+                "evaluation_args": {
+                    "baseline": baseline_bundle["identity"].get("evaluation_args"),
+                    "candidate": candidate_bundle["identity"].get("evaluation_args"),
+                },
+                "declared_variable": {
+                    "path": manifest_contract["intentional_variable"],
+                    "baseline_value": get_path(
+                        baseline_manifest, manifest_contract["intentional_variable"]
+                    ),
+                    "candidate_value": get_path(
+                        candidate_manifest, manifest_contract["intentional_variable"]
+                    ),
+                },
+                "quality_executable": {
+                    "sha256": baseline_bundle["executable_sha256"],
+                    "bytes": baseline_bundle["executable_bytes"],
+                },
+                "evidence": {
+                    "variable_contract_sha256": sha256_file(variable_contract_path),
+                    "baseline_metric_sha256": sha256_file(
+                        baseline_bundle["paths"]["metric"]
+                    ),
+                    "candidate_metric_sha256": sha256_file(
+                        candidate_bundle["paths"]["metric"]
+                    ),
+                    "reproduction": "SEALED-BUNDLES+DECLARED-VARIABLE-CONTRACT",
+                },
+            }
+
+    return {
+        "errors": errors,
+        "output": output,
+        "manifest_contract": manifest_contract,
+    }
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=(
+            "Compare two verified quality bundles for a declared Experiment 61 execution "
+            "variable whose baseline/candidate evaluation argv are explicitly contracted."
+        )
+    )
+    p.add_argument("--baseline-manifest", type=Path, required=True)
+    p.add_argument("--candidate-manifest", type=Path, required=True)
+    p.add_argument("--baseline-dir", type=Path, required=True)
+    p.add_argument("--candidate-dir", type=Path, required=True)
+    p.add_argument("--baseline-model", type=Path, required=True)
+    p.add_argument("--candidate-model", type=Path, required=True)
+    p.add_argument("--quality-corpus", type=Path, required=True)
+    p.add_argument("--variable-contract", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True)
+    a = p.parse_args()
+
+    result = build_execution_variable_quality_comparison(
+        a.baseline_manifest,
+        a.candidate_manifest,
+        a.baseline_dir,
+        a.candidate_dir,
+        a.baseline_model,
+        a.candidate_model,
+        a.quality_corpus,
+        a.variable_contract,
+    )
+    errors = result["errors"]
+    output = result["output"]
+    manifest_contract = result["manifest_contract"]
 
     print("DECLARED EXECUTION-VARIABLE QUALITY A/B")
     if manifest_contract is not None:
@@ -370,7 +454,8 @@ def main():
     print("QUALITY VARIABLE COMPARISON: PASS")
     print(
         "PASS proves the PPL A/B is bound to an explicit execution-variable manifest/argv "
-        "contract. It does not prove the declared argv tokens implement the intended upstream semantics."
+        "contract and reproducible metric roots. It does not prove the declared argv tokens "
+        "implement the intended upstream semantics."
     )
 
 
