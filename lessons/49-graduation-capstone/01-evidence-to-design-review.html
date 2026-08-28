@@ -139,4 +139,51 @@ decision inconsistent</pre>
 → 修改设计
 → 解释边界</pre>
 <div class="callout"><strong>这就是 transfer。</strong></div>
+
+<section class="student-closure">
+<h2>学生闭环 — Graduation Machine Design Capstone</h2>
+<div class="callout">
+<p><strong>硬件门槛：</strong>L0 可以完成完整设计评审；真实毕业报告 Experiment 93 需要你未来选定的 learner-owned target。</p>
+<p><strong>成本：</strong>0 元设计主路径；毕业不要求为了“通过”而购买硬件。</p>
+<p><strong>风险：</strong>safe。毕业结论允许 ACCEPT / REVISE / BLOCKED；证明“不该买”同样是合格结果。</p>
+</div>
+<h3>能力目标</h3>
+<ul>
+<li>把整门课程的模型、GPU、平台、Serving、质量、TCO、二手风险串成一份可追溯设计。</li>
+<li>任何 material claim 都能指出 Evidence；任何 Evidence 都明确它不能证明什么。</li>
+<li>面对失败或未知，能提出最小 revision 与下一条需要获取的证据。</li>
+</ul>
+<h3>小实验 / 反馈</h3>
+<p>先做 <a href="../../labs/experiments/92-graduation-design-review/README.md">Experiment 92：graduation design review</a>。以后开始正式学习并选定自己的机器目标后，再做 <a href="../../labs/experiments/93-real-graduation-report/README.md">Experiment 93：real graduation report</a>。</p>
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么一份漂亮配置单不等于毕业设计？</li>
+<li>一个 critical UNKNOWN 为什么不能靠“应该没问题”变成 PASS？</li>
+<li>如果 24 GiB 卡无法满足目标 context/concurrency，你至少能提出哪四种 revision？</li>
+<li>什么叫 evidence-triggered upgrade，而不是“以后有钱就换更强卡”？</li>
+<li>ACCEPT、REVISE、BLOCKED 三种毕业结论分别需要什么逻辑条件？</li>
+</ol>
+<h3>完成证据</h3>
+<p>提交完整 Machine Design Review：</p>
+<pre>goal/workload
+→ model architecture dossier
+→ machine hard-gate matrix
+→ Evidence index
+→ benchmark / quality / serving SLO
+→ power / thermal / storage / host RAM
+→ TCO / secondhand risk
+→ revisions
+→ evidence-triggered upgrade roadmap
+→ non-claims
+→ ACCEPT / REVISE / BLOCKED</pre>
+<p>如果尚无真实机器，所有需要真机的数据明确标记 <strong>NOT-YET-MEASURED</strong>，不得用 synthetic 结果冒充。</p>
+<h3>如何迁移</h3>
+<p>真正的 transfer 是换一张从没见过的 GPU、一个新模型、一个新 runtime 后，你仍然会：<strong>定义目标 → 找一手资料 → 建模 → 测量 → 判断 Evidence → 修改设计</strong>。</p>
+<h3>Primary Sources / Reference</h3>
+<ul>
+<li><a href="../../reference/system/graduation-machine-design-capstone.md">Course Reference — Graduation Machine Design Capstone</a></li>
+<li><a href="../../reference/system/whole-machine-integration-dossier.md">Course Reference — Whole-Machine Integration Dossier</a></li>
+<li><a href="../../resources/RESOURCES.md">Course Resources — Primary-source index</a></li>
+</ul>
+</section>
 </body></html>
