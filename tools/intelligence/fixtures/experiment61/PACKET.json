@@ -4,8 +4,8 @@
   "files": [
     {
       "path": "tools/intelligence/fixtures/experiment61/manifest.json",
-      "bytes": 2118,
-      "sha256": "9ef2bd39bf4c03acd74641f761b4c27ec494aaf70e28ae29077c259b29aa8cc3"
+      "bytes": 2162,
+      "sha256": "a1cfee65b64720eae6ebb41e9530a8f9f427f6e87abf368c4d4ed16a1090a393"
     },
     {
       "path": "tools/intelligence/fixtures/experiment61/result.json",

@@ -31,6 +31,13 @@ def present(value):
     return str(value if value is not None else "").strip().upper() not in PLACEHOLDERS
 
 
+def valid_evaluation_args(value):
+    return (
+        isinstance(value, list)
+        and all(isinstance(item, str) and item != "" for item in value)
+    )
+
+
 def resolve_executable(value):
     candidate = Path(value)
     if candidate.is_file():
@@ -39,28 +46,55 @@ def resolve_executable(value):
     return Path(found).resolve() if found else None
 
 
-def extract_path_arg(command, short_flag, long_flag, label):
-    matches = []
-    i = 0
+def parse_quality_argv(command):
+    if not isinstance(command, list) or not command:
+        raise ValueError("quality command argv must be a non-empty list")
+    if not all(isinstance(item, str) and item != "" for item in command):
+        raise ValueError("quality command argv must contain only non-empty strings")
+
+    model_paths = []
+    corpus_paths = []
+    evaluation_args = []
+
+    i = 1
     while i < len(command):
         arg = command[i]
-        if arg in (short_flag, long_flag):
+
+        if arg in ("-m", "--model"):
             if i + 1 >= len(command):
-                raise SystemExit(f"CAPTURE: FAIL\n{arg} is missing its {label} path")
-            matches.append(command[i + 1])
+                raise ValueError(f"{arg} is missing its model path")
+            model_paths.append(command[i + 1])
             i += 2
             continue
-        prefix = long_flag + "="
-        if arg.startswith(prefix):
-            matches.append(arg.split("=", 1)[1])
+        if arg.startswith("--model="):
+            model_paths.append(arg.split("=", 1)[1])
+            i += 1
+            continue
+
+        if arg in ("-f", "--file"):
+            if i + 1 >= len(command):
+                raise ValueError(f"{arg} is missing its quality corpus path")
+            corpus_paths.append(command[i + 1])
+            i += 2
+            continue
+        if arg.startswith("--file="):
+            corpus_paths.append(arg.split("=", 1)[1])
+            i += 1
+            continue
+
+        evaluation_args.append(arg)
         i += 1
 
-    if len(matches) != 1:
-        raise SystemExit(
-            "CAPTURE: FAIL\n"
-            f"expected exactly one {short_flag}/{long_flag} path for {label}; found {len(matches)}"
+    if len(model_paths) != 1:
+        raise ValueError(
+            f"expected exactly one -m/--model path; found {len(model_paths)}"
         )
-    return matches[0]
+    if len(corpus_paths) != 1:
+        raise ValueError(
+            f"expected exactly one -f/--file path; found {len(corpus_paths)}"
+        )
+
+    return model_paths[0], corpus_paths[0], evaluation_args
 
 
 def resolve_recorded_path(value, cwd):
@@ -101,7 +135,7 @@ def ensure_output_dir(path):
 def main():
     p = argparse.ArgumentParser(
         description=(
-            "Run an explicit quality-evaluation argv, bind model/corpus/identity evidence, "
+            "Run an explicit quality-evaluation argv, bind model/corpus/evaluation config, "
             "preserve raw output, and seal an integrity packet."
         )
     )
@@ -140,16 +174,33 @@ def main():
         raise SystemExit(f"CAPTURE: FAIL\nquality manifest is not valid UTF-8 JSON: {exc}")
     if not isinstance(quality_obj, dict):
         raise SystemExit("CAPTURE: FAIL\nquality manifest must be one JSON object")
-    if quality_obj.get("quality_identity_schema_version") != 1:
-        raise SystemExit("CAPTURE: FAIL\nquality_identity_schema_version must be 1")
-    for field in ("tokenizer_identity", "corpus_sha256", "fixture_revision", "evaluation_args"):
+    if quality_obj.get("quality_identity_schema_version") != 2:
+        raise SystemExit("CAPTURE: FAIL\nquality_identity_schema_version must be 2")
+
+    for field in ("tokenizer_identity", "corpus_sha256", "fixture_revision"):
         if not present(quality_obj.get(field)):
             raise SystemExit(f"CAPTURE: FAIL\nquality manifest missing/placeholder {field}")
 
-    cwd = Path.cwd()
-    argv_model = extract_path_arg(command, "-m", "--model", "model")
-    argv_corpus = extract_path_arg(command, "-f", "--file", "quality corpus")
+    declared_evaluation_args = quality_obj.get("evaluation_args")
+    if not valid_evaluation_args(declared_evaluation_args):
+        raise SystemExit(
+            "CAPTURE: FAIL\n"
+            "quality manifest evaluation_args must be a JSON list of non-empty strings"
+        )
 
+    try:
+        argv_model, argv_corpus, executed_evaluation_args = parse_quality_argv(command)
+    except ValueError as exc:
+        raise SystemExit(f"CAPTURE: FAIL\n{exc}")
+
+    if executed_evaluation_args != declared_evaluation_args:
+        raise SystemExit(
+            "CAPTURE: FAIL\n"
+            "declared evaluation_args do not match executed quality argv: "
+            f"declared={declared_evaluation_args!r} actual={executed_evaluation_args!r}"
+        )
+
+    cwd = Path.cwd()
     supplied_model = a.model_artifact.expanduser().resolve()
     supplied_corpus = a.quality_corpus.expanduser().resolve()
     argv_model_resolved = resolve_recorded_path(argv_model, cwd)
@@ -253,11 +304,12 @@ def main():
     stderr_out.write_bytes(stderr)
 
     command_record = {
-        "quality_capture_schema_version": 1,
+        "quality_capture_schema_version": 2,
         "started_at": started_at,
         "ended_at": ended_at,
         "cwd": str(cwd),
         "argv": command,
+        "evaluation_args": executed_evaluation_args,
         "exit_code": exit_code,
         "launch_error": launch_error,
         "executable": executable,
@@ -302,6 +354,7 @@ def main():
     print("model_binding=PASS")
     print("corpus_binding=PASS")
     print("quality_identity_binding=PASS")
+    print("evaluation_args_binding=PASS")
 
     if errors:
         print("ERRORS")

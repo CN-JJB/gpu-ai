@@ -529,8 +529,31 @@ def main():
                 quality_identity_obj = {}
 
             if quality_identity_obj:
-                if quality_identity_obj.get("quality_identity_schema_version") != 1:
-                    errors.append("quality_identity_schema_version must be 1")
+                if quality_identity_obj.get("quality_identity_schema_version") != 2:
+                    errors.append("quality_identity_schema_version must be 2")
+                    quality_identity_status = "BLOCKED"
+
+                for field in (
+                    "tokenizer_identity",
+                    "corpus_sha256",
+                    "fixture_revision",
+                ):
+                    if not present(quality_identity_obj.get(field)):
+                        errors.append(f"quality manifest missing/placeholder {field}")
+                        quality_identity_status = "BLOCKED"
+
+                evaluation_args = quality_identity_obj.get("evaluation_args")
+                if not (
+                    isinstance(evaluation_args, list)
+                    and all(
+                        isinstance(item, str) and item != ""
+                        for item in evaluation_args
+                    )
+                ):
+                    errors.append(
+                        "quality manifest evaluation_args must be a JSON list "
+                        "of non-empty strings"
+                    )
                     quality_identity_status = "BLOCKED"
 
                 manifest_quality = manifest.get("fixed", {}).get("quality_eval", {})

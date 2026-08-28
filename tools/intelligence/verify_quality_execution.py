@@ -12,6 +12,13 @@ def present(value):
     return str(value if value is not None else "").strip().upper() not in PLACEHOLDERS
 
 
+def valid_evaluation_args(value):
+    return (
+        isinstance(value, list)
+        and all(isinstance(item, str) and item != "" for item in value)
+    )
+
+
 def sha256_file(path):
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -32,28 +39,55 @@ def load_object(path, label, errors):
     return obj
 
 
-def extract_path_arg(argv, short_flag, long_flag, label):
-    if not isinstance(argv, list) or not all(isinstance(x, str) for x in argv):
-        raise ValueError("quality command argv must be a list of strings")
-    matches = []
-    i = 0
+def parse_quality_argv(argv):
+    if not isinstance(argv, list) or not argv:
+        raise ValueError("quality command argv must be a non-empty list")
+    if not all(isinstance(item, str) and item != "" for item in argv):
+        raise ValueError("quality command argv must contain only non-empty strings")
+
+    model_paths = []
+    corpus_paths = []
+    evaluation_args = []
+
+    i = 1
     while i < len(argv):
         arg = argv[i]
-        if arg in (short_flag, long_flag):
+
+        if arg in ("-m", "--model"):
             if i + 1 >= len(argv):
-                raise ValueError(f"{arg} is missing its {label} path")
-            matches.append(argv[i + 1])
+                raise ValueError(f"{arg} is missing its model path")
+            model_paths.append(argv[i + 1])
             i += 2
             continue
-        prefix = long_flag + "="
-        if arg.startswith(prefix):
-            matches.append(arg.split("=", 1)[1])
+        if arg.startswith("--model="):
+            model_paths.append(arg.split("=", 1)[1])
+            i += 1
+            continue
+
+        if arg in ("-f", "--file"):
+            if i + 1 >= len(argv):
+                raise ValueError(f"{arg} is missing its quality corpus path")
+            corpus_paths.append(argv[i + 1])
+            i += 2
+            continue
+        if arg.startswith("--file="):
+            corpus_paths.append(arg.split("=", 1)[1])
+            i += 1
+            continue
+
+        evaluation_args.append(arg)
         i += 1
-    if len(matches) != 1:
+
+    if len(model_paths) != 1:
         raise ValueError(
-            f"expected exactly one {short_flag}/{long_flag} path for {label}; found {len(matches)}"
+            f"expected exactly one -m/--model path; found {len(model_paths)}"
         )
-    return matches[0]
+    if len(corpus_paths) != 1:
+        raise ValueError(
+            f"expected exactly one -f/--file path; found {len(corpus_paths)}"
+        )
+
+    return model_paths[0], corpus_paths[0], evaluation_args
 
 
 def resolve_recorded_path(value, cwd):
@@ -138,23 +172,29 @@ def verify_quality_execution_evidence(
     model_ok = model_artifact.is_file()
     corpus_ok = quality_corpus.is_file()
     identity_ok = bool(quality_obj)
+    evaluation_args_ok = bool(quality_obj)
     raw_ok = stdout.is_file() and stderr.is_file()
     packet_ok = bool(packet)
     command_ok = bool(command_obj)
 
+    declared_evaluation_args = None
     if quality_obj:
-        if quality_obj.get("quality_identity_schema_version") != 1:
-            errors.append("quality_identity_schema_version must be 1")
+        if quality_obj.get("quality_identity_schema_version") != 2:
+            errors.append("quality_identity_schema_version must be 2")
             identity_ok = False
-        for field in (
-            "tokenizer_identity",
-            "corpus_sha256",
-            "fixture_revision",
-            "evaluation_args",
-        ):
+            evaluation_args_ok = False
+        for field in ("tokenizer_identity", "corpus_sha256", "fixture_revision"):
             if not present(quality_obj.get(field)):
                 errors.append(f"quality manifest missing/placeholder {field}")
                 identity_ok = False
+        declared_evaluation_args = quality_obj.get("evaluation_args")
+        if not valid_evaluation_args(declared_evaluation_args):
+            errors.append(
+                "quality manifest evaluation_args must be a JSON list of non-empty strings"
+            )
+            identity_ok = False
+            evaluation_args_ok = False
+
         if quality_corpus.is_file():
             actual_corpus_sha = sha256_file(quality_corpus)
             expected = str(quality_obj.get("corpus_sha256", "")).strip().lower()
@@ -167,9 +207,10 @@ def verify_quality_execution_evidence(
                 corpus_ok = False
 
     if command_obj:
-        if command_obj.get("quality_capture_schema_version") != 1:
-            errors.append("quality command quality_capture_schema_version must be 1")
+        if command_obj.get("quality_capture_schema_version") != 2:
+            errors.append("quality command quality_capture_schema_version must be 2")
             command_ok = False
+            evaluation_args_ok = False
         if command_obj.get("exit_code") != 0:
             errors.append(
                 f"quality command exit_code must be 0, got {command_obj.get('exit_code')!r}"
@@ -226,11 +267,11 @@ def verify_quality_execution_evidence(
             cwd = command_obj.get("cwd")
             if not present(cwd):
                 raise ValueError("quality command cwd is missing")
-            argv = command_obj.get("argv")
-            argv_model = extract_path_arg(argv, "-m", "--model", "model")
-            argv_corpus = extract_path_arg(
-                argv, "-f", "--file", "quality corpus"
+
+            argv_model, argv_corpus, executed_evaluation_args = parse_quality_argv(
+                command_obj.get("argv")
             )
+
             if model_artifact.is_file():
                 if (
                     resolve_recorded_path(argv_model, cwd)
@@ -247,9 +288,32 @@ def verify_quality_execution_evidence(
                     raise ValueError(
                         "quality command corpus path does not match --quality-corpus"
                     )
+
+            recorded_evaluation_args = command_obj.get("evaluation_args")
+            if recorded_evaluation_args != executed_evaluation_args:
+                errors.append(
+                    "quality command record evaluation_args does not match "
+                    "argv-derived evaluation_args"
+                )
+                command_ok = False
+                evaluation_args_ok = False
+
+            if (
+                valid_evaluation_args(declared_evaluation_args)
+                and executed_evaluation_args != declared_evaluation_args
+            ):
+                errors.append(
+                    "executed evaluation_args do not match quality manifest: "
+                    f"actual={executed_evaluation_args!r} "
+                    f"declared={declared_evaluation_args!r}"
+                )
+                command_ok = False
+                identity_ok = False
+                evaluation_args_ok = False
         except Exception as exc:
             errors.append(str(exc))
             command_ok = False
+            evaluation_args_ok = False
 
     if raw_ok:
         if stdout.stat().st_size == 0 and stderr.stat().st_size == 0:
@@ -285,6 +349,7 @@ def verify_quality_execution_evidence(
         "model_ok": model_ok,
         "corpus_ok": corpus_ok,
         "identity_ok": identity_ok,
+        "evaluation_args_ok": evaluation_args_ok,
         "command_ok": command_ok,
         "raw_ok": raw_ok,
         "packet_ok": packet_ok,
@@ -298,6 +363,9 @@ def print_result(result):
     print(
         f"quality_identity_binding={'PASS' if result['identity_ok'] else 'BLOCKED'}"
     )
+    print(
+        f"evaluation_args_binding={'PASS' if result['evaluation_args_ok'] else 'BLOCKED'}"
+    )
     print(f"command_binding={'PASS' if result['command_ok'] else 'BLOCKED'}")
     print(f"raw_output={'PASS' if result['raw_ok'] else 'BLOCKED'}")
     print(f"packet={'PASS' if result['packet_ok'] else 'BLOCKED'}")
@@ -310,7 +378,7 @@ def main():
     p = argparse.ArgumentParser(
         description=(
             "Verify sealed quality execution evidence against the exact model, corpus, "
-            "quality identity artifact, raw streams, and packet."
+            "quality identity artifact, exact evaluation argv, raw streams, and packet."
         )
     )
     p.add_argument("--quality-command-record", type=Path, required=True)
@@ -340,7 +408,7 @@ def main():
     print("QUALITY EXECUTION: PASS")
     print(
         "PASS proves the sealed command/result evidence is internally bound to the supplied "
-        "model, corpus, and quality identity artifact."
+        "model, corpus, quality identity, and declared evaluation argv."
     )
     print(
         "It does not prove the PPL parser, metric interpretation, task quality, or causal comparison."

@@ -46,6 +46,15 @@ def write_quality_execution_fixture(root, model, corpus, quality_manifest):
     corpus = Path(corpus).resolve()
     quality_manifest = Path(quality_manifest).resolve()
 
+    quality_obj = json.loads(quality_manifest.read_text(encoding="utf-8"))
+    evaluation_args = quality_obj.get("evaluation_args")
+    if (
+        quality_obj.get("quality_identity_schema_version") != 2
+        or not isinstance(evaluation_args, list)
+        or not all(isinstance(x, str) and x != "" for x in evaluation_args)
+    ):
+        raise ValueError("synthetic quality fixture requires v2 evaluation_args token list")
+
     identity = root / "quality-identity.json"
     identity.write_bytes(quality_manifest.read_bytes())
 
@@ -57,19 +66,22 @@ def write_quality_execution_fixture(root, model, corpus, quality_manifest):
     stderr = root / "stderr.txt"
     stderr.write_bytes(b"")
 
+    argv = [
+        "llama-perplexity",
+        "-m",
+        str(model),
+        "-f",
+        str(corpus),
+    ] + list(evaluation_args)
+
     command = root / "quality-command.json"
     command_obj = {
-        "quality_capture_schema_version": 1,
+        "quality_capture_schema_version": 2,
         "started_at": "2026-08-28T00:00:00Z",
         "ended_at": "2026-08-28T00:00:01Z",
         "cwd": str(root.resolve()),
-        "argv": [
-            "llama-perplexity",
-            "-m",
-            str(model),
-            "-f",
-            str(corpus),
-        ],
+        "argv": argv,
+        "evaluation_args": list(evaluation_args),
         "exit_code": 0,
         "launch_error": None,
         "executable": {

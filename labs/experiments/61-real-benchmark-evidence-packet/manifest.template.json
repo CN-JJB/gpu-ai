@@ -14,7 +14,7 @@
       "tokenizer_identity": "REPLACE",
       "corpus_sha256": "REPLACE",
       "fixture_revision": "REPLACE",
-      "evaluation_args": "REPLACE"
+      "evaluation_args": []
     }
   },
   "variant": {

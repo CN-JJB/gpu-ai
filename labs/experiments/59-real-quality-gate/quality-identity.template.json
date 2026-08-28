@@ -1,7 +1,7 @@
 {
-  "quality_identity_schema_version": 1,
+  "quality_identity_schema_version": 2,
   "tokenizer_identity": "REPLACE",
   "corpus_sha256": "REPLACE",
   "fixture_revision": "REPLACE",
-  "evaluation_args": "REPLACE"
+  "evaluation_args": []
 }

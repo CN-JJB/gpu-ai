@@ -72,25 +72,48 @@ def verify_args(sealed, model, corpus, quality_manifest, packet=None, command=No
     ]
 
 
+def write_fake(path, exit_code=0):
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import argparse, sys\n"
+        "p = argparse.ArgumentParser()\n"
+        "p.add_argument('-m', '--model', required=True)\n"
+        "p.add_argument('-f', '--file', required=True)\n"
+        "p.add_argument('--fixture-eval', required=True)\n"
+        "p.add_argument('--fixture-repeat', required=True)\n"
+        "p.parse_args()\n"
+        "print('synthetic raw quality output; not a measured PPL')\n"
+        f"sys.exit({exit_code})\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+
+
 def main():
     with tempfile.TemporaryDirectory() as td_raw:
         td = Path(td_raw)
 
         model = td / "model.gguf"
-        model.write_bytes(b"tiny-quality-model-i28\n")
+        model.write_bytes(b"tiny-quality-model-i28-i30\n")
 
         corpus = td / "corpus.txt"
-        corpus.write_bytes(b"quality corpus bytes for i28\n")
+        corpus.write_bytes(b"quality corpus bytes for i28-i30\n")
 
+        evaluation_args = [
+            "--fixture-eval",
+            "strict",
+            "--fixture-repeat",
+            "2",
+        ]
         quality_manifest = td / "quality-identity.json"
         quality_manifest.write_text(
             json.dumps(
                 {
-                    "quality_identity_schema_version": 1,
+                    "quality_identity_schema_version": 2,
                     "tokenizer_identity": "fixture-tokenizer",
                     "corpus_sha256": sha256_bytes(corpus.read_bytes()),
-                    "fixture_revision": "fixture-i28",
-                    "evaluation_args": "--ctx 2048",
+                    "fixture_revision": "fixture-i28-i30",
+                    "evaluation_args": evaluation_args,
                 },
                 indent=2,
                 sort_keys=True,
@@ -99,18 +122,8 @@ def main():
             encoding="utf-8",
         )
 
-        fake = td / "fake_perplexity.py"
-        fake.write_text(
-            "import argparse\n"
-            "p = argparse.ArgumentParser()\n"
-            "p.add_argument('-m', '--model', required=True)\n"
-            "p.add_argument('-f', '--file', required=True)\n"
-            "p.add_argument('--ctx')\n"
-            "a = p.parse_args()\n"
-            "print('[1]7.5000,[2]7.2500')\n"
-            "print('Final estimate: PPL = 7.2500 +/- 0.1000')\n",
-            encoding="utf-8",
-        )
+        fake = td / "fake-perplexity"
+        write_fake(fake)
 
         sealed = td / "sealed"
         out = run(
@@ -126,17 +139,17 @@ def main():
                 "--quality-manifest",
                 str(quality_manifest),
                 "--",
-                PY,
                 str(fake),
                 "-m",
                 str(model),
                 "-f",
                 str(corpus),
-                "--ctx",
-                "2048",
+                *evaluation_args,
             ]
         )
         assert "QUALITY CAPTURE: SEALED" in out
+        assert "evaluation_args_binding=PASS" in out
+
         for name in (
             "quality-identity.json",
             "stdout.txt",
@@ -149,6 +162,8 @@ def main():
         command_obj = json.loads(
             (sealed / "quality-command.json").read_text(encoding="utf-8")
         )
+        assert command_obj["quality_capture_schema_version"] == 2
+        assert command_obj["evaluation_args"] == evaluation_args
         assert command_obj["model_artifact"]["sha256"] == sha256_bytes(model.read_bytes())
         assert command_obj["quality_corpus"]["sha256"] == sha256_bytes(corpus.read_bytes())
         assert command_obj["quality_identity"]["sha256"] == sha256_bytes(
@@ -164,9 +179,7 @@ def main():
             )
         )
         assert "QUALITY EXECUTION: PASS" in out
-        assert "model_binding=PASS" in out
-        assert "corpus_binding=PASS" in out
-        assert "quality_identity_binding=PASS" in out
+        assert "evaluation_args_binding=PASS" in out
 
         wrong_corpus = td / "wrong-corpus.txt"
         wrong_corpus.write_bytes(b"x" * corpus.stat().st_size)
@@ -184,14 +197,12 @@ def main():
                 "--quality-manifest",
                 str(quality_manifest),
                 "--",
-                PY,
                 str(fake),
                 "-m",
                 str(model),
                 "-f",
                 str(wrong_corpus),
-                "--ctx",
-                "2048",
+                *evaluation_args,
             ],
             expect=1,
         )
@@ -238,7 +249,12 @@ def main():
         bad_identity_obj = json.loads(
             quality_manifest.read_text(encoding="utf-8")
         )
-        bad_identity_obj["evaluation_args"] = "--ctx 4096"
+        bad_identity_obj["evaluation_args"] = [
+            "--fixture-eval",
+            "loose",
+            "--fixture-repeat",
+            "2",
+        ]
         tampered_identity.write_text(
             json.dumps(bad_identity_obj, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
@@ -267,19 +283,11 @@ def main():
             "quality command quality_identity SHA256 does not match supplied quality manifest"
             in out
         )
+        assert "executed evaluation_args do not match quality manifest" in out
         assert "QUALITY EXECUTION: BLOCKED" in out
 
-        fail_script = td / "fail_quality.py"
-        fail_script.write_text(
-            "import argparse, sys\n"
-            "p = argparse.ArgumentParser()\n"
-            "p.add_argument('-m', '--model', required=True)\n"
-            "p.add_argument('-f', '--file', required=True)\n"
-            "p.parse_args()\n"
-            "print('partial quality output')\n"
-            "sys.exit(3)\n",
-            encoding="utf-8",
-        )
+        fail_script = td / "fail-quality"
+        write_fake(fail_script, exit_code=3)
         failed = td / "failed"
         out = run(
             [
@@ -294,12 +302,12 @@ def main():
                 "--quality-manifest",
                 str(quality_manifest),
                 "--",
-                PY,
                 str(fail_script),
                 "-m",
                 str(model),
                 "-f",
                 str(corpus),
+                *evaluation_args,
             ],
             expect=2,
         )
@@ -308,7 +316,7 @@ def main():
         assert (failed / "PACKET.json").is_file()
 
     print("QUALITY EXECUTION SELFTEST: PASS")
-    print("- exact model and corpus argv are bound before launch")
+    print("- exact model, corpus and evaluation argv are bound before launch")
     print("- raw stdout/stderr, exact argv and identity artifact are sealed")
     print("- recomputed PACKET cannot hide semantic argv or identity tampering")
     print("- non-zero quality execution remains auditable but blocked")
