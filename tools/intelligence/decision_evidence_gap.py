@@ -12,6 +12,7 @@ from market_evidence_gate import (
     watchlist_gate,
 )
 from verify_tradeoff_route import verify_tradeoff_route
+from verify_used_gpu_acceptance import verify_used_gpu_acceptance_artifact
 
 
 def evaluate_real_benchmark(label, record):
@@ -296,6 +297,74 @@ def evaluate_feasibility_case(path):
     }
 
 
+def evaluate_used_gpu_acceptance_component(
+    acceptance,
+    case,
+    packet,
+    candidate_hardware_id,
+):
+    supplied = [acceptance, case, packet]
+    if all(x is None for x in supplied):
+        return {
+            "status": "BLOCKED",
+            "reason": "no I44 used-GPU acceptance artifact/case/PACKET supplied",
+            "decision": "MISSING",
+        }
+    if any(x is None for x in supplied):
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "used-GPU acceptance bridge requires --used-gpu-acceptance, "
+                "--used-gpu-acceptance-case and --used-gpu-acceptance-packet together"
+            ),
+            "decision": "INCOMPLETE",
+        }
+
+    result = verify_used_gpu_acceptance_artifact(
+        acceptance,
+        case,
+        packet,
+    )
+    if result["errors"]:
+        return {
+            "status": "BLOCKED",
+            "reason": "; ".join(result["errors"]),
+            "decision": "INVALID",
+        }
+
+    artifact = result["supplied"]
+    if artifact.get("hardware_id") != candidate_hardware_id:
+        return {
+            "status": "BLOCKED",
+            "reason": "used-GPU acceptance hardware_id does not match candidate benchmark",
+            "decision": artifact.get("decision"),
+        }
+    if artifact.get("synthetic", False):
+        return {
+            "status": "BLOCKED",
+            "reason": "synthetic used-GPU acceptance is not production condition evidence",
+            "decision": artifact.get("decision"),
+        }
+    if artifact.get("decision") != "ACCEPT":
+        return {
+            "status": "BLOCKED",
+            "reason": (
+                "used-GPU acceptance must be ACCEPT before it can support a purchase review; "
+                f"actual={artifact.get('decision')!r}"
+            ),
+            "decision": artifact.get("decision"),
+        }
+
+    return {
+        "status": "PASS",
+        "reason": (
+            "real packet-bound I44 used-GPU acceptance is ACCEPT for the candidate hardware"
+        ),
+        "decision": "ACCEPT",
+        "condition_grade_mapping": artifact.get("condition_grade_mapping"),
+    }
+
+
 def main():
     p = argparse.ArgumentParser(
         description=(
@@ -318,6 +387,9 @@ def main():
     p.add_argument("--variable-contract", type=Path)
     p.add_argument("--market-record-id", required=True)
     p.add_argument("--feasibility-case", type=Path)
+    p.add_argument("--used-gpu-acceptance", type=Path)
+    p.add_argument("--used-gpu-acceptance-case", type=Path)
+    p.add_argument("--used-gpu-acceptance-packet", type=Path)
     p.add_argument("--as-of", default=date.today().isoformat())
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
@@ -392,14 +464,22 @@ def main():
 
     feasibility_component = evaluate_feasibility_case(a.feasibility_case)
 
+    used_gpu_component = evaluate_used_gpu_acceptance_component(
+        a.used_gpu_acceptance,
+        a.used_gpu_acceptance_case,
+        a.used_gpu_acceptance_packet,
+        candidate.get("hardware_id") if candidate else None,
+    )
+
     unresolved = {
         "condition_acceptance": {
             "status": "BLOCKED",
             "reason": (
-                "Experiment 38 requires C3/C4 condition evidence, but Intelligence "
-                "does not yet have a machine-readable C0–C4 condition gate"
+                "Experiment 38 requires C3/C4 condition evidence. I44 can now provide "
+                "reproducible ACCEPT/REVIEW/REJECT evidence, but the ACCEPT ↔ C3/C4 "
+                "mapping remains undefined and is not inferred."
             ),
-            "next_evidence": "Experiment 87 real used-GPU acceptance packet",
+            "next_evidence": "stable explicit C0–C4 mapping contract",
         },
         "performance_target": {
             "status": "BLOCKED",
@@ -425,6 +505,7 @@ def main():
         "exact_measured_compatibility": compatibility_component,
         "current_market_evidence": market_component,
         "whole_machine_feasibility": feasibility_component,
+        "used_gpu_acceptance": used_gpu_component,
         **unresolved,
     }
 
