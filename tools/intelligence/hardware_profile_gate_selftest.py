@@ -67,6 +67,7 @@ def main():
 
         wrong_profile = td / "wrong-profile.txt"
         wrong_profile.write_bytes(b"x" * len(profile_bytes))
+        prompt_manifest = exp / "prompt-manifest.json"
 
         manifest_obj = json.loads((exp / "manifest.json").read_text(encoding="utf-8"))
         manifest_obj["variant"]["hardware"]["profile_sha256"] = sha256_bytes(profile_bytes)
@@ -117,12 +118,13 @@ def main():
         packet.write_text(
             json.dumps({
                 "packet_schema_version": 1,
-                "file_count": 4,
+                "file_count": 5,
                 "files": [
                     packet_entry(manifest),
                     packet_entry(result),
                     packet_entry(command),
                     packet_entry(profile),
+                    packet_entry(prompt_manifest),
                 ],
             }, indent=2) + "\n",
             encoding="utf-8",
@@ -150,6 +152,8 @@ def main():
             str(model),
             "--command-record",
             str(command),
+            "--prompt-manifest",
+            str(prompt_manifest),
         ]
 
         out = run(base, expect=2)
@@ -175,6 +179,7 @@ def main():
                     packet_entry(result),
                     packet_entry(command),
                     packet_entry(wrong_profile),
+                    packet_entry(prompt_manifest),
                 ],
             }, indent=2) + "\n",
             encoding="utf-8",
