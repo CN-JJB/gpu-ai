@@ -28,16 +28,23 @@ Also copy:
 cp quality-identity.template.json quality-identity.json
 ```
 
-Fill the machine-readable identity fields:
+Fill the machine-readable identity fields.
 
-```text
-tokenizer_identity
-corpus_sha256
-fixture_revision
-evaluation_args
-```
+I30 uses quality identity schema v2. `evaluation_args` is **not a shell string**; it is the exact JSON argv-token list after removing only executable + model/corpus selectors:
 
-Experiment 61 / Intelligence I27 requires this small identity artifact to be PACKET-indexed.
+~~~json
+{
+  "quality_identity_schema_version": 2,
+  "tokenizer_identity": "...",
+  "corpus_sha256": "...",
+  "fixture_revision": "...",
+  "evaluation_args": []
+}
+~~~
+
+If the quality command has additional evaluation arguments, copy them token-by-token and in order into `evaluation_args`.
+
+Experiment 61 / Intelligence I27/I30 requires this small identity artifact to be PACKET-indexed and execution-bound.
 
 I26 separately hashes the actual corpus file, so `corpus_sha256` is not accepted as a standalone self-reported value.
 
@@ -106,9 +113,47 @@ python3 ../../../tools/intelligence/verify_quality_execution.py \
   --quality-manifest baseline-quality-run/quality-identity.json
 ~~~
 
-I28 binds the exact model and corpus argv paths, hashes the model/corpus, binds the I27 quality identity artifact, and preserves both raw streams.
+I28 binds the exact model and corpus argv paths, hashes the model/corpus, binds the quality identity artifact, and preserves both raw streams.
 
-It intentionally does not parse PPL. Keep the raw output for the later metric/interpretation gate.
+I30 additionally requires exact equality between the v2 `evaluation_args` token list and the actual executed non-input argv.
+
+### Extract the machine-readable quality metric
+
+After the sealed execution verifies, run:
+
+~~~bash
+python3 ../../../tools/intelligence/extract_quality_metric.py \
+  --quality-command-record baseline-quality-run/quality-command.json \
+  --stdout baseline-quality-run/stdout.txt \
+  --stderr baseline-quality-run/stderr.txt \
+  --packet baseline-quality-run/PACKET.json \
+  --model-artifact "$BASE" \
+  --quality-corpus "$CORPUS" \
+  --quality-manifest baseline-quality-run/quality-identity.json \
+  --out baseline-quality-run/quality-metric.json
+~~~
+
+I31 is deliberately narrow: it accepts exactly one supported `Final estimate: PPL = VALUE +/- UNCERTAINTY` line. Chunk-only or ambiguous output is BLOCKED rather than guessed.
+
+I32 makes this independently reproducible `quality-metric.json` mandatory for real non-synthetic intake.
+
+### Compare baseline vs candidate quality
+
+After both sides have complete quality bundles:
+
+~~~bash
+python3 ../../../tools/intelligence/compare_quality_metrics.py \
+  --baseline-dir baseline-quality-run \
+  --candidate-dir candidate-quality-run \
+  --baseline-model "$BASE" \
+  --candidate-model "$CAND" \
+  --quality-corpus "$CORPUS" \
+  --out quality-comparison.json
+~~~
+
+I33 only computes descriptive PPL delta/ratio when tokenizer, corpus, fixture revision, evaluation argv, parser/metric and quality executable hash/bytes all match exactly.
+
+It does not perform a significance test or turn PPL into a universal quality verdict.
 
 ## 2. Dataset
 

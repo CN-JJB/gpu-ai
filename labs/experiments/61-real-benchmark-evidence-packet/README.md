@@ -158,6 +158,7 @@ Then run `verify_real_intake.py` with canonical IDs **and the local model artifa
 --quality-stdout baseline-quality-run/stdout.txt
 --quality-stderr baseline-quality-run/stderr.txt
 --quality-packet baseline-quality-run/PACKET.json
+--quality-metric baseline-quality-run/quality-metric.json
 ```
 
 For non-synthetic intake:
@@ -167,10 +168,13 @@ For non-synthetic intake:
 - I25 requires an Experiment 57 prompt-evidence manifest and matches messages/template/rendered/token-ID hashes plus token count to `variant.prompt.*`;
 - I26 hashes the real quality corpus, matches `fixed.quality_eval.corpus_sha256`, and requires PACKET coverage;
 - I27 requires the Experiment 59 machine-readable quality identity manifest and matches tokenizer/corpus/fixture/evaluation identity to `fixed.quality_eval.*`.
-- I28 captures and independently verifies the actual quality argv/result streams against the exact model, corpus and I27 identity artifact;
-- I29 makes the I28 four-file execution bundle mandatory for non-synthetic `verify_real_intake.py` admission while keeping its quality PACKET separate from the benchmark PACKET.
+- I28 captures and independently verifies the actual quality argv/result streams against the exact model, corpus and quality identity artifact;
+- I29 makes the I28 four-file execution bundle mandatory for non-synthetic `verify_real_intake.py` admission while keeping its quality PACKET separate from the benchmark PACKET;
+- I30 requires quality identity schema v2 and exact token-for-token evaluation argv binding;
+- I31 derives a narrow machine-readable PPL artifact only from a unique supported Final estimate line;
+- I32 makes that independently reproducible `--quality-metric` artifact mandatory for non-synthetic intake.
 
-Only the strengthened I07/I20/I22/I23/I24/I25/I26/I27/I29 admission gate may return `INTAKE: READY` for non-synthetic intake.
+Only the strengthened I07/I20/I22/I23/I24/I25/I26/I27/I29/I30/I32 admission chain may return `INTAKE: READY` for non-synthetic intake.
 
 For a failed benchmark, the helper preserves the evidence but returns `CAPTURE: BLOCKED`.
 
@@ -178,7 +182,11 @@ Prompt identity:
 - reuse Experiment 57.
 
 Quality:
-- reuse Experiment 59.
+- reuse Experiment 59;
+- seal each quality run with I28/I30;
+- extract and verify `quality-metric.json` with I31;
+- supply `--quality-metric` to I32 admission;
+- for baseline/candidate quality arithmetic, use I33 exact-contract comparison before interpreting PPL delta/ratio.
 
 ## 7. Build packet index
 
