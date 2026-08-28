@@ -1,6 +1,6 @@
 # Intelligence Tooling
 
-Phase 4 tooling currently implements I01–I19. GitHub Actions run #67 verifies the existing full Python self-test plus the dedicated I19 market-refresh self-test.
+Phase 4 tooling currently implements I01–I20. GitHub Actions run #74 verifies the full Python self-test, the I20 raw benchmark identity gate, and the dedicated I19 market-refresh self-test.
 
 ## 1. Validate a catalog
 
@@ -74,9 +74,24 @@ Required result:
 INTAKE: READY
 ~~~
 
-The verifier checks canonical IDs, manifest identity, positive raw metrics, and PACKET SHA/byte integrity.
+The verifier checks:
+- canonical IDs;
+- required Experiment 61 manifest identity;
+- exact protocol PP/TG rows;
+- positive raw metrics;
+- PACKET SHA/byte integrity;
+- manifest ↔ raw llama-bench agreement for GPU identity, backend/build, model bytes, threads, KV types, GPU layers, split mode, flash attention, tensor split, and repetition count.
 
-READY is not benchmark truth or purchase approval.
+A hash-consistent PACKET is not enough if the manifest disagrees with the raw benchmark rows.
+
+Expected success now includes:
+
+~~~text
+RAW IDENTITY: PASS
+INTAKE: READY
+~~~
+
+READY is an evidence-completeness/internal-consistency gate, not benchmark truth or purchase approval.
 
 ## 6. Ingest a real llama-bench result
 
@@ -330,6 +345,7 @@ See:
 - examples/evidence/intelligence-17-freshness-aware-watchlist.md
 - examples/evidence/intelligence-18-append-only-market-refresh.md
 - examples/evidence/intelligence-19-market-refresh-helper.md
+- examples/evidence/intelligence-20-real-benchmark-raw-identity.md
 
 ## Non-goals
 
