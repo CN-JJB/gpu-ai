@@ -223,8 +223,12 @@ def main():
 
         bm = manifest("baseline", "f16")
         cm = manifest("candidate", "q8_0")
-        bm["fixed"]["quality_eval"]["corpus_sha256"] = corpus_sha
-        cm["fixed"]["quality_eval"]["corpus_sha256"] = corpus_sha
+        model_sha = sha256_bytes(model.read_bytes())
+        model_bytes = model.stat().st_size
+        for manifest_obj in (bm, cm):
+            manifest_obj["variant"]["model"]["artifact_sha256"] = model_sha
+            manifest_obj["variant"]["model"]["artifact_bytes"] = model_bytes
+            manifest_obj["fixed"]["quality_eval"]["corpus_sha256"] = corpus_sha
 
         bm_path = td / "baseline-manifest.json"
         cm_path = td / "candidate-manifest.json"
