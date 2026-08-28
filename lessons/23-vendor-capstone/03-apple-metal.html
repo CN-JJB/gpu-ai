@@ -1,63 +1,47 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone — Apple Metal</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
-<h1>Vendor Capstone 3 — Apple Metal / Unified Memory</h1>
-
-<h2>1. Mac 的 baseline 先看内存模型</h2>
-<pre>system_profiler SPHardwareDataType SPDisplaysDataType</pre>
-
-<p>再复用 Experiment 28 读取：</p>
-<ul>
-<li>hasUnifiedMemory；</li>
-<li>recommendedMaxWorkingSetSize；</li>
-<li>currentAllocatedSize；</li>
-<li>Metal execution width。</li>
-</ul>
-
-<h2>2. 当前 llama.cpp macOS 构建默认启用 Metal</h2>
-<pre>cmake -B build
-cmake --build build --config Release</pre>
-
-<p>仍要用：</p>
-<pre>./build/bin/llama-bench --list-devices</pre>
-<p>证明实际设备路径。</p>
-
-<h2>3. 不要写“64GB 显存”</h2>
-<pre>installed unified memory
-!= safe GPU working set
-!= runtime footprint</pre>
-
-<h2>4. Mac 的典型诊断</h2>
-<ul>
-<li>能装大模型但 TG 不高 → capacity 与 bandwidth 是不同 roof。</li>
-<li>PP 弱 → 看 Metal kernel/FA/tensor path。</li>
-<li>长 context 开始挤压系统 → KV/working-set pressure。</li>
-</ul>
-
-<h2>5. Neural Engine 边界</h2>
-<p>Metal GPU benchmark 不自动代表 ANE。M5 GPU Neural Accelerator 也必须有 runtime/kernel Evidence。</p>
-
-<section class="student-closure">
-<h2>学生闭环 — Apple Metal</h2>
-<div class="callout">
-<p><strong>硬件门槛：</strong>L0 preflight；有对应硬件时 L1/L2 做真机增强。</p>
-<p><strong>成本：</strong>0 元主路径，不要求集齐四个生态。</p>
-<p><strong>风险：</strong>safe；只做 build/device/runtime 检查和 benchmark。</p>
-<p><strong>替代路径：</strong>没有 Apple Metal 硬件就只做 Experiment 41 的 preflight，并用已有 Evidence/官方资料完成生态映射。</p>
-</div>
-<h3>能力目标</h3>
-<ul>
-<li>把 hardware identity、driver/runtime、backend build、model artifact、execution config 分层记录。</li>
-<li>把同一 benchmark contract 迁移到 Apple Metal，只替换厂商特有的 discovery/build 命令。</li>
-<li>知道“能运行”与“使用预期加速路径”是两个不同结论。</li>
-</ul>
-<h3>小实验 / 反馈</h3>
-<p>做 <a href="../../labs/experiments/41-vendor-capstone-preflight/README.md">Experiment 41：vendor capstone preflight</a>。真机时再把对应厂商的 exact version / device / backend log 填进 Experiment Card。</p>
-<h3>Retrieval Practice</h3>
-<ol><li>为什么 Unified Memory 让“CPU offload vs GPU VRAM”这套离散卡语言需要改写？</li><li>Metal device 可见与 MLX/llama.cpp Metal backend 可用分别证明什么？</li><li>为什么 working-set headroom 要和模型文件大小分开？</li><li>Apple GPU/ANE 都存在时，为什么不能把两者性能混成一个 AI TOPS？</li></ol>
-<h3>完成证据</h3>
-<p>提交一张 Apple Metal evidence ladder：<strong>device identity → driver/runtime → backend build → model identity → exact argv → PP/TG/quality</strong>；每一层写“由什么命令或文件证明”。</p>
-<h3>如何迁移</h3>
-<p>四生态真正应该共用的是 Evidence 结构，而不是命令。换厂商后保持问题不变：<strong>我跑了谁、在哪跑、用什么路径、测了什么、什么仍未知</strong>。</p>
-<h3>Primary Sources / Reference</h3>
-<ul><li><a href="https://developer.apple.com/documentation/metal/setting-resource-storage-modes">Apple Metal — Resource Storage Modes</a></li><li><a href="https://ml-explore.github.io/mlx/">MLX Documentation</a></li><li><a href="../../reference/system/vendor-capstone-runbooks.md">Course Reference — Vendor Capstone Runbooks</a></li></ul>
-</section>
-</body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vendor Capstone：Apple / Metal / MLX</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Vendor Capstone · Apple · L0→L2</p><h1>Apple / Metal / MLX 实战闭环：从统一内存预算到真实 LLM GPU 路径</h1><p class="lead">Apple Silicon 的 capstone 不需要先学会写 Metal shader。你要能证明：模型 fit 在统一内存内、目标 runtime 确实利用 GPU/Metal、memory pressure 可接受、PP/TG/质量可复现，并知道 ANE 是否真的参与而不是凭 TOPS 猜。</p>
+<h2>Prerequisite Check</h2><p>完成 unified memory、Metal execution model、M-series/ANE/MLX 三节。你应能区分“容量”“带宽”“GPU”“ANE”“runtime”。</p>
+<h2>真实问题：为什么 Mac 上模型“一键能跑”仍不足以判断这台机器适不适合你？</h2><p>因为良好的应用体验可能把很多细节隐藏起来。你仍需要知道：</p><ul><li>模型权重/量化是什么；</li><li>统一内存还剩多少 headroom；</li><li>是否发生明显 swap/memory pressure；</li><li>MLX/llama.cpp 等 runtime 使用什么 device/backend；</li><li>PP 与 TG 谁是瓶颈；</li><li>长时间运行是否热降频；</li><li>同样质量条件下性能如何。</li></ul>
+<h2>1. Apple evidence chain</h2><pre>exact Mac / SoC / memory capacity
+→ macOS + Metal capability
+→ application/runtime build
+→ GPU/Metal execution path
+→ model/quant + context
+→ memory pressure / swap
+→ PP/TG + quality
+→ energy/thermal if relevant</pre><p>与独显不同，Apple 路径还必须把系统共享内存压力纳入同一个 session。</p>
+<h2>2. Fit：先做统一内存预算</h2><p>记录：</p><pre>weights
++ KV cache
++ runtime buffers
++ macOS + background apps
++ concurrency
++ safety margin
+</pre><p>不要把 total unified memory 全部交给模型。一个“刚好加载”的配置在长上下文或同时开浏览器/IDE 时可能进入 memory pressure。</p>
+<h2>3. MLX / MLX-LM：怎样证明 GPU 在工作？</h2><p>使用 runtime/device selection、日志、Activity Monitor/Metal profiler（高级路径）与性能变化共同确认。不要仅用“CPU 没满”或“GPU history 有波动”作为唯一证据。</p><p>MLX 使用 lazy computation 时，还要确保 benchmark 真正触发 materialization/synchronization，否则只测到 dispatch/graph 构建时间。</p>
+<h2>4. llama.cpp / Metal path：为什么要与 MLX 分开记录？</h2><p>同一 Mac 上不同 runtime 可能使用不同模型格式、量化 kernel、buffer 组织和 sampling pipeline。比较时必须记录 runtime build 和 exact model artifact。</p><p>正确结论可以是：“在模型 A、量化 Q、context C、协议 P 下，runtime X 的 TG 比 Y 高。”不要泛化成“MLX 永远更快”或“llama.cpp 永远更省内存”。</p>
+<h2>5. ANE：什么时候可以写进证据？</h2><p>只有目标 framework/runtime 明确把相关 graph/operator 调度到 ANE，并能通过 profiler/runtime evidence 观察时。否则 ANE 只属于芯片能力背景，不能加进本次 LLM benchmark 的解释。</p>
+<h2>Worked Example：同一 32 GB Mac，短上下文正常，长上下文突然很慢</h2><pre>check model/quant unchanged
+→ inspect context / KV growth
+→ inspect memory pressure
+→ inspect swap
+→ inspect runtime allocation/cache
+→ compare TG before/after pressure
+→ reduce context or concurrency one variable at a time</pre><p>如果降低 context 后 swap 消失、TG/latency 恢复，容量压力是很强的解释候选；仍需记录系统状态，而不是说“Mac 用久了会变慢”。</p>
+<h2>6. Thermal / power：笔记本与桌面同 SoC 名称也可能不同</h2><p>持续 LLM workload 可能让无风扇/轻薄设备与主动散热桌面/高端笔记本出现不同稳态。测试要区分 cold burst 与 sustained run。</p><p>如果你关心移动使用，还应记录 wall/battery energy，而不只 token/s。</p>
+<h2>7. Benchmark protocol</h2><p>固定 model revision/artifact、quant、prompt/token identity、context、batch、runtime version、device selection、warmup/repetition。记录 unified-memory pressure 与 swap 状态。PP/TG 分开；跨 quant/runtime 比较加入固定质量任务。</p>
+<h2>Why it matters</h2><ul><li>Apple 的“好用”不能替代容量/性能证据，但确实减少某些部署摩擦。</li><li>统一内存让 memory pressure 成为 benchmark 环境的一部分。</li><li>MLX 与 Metal 是不同层，比较 runtime 要固定模型和协议。</li><li>ANE 只有被目标应用使用时才属于性能解释。</li><li>不可升级内存使购买前的 fit/headroom 规划尤其重要。</li></ul>
+<h2>常见误区</h2><ul><li>“Activity Monitor GPU 有波动 = 全部模型在 GPU”——证据太弱。</li><li>“MLX lazy，所以第一次命令很快 = kernel 很快”——可能尚未同步执行。</li><li>“ANE TOPS 高 = LLM 自动上 ANE”——必须有 runtime path。</li><li>“总内存够 = 不会 swap”——系统/其他进程也使用内存。</li><li>“同芯片不同机型 sustained performance 一样”——散热/功耗可不同。</li></ul>
+<h2>实践路径</h2><p>作者阶段准备 model-fit worksheet、MLX/llama.cpp 固定协议和 evidence template。以后你上课时有 Mac 就依次跑：memory budget → tiny model → target model → context sweep → PP/TG → quality → sustained run。</p>
+<h3>无 Mac</h3><p>L0：使用官方 Metal/MLX 文档完成 evidence-chain 和 memory-budget 练习。不要购买硬件只为过课。</p>
+<h2>排错树</h2><pre>model loads?
+ no → fit / format / runtime
+ yes → expected GPU path active?
+        no → device/backend/config
+        yes → memory pressure high?
+              yes → context/concurrency/headroom
+              no → PP vs TG / thermal / kernel / host</pre>
+<h2>Retrieval Practice</h2><ol><li>Apple benchmark 为什么要记录 memory pressure/swap？</li><li>MLX lazy execution 会怎样污染错误的计时方法？</li><li>为什么 MLX 与 llama.cpp 比较必须记录 exact model/quant/runtime？</li><li>什么时候 ANE 可以写进 LLM 性能解释？</li><li>短上下文快、长上下文慢时为什么先检查 KV 与 memory pressure？</li><li>为什么 sustained run 对无风扇/轻薄设备特别重要？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>Apple 本地 LLM 结论必须绑定 exact SoC/memory + runtime + model/quant + context + memory-pressure state。总内存、GPU core、ANE TOPS 任一单项都不能成为购买分数。</p></div>
+<h2>Transfer</h2><p>统一内存系统的“系统竞争 + workload memory budget”思维可迁移到 APU/共享 HBM 系统；lazy execution/异步计时问题也可迁移到 CUDA/HIP，需要显式同步才能得到可信时间。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="https://github.com/ml-explore/mlx">MLX</a></li><li><a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a></li><li><a href="../../reference/gpu/apple-silicon-spine.md">Apple Silicon Course Reference</a></li></ul>
+</main></body></html>
