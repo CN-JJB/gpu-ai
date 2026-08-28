@@ -1,221 +1,35 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Benchmark Manifest：给每个跑分一张身份证</title>
-<link rel="stylesheet" href="../../assets/course.css">
-<style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style>
-</head><body>
-<h1>Benchmark Manifest — 给每个跑分一张身份证</h1>
-
-<h2>1. “30 tok/s”几乎什么都没告诉你</h2>
-
-<p>至少还缺：</p>
-
-<pre>
-哪张 GPU？
-哪个 runtime commit？
-哪份 GGUF？
-什么 quant？
-多少 PP/TG？
-什么 context？
-哪个 prompt token 序列？
-什么 sampler？
-质量有没有退化？
-</pre>
-
-<p>所以我们把这些合成一个 machine-readable manifest。</p>
-
-<h2>2. Manifest 分三层</h2>
-
-<pre>
-fixed
-variant
-audit
-</pre>
-
-<p><strong>fixed</strong>：这轮 A/B 绝对不能偷偷变的实验协议。</p>
-
-<p><strong>variant</strong>：真正允许被比较的语义块。</p>
-
-<p><strong>audit</strong>：命令、raw 文件路径、时间戳等审计记录。</p>
-
-<h2>3. 为什么不能简单规定 model SHA 一样？</h2>
-
-<p>如果实验是：</p>
-
-<pre>
-Q8_0
-→
-Q4_K_M
-</pre>
-
-<p>GGUF 本来就不同：</p>
-
-<pre>
-SHA different
-bytes different
-quant different
-</pre>
-
-<p>但这三项其实是一个语义干预：</p>
-
-<pre>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Benchmark Manifest：固定协议与语义变量</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
+<p class="kicker">Benchmark Discipline · L0→L2</p><h1>Benchmark Manifest：把“我跑了个测试”变成可复现证据</h1><p class="lead">一个 token/s 数字几乎没有上下文。Manifest 的作用，是把硬件、模型、runtime、执行设置、prompt、协议、质量身份与唯一 intentional variable 固定下来，使未来的你能回答：这个数字到底代表什么？</p>
+<h2>Prerequisite Check</h2><p>你应理解一次只改一个语义变量、PP/TG、model artifact、prompt token identity 和 quality gate。</p>
+<h2>真实问题：为什么两张“同一模型同一 3090”的 benchmark 仍可能不可比？</h2><p>因为它们可能使用不同 llama.cpp commit、quant 文件、context、prompt token 数、GPU layers、flash attention、KV type、thread count、power limit、warmup 与重复次数。</p>
+<h2>1. Manifest 的四层</h2><pre>fixed protocol
++ exact identities
++ variant blocks
++ audit links</pre><p>固定协议描述比较规则；identity 绑定实际对象；variant 记录硬件/runtime/model/execution/prompt；audit 指向原始命令与结果。</p>
+<h2>2. Exact identity：名字不是证据</h2><p>应优先保存：</p><ul><li>GPU device identity/profile hash；</li><li>model artifact SHA/bytes/source revision/quant；</li><li>runtime commit/version/backend/build；</li><li>prompt rendered/token-ID hash；</li><li>quality corpus/identity hash。</li></ul><p>“RTX 3090 + Qwen 8B + llama.cpp”太粗，无法排除多个实际对象。</p>
+<h2>3. Protocol：在看到结果前冻结</h2><p>例如：</p><pre>PP tokens = 512
+TG tokens = 128
+warmup = 1
+repetitions = 5
+quality corpus = exact SHA
+</pre><p>先定义协议再测试，减少为了得到好看的结果临时改参数。</p>
+<h2>4. Intentional variable：写语义路径，不只写备注</h2><p>例如：</p><pre>variant.execution.flash_attention
+variant.execution.kv_k
 variant.model
-</pre>
-
-<div class="callout"><strong>“一次只改一个变量”应该理解为一个实验语义变量，而不是永远只能改 JSON 的一个叶子。</strong></div>
-
-<h2>4. FlashAttention 又可以更严格</h2>
-
-<pre>
-intentional_variable
-=
-variant.execution.flash_attention
-</pre>
-
-<p>这时 validator 只允许这个 leaf 改。</p>
-
-<h2>5. Quant A/B</h2>
-
-<pre>
-intentional_variable
-=
-variant.model
-</pre>
-
-<p>允许：</p>
-
-<pre>
-artifact_sha256
-artifact_bytes
-quant
-</pre>
-
-<p>一起改变。</p>
-
-<p>但如果 Prompt token hash 也变：</p>
-
-<pre>
-FAIL
-</pre>
-
-<h2>6. 为什么 Prompt 必须进身份证？</h2>
-
-<p>Slice 31 已经证明：</p>
-
-<pre>
-same visible text
-!=
-same token IDs
-</pre>
-
-<p>所以真正冻结：</p>
-
-<pre>
-token_ids_sha256
-token_count
-</pre>
-
-<p>最好再保存 messages/template/rendered hashes。</p>
-
-<h2>7. Quality corpus 也必须冻结</h2>
-
-<p>如果 candidate 偷换成更简单的 corpus：</p>
-
-<pre>
-candidate PPL 看起来更好
-</pre>
-
-<p>这种质量 A/B 完全无效。</p>
-
-<p>所以：</p>
-
-<pre>
-fixed.quality_eval
-</pre>
-
-<p>不允许随 candidate 改。</p>
-
-<h2>8. Hardware A/B 怎么办？</h2>
-
-<pre>
-intentional_variable
-=
+variant.runtime
 variant.hardware
-</pre>
-
-<p>理想情况下其余全部相同。</p>
-
-<p>但跨 NVIDIA / AMD 时 backend 也必须变怎么办？</p>
-
-<p>那就诚实叫：</p>
-
-<pre>
-system comparison
-</pre>
-
-<p>不要硬冒充 one-variable causal A/B。</p>
-
-<h2>9. Validator 能证明什么？</h2>
-
-<p>它能证明 manifest 层面：</p>
-
-<pre>
-只有声明的语义变量变了
-</pre>
-
-<p>它不能证明：</p>
-
-<pre>
-温度一样
-后台进程一样
-数据没造假
-benchmark 没 bug
-</pre>
-
-<p>所以它是实验纪律工具，不是真相机器。</p>
-
-<h2>10. Evidence Packet</h2>
-
-<p>最后把：</p>
-
-<pre>
-manifest
-profile
-prompt manifest
-raw PP/TG
-telemetry
-quality log
-comparison
-</pre>
-
-<p>全部做 SHA256 索引。</p>
-
-<p>以后哪怕半年后，你还能知道这组结论到底来自哪批原始文件。</p>
-
-<h2>11. 从现在开始的课程实验标准</h2>
-
-<pre>
-结果
-+
-身份
-+
-原始证据
-+
-质量门
-=
-可复现结论
-</pre>
-
-<section class="student-closure">
-<h2>学生闭环 — Benchmark / Workload Manifest</h2>
-<div class="callout"><p><strong>硬件门槛：</strong>L0 主路径；真实模型/硬件只用于增强。</p><p><strong>成本：</strong>0 元。</p><p><strong>风险：</strong>safe。</p></div>
-<h3>能力目标</h3><ul><li>把“模型/输入/质量/benchmark 身份”变成可审计对象。</li><li>能指出公式或配置的适用边界，不把近似写成事实。</li><li>为后续硬件选择提供可重复的 workload contract。</li></ul>
-<h3>小实验 / 反馈</h3><p>做 <a href="../../labs/experiments/60-benchmark-manifest-validator/README.md">Experiment 60：manifest validator</a>；真实硬件时做 <a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61：real Evidence Packet</a>。</p>
-<h3>Retrieval Practice</h3><ol><li>什么叫 semantic variable，而不是“命令行恰好只改一个 token”？</li><li>为什么 model SHA、runtime build、prompt token identity 都应该进入 manifest？</li><li>A/B 两边同时换 model 和 backend 时还能归因给谁？</li><li>PACKET 的 hash 能证明文件没变，但不能证明哪些事情？</li></ol>
-<h3>完成证据</h3><p>写一对 baseline/candidate manifest，明确 comparison_id、intentional_variable、fixed fields、raw evidence paths；让 validator 能指出任何意外多变量变化。</p>
-<h3>如何选择 / 迁移</h3><p>遇到新模型或新 backend 时，优先冻结 <strong>身份 + 输入 + protocol</strong>，再谈性能或质量；不可比的数据宁可 BLOCKED，也不要硬排排行榜。</p>
-<h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md">llama.cpp — llama-bench</a></li><li><a href="../../reference/system/benchmark-workload-manifest.md">Course Reference — Benchmark / Workload Manifest</a></li></ul>
-</section>
-</body></html>
+</pre><p>如果比较的是 quant artifact，intentional variable 应落到 model；如果仅切 FA，则落到 execution。不同变量类型后续可使用不同质量归因路径。</p>
+<h2>5. Audit：为什么要保留 command.json 和 raw result？</h2><p>manifest 是声明，原始命令/输出是执行证据。只有二者绑定，才能检查“宣称的 model path 是否真的是命令里的 -m”“profile SHA 是否真对应文件”。</p>
+<h2>Worked Example：两个结果都是 50 TG/s</h2><p>A 使用 Q4、8k context；B 使用 Q6、2k context。单看 50 完全相等；manifest 告诉你它们不是同一 cohort，不能得出“Q4/Q6 一样快”。</p><p>真正可比的 A/B 应固定所有无关字段，只改变你想研究的变量。</p>
+<h2>6. System comparison：诚实承认不能单变量</h2><p>比较 3090 CUDA 与 7900 XTX ROCm 时，hardware、runtime/backend 同时变化。不要伪造因果归因；标为 system comparison，描述整个系统组合结果即可。</p>
+<h2>7. Synthetic 与 real</h2><p>Synthetic fixture 可以验证 schema、parser、gate，但不能进入真实 benchmark catalog。manifest 中的 synthetic/provenance 语义必须明确。</p>
+<h2>Why it matters</h2><ul><li>让 benchmark 可重跑、可审计。</li><li>避免不同模型/协议的数字被拼成排行榜。</li><li>支持自动 gate 与 comparison tooling。</li><li>让失败结果也保留完整上下文。</li></ul>
+<h2>常见误区</h2><ul><li>“命令行全贴了就够”——仍缺 artifact/profile/prompt/quality identity。</li><li>“型号相同就是同硬件条件”——power/thermal/profile 可不同。</li><li>“两个系统差异可以归因某一硬件 feature”——多变量 system comparison 不允许。</li><li>“Synthetic 通过 gate 就证明真实 GPU”——只证明工具行为。</li></ul>
+<h2>小实验</h2><p>从 Experiment 61 模板复制两份 manifest，设计一个 flash-attention A/B。逐字段标记 fixed / intentional variable / audit source。无 GPU 也能完成。</p>
+<h2>无硬件路径</h2><p>本课主要是实验设计。使用 fixture 即可学习 schema，不生成任何假的真实数据。</p>
+<h2>排错</h2><ul><li>validator 说多个字段变化：决定是修成单变量还是明确降级 system comparison。</li><li>artifact hash 对不上：不要改 manifest 假装匹配，重新确认文件。</li><li>prompt count 不同：回到 Experiment 57 固定 token identity。</li></ul>
+<h2>Retrieval Practice</h2><ol><li>Manifest 比单条 benchmark 数字多保存了哪些关键上下文？</li><li>为什么 protocol 应在看到结果前冻结？</li><li>intentional variable 为什么应该写语义路径？</li><li>manifest declaration 与 raw command evidence 各自证明什么？</li><li>什么时候必须标 system comparison？</li><li>Synthetic fixture 能证明什么、不能证明什么？</li></ol>
+<h2>Decision Rule</h2><div class="callout"><p>没有 exact identity + fixed protocol + raw audit evidence 的性能数字，不进入正式 comparison。多个语义块一起变化时只做 system comparison，不做单因素因果归因。</p></div>
+<h2>Transfer</h2><p>Manifest 思想同样适用于功耗、热稳态、二手验卡和服务 SLO：任何结果都应绑定“对象、条件、协议、原始证据”。</p>
+<h2>Primary Sources / Reference</h2><ul><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61</a></li><li><a href="../../tools/intelligence/README.md">Intelligence Tooling</a></li></ul>
+</main></body></html>
