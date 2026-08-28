@@ -16,16 +16,16 @@ v1 stable mainline complete
 ## Phase 4 frontier
 
 ~~~text
-I01–I22 implemented and CI verified
+I01–I23 implemented and CI verified
 ~~~
 
 ## Latest CI
 
 ~~~text
-run #86
-run id 33155742355
-head 99dc1d9326e2daca9095a249cf5fe06c4e25c542
-job id 98797950974
+run #93
+run id 33156449183
+head 19f67777035f90aec7062f9fb205729ddb568b0b
+job id 98800246711
 full SELFTEST: PASS
 market refresh SELFTEST: PASS
 ~~~
@@ -182,10 +182,28 @@ For non-synthetic intake:
 
 CI run #86 keeps full, capture, artifact and refresh tests green.
 
+## I23 command ↔ model binding
+
+For non-synthetic intake:
+
+```text
+I21 command.json exact argv
+↔ -m/--model path
+↔ I22 locally verified GGUF
+↔ manifest artifact identity
+↔ raw llama-bench model_size
+```
+
+command.json must itself be PACKET-indexed.
+
+A tampered argv plus freshly recomputed PACKET is still blocked.
+
+CI run #93 keeps full, capture, artifact, command-binding and refresh tests green.
+
 ## Next work
 
-1. Bind I21 command argv to the I22-verified artifact.
-2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22.
+1. Verify the hardware profile file against manifest profile_sha256 and PACKET.
+2. Acquire the first learner-owned real Experiment 61 packet through I21 → I07/I20/I22/I23.
 3. Use the market refresh helper for due/stale evidence and stronger RTX 3090 China evidence when auditable.
 4. No recommendation leaderboard yet.
 
