@@ -33,20 +33,8 @@ I13 sold-marked listing cohort
 I14 cross-market signal comparison
 I15 China secondary watch
 I16 stable M0–M3 market evidence selection gate
+I17 freshness-aware watchlist gate
 ```
-
-## Compatibility
-
-For Qwen3-8B + llama.cpp:
-
-```text
-RTX 3090 / CUDA   → NEEDS-TEST
-RX 7900 XTX / HIP → NEEDS-TEST
-M4 Max / Metal    → NEEDS-TEST
-Arc A770 / SYCL   → NEEDS-TEST
-```
-
-All are DOCUMENTED_SUPPORTED, not MEASURED_SUPPORTED.
 
 ## Benchmark boundary
 
@@ -67,87 +55,15 @@ Experiment 61 manifest
 → exact MEASURED_SUPPORTED
 ```
 
-## Market contracts
-
-### GLOBAL-EBAY active asks
+## Market evidence grades
 
 ```text
-MEDIAN_ASK / USD
-RTX 3090      1499
-RX 7900 XTX   1020
-Arc A770 16G   330
+SECONDARY_REPORTED        → M1
+MEDIAN_ASK                → M2
+SOLD_MARKED_LISTING_PRICE → M3
 ```
 
-Samples:
-
-```text
-3090      47 → BROAD-SAMPLE
-7900 XTX  23 → LIMITED-SAMPLE
-A770       8 → SMALL-SAMPLE
-```
-
-Grade:
-
-```text
-M2
-```
-
-### OfferUp SOLD-marked pages
-
-```text
-SOLD_MARKED_LISTING_PRICE / USD
-3090      median displayed 950
-7900 XTX  median displayed 700
-A770      median displayed 200
-```
-
-Every row remains:
-
-```text
-confirmed_transaction_price=false
-```
-
-Grade:
-
-```text
-M3
-```
-
-M3 is claim-scoped to the direct page state/displayed price; it does not prove the negotiated transaction amount.
-
-### China secondary watch
-
-```text
-SECONDARY_REPORTED / CNY
-3090 7400
-A770 1450
-```
-
-Both:
-
-```text
-direct_listing_capture=false
-confirmed_sale=false
-```
-
-Grade:
-
-```text
-M1
-```
-
-## I16 Experiment 38 bridge
-
-Stable market evidence grades are reused:
-
-```text
-M3 direct normalized platform evidence
-M2 transparent current secondary aggregation
-M1 weak/article summary
-M0 unknown
-```
-
-Current production count:
+Current counts:
 
 ```text
 M1=2
@@ -155,62 +71,117 @@ M2=3
 M3=9
 ```
 
-Experiment 38 bridge:
+M3 remains claim-scoped and does not imply a confirmed transaction amount.
+
+## Freshness-aware market eligibility
+
+I17 requires:
 
 ```text
-M0/M1 → NEEDS-STRONGER-MARKET-EVIDENCE
-M2/M3 → market-evidence component ELIGIBLE
+market grade
++
+freshness
 ```
 
-This does not satisfy FIT, SOFTWARE, PERFORMANCE, CONDITION or price-ceiling gates.
-
-## Full verification
-
-GitHub Actions run #48:
+Current mapping:
 
 ```text
-run id = 33137329016
-head = 097c8d4839314851e1f4b07267b3c7b2102d50e0
-job id = 98740118394
-Ubuntu 24.04.4
+CURRENT + M2/M3
+→ ELIGIBLE
+
+CURRENT + M0/M1
+→ NEEDS-STRONGER-MARKET-EVIDENCE
+
+DUE-TODAY
+→ REVALIDATE-NOW
+
+STALE
+→ STALE-REVALIDATE
+
+UNSCHEDULED / INVALID
+→ REVALIDATION-SCHEDULE-REQUIRED
+```
+
+Every real market record now requires revalidate_after.
+
+Experiment 38 was corrected so due-today/stale/unknown/invalid price evidence cannot remain BUY-CANDIDATE.
+
+## Experiment 38 deterministic test
+
+The CI self-test proves:
+
+```text
+CURRENT + PASS + M2 + C3 + under ceiling
+→ BUY-CANDIDATE
+
+DUE-TODAY
+→ NEEDS EVIDENCE
+
+STALE
+→ NEEDS EVIDENCE
+
+INVALID revalidate_after
+→ NEEDS EVIDENCE
+```
+
+## CI
+
+Latest verified Intelligence run:
+
+```text
+workflow: Intelligence Self-Test
+run #54
+run id 33137613634
+head bbf624e44579cbc765974bf8b5070330002f294e
+job id 98741045301
 Python 3.12.14
-conclusion = success
+Ubuntu 24.04.4
+conclusion success
 ```
 
-Executed:
-
-```bash
-python -m py_compile tools/intelligence/*.py
-python tools/intelligence/selftest.py
-```
-
-Result:
+Log:
 
 ```text
 SELFTEST: PASS
+- market evidence eligibility is freshness-aware and all real market rows require revalidation dates
+- Experiment 38 blocks due-today, stale and invalid market evidence from BUY-CANDIDATE
 ```
-
-This closes the previous I11–I16 full-Python verification debt.
 
 Evidence:
-- examples/evidence/intelligence-i01-i16-ci-selftest.md
-- examples/evidence/intelligence-16-market-evidence-selection-gate.md
+- examples/evidence/intelligence-17-freshness-aware-watchlist.md
 
-## Production catalog counts
+## Current production market signals
+
+### eBay active asks
 
 ```text
-hardware:       4
-models:         1
-runtimes:       1
-market:        14
-compatibility:  4
-real benchmark: 0
+RTX 3090      1499 USD
+RX 7900 XTX   1020 USD
+Arc A770       330 USD
 ```
+
+### OfferUp sold-marked displayed medians
+
+```text
+RTX 3090      950 USD
+RX 7900 XTX   700 USD
+Arc A770      200 USD
+```
+
+All nine OfferUp rows now revalidate on 2026-09-04.
+
+### China secondary watch
+
+```text
+RTX 3090 → 7400 CNY
+Arc A770 → 1450 CNY
+```
+
+The A770 2026-08-21 scalar observation reaches its revalidation boundary on 2026-08-28.
 
 ## Next
 
-1. Make Experiment 38/watchlist market evidence freshness-aware.
-2. Refresh due/stale market records through I10.
+1. I18: append a newer A770 China range observation without inventing a midpoint.
+2. Preserve observation history with explicit refresh lineage so old records do not remain forever in the active revalidation queue.
 3. Acquire first real Experiment 61 Evidence Packet.
-4. Add stronger direct/confirmed transaction evidence only if auditable.
-5. Delay ranking/recommendation until real benchmark + quality/SLO + feasibility Evidence exists.
+4. Delay ranking/recommendation until real benchmark + quality/SLO + feasibility Evidence exists.
