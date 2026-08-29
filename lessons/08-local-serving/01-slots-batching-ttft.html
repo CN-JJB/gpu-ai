@@ -328,5 +328,49 @@ continuous batching ON
 
 <p class="small">硬件门槛：L0 无需模型/GPU；真实 lab CPU-only 也可完成，GPU 路径用于更接近常见本地服务。Current CLI/metrics spelling 见 dated intelligence snapshot。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：Serving 的第一课是“单请求优化”与“多请求调度”分开</h2>
+<h3>Worked Example：两个用户为什么会互相影响</h3>
+<p>单用户时 GPU 可以把大部分资源用于一条 sequence；两个用户同时来，server 可能进行 batching 或轮流推进 decode：</p>
+<pre>user A token
+user B token
+user A token
+user B token
+...</pre>
+<p>aggregate throughput 可能提高，但每个用户 token 之间的间隔也可能变长。</p>
+
+<h3>Slot 是逻辑调度资源，不等于 GPU core</h3>
+<p>不同 server 对 slot/request/sequence 的定义不同。要理解它控制的是“同时有多少活动序列/请求”，而不是把硬件 SM/CU 平均切成几份。</p>
+
+<h3>Batching 的两种收益</h3>
+<ul>
+<li>Prefill：更大矩阵可能提高 compute utilization。</li>
+<li>Decode：把多个 sequence 的一步合并，有机会提高硬件利用率。</li>
+</ul>
+<p>但代价通常是更高 KV、调度开销和单用户 latency。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>并发从 1 增长时，总吞吐可能先升。</li>
+<li>继续加并发后，TTFT/ITL/p95 会恶化。</li>
+<li>显存/KV 可能成为比 compute 更早出现的硬门槛。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>固定 prompt/output 分布。</li>
+<li>确认并发是客户端并发还是 server active slots。</li>
+<li>同时记录总吞吐和每请求 latency。</li>
+<li>检查 queue 是否已在增长。</li>
+<li>检查 KV/VRAM 是否逼近上限。</li>
+</ol>
+
+<h3>无 server 环境怎么办？</h3>
+<p>用纸上时间线或小型并发模拟也能学会“queue / active / completion / batching”关系；不需要先拥有高端 GPU。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>Serving 优化不能只追 aggregate tokens/s。</strong>至少同时看用户 latency、queue、并发和 KV/VRAM。</div>
+</section>
 </body>
 </html>
