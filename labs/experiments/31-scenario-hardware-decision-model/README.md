@@ -82,3 +82,50 @@ Soft metrics：
 所有数值都是 teaching units。
 
 脚本训练的是决策顺序，而不是输出真实推荐。
+
+## Why this experiment
+
+“哪张卡最好”本身是个错误问题。硬件价值必须绑定 workload、容量、软件约束和个人成本。本实验让同一组 synthetic candidate 在两个场景中产生不同合法排序。
+
+## Hypothesis
+
+Hard gate 不通过的候选应先被淘汰；剩余候选才按场景权重比较。interactive 与 long_context 的优先级不同，因此排序可以变化。
+
+## Fixed variables
+
+候选数据固定，只改变 scenario。不要为某个候选临时修改 gate 或权重。
+
+## What to observe
+
+1. 哪些候选先因 capacity/software gate 被排除。
+2. 进入 soft ranking 的候选集合。
+3. interactive 与 long_context 排序为什么不同。
+4. memory margin、TG、TCO、risk/evidence 如何影响结果。
+5. hard gate 为什么不能被 soft score 抵消。
+
+## Troubleshooting
+
+- synthetic TG/PP 只是 teaching units。
+- normalized score 只在同一 scenario 内有意义。
+- scenario constraint 要先写，再看 candidate。
+- 如果 support state 是 community-enabled，是否可接受由你的 workload policy 决定。
+
+## Evidence to save
+
+保存两个 scenario 输出，写一张“同一 candidate 在两个场景为什么名次变化”的解释表。
+
+## What this proves
+
+你会先做 feasibility，再做场景化 tradeoff 排序。
+
+## What this does NOT prove
+
+它不是显卡天梯，也不推荐任何真实品牌/SKU。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+如果你的 workload 从短对话变成 64k context，为什么原本排名第一的 16GiB 新卡可能直接从排名里消失？
