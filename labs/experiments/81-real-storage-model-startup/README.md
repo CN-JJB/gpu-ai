@@ -154,3 +154,47 @@ that is evidence that storage/loading and steady decode are different bottleneck
 
 Use:
 `RESULT-TEMPLATE.md`.
+
+
+## Hypothesis
+
+同一模型经过一次相同文件访问后，后续读取/启动可能更快，但这只能证明“prior access 改变了状态”；没有额外证据时不能把差值全归因给 SSD 或把第一次叫严格 cold。
+
+## Fixed variables
+
+exact model、server binary、load mode 与机器状态尽量固定；不要在首轮前额外 hash 全文件把 page cache 预热。
+
+## What to observe
+
+- bounded read pass1/pass2；
+- fincore page residency（若可用）；
+- Experiment 73 的 first HTTP/ready/smoke；
+- prior file access 前后 startup 变化；
+- startup 改变时 steady PP/TG 是否保持独立。
+
+## Troubleshooting
+
+- hashing 本身会读文件并改变 page cache。
+- fincore 不等于 SSD controller cache/GPU residency。
+- mmap 可能延迟实际 page faults。
+- runtime flag 属动态事实，先查 --help。
+
+## Evidence to save
+
+保存 read probe JSON、fincore raw、restart-result、load-mode identity 和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能观察真实 file/page-cache 状态与模型启动时间之间的关系。
+
+## What this does NOT prove
+
+它不测纯 SSD 峰值，也不能把 startup 差异唯一归因于 storage。
+
+## No-hardware fallback
+
+没有可运行模型时完成 Experiment 80。
+
+## Transfer question
+
+第二次启动快很多，但 TG 完全不变。这个结果更支持“storage/loading 改变”还是“decode compute 变快”？
