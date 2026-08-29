@@ -2,6 +2,10 @@
 <p class="kicker">Vendor Capstone · NVIDIA · L0→L2</p><h1>NVIDIA / CUDA 实战闭环：从“系统看到显卡”到“LLM 证明确实在 GPU 上跑”</h1><p class="lead">本页不是安装命令抄写。真正目标是让你能独立证明一条 NVIDIA 本地 LLM 路径：硬件身份正确、driver/runtime 正常、应用 backend 正确、模型真实 offload、性能与质量有可复现记录。</p>
 <h2>Prerequisite Check</h2><p>完成 NVIDIA 架构主线，知道 SM/warp/Tensor Core 只是能力；知道 VRAM fit 与 backend support 要先于性能。</p>
 <h2>真实问题：为什么“nvidia-smi 能看到卡”仍然不足以证明 CUDA LLM 正常？</h2><p><code>nvidia-smi</code> 只能证明驱动栈能识别设备并暴露部分状态。应用还可能：</p><ul><li>根本没编 CUDA backend；</li><li>CUDA runtime/library version 不匹配；</li><li>模型格式对应 kernel 不支持；</li><li>只有部分 layers offload；</li><li>因 OOM/配置 fallback 到 CPU；</li><li>GPU 在工作，但瓶颈在 CPU/tokenization/storage。</li></ul>
+<figure class="visual">
+<img src="../../assets/diagrams/vendor-evidence-chain.svg" alt="NVIDIA CUDA、AMD ROCm HIP、Apple Metal MLX、Intel SYCL Level Zero 四条本地 LLM 路径共同遵循 hardware identity、driver runtime、application backend、kernel path、model config 和 measured evidence 的证据链">
+<figcaption>四家生态的名词不同，但排错结构相同：<strong>系统看见设备 → runtime 能用 → 应用 backend 启用 → 目标 kernel 生效 → model/config 固定 → benchmark 可复现</strong>。任何一层 UNKNOWN 都不能用品牌印象补上。</figcaption>
+</figure>
 <h2>1. 先画完整证据链</h2><pre>PCIe/device identity
 → NVIDIA driver
 → CUDA runtime/libraries
