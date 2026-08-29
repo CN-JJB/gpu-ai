@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 4：Ampere 与 Ada</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">NVIDIA Architecture · 4/5 · L0→L2</p><h1>NVIDIA 架构主线（四）：Ampere → Ada</h1><p class="lead">这是本地 LLM 玩家最常遇到的 NVIDIA 世代区间之一。重点不是背 RTX 型号，而是理解：Ampere 如何继续扩大矩阵/低精度能力并分化消费与数据中心产品，Ada 又如何在能效、cache、图形/AI 专用资源上继续演化；真正买卡时则必须回到具体 SKU 的显存、带宽、功耗与软件支持。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA 从 Tesla、Fermi、Kepler、Maxwell、Pascal、Volta、Turing、Ampere、Ada、Hopper 到 Blackwell 的课程架构演进地图">
+<figcaption>这张地图先固定<strong>代际位置与问题主线</strong>，再进入本页细节。不要跨代直接用 CUDA Core 数、Tensor Core 数或单一 TOPS 做比例换算；执行组织、数值路径、memory system 和软件生命周期都在变化。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>先能解释 Tensor Core 只是矩阵 datapath，且 token/s 可能受显存带宽而不是矩阵峰值限制。</p>
 <h2>真实问题：为什么 RTX 30/40 系“新一代更快”不能直接回答本地 LLM 买哪张？</h2><p>本地 LLM 常先撞到显存容量 hard gate。一个更先进但显存更小的 SKU，可能根本放不下目标模型；一张较旧但 24 GB 的卡可能因为容量与带宽仍有独特价值。架构和 SKU 必须分开分析。</p>
 <h2>1. Ampere：矩阵路径继续扩大，但 family 内部分化非常重要</h2><p>Ampere 同时覆盖消费 RTX 与数据中心加速器。它延续 Tensor Core 路线，并在不同产品上提供不同的数值、memory、互联和可靠性组合。学习 Ampere 最重要的不是把某个白皮书参数套到所有 GA10x/GA100 产品，而是养成“family → die → SKU”的层级意识。</p>
