@@ -8,6 +8,10 @@ V = X Wv
 
 head_i = softmax(Q_i K_i^T / sqrt(d)) V_i
 </pre><p>最后多个 head 拼接/投影回 hidden size。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/mha-gqa-mqa.svg" alt="MHA、GQA、MQA 中多个 Query heads 与 KV heads 的共享关系对比，展示从每个 Query head 独立 KV 到分组共享再到全部共享">
+<figcaption>对本地 LLM 最关键的是右半句话：<strong>历史 token 要保存几组 K/V。</strong> 在其他条件相同时，KV cache 大小近似与 <code>kv_heads</code> 成正比。</figcaption>
+</figure>
 <h2>2. MHA 的 KV cache 成本</h2><p>decode 时历史 query 不需要保存，但历史 K/V 需要保存。因此 KV bytes 的主要结构可以写成：</p><pre>KV bytes ≈
 2 (K and V)
 × layers
