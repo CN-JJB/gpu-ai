@@ -244,3 +244,49 @@ These paths produce reproducible descriptive tradeoff evidence only. They do not
 ## No fake results
 
 This lab ships with no model PPL or task scores.
+
+
+## Hypothesis
+
+性能优化/量化只有在 fixed quality identity 下通过质量 gate，才有资格进入性能×质量 tradeoff；不同 tokenizer/corpus/eval argv 的 PPL 不能直接比较。
+
+## Fixed variables
+
+同一 quality A/B 固定 tokenizer、corpus SHA、fixture revision、quality executable/build 与协议；model-artifact 或 execution-variable 变化必须走各自明确的比较合同。
+
+## What to observe
+
+- sealed exact argv 与 raw stdout/stderr；
+- unique Final estimate PPL；
+- baseline/candidate PPL delta/ratio；
+- corpus/tokenizer/evaluation identity equality；
+- performance change 与 quality change 是否方向一致；
+- target-task fixture 与 generic PPL 的互补性。
+
+## Troubleshooting
+
+- 不同 tokenizer/corpus 的 PPL 不可直接排名。
+- ambiguous/chunk-only PPL output 应 BLOCKED，不猜。
+- execution-variable quality A/B 必须有显式 argv mapping contract。
+- PPL descriptive difference 不自动等于统计显著性或用户任务质量差异。
+- KL/logit 路径磁盘成本高，不作为默认 beginner path。
+
+## Evidence to save
+
+保存 corpus/identity、quality command record、raw streams、PACKET、quality-metric、comparison artifact、target-task results 与对应 hashes。
+
+## What this proves
+
+你能为一个真实 model/quant/backend comparison 建立可复现质量证据，并把它与性能分开审查。
+
+## What this does NOT prove
+
+PPL 不是万能质量分数，单一 corpus 也不能代替你的真实任务。
+
+## No-hardware fallback
+
+完成 Experiment 58；真实 PPL 在有模型/runtime 时执行，GPU 不是绝对必需。
+
+## Transfer question
+
+Q4 TG 提升 25%，但 PPL 变差且你的 JSON task fixture 失败。为什么“更快”不能自动通过 release gate？
