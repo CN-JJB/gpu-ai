@@ -311,6 +311,17 @@ generated tokens
 reject rate
 queue wait</pre>
 
+
+<h3>Troubleshooting：一个 tenant 还是被饿死怎么办？</h3>
+<ol>
+<li>先按 tenant 分开看 queue wait、TTFT/E2E、completed requests、generated tokens 与 active time，不要只看 global p95。</li>
+<li>检查是不是长 output、长 context 或高并发把“请求数公平”变成了资源占用不公平。</li>
+<li>把 output 上限或 workload 暂时归一化做对照；如果差距明显缩小，说明问题更接近工作量差异，而不是网络或 GPU 故障。</li>
+<li>检查 quota 是否只限制 admission，却没有防止长期占 slot/KV；再看 borrowing 是否在无竞争时释放空闲容量。</li>
+<li>如果 priority tenant 持续有流量，验证低优先级是否存在最低服务份额或 aging；没有的话，starvation 不是偶发现象，而是 policy 允许的结果。</li>
+</ol>
+<p>任何修改都要同时复查 per-tenant SLO 与整体利用率；“让 B 变快”若只是把 GPU 长期闲置，也可能不是你要的最终策略。</p>
+
 <h3>Decision Rule</h3>
 <div class="callout"><strong>先说明“公平分什么”，再谈 quota。</strong>如果 workload 的资源成本差异很大，单一 request-count quota 几乎一定不够。</div>
 
