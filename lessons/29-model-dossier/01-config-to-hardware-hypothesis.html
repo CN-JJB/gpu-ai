@@ -13,6 +13,10 @@ format / quant / bytes / SHA / conversion source
 
 D. Runtime hypothesis
 fit / KV / likely bottleneck / backend support / unknowns</pre><p>先写事实，再写推论；事实和假设不要混在同一栏。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/model-dossier.svg" alt="Model Dossier 从 Identity、Architecture、Artifact 三类事实推导 weight 和 KV 预算，再生成 Fit、PP、TG、Quality、Support 假设并保留 Unknown 的流程">
+<figcaption>Dossier 不是规格抄写表，而是<strong>事实 → 派生预算 → 可被推翻的硬件假设</strong>。任何缺失字段都应保留为 UNKNOWN，而不是用同尺寸模型经验代填。</figcaption>
+</figure>
 <h2>2. Identity：名字不是 revision</h2><p>同一个模型名可能有 base/instruct、不同 revision、重新量化、社区 conversion。至少记录：</p><ul><li>原始模型仓库/官方标识；</li><li>base vs instruct；</li><li>source revision/commit（能确认时）；</li><li>tokenizer/chat template；</li><li>转换/量化来源；</li><li>本地 artifact SHA。</li></ul><p>否则以后质量差异可能只是“拿错模型”。</p>
 <h2>3. Dense architecture：先读这些字段</h2><table><tr><th>字段</th><th>主要影响</th></tr><tr><td>num_hidden_layers</td><td>每 token 重复 block 次数、KV 层数</td></tr><tr><td>hidden_size</td><td>attention/FFN 矩阵宽度</td></tr><tr><td>intermediate_size</td><td>FFN 参数与计算</td></tr><tr><td>num_attention_heads</td><td>Q 结构/并行组织</td></tr><tr><td>num_key_value_heads</td><td>KV cache 大小与 decode traffic</td></tr><tr><td>vocab_size</td><td>embedding/output projection</td></tr><tr><td>max/context + rope</td><td>合法 context 与位置语义</td></tr></table>
 <h2>4. 参数量粗算：不是为了取代官方数字</h2><p>你可以用结构粗算来检查“这个 config 是否看起来合理”，例如 dense SwiGLU 每层 FFN 约 3HI；attention 投影按 Q/K/V/O shape 估算；再乘层数并加 embedding。</p><p>用途是理解参数分布和发现异常，不是追求一位不差复算模型总参数。</p>
