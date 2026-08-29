@@ -287,6 +287,18 @@ dust/filter resistance</pre>
 <h3>安全边界</h3>
 <p>课程默认只做正常负载、只读 telemetry 与厂商允许的普通设置。不开盖带电操作，不用极端 power/voltage 设置来“证明稳定”。</p>
 
+
+<h3>Troubleshooting：持续性能下降时怎么区分热、功率和 workload？</h3>
+<ol>
+<li><strong>先确认 workload 没变：</strong>固定模型、量化、prompt/output 长度、batch/concurrency 与 runtime 参数。</li>
+<li><strong>对齐时间线：</strong>同时记录 tok/s、temperature、clock、power 与错误信号，观察性能下降发生在谁之前、谁之后。</li>
+<li><strong>温度升高 + clock 下降：</strong>把 thermal limit 作为待验证假设，但仍检查 power limit、fan behavior 和环境温度。</li>
+<li><strong>clock 下降但温度不高：</strong>优先检查 power/voltage policy、负载阶段变化或系统级限制，不要直接下“散热差”结论。</li>
+<li><strong>温度高但性能稳定：</strong>这证明的是当前测试窗口内未观察到明显 drift，不代表温度“安全”；温度上限仍以具体硬件厂商规范为边界。</li>
+<li><strong>出现异常错误、异味、风扇失效或不可解释的不稳定：</strong>停止负载并回到安全检查，不通过“继续烤一会儿”来验证硬件。</li>
+</ol>
+<p>最终 Evidence 应能回答：性能何时进入 steady state、是否持续漂移、漂移与哪些遥测同步，以及你<strong>没有证明</strong>哪些根因。</p>
+
 <h3>Decision Rule</h3>
 <div class="callout"><strong>热验收看“经过足够 warmup 后的 TG/clock/temperature 是否进入稳定区间”，而不是追求一个通用温度数字。</strong></div>
 
