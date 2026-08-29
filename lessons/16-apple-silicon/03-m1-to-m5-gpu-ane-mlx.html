@@ -1,10 +1,22 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Apple Silicon 3：M1 到 M5、GPU、ANE 与 MLX</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">Apple Silicon · 3/3 · L0→L2</p><h1>Apple Silicon（三）：M1 → M5，GPU / ANE / MLX 到底怎样影响本地 LLM？</h1><p class="lead">Apple Silicon 的购买讨论经常把 CPU core、GPU core、Neural Engine TOPS、统一内存容量和带宽混成一个“芯片强不强”的问题。本节要把它们拆开，并建立不会被下一代 M 芯片打乱的阅读框架。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/apple-silicon-generation-map.svg" alt="Apple Silicon 从 M1 到 M5 按 unified memory、GPU、Neural Engine 与 software path 四条线阅读的架构地图">
+<figcaption>Apple Silicon 最容易被一个“总内存”或“AI TOPS”数字带偏。课程固定同时看四条线：<strong>统一内存容量/带宽、GPU 路径、Neural Engine/AI 专用路径、runtime 能否真正调用</strong>。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应理解 unified memory 是整机共享资源，也能解释 Metal 的 threadgroup/SIMD-group。无需懂 Core ML 或 MLX API。</p>
 <h2>真实问题：为什么 M 系列芯片上的 Neural Engine 很强，很多本地 LLM 却主要跑 GPU？</h2><p>“芯片上有某个 AI accelerator”不代表任意 LLM runtime 都能把模型映射过去。运行路径取决于 framework、operator coverage、model format、dynamic shape、memory access 和公开 API。MLX 的核心定位是 Apple Silicon 上的机器学习 array framework，并可利用 GPU/Metal；MLX-LM 则在其上提供 LLM 生成与微调工具。ANE 通常通过 Core ML 等体系服务支持的模型图，而不是自动接管所有 llama.cpp/MLX workload。</p>
 <h2>1. M 系列应该拆成哪些规格？</h2><table><tr><th>维度</th><th>为什么单独看</th></tr><tr><td>CPU</td><td>tokenization、sampling、host scheduling、非 GPU operator</td></tr><tr><td>GPU</td><td>主要矩阵/向量 kernel、Metal compute</td></tr><tr><td>Unified memory capacity</td><td>模型 + KV + runtime + 系统是否 fit</td></tr><tr><td>Memory bandwidth</td><td>小 batch decode 的重要 roof 之一</td></tr><tr><td>ANE</td><td>Core ML/支持图中的神经网络专用加速</td></tr><tr><td>Media engines</td><td>视频 workload，与纯文本 LLM 不同</td></tr><tr><td>SoC power/thermal</td><td>持续性能、噪声、笔记本/桌面差异</td></tr></table>
 <h2>2. M1→M5：正确的代际阅读方法</h2><p>不要背“每代快百分之几”。新一代发布后，用固定模板重新填：</p><ol><li>可选 unified-memory 容量档位改变了吗？</li><li>对应 SKU 的 memory bandwidth 是多少？</li><li>GPU family/feature 与核心规模怎样变化？</li><li>ANE/AI feature 是否增加，但目标 runtime 能否使用？</li><li>封装/Ultra/Max/Pro 等 SKU 是否改变 memory/compute 规模？</li><li>目标 macOS/Metal/MLX 版本的 current support 怎样？</li><li>真实目标模型的 PP/TG/功耗/内存压力是多少？</li></ol><p>这样 M6/M7 出现时，教材仍然有效。</p>
 <h2>3. “GPU core 数”为什么不能跨 M 系列简单比较？</h2><p>GPU core 是产品规格的一部分，但每代 GPU family 的 datapath、cache、frequency、memory bandwidth 与 feature 可能变化。即使 core 数相同，实际吞吐也不是固定比例。</p><p>更重要的是，LLM 的瓶颈可能根本不在 shader arithmetic：当 decode 主要受 memory bandwidth 限制时，多 GPU core 的边际收益会下降。</p>
+<h2>当前 M5 更新：GPU core 内也出现 Neural Accelerator</h2>
+<p>M5 让一个旧的二分法需要升级：以前我们常把“GPU 路径”和“Neural Engine 路径”分开讲；Apple 在 M5 的 GPU architecture 中又加入了<strong>每个 GPU core 内的 Neural Accelerator</strong>。这不是把独立的 16-core Neural Engine 取消掉，而是说明 AI 专用能力现在也进入 GPU datapath 本身。</p>
+<div class="grid">
+<div class="card"><h3>GPU general compute</h3><p>Metal/MLX/LLM kernel 仍可能走常规 GPU compute、memory 与 shader/matrix 路径。</p></div>
+<div class="card"><h3>GPU Neural Accelerator</h3><p>M5 新 GPU architecture 的专用 AI 能力；是否受益仍取决于 framework/kernel 是否映射到对应路径。</p></div>
+<div class="card"><h3>Neural Engine</h3><p>SoC 中独立的 neural accelerator，继续通过支持它的 framework/operator graph 发挥作用。</p></div>
+</div>
+<p>M5 Pro/Max 继续使用这一代 GPU architecture，并进一步提高 unified-memory bandwidth。对本地 LLM 的长期判断仍然不变：<strong>不要从“芯片有某个 AI 单元”直接跳到“我的 runtime 会自动使用它”。</strong></p>
 <h2>4. ANE：把“AI TOPS”放回正确位置</h2><p>ANE 是 SoC 中的专用 neural accelerator。正确的问题不是“TOPS 有多少”，而是：</p><pre>target model
 → can framework convert/partition it?
 → are required operators supported?
@@ -34,5 +46,5 @@
 </ul>
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
-<h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="https://github.com/ml-explore/mlx">Apple ML Research — MLX</a></li><li><a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a></li><li><a href="../../reference/gpu/apple-silicon-unified-memory-metal.md">Apple Silicon Course Reference</a></li></ul>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="https://www.apple.com/newsroom/2025/10/apple-unleashes-m5-the-next-big-leap-in-ai-performance-for-apple-silicon/">Apple Newsroom — M5 architecture / GPU Neural Accelerators</a></li><li><a href="https://www.apple.com/newsroom/2026/03/apple-introduces-macbook-pro-with-all-new-m5-pro-and-m5-max/">Apple Newsroom — M5 Pro / M5 Max</a></li><li><a href="https://github.com/ml-explore/mlx">Apple ML Research — MLX</a></li><li><a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a></li><li><a href="../../reference/gpu/apple-silicon-unified-memory-metal.md">Apple Silicon Course Reference</a></li></ul>
 </main></body></html>
