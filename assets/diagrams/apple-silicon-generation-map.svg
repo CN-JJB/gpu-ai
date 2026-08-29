@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 520" role="img" aria-labelledby="title desc">
+<title id="title">Apple Silicon M1 到 M5 的本地 LLM 阅读地图</title>
+<desc id="desc">以统一内存、GPU、神经网络加速和软件路径四个维度阅读M1到M5，而不是只比较GPU core数量或Neural Engine TOPS。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.node{fill:#fff;stroke:#555;stroke-width:2}.lane{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<text class="h" x="35" y="38">M1 → M5：不要问“哪代 TOPS 大”，要同时追四条线</text>
+<path class="line" d="M105 105 H1035"/>
+<g>
+<rect class="node" x="65" y="72" width="100" height="66" rx="12"/><text x="115" y="101" text-anchor="middle" font-size="18" font-weight="700">M1</text><text class="s" x="115" y="121" text-anchor="middle">统一 SoC 基线</text>
+<rect class="node" x="285" y="72" width="100" height="66" rx="12"/><text x="335" y="101" text-anchor="middle" font-size="18" font-weight="700">M2</text><text class="s" x="335" y="121" text-anchor="middle">规模 / 带宽演进</text>
+<rect class="node" x="505" y="72" width="100" height="66" rx="12"/><text x="555" y="101" text-anchor="middle" font-size="18" font-weight="700">M3</text><text class="s" x="555" y="121" text-anchor="middle">GPU 新特性</text>
+<rect class="node" x="725" y="72" width="100" height="66" rx="12"/><text x="775" y="101" text-anchor="middle" font-size="18" font-weight="700">M4</text><text class="s" x="775" y="121" text-anchor="middle">AI / memory 继续扩展</text>
+<rect class="node" x="945" y="72" width="100" height="66" rx="12"/><text x="995" y="101" text-anchor="middle" font-size="18" font-weight="700">M5</text><text class="s" x="995" y="121" text-anchor="middle">GPU Neural Accelerator</text>
+</g>
+<g transform="translate(70 185)">
+<rect class="lane" x="0" y="0" width="1000" height="62" rx="12"/><text x="22" y="27" font-size="16" font-weight="700">Unified memory</text><text class="t" x="185" y="27">capacity + bandwidth 决定模型/KV fit 与 decode roof</text><text class="s" x="185" y="48">共享物理内存 ≠ 无限容量；系统、display、runtime、swap 仍然占用</text>
+<rect class="lane" x="0" y="78" width="1000" height="62" rx="12"/><text x="22" y="105" font-size="16" font-weight="700">GPU</text><text class="t" x="185" y="105">Metal compute / shader architecture / cache / memory path</text><text class="s" x="185" y="126">M5 起 GPU core 内出现 Neural Accelerator；这仍属于 GPU 路径，不等于 ANE 自动接管</text>
+<rect class="lane" x="0" y="156" width="1000" height="62" rx="12"/><text x="22" y="183" font-size="16" font-weight="700">Neural Engine</text><text class="t" x="185" y="183">专用 neural accelerator，价值取决于 framework/operator coverage</text><text class="s" x="185" y="204">“芯片有 ANE”与“你的 llama.cpp / MLX workload 用到 ANE”是两个命题</text>
+<rect class="lane" x="0" y="234" width="1000" height="62" rx="12"/><text x="22" y="261" font-size="16" font-weight="700">Software</text><text class="t" x="185" y="261">Metal · MPS/Core ML · MLX/MLX-LM · llama.cpp 等路径各自验证</text><text class="s" x="185" y="282">同一硬件上的 backend/kernel coverage 可以比“代际”更影响真实 LLM 结果</text>
+</g>
+<text x="570" y="505" text-anchor="middle" class="t">购买判断 = 容量 × 带宽 × runtime fast path × sustained power/thermal；GPU core 数和 AI TOPS 都只是其中一列。</text>
+</svg>
