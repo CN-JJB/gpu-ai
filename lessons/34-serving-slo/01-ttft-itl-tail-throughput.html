@@ -5,6 +5,17 @@
 </head><body>
 <h1>Serving Workload / SLO — 为什么 100 tok/s 仍然可能很难用？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该已经能区分 <strong>Prefill</strong> 与 <strong>Decode</strong>，知道一次请求至少会经历 arrival、等待、开始计算、首 token、持续生成与完成几个阶段，并能读懂平均值和 p95 这类基本统计量。</p>
+<div class="callout"><strong>如果还不熟：</strong>先用这三个最小定义继续本节：Prefill = 处理输入上下文；Decode = 逐步生成后续 token；percentile = 描述分布尾部而不是只看平均值。你不需要先拥有多用户服务器，也可以用本节的 synthetic trace 完成主路径。</div>
+
+<h2>真实问题</h2>
+<p>你准备给本地 LLM 选 GPU、runtime 或并发配置。候选 A 在 benchmark 上能跑到更高的 aggregate tokens/s，于是看起来“更快”；但真实聊天时，用户经常要等几秒才看到第一个字。</p>
+<p>真正要回答的不是“谁的 tok/s 最大”，而是：<strong>在你的 workload 下，哪套配置能同时满足首字等待、持续输出、尾延迟和总吞吐的 SLO？</strong>如果这个问题说不清，单个吞吐数字还不足以支持买卡、升级或部署决策。</p>
+</section>
+
 <h2>1. Server 不是一个 tokens/s</h2>
 
 <p>用户真正经历：</p>
