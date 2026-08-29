@@ -147,5 +147,49 @@
 <li><a href="https://docs.vllm.ai/en/latest/features/quantization/">vLLM — Quantization</a></li>
 </ul>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：量化不是“把 16 bit 直接除成 4 bit”</h2>
+<h3>先区分三件事</h3>
+<pre>numeric precision
+quantization scheme
+file/runtime format</pre>
+<p>例如“4-bit”只说明了很粗的位宽层级；不同 group size、scale/zero-point、mixed precision、校准方法和 kernel 支持会让质量、速度、占用完全不同。</p>
+
+<h3>Worked Example：为什么更小 quant 不一定更快</h3>
+<p>假设 Q4 权重更小，但 backend 对某种 Q4 kernel 支持较差，需要额外 dequant/packing 开销；另一个 Q5 格式虽然更大，却有更成熟的 kernel。结果可能出现：</p>
+<pre>Q4: smaller file, slower TG
+Q5: larger file, faster TG</pre>
+<p>所以“位数更低 = 一定更快”是错误规则。</p>
+
+<h3>质量与性能要分开测</h3>
+<ul>
+<li>容量：模型能否 fit，留多少 KV/headroom。</li>
+<li>性能：PP/TG/TTFT。</li>
+<li>质量：固定 corpus / task 的 PPL 或任务结果。</li>
+</ul>
+<p>量化选择必须同时看三条轴。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>更低位宽通常显著减少权重占用。</li>
+<li>质量损失通常不是线性的，也不是所有层/模型一致。</li>
+<li>不同 backend/硬件对同一格式的速度支持可能差很大。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>确认 exact quant 名称和模型 artifact SHA。</li>
+<li>确认 runtime/backend 是否真的使用对应 kernel，而非 fallback。</li>
+<li>固定 prompt/context/threads/GPU offload 等条件。</li>
+<li>性能和质量分开记录，不能用“看起来回答还行”代替质量 gate。</li>
+</ol>
+
+<h3>无目标硬件怎么办？</h3>
+<p>可以先比较文件体积、格式元数据和公开 backend 支持，形成 hypothesis；只有真实 runtime benchmark 才能升级成性能结论。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>量化选择 = 容量 × 质量 × backend 实现。</strong>只根据“Q4/Q5/Q8”标签做硬件或模型决策，证据不足。</div>
+</section>
 </body>
 </html>
