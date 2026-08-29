@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Used GPU Validation</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>二手显卡验收 — “系统显示型号正常”为什么远远不够？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该知道二手 GPU 验收至少要分成 <strong>identity</strong>、<strong>link/path</strong>、<strong>functional load</strong>、<strong>sustained stability</strong> 与 <strong>acceptance decision</strong> 几个层次；型号字符串只能覆盖第一层的一小部分。</p>
+<div class="callout"><strong>如果还不熟：</strong>先写验收标准再测试。课程不要求拆卡、刷 BIOS、改电压或做其他高风险硬件改造；主路径只使用可逆、可记录、低风险的检查与负载。</div>
+
+<h2>真实问题</h2>
+<p>卖家说“点亮正常、驱动识别、跑分也有”，但你真正关心的是这张卡装进自己的本地 LLM 主机后，PCIe 链路、显存、持续负载、错误计数和稳定性是否都满足用途。</p>
+<p>真正的问题是：<strong>在付款或最终收货前，什么证据足以把一张二手卡从“看起来能用”推进到 PASS；出现哪些身份、链路、错误、温度或稳定性信号时必须 FAIL / UNKNOWN / BLOCKED？</strong>验收结论必须来自预先定义的标准，而不是测试后临时放宽。</p>
+</section>
+
 <h2>1. 先把卖家描述变成可检查的字段</h2>
 <pre>型号
 VRAM
