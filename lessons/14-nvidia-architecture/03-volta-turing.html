@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 3：Volta 与 Turing</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">NVIDIA Architecture · 3/5 · L0→L1</p><h1>NVIDIA 架构主线（三）：Volta → Turing</h1><p class="lead">从这一段开始，现代 AI GPU 的轮廓真正清晰：通用 CUDA 路径继续演化，同时加入专门的矩阵数据通路；图形产品又加入 RT 路径。理解这里，你才能正确阅读“Tensor Core”“混合精度”“INT8/INT4”“AI TOPS”这些后来被大量营销化的词。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA 从 Tesla、Fermi、Kepler、Maxwell、Pascal、Volta、Turing、Ampere、Ada、Hopper 到 Blackwell 的课程架构演进地图">
+<figcaption>这张地图先固定<strong>代际位置与问题主线</strong>，再进入本页细节。不要跨代直接用 CUDA Core 数、Tensor Core 数或单一 TOPS 做比例换算；执行组织、数值路径、memory system 和软件生命周期都在变化。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应能区分“数据格式”“理论吞吐”“应用是否有 kernel 命中”。如果不确定，回看 Maxwell/Pascal 的低精度部分。</p>
 <h2>真实问题：为什么 CUDA Core 很强还要另外做 Tensor Core？</h2><p>矩阵乘法由大量规则的乘加组成。通用执行资源能做，但如果一个 workload 长期、海量地重复同一种局部结构，就值得设计专门 datapath，用更少控制开销和更高数据复用完成更多乘加。</p><div class="callout"><strong>核心原则：</strong>Tensor Core 不是“另一块 GPU”，而是 SM 内针对矩阵乘加热点设计的专用执行路径。GPU 仍需要通用核心处理控制、非矩阵操作、地址计算、归约和大量辅助工作。</div>
 <h2>1. Volta：Tensor Core 把混合精度矩阵计算变成一等公民</h2><p>Volta 的突破是把 Tensor Core 作为明确的矩阵乘加资源加入 SM。学习时不要死背某个 tile 尺寸，而要理解数据流：</p><pre>lower-precision inputs
