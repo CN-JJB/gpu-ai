@@ -4,6 +4,10 @@
 <h1>NVIDIA 架构主线（一）：Tesla / G80 → Fermi → Kepler</h1>
 <p class="lead">这三代建立了今天 NVIDIA GPU 编程最底层的语言：统一可编程执行、SIMT、warp/SM、shared memory、cache、latency hiding、warp 内通信与并发工作队列。目标不是背年代，而是看清“现代 CUDA 为什么长成这样”。</p>
 
+<figure class="visual">
+<img src="../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA 从 Tesla、Fermi、Kepler、Maxwell、Pascal、Volta、Turing、Ampere、Ada、Hopper 到 Blackwell 的课程架构演进地图">
+<figcaption>这张地图先固定<strong>代际位置与问题主线</strong>，再进入本页细节。不要跨代直接用 CUDA Core 数、Tensor Core 数或单一 TOPS 做比例换算；执行组织、数值路径、memory system 和软件生命周期都在变化。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2>
 <ul><li>知道 GPU 从固定功能走向可编程/统一执行；如果不熟，先回到 Lesson 01。</li><li>不要求会 CUDA。看到 thread、warp、SM 时先把它们理解为“工作 → 成组调度 → 执行资源”的层级。</li></ul>
 
