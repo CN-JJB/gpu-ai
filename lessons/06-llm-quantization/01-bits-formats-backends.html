@@ -12,6 +12,7 @@
 <h1>“4-bit 模型”到底是什么意思？</h1>
 <p class="lead">你会同时看到 FP16、AWQ、GPTQ、GGUF、Q4、EXL2、bitsandbytes。最危险的学法，是把它们全记成“压模型的格式”。它们其实分属不同层。</p>
 
+<h2>Prerequisite Check</h2><p>你应能用 Lesson 05 做最基本的 weights + KV + buffer 内存预算，并知道 8 bit = 1 byte。建议同时完成 Foundation 02，理解 artifact bytes 与 SHA256；这样你不会把“Q4”文件名当作足够的模型身份。</p>
 <h2>真实问题</h2>
 <div class="callout"><p><strong>两个都写“4-bit”的模型，一个是 GGUF Q4，一个写 AWQ。为什么一个 llama.cpp 能跑，另一个要别的 backend？它们不是都 4-bit 吗？</strong></p></div>
 
