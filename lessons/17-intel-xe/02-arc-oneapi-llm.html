@@ -18,6 +18,10 @@ libraries / runtime
 GPU driver
         ↓
 exact Arc / Xe device</pre><p>排错必须从底向上或从上向下逐层证明，不能用“系统能显示显卡名称”跳过中间层。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/intel-sycl-runtime-stack.svg" alt="Intel Arc 本地 LLM 软件证据栈，从 LLM application 到 SYCL oneAPI 或 Vulkan backend，再到 Unified Runtime Level Zero driver 和 exact Xe GPU，并区分设备枚举 GPU offload 与 XMX kernel 证据">
+<figcaption><strong>“系统能看到 Arc”只走到了最底下。</strong> 真正的 LLM 证据还要继续证明 runtime 枚举、application backend、GPU offload，最后才是目标 quant/operator 是否走 XMX 或其他高效 kernel。每一层都可以独立失败。</figcaption>
+</figure>
 <h2>2. oneAPI 是什么？</h2><p>oneAPI 是 Intel 推动的异构开发工具/库生态，目标是让 CPU/GPU/accelerator 等设备能通过统一工具链和开放/标准化接口开发。对本课程，你不需要掌握全部组件，只要区分：</p><ul><li><strong>编程模型：</strong>如 SYCL；</li><li><strong>底层设备接口：</strong>如 Level Zero；</li><li><strong>数学/AI libraries：</strong>提供优化 primitives；</li><li><strong>应用 backend：</strong>最终把 LLM operator 映射到这些能力。</li></ul>
 <h2>3. SYCL：可移植源码 ≠ 各厂商性能自动相同</h2><p>SYCL 让 C++ 程序表达异构 kernel 和 device selection，但不同实现、GPU feature、subgroup、memory model 与 library 优化都会影响表现。</p><div class="callout"><strong>可移植性有两个层次：</strong>“程序能编译运行”与“程序能高效利用每家硬件”不是同一个目标。</div>
 <h2>4. Level Zero：为什么底层 runtime identity 要记录？</h2><p>底层 runtime 决定设备枚举、memory allocation、command submission 等。真实 benchmark 若不记录 driver/runtime build，很难解释未来升级后为什么性能、兼容性或 bug 行为变化。</p><p>这也是课程 Intelligence lane 要求把 hardware/runtime/build identity 与 benchmark 绑定的原因。</p>
