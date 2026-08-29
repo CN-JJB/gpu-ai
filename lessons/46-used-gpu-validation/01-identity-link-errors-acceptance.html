@@ -121,4 +121,59 @@ REJECT</pre>
 <h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/dcgm-diagnostics.html">NVIDIA DCGM Diagnostics</a></li><li><a href="https://docs.nvidia.com/datacenter/dcgm/latest/reference/diagnostics/plugins/memory.html">NVIDIA DCGM Memory Plugin</a></li><li><a href="https://rocmdocs.amd.com/projects/amdsmi/en/latest/conceptual/ras.html">AMD SMI RAS</a></li><li><a href="../../reference/gpu/used-gpu-purchase-acceptance.md">Course Reference — Used GPU Purchase Acceptance</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：二手卡验收是一条证据链，不是一轮压力测试</h2>
+<h3>验收分层</h3>
+<pre>Stage 0: seller claims
+Stage 1: physical identity
+Stage 2: firmware/runtime identity
+Stage 3: VRAM / PCIe / telemetry
+Stage 4: representative LLM workload
+Stage 5: sustained stability
+Stage 6: ACCEPT / REVIEW / REJECT</pre>
+<p>越靠后的证据越贵，但也越接近“这张卡真的适合你的用途”。</p>
+
+<h3>Worked Example：三个证据冲突怎么办？</h3>
+<pre>listing: RTX 3090 24GB
+sticker: RTX 3090
+runtime: RTX 3090, 24576 MiB
+PCI subsystem: unexpected board vendor</pre>
+<p>这不是自动 REJECT，但应该进入 REVIEW：确认是否换壳、OEM/特殊板、维修替换或识别异常。关键是<strong>冲突必须被解释，而不是被平均掉</strong>。</p>
+
+<h3>验收不能证明的东西</h3>
+<ul>
+<li>10 分钟稳定不能证明一年 24/7 稳定。</li>
+<li>LLM workload 稳定不能证明所有显示输出完好。</li>
+<li>没有可读 ECC 字段不能证明“0 memory error”。</li>
+<li>当前 runtime 能跑不能证明未来所有软件版本都支持。</li>
+</ul>
+
+<h3>最值得保存的 Evidence</h3>
+<pre>seller claim snapshot
+device identity
+VRAM
+PCIe max/current
+driver/runtime identity
+error/event state
+benchmark manifest
+raw PP/TG
+thermal/clock trace
+physical notes
+final decision + reason</pre>
+
+<h3>REVIEW 什么时候比 REJECT 更正确？</h3>
+<p>当证据不足或某字段异常但尚不能证明硬件故障时，REVIEW 能防止“未知=失败”和“未知=通过”两种错误。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>任何与购买目标直接相关的关键 claim——尤其型号、VRAM、普通 workload 稳定性——一旦证据冲突且无法解释，就不能 ACCEPT。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 seller listing 只能证明“卖家声称了什么”？</li>
+<li>为什么 idle PCIe link 低速不能直接 REJECT？</li>
+<li>REVIEW 与 REJECT 的证据条件有什么不同？</li>
+<li>为什么你自己的 LLM workload 比单一通用 stress test 更有购买相关性？</li>
+</ol>
+</section>
 </body></html>
