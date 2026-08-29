@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 500" role="img" aria-labelledby="title desc">
+<title id="title">GPU 存储层级与 tile 复用</title>
+<desc id="desc">左侧显示 VRAM 到 shared memory/LDS 到 registers 再到 math 的数据距离，右侧显示一块 tile 从远端加载一次后被多个计算重复使用。</desc>
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}
+.layer{fill:#fff;stroke:#555;stroke-width:2}
+.near{fill:#f2f2f2}
+.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}
+.reuse{stroke:#777;stroke-width:2;fill:none;marker-end:url(#m2)}
+.h{font-size:21px;font-weight:700}
+.t{font-size:15px}
+.s{font-size:13px}
+.tile{fill:#fff;stroke:#777;stroke-width:1.5}
+</style>
+<defs>
+<marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker>
+<marker id="m2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#777"/></marker>
+</defs>
+<text class="h" x="35" y="38">核心问题：同一份数据需要从“远处”搬几次？</text>
+
+<g transform="translate(45 75)">
+  <rect class="layer" x="0" y="0" width="410" height="95" rx="16"/>
+  <text x="24" y="35" font-size="20" font-weight="700">VRAM / HBM / Global memory</text>
+  <text class="t" x="24" y="64">容量大、离执行单元远、昂贵的数据移动</text>
+
+  <path class="arrow" d="M205 100 V142"/>
+  <text class="s" x="220" y="128">合作加载一次</text>
+
+  <rect class="layer near" x="55" y="150" width="300" height="90" rx="16"/>
+  <text x="205" y="184" font-size="20" font-weight="700" text-anchor="middle">Shared memory / LDS</text>
+  <text class="t" x="205" y="212" text-anchor="middle">block/work-group 共享 tile</text>
+
+  <path class="arrow" d="M205 245 V285"/>
+  <text class="s" x="220" y="272">多次取 fragment</text>
+
+  <rect class="layer near" x="105" y="292" width="200" height="72" rx="16"/>
+  <text x="205" y="323" font-size="20" font-weight="700" text-anchor="middle">Registers</text>
+  <text class="t" x="205" y="348" text-anchor="middle">thread 私有中间值 / accumulator</text>
+
+  <path class="arrow" d="M205 368 V402"/>
+  <rect class="layer" x="135" y="408" width="140" height="58" rx="16"/>
+  <text x="205" y="444" font-size="20" font-weight="700" text-anchor="middle">Math</text>
+</g>
+
+<g transform="translate(540 92)">
+  <text x="220" y="0" font-size="20" font-weight="700" text-anchor="middle">Tile 的价值不是“更近”三个字，而是复用</text>
+  <rect class="tile" x="150" y="38" width="140" height="100" rx="12"/>
+  <text x="220" y="78" font-size="18" font-weight="700" text-anchor="middle">一块 input tile</text>
+  <text class="t" x="220" y="106" text-anchor="middle">从 VRAM 搬 1 次</text>
+
+  <path class="reuse" d="M190 142 C150 190 105 195 90 238"/>
+  <path class="reuse" d="M210 142 C195 195 190 205 190 238"/>
+  <path class="reuse" d="M230 142 C245 195 250 205 250 238"/>
+  <path class="reuse" d="M250 142 C290 190 335 195 350 238"/>
+
+  <g transform="translate(35 250)">
+    <rect class="tile" x="0" y="0" width="105" height="68" rx="10"/><text class="t" x="52" y="41" text-anchor="middle">输出块 A</text>
+    <rect class="tile" x="115" y="0" width="105" height="68" rx="10"/><text class="t" x="167" y="41" text-anchor="middle">输出块 B</text>
+    <rect class="tile" x="230" y="0" width="105" height="68" rx="10"/><text class="t" x="282" y="41" text-anchor="middle">输出块 C</text>
+    <rect class="tile" x="345" y="0" width="105" height="68" rx="10"/><text class="t" x="397" y="41" text-anchor="middle">输出块 D</text>
+  </g>
+
+  <text class="t" x="220" y="356" text-anchor="middle">复用越多 → 每单位计算需要的远端 bytes 越少</text>
+  <text class="s" x="220" y="386" text-anchor="middle">但 tile 越大，也会吃更多 shared/LDS、register 和 residency。</text>
+</g>
+</svg>
