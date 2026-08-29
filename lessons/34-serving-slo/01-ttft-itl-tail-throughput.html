@@ -16,6 +16,7 @@
 <p>真正要回答的不是“谁的 tok/s 最大”，而是：<strong>在你的 workload 下，哪套配置能同时满足首字等待、持续输出、尾延迟和总吞吐的 SLO？</strong>如果这个问题说不清，单个吞吐数字还不足以支持买卡、升级或部署决策。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/serving-slo-timeline.svg" alt="一次 LLM serving 请求从 arrival、queue、prompt processing、first token 到连续生成和完成的时间线，标出 TTFT、ITL、E2E 与 aggregate throughput 的不同范围"><figcaption><strong>先把“用户等多久”和“系统一共做多少工作”画在同一条时间线上。</strong> TTFT、ITL、E2E 与 aggregate throughput 是不同观测窗口；其中一个变好，另外一个完全可能变差。</figcaption></figure>
 <h2>1. Server 不是一个 tokens/s</h2>
 
 <p>用户真正经历：</p>
