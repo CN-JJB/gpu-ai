@@ -12,6 +12,10 @@ gate = x · W_gate
 mixed = SiLU(gate) ⊙ up
 out = mixed · W_down
 </pre><p>也就是两个 H→I 投影，一个经过 SiLU 形成门控，再逐元素相乘，然后 I→H。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/swiglu-flow.svg" alt="SwiGLU FFN 中输入同时经过 W_up 和 W_gate，gate 经过 SiLU 后与 up 逐元素相乘，再经过 W_down 并与 residual 相加的数据流">
+<figcaption><strong>“Gate”不是运行时跳过一半神经元的开关。</strong> 它是一条完整 projection 后的数值调制路径，所以 SwiGLU FFN 常有三块大权重矩阵，参数和 memory traffic 都很可观。</figcaption>
+</figure>
 <h2>3. 参数量粗算</h2><p>忽略 bias 等小项：</p><pre>FFN params per layer ≈
 H×I (up)
 + H×I (gate)
