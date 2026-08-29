@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>怎样区分 storage、page cache、host memory、mmap 和 runtime 初始化对 startup 的贡献，并保证 cold/warm 结果没有被混在一起？</strong>否则“这个 SSD 让模型启动快一倍”只是未经隔离的猜测。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/storage-loading.svg" alt="GGUF 从 filesystem、page cache、mmap 或 read、host memory、GPU upload、backend init 到 ready 与 first inference 的加载路径"><figcaption><strong>模型启动时间不是 SSD 顺序读速率。</strong> Page cache、mmap/read、host memory、GPU upload、backend init 和 first inference 都可能进入路径；因此 cold/warm 必须先定义再测。</figcaption></figure>
 <h2>1. GGUF 从磁盘到可推理，中间不止 SSD</h2>
 
 <pre>
