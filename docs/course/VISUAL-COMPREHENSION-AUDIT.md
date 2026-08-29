@@ -71,6 +71,27 @@ A decorative image does not satisfy this audit.
 | 04 Roofline | strong | good | core concept is literally a graph but page has no graph | add interactive Roofline explorer with AI/ridge/roof transition |
 | 05 VRAM budget | strong | strong | formulas are useful but learner must mentally integrate many variables | add interactive budget calculator with weights/KV/reserve/headroom |
 
+## Batch 02 detailed review — Lessons 06–13
+
+| Lesson | Depth | Beginner clarity | Main visual/comprehension need | Accepted implementation |
+|---|---|---|---|---|
+| 06 Quantization | strong | strong | nominal bit-width, metadata overhead, mixed precision and backend support are easy to collapse into one label | interactive effective-bpw calculator; explicitly labels the model as a teaching approximation |
+| 07 First local inference | strong | strong | learners need to distinguish build support, device discovery, placement, kernel execution and reproducible evidence | local-inference evidence-chain SVG |
+| 08 Local serving | strong | good | queue/slot/continuous-batching behavior is temporal and difficult to infer from static prose | interactive static-vs-continuous admission timeline with slots and first-wait metrics |
+| 09 Prefix/KV reuse | strong | good | cache capacity, working set, hit/miss and eviction are stateful | interactive LRU prefix-cache state trace |
+| 10 Speculative decoding | strong | good | draft length × acceptance × round cost has a non-obvious optimum | interactive acceptance/draft explorer with expected progress and speedup ceiling |
+| 11 Multi-GPU | strong | good | aggregate capacity and communication boundary must be spatially separated | multi-GPU split/interconnect SVG comparing layer split, tensor parallel and replicas |
+| 12 Attention kernels | strong | good | exact attention vs HBM materialization is fundamentally an I/O/dataflow story | naive-vs-tiled attention I/O SVG with online-softmax state |
+| 13 Matrix units | strong | good | model storage dtype, runtime operand dtype, matrix fast path and accumulator precision are frequently conflated | matrix-precision execution-path SVG |
+
+### Batch 02 comprehension findings
+
+- Lessons 06–13 are not thin on prose; the main problem was **mechanisms whose state changes over time or across memory/device boundaries**.
+- The strongest additions are interactive where the learner benefits from sweeping a parameter and watching a state transition (06, 08, 09, 10), and static SVG where topology/dataflow is the key mental model (07, 11, 12, 13).
+- Lesson 07 is not a P0 architecture topic, but the evidence-chain SVG materially improves the course's central epistemic rule: a successful text response does not by itself prove GPU acceleration.
+- No external screenshot was required in this batch. Primary-source links remain the evidence layer; self-authored visuals are used for explanation so the course does not depend on unstable hotlinks or unclear image licensing.
+- No teaching calculator or diagram is promoted to benchmark evidence. Real performance claims remain tied to learner-owned experiment artifacts.
+
 ## Safety and truth rules
 
 - No generated or synthetic chart is presented as a real GPU benchmark.
@@ -86,9 +107,13 @@ A decorative image does not satisfy this audit.
 - [x] Batch 01 manual review
 - [x] Batch 01 visual implementation
 - [x] Batch 01 link/readiness re-check
-- [ ] Batch 02 review and implementation
-- [ ] continue lesson-by-lesson until all 62 pages are reviewed
-
+- [x] Batch 02 review and implementation — Lessons 06–13
+- [ ] Batch 02 link/readiness re-check
+- [ ] Batch 03 review and implementation — Lessons 14–23 architecture/vendor + hardware-decision group
+- [ ] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
+- [ ] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
+- [ ] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
+- [ ] final 62-page visual/comprehension closure audit
 
 ## Batch 01 implementation result
 
@@ -111,3 +136,18 @@ HTML close = 5 / 5
 ~~~
 
 New assets are local first-party files. No synthetic result is presented as measured evidence.
+
+## Batch 02 implementation result
+
+Accepted as present in the stable course:
+
+- Lesson 06: `assets/components/quant-bpw.js`
+- Lesson 07: `assets/diagrams/local-inference-evidence-chain.svg`
+- Lesson 08: `assets/components/serving-slots.js`
+- Lesson 09: `assets/components/prefix-cache-lru.js`
+- Lesson 10: `assets/components/speculative-explorer.js`
+- Lesson 11: `assets/diagrams/multi-gpu-split-interconnect.svg`
+- Lesson 12: `assets/diagrams/attention-io-naive-vs-tiled.svg`
+- Lesson 13: `assets/diagrams/matrix-precision-path.svg`
+
+The next review batch is Lessons 14–23. It should favor generation maps, comparison diagrams, evidence chains and decision-state visuals over generic product photography. Official vendor imagery may be referenced when it contributes documentary evidence, but explanatory diagrams should remain local and self-authored where possible.
