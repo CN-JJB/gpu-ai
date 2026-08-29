@@ -255,4 +255,60 @@ reject rate
 <h3>如何选择 / 迁移</h3><p>换 vLLM、llama-server 或其他 runtime 后，指标名字可以变，但仍围绕 <strong>latency / traffic / errors / saturation + workload contract + per-user SLO</strong> 做判断。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://sre.google/sre-book/monitoring-distributed-systems/">Google SRE — Monitoring Distributed Systems</a></li><li><a href="../../reference/llm/multitenant-fairness-quotas.md">Course Reference — Multi-Tenant Fairness</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：公平不是“每人相同请求数”</h2>
+<h3>先选公平对象</h3>
+<table>
+<tr><th>公平对象</th><th>适合解决</th><th>局限</th></tr>
+<tr><td>active slots</td><td>防止一个租户占满并发</td><td>长请求仍可能长期占用</td></tr>
+<tr><td>generated tokens</td><td>控制 decode work</td><td>不反映 prompt/prefill 与 KV</td></tr>
+<tr><td>prompt tokens</td><td>控制 prefill 压力</td><td>不代表长 decode</td></tr>
+<tr><td>KV/context</td><td>保护显存容量</td><td>调度实现更复杂</td></tr>
+<tr><td>weighted share</td><td>区分不同优先级</td><td>要处理 starvation</td></tr>
+</table>
+
+<h3>Worked Example：一个“请求配额”如何被轻易绕过</h3>
+<pre>policy:
+10 requests / minute
+
+Tenant A:
+10 × 32 output tokens
+
+Tenant B:
+10 × 4096 output tokens</pre>
+<p>两者请求数完全一样，但 decode work 相差约 128 倍。Request-count quota 只约束 API 行为，不等于约束 GPU 消耗。</p>
+
+<h3>Work-conserving 是什么？</h3>
+<p>公平调度不应该在其他租户没有工作时故意让 GPU 空转。典型思想：</p>
+<pre>有竞争时：
+按 quota/share 限制
+
+没有竞争时：
+允许借用空闲容量</pre>
+<p>这样既能保护小租户，又不会永久牺牲利用率。</p>
+
+<h3>Starvation 与 Aging</h3>
+<p>如果高优先级请求持续不断，低优先级可能永远排不到。常见补救思想是让等待越久的工作逐渐提高有效优先级，或者保留最低服务份额。</p>
+
+<h3>公平性要和 SLO 一起测</h3>
+<p>不要只报告总吞吐。至少按 tenant 分开看：</p>
+<pre>TTFT p95
+E2E p95
+completed requests
+generated tokens
+reject rate
+queue wait</pre>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>先说明“公平分什么”，再谈 quota。</strong>如果 workload 的资源成本差异很大，单一 request-count quota 几乎一定不够。</div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么请求数不是稳定的 GPU 成本单位？</li>
+<li>work-conserving borrowing 解决了什么 tradeoff？</li>
+<li>token quota 为什么仍然不能完全描述 KV 压力？</li>
+<li>priority scheduler 为什么需要防 starvation？</li>
+</ol>
+</section>
 </body></html>
