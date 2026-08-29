@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 620" role="img" aria-labelledby="title desc">
+<title id="title">LLM serving capacity 与 Little's Law 教学图</title>
+<desc id="desc">请求以到达率lambda进入系统，先在queue等待再进入有限active slots服务，系统平均并发L等于完成吞吐lambda乘平均停留时间W；同时active slots会占用KV与运行时容量，因此容量规划不能只看吞吐。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">Capacity 不是“GPU 每秒多少 token”：先把 queue、active slots 与停留时间放在同一张账上</text>
+<rect class="box" x="45" y="105" width="190" height="85" rx="14"/><text x="140" y="136" text-anchor="middle" font-size="18" font-weight="700">Arrivals</text><text class="s" x="140" y="163" text-anchor="middle">请求到达率 λ</text>
+<path class="line" d="M235 148 H325"/>
+<rect class="box" x="330" y="92" width="250" height="112" rx="14"/><text x="455" y="124" text-anchor="middle" font-size="18" font-weight="700">Queue</text><text class="s" x="455" y="151" text-anchor="middle">尚未进入模型执行</text><text class="s" x="455" y="177" text-anchor="middle">主要增加 waiting / TTFT</text>
+<path class="line" d="M580 148 H670"/>
+<rect class="box" x="675" y="80" width="300" height="140" rx="14"/><text x="825" y="112" text-anchor="middle" font-size="18" font-weight="700">Active slots</text>
+<g transform="translate(705 135)"><rect class="soft" x="0" y="0" width="55" height="45" rx="8"/><rect class="soft" x="68" y="0" width="55" height="45" rx="8"/><rect class="soft" x="136" y="0" width="55" height="45" rx="8"/><rect class="soft" x="204" y="0" width="55" height="45" rx="8"/></g>
+<text class="s" x="825" y="204" text-anchor="middle">每个 active sequence 消耗 KV / scheduler / compute</text>
+<path class="line" d="M975 148 H1080"/><text class="s" x="1040" y="132" text-anchor="middle">completions</text>
+<g transform="translate(100 285)">
+<rect class="box" x="0" y="0" width="960" height="145" rx="16"/><text x="480" y="33" text-anchor="middle" font-size="20" font-weight="700">Little's Law：L = λ × W</text>
+<text class="t" x="50" y="72">L：系统平均同时存在的请求数（queue + active，边界必须定义清楚）</text>
+<text class="t" x="50" y="101">λ：稳定状态下的完成吞吐 / arrival rate</text>
+<text class="t" x="50" y="130">W：一个请求从进入该系统边界到离开的平均停留时间</text>
+</g>
+<g transform="translate(115 470)">
+<rect class="soft" x="0" y="0" width="280" height="90" rx="12"/><text x="140" y="28" text-anchor="middle" class="t">Queue capacity</text><text x="140" y="55" text-anchor="middle" class="s">太小：更早 reject</text><text x="140" y="76" text-anchor="middle" class="s">太大：尾延迟可持续膨胀</text>
+<rect class="soft" x="325" y="0" width="280" height="90" rx="12"/><text x="465" y="28" text-anchor="middle" class="t">Slot capacity</text><text x="465" y="55" text-anchor="middle" class="s">更多 active work 可能提高吞吐</text><text x="465" y="76" text-anchor="middle" class="s">也增加每步竞争与 KV pressure</text>
+<rect class="soft" x="650" y="0" width="280" height="90" rx="12"/><text x="790" y="28" text-anchor="middle" class="t">Memory capacity</text><text x="790" y="55" text-anchor="middle" class="s">context × active sequences</text><text x="790" y="76" text-anchor="middle" class="s">会把服务容量变成硬约束</text>
+</g>
+<text x="580" y="604" text-anchor="middle" class="s">教学图只表达稳定状态关系；突发流量、不同请求长度、batching efficiency 与拒绝/重试需要单独测量。</text>
+</svg>
