@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>在明确 measurement boundary、idle baseline、Prefill/Decode 阶段和相同 workload 后，每完成一个有用 token 或一次请求需要多少能量？</strong>只有这样，功耗数据才可能进入 TCO、散热和电源决策。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/power-energy-token.svg" alt="功率随时间变化的教学曲线，曲线下面积表示能量，并给出 Joule per token 与 tokens per Joule 的关系，提醒 prefill 和 decode 分开统计"><figcaption><strong>Watt 是瞬时速率，Joule 才是一次任务的总账。</strong> 低功率设备如果跑得更久，未必更省能；比较能效要把功率时间序列积分成 energy，再除以同一 workload 的 useful work。</figcaption></figure>
 <h2>1. Watt 不是电量</h2>
 <pre>W = J/s</pre>
 <p>300W 只告诉你每秒的能量流率，还不知道跑多久。</p>
