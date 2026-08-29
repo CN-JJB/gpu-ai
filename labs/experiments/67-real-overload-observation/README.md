@@ -106,3 +106,48 @@ Do not infer cancellation merely because the client disconnected.
 
 Fill:
 `RESULT-TEMPLATE.md`.
+
+
+## Hypothesis
+
+短而有限的 burst 超过 immediate slot capacity 后，真实 stack 可能 queue/defer、reject 或组合处理；行为必须观测，不能从 server 名字或文档习惯先入为主。
+
+## Fixed variables
+
+先冻结 baseline 的 model/context/slots/cache 与 exact prompt。Burst 对比时只改变 arrival pattern；若再加 admission/retry，另做单独 comparison。
+
+## What to observe
+
+- client TTFT/E2E；
+- HTTP status/errors；
+- processing/deferred requests；
+- prompt/predicted token deltas；
+- backlog 是否在 burst 结束后消退；
+- timeout/disconnect 后 server generation 是否继续。
+
+## Troubleshooting
+
+- 只对自己/授权的私有测试服务运行。
+- 请求上限是安全边界，不要扩大成公共服务压测。
+- client timeout 不代表 server cancel。
+- retry 要有限次数/期限并记录每次 attempt。
+
+## Evidence to save
+
+保存 baseline 与 burst workload、Experiment 63 evidence、server metrics/logs、RESULT-TEMPLATE。
+
+## What this proves
+
+你能描述当前本地 serving stack 在一个受控 finite overload 下的实际行为。
+
+## What this does NOT prove
+
+它不代表公网 DDoS/容量测试，也不证明长期 sustainable throughput。
+
+## No-hardware fallback
+
+先完成 Experiment 66。
+
+## Transfer question
+
+burst 中客户端大量 timeout，但 server deferred queue 仍持续处理。为什么不能把 timeout 数直接当“服务器已经取消这些请求”？
