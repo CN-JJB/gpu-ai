@@ -40,5 +40,57 @@
 <h2>Retrieval Practice</h2><ol><li>为什么“Arc 支持 SYCL”不是 LLM 应用支持的完整命题？</li><li>怎样公平比较同一应用的 SYCL 与 Vulkan backend？</li><li>XMX 的 capability/kernel/measurement 三层证据分别是什么？</li><li>为什么 driver version 必须进入 benchmark record？</li><li>哪些 platform setting 可能污染 Arc benchmark？</li><li>完整 offload 后 TG 低，应按什么顺序排查？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>Intel 路径的购买证据必须精确到 device + driver/runtime + application backend + model/quant + measured protocol。品牌级“支持/不支持”结论一律降级为待验证假设。</p></div>
 <h2>Transfer</h2><p>完成四厂商 capstone 后，你应该看到同一个模式：硬件 feature 只是一层；真正可用性来自完整软件链与真实 evidence。以后面对新厂商/新加速器继续套这套链。</p>
+
+<h2>Capstone 交付物：把“Arc 能跑”拆成可复查的事实</h2>
+<p>最终 Packet 至少保存：</p>
+<ul>
+<li>exact device / PCI identity / local memory；</li>
+<li>driver、Level Zero/oneAPI 或其他 runtime identity；</li>
+<li>application build 与实际 backend；</li>
+<li>model artifact、quant、context、prompt identity；</li>
+<li>device enumeration、offload、allocation 的原始证据；</li>
+<li>PP/TG + quality；</li>
+<li>Resizable BAR / PCIe link / power profile 等关键平台状态；</li>
+<li>XMX attribution 的证据等级：capability only、kernel path proven、或 measured benefit。</li>
+</ul>
+
+<h2>Worked Example：同一 Arc，SYCL 失败而 Vulkan 成功，应该怎么写？</h2>
+<p>不要写“Arc 支持 LLM”或“SYCL 不行”。更精确的记录是：</p>
+<pre>exact device + driver D
++ application revision R
++ Vulkan backend + model Q
+= MEASURED USABLE
+
+same device/driver/application
++ SYCL backend + same model Q
+= BLOCKED at <exact layer>
+</pre>
+<p>这两条记录可以同时为真。它们甚至能帮助你判断未来驱动/application 更新是否只修复了其中一条软件路径。</p>
+
+<h2>Acceptance States</h2>
+<table><thead><tr><th>状态</th><th>最低要求</th></tr></thead><tbody>
+<tr><td>BLOCKED</td><td>device/runtime/backend/model 任一层不成立</td></tr>
+<tr><td>USABLE</td><td>目标模型真实 GPU path 稳定完成 workload</td></tr>
+<tr><td>MEASURED</td><td>固定协议 PP/TG/quality + environment record</td></tr>
+<tr><td>REVIEW</td><td>兼容、性能、容量、平台、功耗、价格/TCO 进入人工评审</td></tr>
+</tbody></table>
+
+<h2>Driver regression A/B</h2>
+<p>如果升级驱动后性能变化，不要同时更换 application、model artifact 和 backend。保留 baseline，改变一个变量：</p>
+<pre>same GPU
+same model artifact
+same app revision
+same backend
+same protocol
+driver old → driver new
+</pre>
+<p>只有这样，回归或改善才有合理 attribution。若不得不同时升级多个组件，结论只能写成“stack changed”，不能精确归因驱动。</p>
+
+<h2>No-hardware fallback</h2>
+<p>没有 Intel GPU 时，选择一张具体 Arc/Xe 设备和一个具体开源 runtime，完成 device→driver/runtime→backend→model-kernel 的证据清单。所有真机字段标 <strong>UNVERIFIED</strong>。同时设计一个 SYCL/Vulkan A/B protocol，但不填虚构性能数字。</p>
+
+<h2>What this capstone does NOT prove</h2>
+<p>一次 Arc 成功运行不证明 XMX 被使用；XMX 被使用也不证明它是瓶颈或主要收益来源。一次 backend A/B 也不能推广到另一版本、另一 quant 或另一 GPU。Vendor capstone 的目标是精确缩小结论范围，而不是制造品牌结论。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-spine.md">Intel Xe Course Reference</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 Evidence Packet</a></li></ul>
 </main></body></html>
