@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 420" role="img" aria-labelledby="title desc">
+<title id="title">从模型存储位宽到矩阵执行与累加精度</title>
+<desc id="desc">展示低比特模型文件经过加载、scale 或 dequantize 后形成矩阵 operand，进入 Tensor Core、MFMA 或 XMX 类矩阵单元，再以更宽 accumulator 累加，说明 Q4 文件不等于原生 4-bit 矩阵运算。</desc>
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.sub{fill:#f2f2f2;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:22px;font-weight:700}.t{font-size:15px}.s{font-size:13px}
+</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“Q4 模型”描述存储层；真正吃到哪种 TOPS，要继续追到执行路径</text>
+<g transform="translate(40 105)">
+<rect class="box" x="0" y="0" width="175" height="105" rx="14"/><text x="87" y="32" text-anchor="middle" font-size="18" font-weight="700">Model storage</text><text class="t" x="87" y="59" text-anchor="middle">Q4 / Q5 / FP16…</text><text class="s" x="87" y="84" text-anchor="middle">packed weights + scales</text>
+</g>
+<path class="arrow" d="M220 157 H270"/>
+<g transform="translate(275 105)">
+<rect class="box" x="0" y="0" width="175" height="105" rx="14"/><text x="87" y="32" text-anchor="middle" font-size="18" font-weight="700">Kernel preparation</text><text class="t" x="87" y="59" text-anchor="middle">unpack / scale</text><text class="s" x="87" y="84" text-anchor="middle">maybe dequantize</text>
+</g>
+<path class="arrow" d="M455 157 H505"/>
+<g transform="translate(510 105)">
+<rect class="box" x="0" y="0" width="175" height="105" rx="14"/><text x="87" y="32" text-anchor="middle" font-size="18" font-weight="700">Operand dtype</text><text class="t" x="87" y="59" text-anchor="middle">FP16 / BF16 / INT8</text><text class="s" x="87" y="84" text-anchor="middle">or native low-bit path</text>
+</g>
+<path class="arrow" d="M690 157 H740"/>
+<g transform="translate(745 105)">
+<rect class="box" x="0" y="0" width="175" height="105" rx="14"/><text x="87" y="32" text-anchor="middle" font-size="18" font-weight="700">Matrix unit</text><text class="t" x="87" y="59" text-anchor="middle">Tensor / MFMA / XMX</text><text class="s" x="87" y="84" text-anchor="middle">tile + shape constraints</text>
+</g>
+<path class="arrow" d="M925 157 H975"/>
+<g transform="translate(980 105)">
+<rect class="box" x="0" y="0" width="90" height="105" rx="14"/><text x="45" y="34" text-anchor="middle" font-size="16" font-weight="700">Accumulate</text><text class="s" x="45" y="63" text-anchor="middle">FP32</text><text class="s" x="45" y="83" text-anchor="middle">INT32…</text>
+</g>
+
+<g transform="translate(120 270)">
+<rect class="sub" x="0" y="0" width="860" height="85" rx="15"/>
+<text x="430" y="28" text-anchor="middle" font-size="17" font-weight="700">广告峰值 TOPS/TFLOPS 只有在条件同时满足时才有解释力</text>
+<text class="t" x="430" y="55" text-anchor="middle">目标 dtype/稀疏条件 ✓　matrix fast path ✓　shape 利用率 ✓　足够并行 ✓　memory roof 不更低 ✓</text>
+<text class="s" x="430" y="75" text-anchor="middle">否则更高的矩阵峰值可能对 decode TG 几乎没有作用。</text>
+</g>
+</svg>
