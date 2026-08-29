@@ -37,5 +37,57 @@ GPU purchase
 <h2>Retrieval Practice</h2><ol><li>为什么 fit 和 support 必须在性能比较前？</li><li>compute roof 与 memory roof 分别回答什么？</li><li>举三个 hard gate 与三个 soft preference。</li><li>为什么网上 benchmark 不能与自己的同协议 measurement 同权？</li><li>显卡 purchase price 与 TCO 有哪些常见差额？</li><li>什么时候 UNKNOWN 应直接阻塞购买判断？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>任何 GPU 候选必须按 Fit → Support → System feasibility → Comparable measurement → Quality → Cost/risk 顺序升级证据。排行榜只能用来发现候选，不能替代决策。</p></div>
 <h2>Transfer</h2><p>这套 gate 思维可以迁移到模型选择、runtime 选择、NAS/服务器、甚至 SSD/RAM 采购：先满足 hard constraints，再优化 soft tradeoff。</p>
+
+<h2>Decision Dossier：先写 Gate，再写候选</h2>
+<p>为了避免看到喜欢的硬件后倒推理由，先冻结你的目标：</p>
+<pre>target model / quant:
+target context:
+target concurrency:
+minimum acceptable PP/TG:
+required OS/runtime:
+physical limits:
+power/noise limits:
+total project budget:
+evidence confidence required:
+</pre>
+<p>然后才把候选逐个放进同一张 gate 表。这样“这卡很便宜”“那卡 TOPS 很高”都只能影响对应栏，不能重写你的目标。</p>
+
+<h2>Worked Example：大显存但软件 UNKNOWN，应该排第几？</h2>
+<p>假设候选 A 容量、带宽、价格都很好，但目标 backend 对 exact device 的支持尚未确认；候选 B 纸面性能较低，但 software chain 已有高质量 evidence。正确表述不是“B 一定更好”，而是：</p>
+<pre>A: FIT PASS, SUPPORT UNKNOWN → BLOCKED for purchase conclusion
+B: FIT PASS, SUPPORT PASS    → eligible for measurement
+</pre>
+<p>A 可以留在调查队列，但不能因为预期性价比高就越过 hard gate。</p>
+
+<h2>System Feasibility 也要单独建 Gate</h2>
+<ul>
+<li>物理尺寸/slot/风道；</li>
+<li>PSU 容量、连接器与线材方案；</li>
+<li>PCIe lane/link 与主板限制；</li>
+<li>host RAM / storage / OS；</li>
+<li>噪声、环境温度、持续负载；</li>
+<li>多卡时的互联与空间。</li>
+</ul>
+<p>“GPU 本身 fit”不等于“你的机器能安全、稳定地部署它”。</p>
+
+<h2>Evidence Confidence</h2>
+<p>每个关键栏同时记状态与证据等级：</p>
+<pre>PASS / FAIL / UNKNOWN
++
+DOCUMENTED / THIRD-PARTY / MEASURED-OWNED
+</pre>
+<p>例如 support = PASS 但只有一条旧论坛帖，和 support = PASS 且 exact runtime 官方矩阵 + 你的 preflight，风险完全不同。</p>
+
+<h2>决策终点必须是人工 Review，不是自动 BUY</h2>
+<p>课程可以自动淘汰明显不合格方案、计算预算、提醒价格带，但购买涉及卡况、资金、退货、市场变化与个人 utility。最终状态最多应到：</p>
+<pre>BLOCKED
+→ ELIGIBLE-TO-MEASURE
+→ EVIDENCE-SUFFICIENT-FOR-REVIEW
+→ HUMAN DECISION
+</pre>
+
+<h2>What this lesson does NOT prove</h2>
+<p>Gate 顺序不能保证你永远买到“最优硬件”，因为未来价格、软件和需求会变化。它的价值是让当时的选择可解释、可复查，并让 UNKNOWN 不会被漂亮的排行榜数字掩盖。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../COURSE-MAP.md">Course Map</a></li><li><a href="../../intelligence/README.md">Dynamic Intelligence lane</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Real benchmark evidence contract</a></li></ul>
 </main></body></html>
