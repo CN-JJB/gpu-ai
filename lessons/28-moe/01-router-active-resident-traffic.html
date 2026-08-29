@@ -34,5 +34,45 @@ active expert weight per token ≈ 4(shared conceptually reused) + 2×1
 <h2>Retrieval Practice</h2><ol><li>Total、resident、active parameters 分别回答什么？</li><li>为什么 top-2 不意味着只需存两个 expert？</li><li>MoE 多 GPU 为什么增加 all-to-all-like communication 问题？</li><li>expert load imbalance 会怎样影响吞吐？</li><li>为什么 offloaded MoE 需要看 tail latency？</li><li>量化为什么对 MoE resident storage 特别有价值？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>评估 MoE 本地部署必须同时写 total/resident/active 三个规模，并记录 expert placement/offsload/互联。不得用 active parameter 数替代显存预算，也不得用 total parameter 数直接替代每-token compute。</p></div>
 <h2>Transfer</h2><p>以后看到 shared experts、fine-grained experts、expert caching 等新设计，仍按四个问题拆：存多少、每 token 算多少、路由到哪里、为此搬多少数据。</p>
+
+<h2>MoE Deployment Packet：四张表必须同时存在</h2>
+<ol>
+<li><strong>Resident table：</strong>哪些 expert/层驻留在哪个 device/RAM；</li>
+<li><strong>Routing table：</strong>每 token 选哪些 expert，top-k 与 shared expert 规则；</li>
+<li><strong>Traffic table：</strong>token/activation 是否跨 device、跨 PCIe/互联；</li>
+<li><strong>Latency table：</strong>平均 TG 之外至少保留 token/request tail 观察。</li>
+</ol>
+<p>缺 resident table，就无法做容量判断；缺 routing/traffic，就无法解释多 GPU 或 offload；缺 tail，就可能把“平均很快但偶发卡顿”误判为体验正常。</p>
+
+<h2>Worked Example：8 experts 平均分两张卡，为什么仍可能严重不均衡？</h2>
+<p>假设 GPU0 放 E0–E3，GPU1 放 E4–E7。16 个 token 的 router 并不保证平均命中每个 expert。如果大多数 token 同时选择 GPU0 上的 experts，那么：</p>
+<pre>storage placement = balanced
+does NOT imply
+token workload = balanced
+</pre>
+<p>如果某些 token 还需要另一张卡上的 expert，就会出现 activation/token dispatch traffic。真正的 system cost 来自 routing distribution，不是只看每张卡放了几个 expert。</p>
+
+<h2>Offload 的三个不同状态</h2>
+<ul>
+<li><strong>resident on accelerator：</strong>容量贵，但访问路径最直接；</li>
+<li><strong>resident in host memory：</strong>可扩大可运行模型，但可能带来 host/PCIe traffic；</li>
+<li><strong>not resident / load-on-demand：</strong>还可能引入更大的 page/load latency。</li>
+</ul>
+<p>不同 runtime 的实现不同，Evidence 必须记录实际 placement，而不能仅凭“offload layers”字段猜 expert 行为。</p>
+
+<h2>Experiment Evidence</h2>
+<p>固定 exact MoE artifact、runtime、context、batch/concurrency。保存 total/resident/active 参数描述、expert placement、routing/traffic telemetry（若可得）、PP/TG、p50/p95 或逐 token latency、quality。无 GPU 时，用 toy router 生成 routing histogram 与跨卡 traffic count。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>OOM：</strong>看 resident total，不用 active params 安慰自己。</li>
+<li><strong>平均 TG 好、p95 差：</strong>优先查 expert miss/offload/routing imbalance。</li>
+<li><strong>多 GPU utilization 不均：</strong>检查 routing distribution 与 placement，而不是先怀疑某张卡坏。</li>
+<li><strong>量化后容量改善但速度不升：</strong>检查 expert kernel、routing/traffic 与解包成本。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>MoE 的 active parameter 数不能直接转换成 dense 等价速度，也不能直接转换成显存需求。不同 MoE 设计的 shared expert、expert size、routing、cache 与通信都可能不同；所有推论必须绑定 exact architecture。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/1701.06538">Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
 </main></body></html>
