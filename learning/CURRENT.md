@@ -12,7 +12,7 @@
 Slices 01–49 implemented
 Experiments 01–93 exist
 Stable v1 mainline structurally complete
-Student textbook completion pass: ACTIVE — depth-audit closure
+Student textbook completion pass: COMPLETE — learner-ready checkpoint
 ~~~
 
 The learner will start only after the stable teaching material is substantively complete. Structural existence is no longer treated as sufficient student readiness.
@@ -48,7 +48,7 @@ Latest repository depth audit after these edits:
 stable lessons/*.html under 8 KiB = 0
 ~~~
 
-This is an audit signal, not by itself a TEXTBOOK COMPLETE declaration. Byte depth cannot prove teaching quality. The previously confirmed lessons 34–49 opening-contract defect has now been repaired and re-checked at 16/16 for explicit `Prerequisite Check`, `真实问题`, `Retrieval Practice`, `完成证据`, and `Primary Sources`. The remaining authoring work is readiness/integrity validation plus substantive spot review against `docs/course/STUDENT-TEXTBOOK-COMPLETION.md`.
+Byte depth was never used as the completion criterion. The previously confirmed lessons 34–49 opening-contract defect was repaired and re-checked at 16/16 for explicit prerequisite, real-problem, retrieval, completion-evidence and primary-source semantics. A later full-corpus audit found all 62 lesson HTML files contain a no-hardware/hardware-independent path, troubleshooting/failure-recovery guidance, and a decision boundary/rule. The 338-file local-link corpus was also fully checked with zero broken or repo-escaping links.
 
 The recent pass deliberately added or strengthened:
 - mental models and causal diagrams;
@@ -60,6 +60,26 @@ The recent pass deliberately added or strengthened:
 - human-review boundaries for purchasing and release decisions.
 
 Real production benchmark rows remain zero by design; no synthetic result was promoted.
+
+
+## Textbook completion checkpoint
+
+~~~text
+TEXTBOOK COMPLETE
+teaching-content checkpoint head = f514db1733f0e26a06e82e596e70922ab2458915
+lesson slices = 49
+lesson HTML = 62
+experiments = 93
+challenges = 12
+foundations = 6
+local-link corpus = 338 / 338
+broken local links = 0
+repo-escaping local links = 0
+~~~
+
+High-risk spot reviews passed Foundations, vendor capstone, Transformer/model dossier, serving/operations, used-GPU acceptance, whole-machine integration and graduation Design Review.
+
+The repository connector did not expose an exact-head push-triggered Course Readiness GitHub Actions run. This remains a CI observability boundary only; the checks implemented by `tools/course/audit_student_readiness.py` were reproduced through the repository connector and passed.
 
 ## Active Phase 4 frontier
 
@@ -238,13 +258,12 @@ The complete suite passed through I54, including raw semantic-source capture, th
 
 - docs/course/STUDENT-TEXTBOOK-COMPLETION.md
 
-## Next — authoring priority
+## Next — learner phase
 
-1. Finish repository-integrity validation on the current teaching head, including the remaining local-link corpus or an observable exact-head Course Readiness PASS.
-2. Run a substantive contract audit that does **not** use byte count as a proxy: sample worked examples, experiment evidence, troubleshooting, no-hardware fallback, decision rules, transfer, and primary-source links across the stable lane.
-3. Fix every readiness, link, or substantive teaching defect found by that audit.
-4. Re-check Foundations 00–05, architecture/vendor capstones, Transformer/model internals, serving/operations, used-GPU validation, and whole-machine integration as the highest-risk learner transitions.
-5. Freeze a **TEXTBOOK COMPLETE** checkpoint only after those validations pass; do not infer completion from file count or page size alone.
-6. After that checkpoint, the learner begins Lesson 01. Real Experiment 61/93 acquisition remains a later learner-owned Evidence activity.
+1. Begin the learner at Foundation 00 / Lesson 01 using the stable course sequence; do not reopen architecture or add Intelligence gates merely to postpone learning.
+2. Keep real production benchmark rows at zero until the learner reaches the real-evidence experiments and produces learner-owned artifacts.
+3. When the learner later reaches Experiment 61, use the existing I54 → verified profile → human semantic fill → I53 → I52 workflow.
+4. Continue to treat purchase, release and used-GPU decisions as human-reviewed outcomes. `automatic_purchase_decision = NOT-PERMITTED`.
+5. Any future textbook edits after this checkpoint must be treated as post-freeze maintenance and should re-run the affected readiness/link checks.
 
 No fake benchmark results, no auto-purchase, and no unsafe hardware modification.
