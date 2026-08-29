@@ -294,4 +294,69 @@ KV 压力 ↑
 <h3>如何选择 / 迁移</h3><p>换 vLLM、llama-server 或其他 runtime 后，指标名字可以变，但仍围绕 <strong>latency / traffic / errors / saturation + workload contract + per-user SLO</strong> 做判断。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://doi.org/10.1287/opre.9.3.383">Little — A Proof for the Queuing Formula L = λW</a></li><li><a href="https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md">llama.cpp — Server / Slots / Metrics</a></li><li><a href="../../reference/llm/serving-capacity-littles-law.md">Course Reference — Serving Capacity</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：Little's Law 不是“算 slot 个数”的公式</h2>
+<h3>三个量必须来自同一个边界</h3>
+<pre>L = λW
+
+如果 W 是：
+arrival → completion
+
+那么 L 必须是：
+queue + active
+
+如果 W 是：
+service start → completion
+
+那么 L 才更接近：
+active only</pre>
+<p>最常见的错误，是把端到端 W 和 active-only L 拼在一起。</p>
+
+<h3>Worked Example：平均并发够了，为什么还会爆？</h3>
+<p>假设稳态吞吐 0.8 req/s，平均 active time 4 s：</p>
+<pre>L_active = 0.8 × 4 = 3.2</pre>
+<p>这只说平均 active requests 约 3.2。若 arrival 有 burst，瞬时 active 可能到 6；如果每条 sequence 在当前 context 下需要 1.2 GiB KV：</p>
+<pre>average KV proxy ≈ 3.84 GiB
+burst KV proxy   ≈ 7.20 GiB</pre>
+<p>容量设计必须同时看<strong>平均、峰值、分布和安全余量</strong>。</p>
+
+<h3>KV 不是固定“每请求 X GiB”</h3>
+<pre>KV/request
+≈ function(
+  layers,
+  kv heads,
+  head dim,
+  dtype,
+  current context,
+  cache policy
+)</pre>
+<p>GQA、滑窗、量化 KV、paged cache 都会改变这个关系。所以课程里的固定 GiB/request 只能当教学 proxy。</p>
+
+<h3>容量规划四步</h3>
+<ol>
+<li>定义 workload：arrival、prompt/output 长度、并发目标。</li>
+<li>测服务时间与 queue 时间分布。</li>
+<li>用 Little's Law 做 sanity check，而不是唯一容量答案。</li>
+<li>再用真实 KV/VRAM telemetry 验证 slot 数与 context 上限。</li>
+</ol>
+
+<h3>常见误区</h3>
+<ul>
+<li><strong>误区：</strong>平均 active=4，所以 4 slots 足够。<br><strong>纠正：</strong>burst 和 tail 会造成排队。</li>
+<li><strong>误区：</strong>更多 slots 一定提高吞吐。<br><strong>纠正：</strong>可能先把 KV 吃满，再让每条 sequence 变慢。</li>
+<li><strong>误区：</strong>显存还有 2 GiB，所以还能再开一条。<br><strong>纠正：</strong>还要留 workspace、allocator fragmentation 和增长中的 context。</li>
+</ul>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>slot/concurrency 必须由 workload × service time × KV/VRAM 共同决定。</strong>不能只看一张卡“有多少 GiB”。</div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>Little's Law 中 L、λ、W 为什么必须处在同一个系统边界？</li>
+<li>平均 active concurrency 与 peak concurrency 有什么不同？</li>
+<li>为什么“每请求 KV 固定 1.5 GiB”只能是教学近似？</li>
+<li>增加 slots 时，哪三种指标可能同时恶化？</li>
+</ol>
+</section>
 </body></html>
