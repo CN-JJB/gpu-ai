@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>怎样定义“已经恢复到可接真实请求”的可验证状态，并在重启、崩溃或断电后证明系统能重复回到这个状态？</strong>可靠性不是“今天能跑”，而是故障发生后仍能按已知步骤恢复。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/readiness-recovery.svg" alt="LLM 服务从 process start、socket、health、model loaded、first inference 到 warm steady state 的 readiness 与 restart recovery 时间线"><figcaption><strong>“进程活着”和“服务能接真实 workload”之间有一段时间。</strong> Restart 后也不是 health=200 就自动回到原稳态；模型加载、first inference、cache warm-up 与身份一致性都要重新确认。</figcaption></figure>
 <h2>1. 启动不是一个瞬间</h2>
 
 <pre>
