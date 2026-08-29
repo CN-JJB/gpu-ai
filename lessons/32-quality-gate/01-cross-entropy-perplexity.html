@@ -14,6 +14,10 @@
 candidate Q4: PPL = P4
 performance: PP/TG measured separately
 </pre><p>解释时计算 PPL delta/ratio，但不自动设“0.5% 一定可接受”。阈值由你的任务目标决定。再跑 JSON、中文、coding 等目标 fixture，才能形成完整 tradeoff。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/quality-gate.svg" alt="Baseline Q6 与 Candidate Q4 在相同 corpus SHA、tokenizer、eval argv 和 target task 下分别记录 PP/TG 性能与 PPL/任务质量，质量硬失败会阻断部署结论">
+<figcaption><strong>性能和质量是两条轴。</strong> Candidate 更快，只能说明性能轴改善；PPL、固定任务或人工 review 任何一个触发硬失败，都必须把部署结论标成 BLOCKED。</figcaption>
+</figure>
 <h2>6. Corpus identity：文件内容必须真的固定</h2><p>只记录文件名不够。保存 corpus SHA256、bytes、fixture revision。哪怕只改一个换行/预处理，严格实验里也已经是新 corpus。</p>
 <h2>7. Tokenizer identity：为什么最容易被忽略？</h2><p>PPL 是按 token 计算。换 tokenizer 等于改变评估单位和概率空间。必须固定 tokenizer revision/identity，不能把两个不同 tokenizer 的 PPL 小数做简单高低比较。</p>
 <h2>8. Evaluation argv：一个 flag 也可能改变语义</h2><p>context/chunk、BOS、stride、batch 或工具版本都可能改变 evaluation。课程 I30 要求 quality identity 与实际 argv token-for-token 绑定，正是为了避免“同 corpus 但评法变了”。</p>
