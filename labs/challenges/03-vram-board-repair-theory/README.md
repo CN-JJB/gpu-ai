@@ -114,3 +114,20 @@ card value
 - GPU vendor diagnostics 与 memory/RAS 文档；
 - DRAM/board 具体电气事实必须来自目标器件 datasheet、board evidence 或专业维修资料；
 - 不把另一个 PCB revision 的维修经验直接迁移。
+
+
+## Expected outcome
+
+你应该能把“显存故障/扩容”拆成 PCB、电气、firmware、memory-controller、software 五层，并为每层列出非侵入 Evidence 与 stop condition。
+
+## Failure recovery
+
+如果问题需要 BGA 返修、供电测量、板级焊接或未知电气改造才能继续，课程挑战到此停止，转向合格维修人员/专业实验环境。
+
+## What this does NOT prove
+
+理论 dossier 不证明某颗显存芯片坏、不提供焊接/改板操作许可，也不能把“能启动”当长期稳定。
+
+## No-hardware path
+
+完整挑战可仅用原理图/公开 board photo/故障日志做因果树，不需要拆自己的卡。
