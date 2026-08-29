@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>这套电源与线材能否在不改线、不冒险的前提下，为整机提供足够的持续与瞬态 headroom，并满足 GPU 厂商规定的连接方式？</strong>若证据不完整，结论应是 BLOCKED，而不是“先插上试试”。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/psu-power-delivery-path.svg" alt="从系统负载、PSU 额定输出和瞬态能力、PSU 端模组线 pinout、GPU 辅助供电与主板插槽组成的供电路径，并把总功率、delivery path 和 cable compatibility 分成独立安全门槛"><figcaption><strong>“总瓦数够”只通过第一道门。</strong> 线材 pinout、连接器数量、瞬态、per-cable routing 和 GPU 插槽/辅助供电都必须单独验证；未知模组线兼容性应直接视为 BLOCKED，而不是通电试错。</figcaption></figure>
 <h2>1. 先拆掉第一个误区</h2>
 <pre>PSU = 1000W</pre>
 <p>不等于：</p>
