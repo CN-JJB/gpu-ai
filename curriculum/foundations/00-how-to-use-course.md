@@ -86,3 +86,46 @@ DEFERRED-HARDWARE
 ~~~
 
 这五行比复制整页笔记更有价值。
+
+
+## 开课前自检
+
+你不需要先会 Linux、Python、CUDA 或机器学习。只要你愿意做到三件事：
+
+1. 不懂就追到“哪个最小前提没懂”；
+2. 实验时保存原始 Evidence，而不是只记结论；
+3. 不把 UNKNOWN 硬猜成 PASS。
+
+如果某节需要额外前置知识，Foundation 01–05 会在需要时补上。
+
+## Retrieval Practice
+
+不看上文回答：
+
+1. Lesson、Reference、Intelligence、Evidence 四者为什么必须分开？
+2. “我在网上看到 RTX 3090 跑 70 tok/s”属于你的 Evidence 吗？为什么？
+3. 真机暂时没有时，DEFERRED-HARDWARE 应保存哪三类信息？
+4. 一次实验结果可以证明什么，为什么还必须写 non-claim？
+5. 如果你卡在一个公式，应该重读整门课还是先定位哪个单位/因果箭头断了？
+
+## 完成证据
+
+在自己的学习记录里写下：
+
+~~~text
+我的当前机器/可用设备：
+我目前最想解决的 Local LLM 问题：
+我缺少的真机条件：
+我会如何标记 DEFERRED-HARDWARE：
+我理解 Evidence 与网上 benchmark 的区别：
+~~~
+
+没有 GPU 也可以完成 Foundation 00。
+
+## Primary Sources / Course Contract
+
+- 本仓库：MISSION.md
+- 本仓库：docs/course/STUDENT-TEXTBOOK-COMPLETION.md
+- 本仓库：learning/PROFILE.md
+
+这三个文件定义课程目标、教材完成标准与学生学习边界。
