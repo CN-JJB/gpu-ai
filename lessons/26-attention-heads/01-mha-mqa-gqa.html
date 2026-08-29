@@ -44,5 +44,36 @@ KV cache ratio = 8 / 32 = 1/4
 <h2>Retrieval Practice</h2><ol><li>为什么 KV cache 主要取决于 KV heads 而不是 query heads？</li><li>MHA、MQA、GQA 三者的共享关系是什么？</li><li>KV heads 从 32 到 8 为什么只说明 KV 部分约四分之一，而不是总显存？</li><li>为什么 GQA 节省在长 context/高并发更重要？</li><li>从模型 config 做 KV 预算至少需要哪些字段？</li><li>为什么跨两个完全不同模型不能把速度差直接归因给 GQA？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>在模型容量/服务规划时，用 exact layers × KV heads × head dim × context × dtype × concurrency 估算 KV；不要从总 attention heads 或参数量猜。模型间性能差异只有在控制其他变量后才可归因 GQA/MQA。</p></div>
 <h2>Transfer</h2><p>下一步学习 sliding/hybrid/latent attention 时，继续问两个问题：历史状态到底保存什么？每个新 token 必须读取多少历史字节？</p>
+
+<h2>Worked Budget：把 KV-head 差异变成真实容量问题</h2>
+<p>假设一个 32 层模型，head dimension 128，context 32768，KV 使用 2 bytes/element。只比较 KV-head 数：</p>
+<pre>KV bytes
+= 2 × 32 × 32768 × kv_heads × 128 × 2
+</pre>
+<p>如果 kv_heads 从 32 降到 8，公式中只有这一项变化，因此 KV 部分严格按 1/4 缩放。注意：这是 KV cache 的结构比例，不是整机显存占用比例；weights、allocator、runtime buffers 都还在。</p>
+
+<h2>从 Config 到 Evidence 的四步</h2>
+<ol>
+<li>从 exact config 读取 query heads、KV heads、head dimension/layers；</li>
+<li>按目标 context、KV dtype、sequence 数做预算；</li>
+<li>在目标 runtime 上记录实际 KV allocation / memory delta；</li>
+<li>若预算与实测不符，再调查 padding、paging、hybrid attention、allocator 与额外 buffers。</li>
+</ol>
+<p>第 2 步是模型，第 3 步是现实。不要为了让公式“看起来对”而忽略 runtime 差异。</p>
+
+<h2>Experiment Evidence</h2>
+<p>对同一模型做 context sweep 时固定 artifact、runtime、KV dtype、offload、concurrency，只改变 context。保存 predicted KV、observed memory 与 TG/latency。没有 GPU 时只完成 predicted worksheet，并标明 MEASURED = NONE。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>预测 KV 低、实际显存高：</strong>先分 weights/buffers/allocator，不要说公式错误。</li>
+<li><strong>GQA 模型 TG 更高：</strong>只能描述该 stack；不能把所有差异归因 GQA。</li>
+<li><strong>context 增长 memory 近似线性：</strong>与传统 full-KV 模型一致，但仍要检查 paging/padding。</li>
+<li><strong>memory scaling 非线性：</strong>调查 sliding/hybrid/latent、allocator block 与 backend policy。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>减少 KV heads 是架构级 tradeoff，不是用户运行时随便改的优化开关。本节也不证明 MQA/GQA 在所有质量任务上等价于 MHA；质量来自训练后的 exact model，需要独立评估。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/2305.13245">GQA: Training Generalized Multi-Query Transformer Models</a></li><li><a href="https://arxiv.org/abs/1911.02150">Fast Transformer Decoding: One Write-Head is All You Need</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
 </main></body></html>
