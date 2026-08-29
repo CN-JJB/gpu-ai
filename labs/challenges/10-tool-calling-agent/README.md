@@ -123,3 +123,20 @@ Current server 也有实验性 built-in tools；上游明确提示相关能力�
 - llama.cpp server: https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
 
 运行前 pin commit 并重新检查 tool-calling 文档。
+
+
+## Expected outcome
+
+完成一个最小、白名单、低权限 tool loop，并能展示 schema validation、拒绝非法参数、超时/失败处理和可审计 tool result。
+
+## Failure recovery
+
+第一版不要给 shell/任意文件系统/广泛网络权限。Tool call 解析失败时先缩到纯函数工具与固定 fixture。
+
+## What this does NOT prove
+
+模型正确选择一次工具不代表 agent 安全；自然语言确认也不能替代真正的权限边界与参数验证。
+
+## No-hardware path
+
+小模型或 mock model/tool fixture 即可验证 orchestration 和安全边界。
