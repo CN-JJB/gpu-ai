@@ -34,7 +34,9 @@ Batch 04 (Lessons 24–33) is now also reviewed and marker-checked. All 10 pages
 
 Batch 05 (Lessons 34–45) is implemented and marker-checked. Ten existing operations diagrams were connected to previously text-only lesson pages, and two new teaching SVGs were added for Little's Law/serving capacity and power→energy→J/token reasoning. All 12 pages now expose a visual teaching surface.
 
-Next visual batch: Lessons 46–49 used-GPU validation, PSU/power delivery, system integration and graduation gates.
+Batch 06 (Lessons 46–49) is implemented and marker-checked. Lesson 46 now exposes the staged used-GPU acceptance flow; Lessons 47–49 add dedicated PSU delivery, whole-machine hard-gate and graduation Design Review diagrams.
+
+All planned lesson groups have been reviewed. Next: final 62-page visual/comprehension closure scan, including teaching-surface coverage and core lesson markers.
 
 ## Stable course
 
