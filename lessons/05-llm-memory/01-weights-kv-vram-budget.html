@@ -292,5 +292,48 @@ V: [batch, kv_heads, seq_len, head_dim]</code></pre>
 
 <p class="small">本 Lesson 的公式是 full-attention homogeneous-layer baseline。遇到 hybrid/sliding/chunked/heterogeneous attention 时必须按层修正。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：显存预算要分“静态占用”和“随请求增长的占用”</h2>
+<h3>Worked Example：24 GiB 为什么不等于能塞 24 GiB 权重</h3>
+<pre>GPU capacity: 24 GiB
+weights:      19 GiB
+runtime/workspace: 1.5 GiB
+KV target:     2.5 GiB
+headroom:      1 GiB
+
+total: 24 GiB</pre>
+<p>这已经几乎没有 allocator fragmentation、额外 buffer、并发增长空间。工程上通常不能把“刚好等号”当作稳定 fit。</p>
+
+<h3>预算公式</h3>
+<pre>required VRAM
+≈ weights
++ KV cache
++ temporary/workspace
++ runtime/backend overhead
++ safety headroom</pre>
+<p>其中 KV 还会随 context、batch/concurrency、KV heads、dtype/cache policy 改变。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>context 增长时，KV 占用应呈可解释增长。</li>
+<li>并发增加时，KV/slot 需求通常上升。</li>
+<li>更小 quant 先降低 weights，占用变化不必等比例映射到速度或质量。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先确认模型文件大小不是实际 VRAM 占用的唯一来源。</li>
+<li>确认是否有 CPU offload；“没 OOM”不等于全在 GPU。</li>
+<li>区分 reserved/allocated/free 等不同 telemetry 语义。</li>
+<li>OOM 时逐项缩减 context、concurrency、offload/weights，而不是一次全改。</li>
+</ol>
+
+<h3>无目标 GPU 怎么办？</h3>
+<p>可以先做纸面 budget，把所有未知数明确写成 UNKNOWN 或范围。只有真实 runtime telemetry 才能把估算升级成实测。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>买卡前先做 VRAM budget；如果只有“模型文件 &lt; 显存”这一条依据，视为证据不足。</strong>必须给 KV、runtime/workspace 和 headroom 留位置。</div>
+</section>
 </body>
 </html>
