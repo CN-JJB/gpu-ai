@@ -61,6 +61,10 @@ collect / reduce / merge
 next layer</pre>
 <p>这类方式确实能在同一层里并行更多计算，但代价是频繁的数据交换和同步，因此对 GPU↔GPU 互联更敏感。</p>
 
+<figure class="visual">
+<img src="../../assets/diagrams/multi-gpu-split-interconnect.svg" alt="两块 GPU 各有独立本地显存，通过互联连接，并比较 layer split、tensor parallel 和 independent replicas 三种多 GPU 组织方式">
+<figcaption><strong>多 GPU 的第一张图应该画“边界”，不是把两个显存数字相加。</strong> Layer split 主要买容量，tensor parallel 更频繁依赖互联，replica 则主要买并发吞吐。</figcaption>
+</figure>
 <h2>4. 给 Roofline 再加一层：Interconnect Roof</h2>
 <p>前面我们已经学过 compute roof 和 memory-bandwidth roof。多 GPU 后，还要加入跨卡通信：</p>
 <pre>T_N ≈ T_compute / N
