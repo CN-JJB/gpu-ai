@@ -65,3 +65,48 @@ from torch.nn.attention import SDPBackend, sdpa_kernel
 - auto backend 可能随版本、shape、dtype、GPU 改变。
 - math backend OOM 是有效结果，但不要因此直接推断某个 fused backend 的全模型最大上下文。
 - 不同 fused implementation 的浮点顺序不同，不要求 byte-identical。
+
+
+## Hypothesis
+
+同一 shape/dtype 下，math、flash、auto 可能表现出不同 latency 与临时内存；unsupported 必须被显式记录，而不能偷偷 fallback 后继续叫 FlashAttention 测试。
+
+## Fixed variables
+
+GPU、PyTorch build、dtype、heads、head dim、sequence 与 reps 固定；比较 backend 时只改 backend selector。
+
+## What to observe
+
+- backend status/error；
+- mean latency；
+- peak allocated delta；
+- max abs error vs math reference；
+- sequence 变长时 math 与 fused path 的相对趋势；
+- auto 是否随 shape/版本选择不同路径。
+
+## Troubleshooting
+
+- 从小 sequence 开始，避免把 OOM 当成 API 错误。
+- allocator cache 会影响绝对内存，重点看同进程相对趋势。
+- 浮点实现顺序不同不要求 byte-identical。
+- operator tokens/s proxy 不是端到端 LLM tok/s。
+
+## Evidence to save
+
+保存环境版本、完整命令和 result.json；unsupported/error 也保留。
+
+## What this proves
+
+你能确认当前环境哪些 SDPA 路径真实可用，并比较 operator-level 行为。
+
+## What this does NOT prove
+
+它不证明完整模型最大 context、真实 serving SLO 或某 GPU 的通用 FlashAttention 性能。
+
+## No-hardware fallback
+
+没有 PyTorch GPU 环境时完成 Experiment 19。
+
+## Transfer question
+
+auto 比显式 flash 更快一次，能否直接推出 auto 永远选择了更好的同一个 kernel？
