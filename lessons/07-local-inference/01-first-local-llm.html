@@ -12,6 +12,7 @@
 <h1>第一次跑本地 LLM，怎样证明它真的跑在你以为的硬件上？</h1>
 <p class="lead">看到模型吐出一句话，只证明“某个程序运行了”。课程真正要你证明的是：哪一个 backend、哪一份模型、哪条 CPU/GPU 路径、什么 context/offload 条件，以及结果能不能被别人复现。</p>
 
+<h2>Prerequisite Check</h2><p>建议先完成 Foundation 01–02，以及 Lesson 05–06。你应会定位文件路径、记录 SHA256，并知道模型 fit 需要 weights + KV + buffers。没有 GPU 也可以继续：CPU baseline 就能完成本节证据闭环。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>我已经能聊天了。但它到底用了 CPU、CUDA、HIP 还是 Metal？为什么别人同一张卡比我快两倍？</strong></p>
