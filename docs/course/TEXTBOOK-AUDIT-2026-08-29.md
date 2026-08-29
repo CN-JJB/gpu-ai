@@ -139,91 +139,42 @@ Vendor Capstone NVIDIA has:
 - completion evidence;
 - primary sources.
 
-### Confirmed systematic opening-contract defect: lessons 34–49
+### Opening-contract remediation complete: lessons 34–49
 
-The older serving/operations/whole-machine lesson style is content-rich but predates the current explicit opening contract.
+A systematic opening-contract defect was confirmed across lessons 34–49: the pages were content-rich, but all 16 previously entered numbered technical sections without an explicit prerequisite-recovery block or an explicit real-problem section.
 
-All sixteen lessons in the following range were inspected at their opening sections:
-
-~~~text
-34 serving SLO
-35 serving capacity
-36 overload / admission
-37 multi-tenant fairness
-38 service exposure / privacy
-39 operational reliability
-40 safe upgrade / rollback
-41 observability / diagnosis
-42 power / energy
-43 storage / model loading
-44 host memory / swap / OOM
-45 thermal / sustained performance
-46 used-GPU validation
-47 PSU / power delivery
-48 whole-machine integration
-49 graduation machine-design capstone
-~~~
-
-Confirmed result:
+The remediation is now complete across all four batches:
 
 ~~~text
-lessons 34–49 with explicit Prerequisite Check at opening = 0 / 16
-lessons 34–49 with explicit 真实问题 section at opening = 0 / 16
+Batch A — 34–38 serving / capacity / overload / fairness / exposure
+Batch B — 39–42 reliability / upgrade / observability / power
+Batch C — 43–47 storage / host RAM / thermal / used GPU / PSU
+Batch D — 48–49 integration / graduation capstone
 ~~~
 
-This is not a thin-content problem. These pages already contain substantial mechanisms, worked examples, experiments, retrieval practice, completion evidence, decision guidance and primary references. Their `<h1>` titles are often already phrased as the motivating question.
+Each page now opens with:
+- a topic-specific `Prerequisite Check`;
+- a fallback/recovery explanation that does not require owning target hardware;
+- an explicit `真实问题` tied to a local-LLM decision, SLO, failure mode, purchase risk or deployment risk.
 
-The defect is that the learner is not explicitly told:
-- what minimum prior knowledge is assumed;
-- what to do if that prerequisite is missing;
-- which concrete local-LLM decision or failure creates the need for the lesson before entering numbered technical sections.
-
-The new textbook contract requires prerequisite recovery rather than relying on sequence memory. Treat the entire 34–49 opening style as a real textbook-completion defect.
-
-### Remediation batches
-
-Apply tailored openings rather than empty compliance headings:
+A direct post-remediation re-check of all 16 pages found:
 
 ~~~text
-Batch A — Serving
-34 TTFT / ITL / tail / throughput
-35 Little's Law / slots / KV
-36 overload / admission / retry
-37 fairness / quotas / borrowing
-38 exposure / bind / auth / TLS / privacy
-
-Batch B — Operations
-39 readiness / restart / recovery
-40 release gates / rollback
-41 observability / incident diagnosis
-42 power / energy efficiency
-
-Batch C — Host / hardware reliability
-43 storage / mmap / page cache / startup
-44 host RAM / available / swap / OOM
-45 thermal / clocks / sustained drift
-46 used-GPU validation
-47 PSU / connectors / headroom
-
-Batch D — Integration
-48 whole-machine hard gates / unknowns
-49 graduation Evidence → design review
+Prerequisite Check = 16 / 16
+真实问题 = 16 / 16
+Retrieval Practice = 16 / 16
+完成证据 = 16 / 16
+Primary Sources = 16 / 16
 ~~~
 
-Each remediation should add:
-1. a topic-specific `Prerequisite Check` with a fallback pointer or one-paragraph recovery;
-2. an explicit `真实问题` that ties the concept to a local-LLM decision, SLO, failure mode, purchase risk or deployment risk;
-3. no fabricated measurement and no new requirement to own hardware.
+No fabricated measurements were added. No lesson requires buying hardware, exposing a service to the public Internet, modifying PSU wiring, flashing a GPU, or performing another unsafe hardware modification.
 
 ## Next authoring actions
 
-1. Remediate Batch A (34–38) openings and re-review the full learner flow.
-2. Remediate Batch B (39–42).
-3. Remediate Batch C (43–47).
-4. Remediate Batch D (48–49).
-5. Finish the 338-file local-link scan or obtain an observable `Course Readiness` workflow PASS on the exact teaching head.
-6. Re-run a substantive contract spot review across Foundations, vendor capstones, Transformer internals, serving/operations, used-GPU acceptance and whole-machine integration.
-7. Only then consider freezing `TEXTBOOK COMPLETE`.
+1. Finish the 338-file local-link scan or obtain an observable `Course Readiness` workflow PASS on the exact teaching head.
+2. Re-run a substantive contract spot review across Foundations, vendor capstones, Transformer internals, serving/operations, used-GPU acceptance and whole-machine integration.
+3. Fix any remaining integrity or learner-flow defect discovered by those checks.
+4. Only then consider freezing `TEXTBOOK COMPLETE`.
 
 ## Boundaries preserved
 
