@@ -39,5 +39,48 @@ Latent:   different compressed state representation
 <h2>Retrieval Practice</h2><ol><li>Sliding window 如何改变每层历史长度 scaling？</li><li>Hybrid attention 为什么要按 layer type 分组预算？</li><li>Latent cache 用什么代价换更小历史状态？</li><li>KV quant、sliding、paged KV 三者分别改变哪一层？</li><li>为什么 architecture 支持与 runtime allocation 不能混为一谈？</li><li>长 context fit 为什么仍需 quality fixture？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>遇到新 attention architecture 时，暂停套传统 KV 公式。先确认每层保存的 state、历史范围、dtype 与 runtime allocation，再计算容量；任何“长上下文优势”还必须通过实际 backend 与质量验证。</p></div>
 <h2>Transfer</h2><p>未来出现新的 sparse/linear/recurrent attention，也用同一三问：保存什么状态？每个 token 读多少历史？额外计算/软件支持成本是什么？</p>
+
+<h2>Architecture State 与 Runtime Allocation：做一张双列表</h2>
+<table><thead><tr><th>模型语义层</th><th>Runtime 实现层</th></tr></thead><tbody>
+<tr><td>哪些层 full/local/sliding</td><td>是否真的裁掉窗口外 cache</td></tr>
+<tr><td>保存 K/V 还是 latent state</td><td>实际 layout、padding、page/block</td></tr>
+<tr><td>理论历史范围</td><td>实际 allocated/resident bytes</td></tr>
+<tr><td>KV dtype 语义/允许选项</td><td>backend 是否有 native kernel/fallback</td></tr>
+</tbody></table>
+<p>模型论文/config 只能回答左列；目标 runtime/source/实测才能回答右列。两列合在一起才是本地部署的 KV 现实。</p>
+
+<h2>Worked Example：为什么“4k sliding window”仍可能看到大内存增长？</h2>
+<p>可能有多种完全不同的解释：</p>
+<ul>
+<li>只有部分层 sliding，仍有 global layers；</li>
+<li>runtime 为简化实现仍保留更多历史 state；</li>
+<li>paged allocator 预留 block；</li>
+<li>除了 KV，还有 weights、workspace、graph buffer；</li>
+<li>模型所谓 sliding 只限制 attention receptive field，不等于物理释放。</li>
+</ul>
+<p>因此先测 memory delta，再对照 exact implementation，不能从模型术语直接猜 allocator 行为。</p>
+
+<h2>Modern KV Experiment Matrix</h2>
+<p>固定 model artifact/runtime/backend，按 context 做 sweep，并记录：</p>
+<pre>context
+predicted semantic history factor
+observed memory
+PP / TG or latency
+quality fixture
+allocation policy / KV dtype
+</pre>
+<p>如果改变 KV dtype、paging、sliding override 或 backend，每次只改变一个 semantic/runtime variable。无 GPU 时只填写前两列中的 architecture prediction，并把 observed memory 标成 DEFERRED-HARDWARE。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>memory 早早趋于平缓：</strong>可能与 sliding/eviction 一致，再查实现与质量。</li>
+<li><strong>memory 继续线性增长：</strong>可能存在 global layers/保留策略/paging；不要立刻说 sliding 没生效。</li>
+<li><strong>memory 省很多但 TG 下降：</strong>latent/reconstruction/quant kernel 可能把成本转移到 compute。</li>
+<li><strong>fit 通过但远距离质量差：</strong>这是 semantic/quality gate，不是容量问题。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>任何一种 sliding、hybrid、latent 或 paged 设计都不存在通用的“更好”。它们分别改变 state、history、allocation 或 compute tradeoff。只有绑定 exact architecture、runtime 与目标 workload，才能比较价值。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../reference/llm/">Course LLM Reference</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
 </main></body></html>
