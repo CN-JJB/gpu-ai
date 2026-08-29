@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+<title id="title">量化性能优化的质量 Gate</title><desc id="desc">Baseline与Candidate必须使用同一corpus tokenizer evaluation argv和target task，性能提升与PPL等质量信号分开记录，任何质量硬失败都会阻断部署结论。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.fixed{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“Q4 快 20%”只完成了性能轴；是否可用还要过质量 Gate</text>
+<rect class="fixed" x="330" y="75" width="460" height="82" rx="14"/><text x="560" y="105" text-anchor="middle" font-size="18" font-weight="700">Fixed evaluation identity</text><text class="s" x="560" y="132" text-anchor="middle">same corpus SHA · tokenizer · eval argv · target tasks</text>
+<path class="arrow" d="M480 160 C430 205 350 210 305 245"/><path class="arrow" d="M640 160 C690 205 770 210 815 245"/>
+<rect class="box" x="130" y="250" width="350" height="120" rx="16"/><text x="305" y="282" text-anchor="middle" font-size="18" font-weight="700">Baseline · Q6</text><text class="t" x="305" y="312" text-anchor="middle">PP / TG performance</text><text class="t" x="305" y="338" text-anchor="middle">PPL / target-task result</text>
+<rect class="box" x="640" y="250" width="350" height="120" rx="16"/><text x="815" y="282" text-anchor="middle" font-size="18" font-weight="700">Candidate · Q4</text><text class="t" x="815" y="312" text-anchor="middle">PP / TG performance</text><text class="t" x="815" y="338" text-anchor="middle">PPL / target-task result</text>
+<path class="arrow" d="M560 385 V420"/>
+<rect class="box" x="315" y="420" width="490" height="55" rx="12"/><text class="t" x="560" y="453" text-anchor="middle">performance PASS + quality PASS → eligible for review · any hard quality FAIL → BLOCKED</text>
+</svg>
