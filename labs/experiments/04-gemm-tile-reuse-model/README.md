@@ -98,3 +98,43 @@ tile 32 已经需要 1024 threads/block。
 3. tile 32 比 tile 16 的 reuse 更高，它可能在哪些资源上更糟？
 4. coalescing 为什么没有被这个模型回答？
 5. 把 shared memory/LDS 改成 registers，为什么不能让整个 block 随便共享这些数据？
+
+
+## Hypothesis
+
+在这个理想算法级模型中，tile width T 允许 A/B tile 被约 T 个 output positions 复用，因此 global input-load requests 近似减少 T 倍；但 tile 变大同时提高 threads/block 与 shared-memory footprint。
+
+## Fixed variables
+
+N、dtype、GEMM FLOPs 与 load-counting rule 固定，只改变 tile width。
+
+## What to observe
+
+- input-load reduction；
+- conceptual bytes 与 arithmetic intensity；
+- shared/block 与 threads/block；
+- tile 16→32 的 reuse 收益与资源代价；
+- 为什么 profiler DRAM bytes 可能与 toy bytes 不同。
+
+## Troubleshooting
+
+- 不要把算法级 load requests 当 memory transactions。
+- cache/coalescing/broadcast/bank conflict 均未建模。
+- tile 大到超出真实 thread/block/resource limit 时不能照搬。
+- reuse 增强不等于 performance 一定线性提升。
+
+## What this proves
+
+你能解释 tiling 如何用片上资源交换 global-data reuse，并提高概念 arithmetic intensity。
+
+## What this does NOT prove
+
+它不预测真实 GEMM kernel 的 DRAM bytes、occupancy 或 speedup。
+
+## No-hardware path
+
+完整 L0，可手算 N=8/tile=2。
+
+## Transfer question
+
+tile 32 的概念 load reduction 比 tile 16 好，为什么真实 kernel 仍可能 tile 16 更快？
