@@ -30,7 +30,9 @@ Batch 01 (Lessons 01–05), Batch 02 (Lessons 06–13), and Batch 03 (Lessons 14
 
 Batch 03 added second-layer mechanism diagrams for NVIDIA SM execution, AMD wave/CU/WGP resources, Apple unified-memory LLM data paths, and Intel SYCL→Level Zero→Xe software evidence. All 23 HTML pages in Lessons 14–23 retain Retrieval Practice, completion evidence, primary sources and valid HTML closure.
 
-Next visual batch: Lessons 24–33 Transformer/model internals + benchmark identity.
+Batch 04 (Lessons 24–33) is now also reviewed and marker-checked. All 10 pages already had mechanism-appropriate SVG or interactive surfaces, so no redundant new asset was added. The RoPE, hybrid-KV and sampling interactions explicitly state their teaching-model boundaries.
+
+Next visual batch: Lessons 34–45 serving/operations/whole-machine behavior.
 
 ## Stable course
 
