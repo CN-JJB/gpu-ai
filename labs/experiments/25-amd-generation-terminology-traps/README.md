@@ -57,3 +57,50 @@ python3 check_lineage.py
 1. reference answers 12/12；
 2. 把答案复制后故意改错至少三条；
 3. 对每条 false claim 写一句“还缺哪层 Evidence”。
+
+## Why this experiment
+
+AMD 架构跨 GCN、RDNA、CDNA 后，最容易犯的是把不同层级术语强行翻译成 NVIDIA 一对一对应。这个实验训练你把 execution grouping、compute unit、matrix path、cache 和产品线分开。
+
+## Hypothesis
+
+每条 false assertion 都应该能指出错在：代际、层级、产品线、或“硬件能力 ≠ 当前 runtime 使用”之一，而不是只背答案。
+
+## Fixed variables
+
+Stable assertions 不随当前市场变化；Dynamic assertions 必须绑定课程记录的 2026 snapshot，未来更新时重新核验来源。
+
+## What to observe
+
+1. GCN/RDNA wave size 的代际差异。
+2. WGP 与 CU 的层级关系。
+3. RDNA 与 CDNA 为什么不是一条简单顺序线。
+4. MFMA/低精度硬件能力与 backend kernel 使用的区别。
+5. ROCm support 为什么要落到 exact gfx target + OS/SKU。
+
+## Troubleshooting
+
+- Infinity Cache 不是额外 VRAM。
+- dual issue 不等于所有 workload 2×。
+- matrix dtype support 不等于任意 Q4 GGUF 自动走 native path。
+- dynamic support matrix 结论必须随时间更新。
+
+## Evidence to save
+
+保存 12/12 输出，并为所有 false assertion 写“错误层级 + 需要的 Evidence”。
+
+## What this proves
+
+你能避免 AMD↔NVIDIA 的机械术语映射。
+
+## What this does NOT prove
+
+它不证明当前某张 AMD 卡的真实 ROCm/LLM 性能。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+一张 RDNA4 GPU 支持某种低精度矩阵能力，但 llama.cpp 当前 backend 未调用它，你应该把哪一条写成稳定事实，哪一条写成动态兼容性事实？
