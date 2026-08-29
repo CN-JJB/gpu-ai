@@ -195,5 +195,49 @@
 
 <p class="small">硬件门槛：Lesson 与 L0 无需独显；L2 是安全的可选真 GPU 实验。真实性能只记录带完整环境的 Evidence。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：GPU Memory Hierarchy 的核心是“数据离执行单元有多近”</h2>
+<h3>Worked Example：为什么 Tile 能减少重复 DRAM 流量</h3>
+<p>假设多个线程反复使用同一块输入。如果每次都从 global memory 重新取：</p>
+<pre>thread0 → DRAM X
+thread1 → DRAM X
+thread2 → DRAM X
+...</pre>
+<p>若先由一组线程协作加载到 shared memory：</p>
+<pre>DRAM X → shared tile
+          ↙ ↓ ↘
+      many reuses</pre>
+<p>优化本质不是“shared memory 神奇更快”，而是<strong>减少高成本层级的数据移动次数</strong>。</p>
+
+<h3>Registers 为什么既珍贵又危险？</h3>
+<p>register 很接近执行单元，但每线程使用过多会压缩可同时驻留的 warps；极端情况下还可能 spill 到更慢的存储层。于是：</p>
+<pre>more registers per thread
+→ maybe fewer instructions/reloads
+→ but lower residency
+→ maybe spills</pre>
+<p>它是 tradeoff，不是越多越好。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>存在数据复用时，tiling/reuse 才更有价值。</li>
+<li>没有复用、只流式读取时，shared-memory copy 可能只是额外工作。</li>
+<li>tile 太大时可能被 shared-memory/register 占用反噬。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先证明 workload 真的存在 reuse。</li>
+<li>看 global-memory transaction 是否减少。</li>
+<li>看 occupancy/residency 是否因资源压力下降。</li>
+<li>检查 bank conflict / uncoalesced access 等次级问题。</li>
+</ol>
+
+<h3>无 CUDA 环境怎么办？</h3>
+<p>用纸上矩阵 tile 或课程模拟即可：计算“不复用时需要多少次外层内存读取”和“tile 后多少次”。先掌握 data-movement accounting，再到任何 GPU backend 验证。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>优化 memory hierarchy 时，先问“哪份数据会被复用、复用多少次、代价最高的数据移动在哪里”。</strong>不要为了用了 shared memory 而用了 shared memory。</div>
+</section>
 </body>
 </html>
