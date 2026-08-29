@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 520" role="img" aria-labelledby="title desc">
+<title id="title">NVIDIA GPU 架构演进教学地图</title>
+<desc id="desc">按课程五个阶段组织 Tesla 到 Blackwell，突出通用计算、矩阵专用单元、内存与多 GPU 系统能力逐步演进。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.group{fill:#fff;stroke:#555;stroke-width:2}.node{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="40" y="38">NVIDIA 架构不要背成“CUDA Core 数字表”，要看每代解决了什么瓶颈</text>
+<g transform="translate(30 85)">
+<rect class="group" x="0" y="0" width="205" height="300" rx="16"/><text x="102" y="32" text-anchor="middle" font-size="18" font-weight="700">Tesla → Fermi → Kepler</text>
+<rect class="node" x="22" y="58" width="160" height="52" rx="9"/><text class="t" x="102" y="90" text-anchor="middle">统一 shader / CUDA</text>
+<rect class="node" x="22" y="128" width="160" height="52" rx="9"/><text class="t" x="102" y="151" text-anchor="middle">cache / ECC / compute</text><text class="s" x="102" y="170" text-anchor="middle">更像通用计算机</text>
+<rect class="node" x="22" y="198" width="160" height="65" rx="9"/><text class="t" x="102" y="223" text-anchor="middle">更宽并行</text><text class="s" x="102" y="244" text-anchor="middle">调度 / ILP / TLP</text>
+</g>
+<path class="arrow" d="M240 235 H265"/>
+<g transform="translate(270 85)">
+<rect class="group" x="0" y="0" width="180" height="300" rx="16"/><text x="90" y="32" text-anchor="middle" font-size="18" font-weight="700">Maxwell → Pascal</text>
+<rect class="node" x="20" y="70" width="140" height="58" rx="9"/><text class="t" x="90" y="96" text-anchor="middle">效率 / perf-per-watt</text><text class="s" x="90" y="116" text-anchor="middle">更容易喂饱</text>
+<rect class="node" x="20" y="150" width="140" height="72" rx="9"/><text class="t" x="90" y="176" text-anchor="middle">产品线分化</text><text class="s" x="90" y="197" text-anchor="middle">GDDR / HBM</text><text class="s" x="90" y="216" text-anchor="middle">NVLink / low precision</text>
+</g>
+<path class="arrow" d="M455 235 H480"/>
+<g transform="translate(485 85)">
+<rect class="group" x="0" y="0" width="180" height="300" rx="16"/><text x="90" y="32" text-anchor="middle" font-size="18" font-weight="700">Volta → Turing</text>
+<rect class="node" x="20" y="70" width="140" height="62" rx="9"/><text class="t" x="90" y="97" text-anchor="middle">Tensor Core</text><text class="s" x="90" y="118" text-anchor="middle">mixed precision matrix</text>
+<rect class="node" x="20" y="153" width="140" height="72" rx="9"/><text class="t" x="90" y="179" text-anchor="middle">独立线程调度</text><text class="s" x="90" y="200" text-anchor="middle">INT low precision</text><text class="s" x="90" y="219" text-anchor="middle">RT specialization</text>
+</g>
+<path class="arrow" d="M670 235 H695"/>
+<g transform="translate(700 85)">
+<rect class="group" x="0" y="0" width="180" height="300" rx="16"/><text x="90" y="32" text-anchor="middle" font-size="18" font-weight="700">Ampere → Ada</text>
+<rect class="node" x="20" y="70" width="140" height="66" rx="9"/><text class="t" x="90" y="96" text-anchor="middle">TF32 / BF16</text><text class="s" x="90" y="117" text-anchor="middle">sparsity 条件峰值</text>
+<rect class="node" x="20" y="158" width="140" height="66" rx="9"/><text class="t" x="90" y="184" text-anchor="middle">能效 / cache</text><text class="s" x="90" y="205" text-anchor="middle">消费 AI 路径增强</text>
+</g>
+<path class="arrow" d="M885 235 H910"/>
+<g transform="translate(915 85)">
+<rect class="group" x="0" y="0" width="215" height="300" rx="16"/><text x="107" y="32" text-anchor="middle" font-size="18" font-weight="700">Hopper → Blackwell</text>
+<rect class="node" x="25" y="65" width="165" height="72" rx="9"/><text class="t" x="107" y="91" text-anchor="middle">FP8 / Transformer Engine</text><text class="s" x="107" y="113" text-anchor="middle">TMA / data movement</text>
+<rect class="node" x="25" y="158" width="165" height="78" rx="9"/><text class="t" x="107" y="184" text-anchor="middle">更低精度 + 系统扩展</text><text class="s" x="107" y="206" text-anchor="middle">NVLink / NVSwitch</text><text class="s" x="107" y="226" text-anchor="middle">AI factory scale</text>
+</g>
+<text x="580" y="430" text-anchor="middle" font-size="16" font-weight="700">跨代比较固定问五件事：执行组织 · 数值路径 · memory hierarchy · interconnect · 软件生命周期</text>
+<text x="580" y="462" text-anchor="middle" class="s">教学地图用于定位课程主线；具体 SM 结构、支持精度和 SKU 规格必须回到对应官方 whitepaper / programming guide。</text>
+</svg>
