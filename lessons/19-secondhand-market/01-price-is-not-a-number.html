@@ -13,6 +13,10 @@ shipping/tax inclusion
 source/provenance
 sample/cohort identity
 </pre><p>课程 Intelligence lane 使用不同 evidence grade，就是为了避免把弱信号冒充成交事实。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/market-observation-cohort.svg" alt="二手显卡不同挂牌样本先记录 exact SKU、地区、币种、时间、价格语义、卡况、运费税费和来源，再筛选同一 cohort 并计算市场信号">
+<figcaption>价格统计之前先做<strong>语义归一化</strong>。不同地区、不同卡况、asking 与 transaction、不同时间窗不能只靠汇率硬塞进同一个平均数。</figcaption>
+</figure>
 <h2>2. Asking price 与 transaction price 是不同变量</h2><p><strong>挂牌价</strong>告诉你卖家希望多少钱；<strong>成交价</strong>才告诉你市场实际交换了多少钱。两者之间可能存在议价、优惠券、退货、捆绑、平台税费等差异。</p><div class="callout"><strong>规则：</strong>“SOLD”标签不自动等于“确认最终成交价”。如果平台只显示原挂牌价，你只能写“sold-marked displayed price”，不能升级成 confirmed transaction。</div>
 <h2>3. Cohort：只有同一类样本才适合算中位数</h2><p>假设你搜 3090：</p><ul><li>24 GB 正常消费版；</li><li>水冷改装；</li><li>只有散热器/空盒；</li><li>维修故障卡；</li><li>整机拆卖；</li><li>海外包税；</li><li>专业 OEM 型号。</li></ul><p>这些不能无脑放进同一 median。先定义 cohort，例如：</p><pre>same exact product class
 + working/claimed-working condition
