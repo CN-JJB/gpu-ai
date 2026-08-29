@@ -133,3 +133,20 @@ RAG Packet：
 - Hugging Face RAG docs: https://huggingface.co/docs/transformers/model_doc/rag
 
 具体 vector DB/embedding 工具可替换，Evidence contract 不变。
+
+
+## Expected outcome
+
+把 corpus identity、chunking、embedding/index、retrieval metrics 与 generation quality 分开评估，能指出失败发生在“没检索到”还是“检索到了但没正确使用”。
+
+## Failure recovery
+
+回答错误时先检查 retrieval hit/ground-truth，再查 generation；不要直接换更大模型掩盖索引/切块问题。
+
+## What this does NOT prove
+
+RAG answer 看起来合理不证明引用真实或 retrieval 正确；必须保留 source/chunk identity 与评测 fixture。
+
+## No-hardware path
+
+小 corpus 可用 CPU embedding/甚至手工 retrieval fixture 完成 Evidence 设计。
