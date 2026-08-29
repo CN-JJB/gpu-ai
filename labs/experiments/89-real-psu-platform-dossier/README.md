@@ -147,3 +147,52 @@ A valid result separates:
 - connector/cable compatibility;
 - transient unknowns;
 - observed sustained workload behavior.
+
+
+## Why this experiment
+
+整机供电安全不能用“总瓦数够”一句话覆盖。这个 dossier 把 PSU exact identity、模组线 provenance、每条 GPU 供电路径、普通 workload power 与未知 transient 分开。
+
+## Hypothesis
+
+只有 arithmetic capacity、connector/cable compatibility 与普通 workload 行为都有证据时，方案才有资格进入接受评审；未知模组线兼容性或可见热损伤必须阻止乐观 PASS。
+
+## Fixed variables
+
+不改 power limit、不超频、不换线测试“能不能撑”。物理清点前关机断开 AC，只做外部检查。
+
+## What to observe
+
+- exact PSU model/revision/manual；
+- PSU-port→cable→branch→GPU cable map；
+- exact GPU/OEM connector guidance；
+- sustained board/wall power 的测量边界；
+- cable provenance UNKNOWN/false；
+- visible connector damage。
+
+## Troubleshooting
+
+- “850W Gold”不是足够的 PSU identity。
+- 模组接口能插进去不等于 pinout 兼容。
+- wall power 与 PSU DC rating 是不同边界。
+- 消费级插座表不能证明短时 transient。
+
+## Evidence to save
+
+保存 PSU label/manual reference、CABLE-MAP.csv、GPU requirement sources、ordinary workload power、dossier.json、checker 输出与 RESULT-TEMPLATE。
+
+## What this proves
+
+你能对真实整机供电路径做非侵入、可审计的可行性检查。
+
+## What this does NOT prove
+
+它不认证 PSU 内部电气安全、transient response，也不允许拆 PSU/裸测市电。
+
+## No-hardware fallback
+
+完成 Experiment 88。
+
+## Transfer question
+
+PSU 额定余量 40%，但一根模组 GPU cable 来源未知。为什么 arithmetic PASS 不能覆盖 cable gate？
