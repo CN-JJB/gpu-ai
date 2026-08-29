@@ -84,7 +84,30 @@ A decorative image does not satisfy this audit.
 
 - [x] corpus baseline scan
 - [x] Batch 01 manual review
-- [ ] Batch 01 visual implementation
-- [ ] Batch 01 link/readiness re-check
+- [x] Batch 01 visual implementation
+- [x] Batch 01 link/readiness re-check
 - [ ] Batch 02 review and implementation
 - [ ] continue lesson-by-lesson until all 62 pages are reviewed
+
+
+## Batch 01 implementation result
+
+Implemented:
+
+- Lesson 01: causal evolution timeline SVG + existing unified-pool simulator retained.
+- Lesson 02: resident-group scheduler simulator with issue/idle cycle trace.
+- Lesson 03: memory-hierarchy / tile-reuse SVG.
+- Lesson 04: interactive two-roof Roofline explorer with ridge-point readout.
+- Lesson 05: interactive weights + KV + reserve VRAM budget calculator.
+- Global CSS: visual/interactive primitives, mobile-safe code blocks/tables, and constrained `.textbook-upgrade` layout.
+
+Post-edit marker check for Lessons 01–05:
+
+~~~text
+Retrieval Practice = 5 / 5
+完成证据 = 5 / 5
+Primary Sources = 5 / 5
+HTML close = 5 / 5
+~~~
+
+New assets are local first-party files. No synthetic result is presented as measured evidence.
