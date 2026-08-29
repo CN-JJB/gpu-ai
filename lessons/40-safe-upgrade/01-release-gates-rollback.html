@@ -279,4 +279,47 @@ rollback verification</pre>
 <li>为什么一次改五个变量会破坏回归诊断？</li>
 </ol>
 </section>
+
+<section class="release-evidence">
+<h2>Release Packet：升级前就把“拒绝条件”写死</h2>
+<p>每次 candidate 至少保存：</p>
+<ul>
+<li>baseline/candidate exact runtime、model、config；</li>
+<li>变更说明与 intentional variable；</li>
+<li>startup/readiness/smoke；</li>
+<li>PP/TG/TTFT/SLO 等性能结果；</li>
+<li>quality gate 与 raw outputs；</li>
+<li>VRAM/RAM/resource delta；</li>
+<li>rollback artifacts/hash 与验证结果；</li>
+<li>ACCEPT / ROLLBACK 的具体触发条款。</li>
+</ul>
+
+<h3>Worked Example：Candidate 自己 PASS，但 Rollback 未验证</h3>
+<p>如果新版本所有性能/质量 gate 都通过，但旧 binary/model/config 已无法恢复，严格意义上 release 仍缺一项 operational safety evidence。对于高风险或长期服务场景，应先证明 rollback path，而不是把“应该装得回去”当证据。</p>
+
+<h3>Release 状态机</h3>
+<pre>CANDIDATE
+→ GATES-PASS
+→ ROLLBACK-VERIFIED
+→ ELIGIBLE-FOR-RELEASE
+→ HUMAN RELEASE
+
+any hard gate fail
+→ ROLLBACK
+→ verify baseline functional state
+</pre>
+<p>这不是要求家庭用户搭复杂平台，而是让升级有明确退出路线。</p>
+
+<h3>Failure Recovery</h3>
+<ul>
+<li>candidate 启动失败：保存日志，恢复 baseline，不边修边覆盖。</li>
+<li>质量失败：即使速度大涨也 rollback。</li>
+<li>rollback 后 health 200 但 smoke 失败：继续视为未恢复。</li>
+<li>多个变量一起换：结论降级为 release/system comparison，不做单因素归因。</li>
+</ul>
+
+<h3>What this lesson does NOT prove</h3>
+<p>通过一套 release gate 不证明 candidate 对所有模型、请求形状和未来 driver 都没有问题。Gate 只对你明确覆盖的 deployment contract 有效。</p>
+</section>
+
 </body></html>
