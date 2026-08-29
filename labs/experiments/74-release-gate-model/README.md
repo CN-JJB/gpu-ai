@@ -67,3 +67,51 @@ Readiness/smoke are checked again.
 ## Scope
 
 All values/hashes are synthetic.
+
+
+## Why this experiment
+
+升级最危险的思维是“新版本更快，所以发布”。真正的 release gate 必须同时保护功能、质量、性能、SLO 和可回滚性。
+
+## Hypothesis
+
+candidate-good 应通过所有 gate；candidate-fast-bad 即使 TG 更高，也应因为 PPL/TTFT/SLO 失败而 ROLLBACK。回滚还必须恢复 exact identity 并重新通过 readiness/smoke。
+
+## Fixed variables
+
+policy.json 固定；baseline 与 rollback identity 固定。只比较不同 candidate evidence。
+
+## What to observe
+
+1. 每个 gate 是 hard requirement 还是 preference。
+2. fast-bad 中哪些 gate PASS、哪些 FAIL。
+3. 为什么任一关键 FAIL 都不能被 TG speedup 抵消。
+4. rollback 的 runtime/model/config SHA 是否精确回到 baseline。
+5. rollback 后为什么还要功能验证。
+
+## Troubleshooting
+
+- 不要把 synthetic threshold 当通用推荐。
+- 只回退 binary、没回退 config/model 不算 exact rollback。
+- “rollback command 成功”不等于服务恢复；要重新 ready + smoke。
+- 同时改太多变量会降低回归定位能力。
+
+## Evidence to save
+
+保存两次 evaluate 输出、四个 JSON，并画出 candidate → gate matrix → decision → rollback verification。
+
+## What this proves
+
+你能用显式 gate 做安全升级/回滚决策。
+
+## What this does NOT prove
+
+所有 hashes/metrics 都是 synthetic，不代表任何真实 runtime 发布。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+新版本 TG +12%，但 PPL ratio 超过质量阈值且 TTFT p95 超标，你应该发布吗？为什么？
