@@ -15,6 +15,10 @@ Compute Unit (CU)
       ├─ vector registers (VGPR)
       ├─ scalar path / SGPR
       └─ LDS (on-chip shared data)</pre><p>这张图是你以后读 AMD kernel tuning 的起点。CUDA 的 thread/warp/SM/shared memory 可以帮助建立直觉，但不要因此假设内部完全等价。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/amd-wave-cu-memory-lens.svg" alt="AMD CU WGP 跨代教学抽象，展示 work-items 组成 wavefront，scalar 与 vector 路径使用 SGPR 和 VGPR，LDS 提供 workgroup 协作，并受寄存器 LDS 和 memory hierarchy 共同限制">
+<figcaption><strong>这张图专门防止“1 CU = 1 SM”的错误换算。</strong> 先追 wave 怎样占用 scalar/vector、VGPR/SGPR、LDS 与 scheduler 资源，再问 RDNA/CDNA 某代具体增加了什么。CU/WGP 的名字可以变，资源竞争与数据复用问题不会消失。</figcaption>
+</figure>
 <h3>Wavefront 是什么？</h3><p>程序看到许多 work-item/thread，硬件把它们成组执行。GCN 经典语境中常见 wave64。遇到分支时，同一 wave 中不同 lane 走不同路径可能需要序列化部分工作，这和 SIMT/SIMD divergence 的一般规律一致。</p>
 <h2>2. Scalar + Vector：为什么地址/控制工作不必占满所有 lane？</h2><p>如果某个值对整个 wave 都相同，例如某个循环计数或统一地址计算，把它在每个 vector lane 重算会浪费资源。GCN 提供 scalar 资源处理适合 wave-uniform 的工作，让 vector datapath 专注逐 lane 数据。</p><div class="callout"><strong>长期规律：</strong>GPU 高吞吐不仅来自“更多向量 ALU”，也来自把控制、地址、标量与向量工作放到合适的数据路径。</div>
 <h2>3. LDS：AMD 的片上协作存储</h2><p>Local Data Share（LDS）是 CU 内用于 workgroup 协作的低延迟片上存储。它承担的教学角色与 CUDA shared memory 类似：</p><pre>global memory → cooperatively load tile → LDS → reuse → compute</pre><p>但相似不代表所有 bank、容量、同步和 occupancy 规则相同。写跨厂商 kernel 时必须读对应 ISA/tuning guide。</p>
