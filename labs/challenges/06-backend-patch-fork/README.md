@@ -98,3 +98,20 @@ If I change Z only, expected outcome is ...
 - Git documentation: https://git-scm.com/docs
 - GitHub pull request documentation: https://docs.github.com/en/pull-requests
 - 目标项目自己的 CONTRIBUTING.md / tests / style guide 优先。
+
+
+## Expected outcome
+
+得到最小 reproducible bug、明确 hypothesis、最小 patch、before/after test 与维护成本说明。Patch 无收益或假设被推翻也属于合格结果。
+
+## Failure recovery
+
+如果 patch 同时改多个 subsystem，先缩小；如果无法复现 upstream behavior，停止写代码，先补 environment/build/fixture Evidence。
+
+## What this does NOT prove
+
+本地 patch 通过一个 case 不代表 upstream 通用正确，也不等于值得长期维护 fork。
+
+## No-hardware path
+
+可选择 parser/docs/test-only 小问题完成贡献闭环；不要求必须写 GPU kernel。
