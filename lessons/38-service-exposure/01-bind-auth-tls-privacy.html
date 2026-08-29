@@ -5,6 +5,17 @@
 </head><body>
 <h1>Service Exposure / Privacy — 把 127.0.0.1 改成 0.0.0.0，发生了什么？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你只需要具备最小网络模型：<strong>loopback</strong> 表示仅本机可达的接口语义，服务通过 IP/interface 与 port 监听；是否能从别处连进来还受到防火墙、路由/NAT、VPN 或云侧策略影响。</p>
+<div class="callout"><strong>如果还不熟：</strong>先不要做任何真实外网暴露。你可以只读配置、画 trust-boundary 图并完成离线审计。课程不要求为了学习而把服务开放到公网。</div>
+
+<h2>真实问题</h2>
+<p>你想让手机或家里另一台电脑访问本地 LLM，于是把监听地址从 <code>127.0.0.1</code> 改成 <code>0.0.0.0</code>。功能上只改了一行，安全上却把“谁可能建立连接”的边界扩大了。</p>
+<p>真正的问题是：<strong>如何让需要的客户端访问服务，同时不把 prompt、RAG 私有数据、metrics、管理接口、密钥或工具权限暴露给不该访问的人？</strong>答案必须同时覆盖 bind/firewall、authentication、TLS、authorization、logs/privacy 与 tools/actions，而不是复制一条“公网部署命令”。</p>
+</section>
+
 <h2>1. 这不是一个“小网络参数”</h2>
 
 <p>默认 loopback：</p>
