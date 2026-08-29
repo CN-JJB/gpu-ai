@@ -119,3 +119,42 @@ achieved <= roof
 4. 上一节 tile 16 → tile 32，本质上如何改变 AI？
 5. 如果真实 kernel 只有 Roofline 上限的 30%，你为什么不能直接怪显存带宽？
 6. 对 decode-heavy 本地 LLM，你会优先查哪些 hardware/software 指标？
+
+
+## Hypothesis
+
+低 arithmetic intensity workload 应主要受 bandwidth roof 约束，因此只加 compute 几乎无收益；高 AI workload 接近 compute roof 后，继续加 bandwidth 的收益会消失。
+
+## Fixed variables
+
+同一轮只改变 GPU compute、bandwidth 或 workload AI 中的一项；不要同时把 GPU 与 workload 都改了再归因。
+
+## What to observe
+
+- 每张抽象 GPU 的 ridge point；
+- AI 从低到高时 memory-bound → compute-bound 的转变；
+- GPU B/C 在同一 AI 下的差异；
+- 真实 achieved 低于 roof 时为什么还有大量 implementation 因素。
+
+## Troubleshooting
+
+- 注意 TFLOP/s 与 GB/s 的 ×1000 单位换算。
+- ridge 是上限模型交点，不是真实 benchmark 转折点。
+- 不要把 decode-heavy 自动等价为某个固定 AI 数值。
+- 远低于 roof 时先查软件/occupancy/cache 等，而不是只怪硬件规格。
+
+## What this proves
+
+你能用 Roofline 判断“提高哪一种理论资源可能有用”。
+
+## What this does NOT prove
+
+它不预测真实 GPU achieved performance，也不是购买排名。
+
+## No-hardware path
+
+完整 L0，手算也可。
+
+## Transfer question
+
+一个 kernel 只有 memory roof 的 30%，为什么“买带宽翻倍的卡”仍可能没有 2× 收益？
