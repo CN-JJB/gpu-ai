@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+<title id="title">LLM 服务 incident diagnosis 的多信号时间线</title><desc id="desc">同一时间轴上对齐Traffic、Latency、Errors、Saturation、GPU clocks与temperature，展示单个GPU利用率或VRAM截图不能直接推出根因，需用时间相关性与最小区分实验形成hypothesis。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.axis{stroke:#777;stroke-width:1.5}.sig{fill:none;stroke:#333;stroke-width:3}.dash{fill:none;stroke:#888;stroke-width:2;stroke-dasharray:6 5}.box{fill:#fff;stroke:#555;stroke-width:2}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<text class="h" x="35" y="38">根因不是一个截图；把症状与资源变化放到同一时间轴</text>
+<line class="axis" x1="180" y1="95" x2="1040" y2="95"/><text class="t" x="65" y="100">Traffic</text><path class="sig" d="M180 95 L350 95 L420 70 L560 70 L620 105 L1040 105"/>
+<line class="axis" x1="180" y1="165" x2="1040" y2="165"/><text class="t" x="65" y="170">TTFT p95</text><path class="sig" d="M180 165 L360 165 L430 125 L590 125 L650 175 L1040 175"/>
+<line class="axis" x1="180" y1="235" x2="1040" y2="235"/><text class="t" x="65" y="240">Queue</text><path class="sig" d="M180 235 L355 235 L435 190 L580 190 L660 245 L1040 245"/>
+<line class="axis" x1="180" y1="305" x2="1040" y2="305"/><text class="t" x="65" y="310">GPU util</text><path class="dash" d="M180 305 L1040 305"/>
+<line class="axis" x1="180" y1="375" x2="1040" y2="375"/><text class="t" x="65" y="380">Clock / Temp</text><path class="dash" d="M180 375 L1040 375"/>
+<rect class="box" x="350" y="420" width="420" height="62" rx="12"/><text class="t" x="560" y="447" text-anchor="middle">Hypothesis: traffic spike → queue → TTFT tail</text><text class="s" x="560" y="468" text-anchor="middle">GPU util alone cannot distinguish healthy saturation from overload.</text>
+<text x="930" y="455" text-anchor="middle" class="s">Next test: control arrival rate / slots</text>
+</svg>
