@@ -103,3 +103,47 @@ Q4/GPTQ/AWQ/GGUF 等需要：
 硬塞一个“torch int4 matmul”反而会教错。
 
 后续真实量化 benchmark 应以实际推理 backend 为单位做。
+
+
+## Hypothesis
+
+同一 GPU 上，大 M 的 prefill-like GEMM 更容易利用矩阵单元；M=1 的 decode-like shape 会受到 tile utilization、weight traffic 和 launch/dispatch 的限制，因此 achieved TFLOP/s 可能相差很大。
+
+## Fixed variables
+
+同一 GPU、PyTorch build、K/N、warmup/repetition 规则固定；比较 shape 时只改 M，比较 dtype 时只改 dtype。FP32 precision policy 必须记录。
+
+## What to observe
+
+1. 各 dtype 是否 supported 或明确报错。
+2. M=512 与 M=1 的 mean ms / TFLOP/s。
+3. FP32 precision=highest/high 时行为是否变化。
+4. device/build metadata 是否完整。
+5. 为什么 achieved TFLOP/s 不能直接映射成整个 LLM TG。
+
+## Troubleshooting
+
+- 第一次调用可能包含初始化开销，按脚本 warmup 规则解释。
+- OOM 时降低 shape，但必须同时修改 baseline/candidate 并记录。
+- BF16/FP16 不支持时保留 status/error，不要强制 cast 后假装原生支持。
+- 其他进程占 GPU 会污染结果。
+
+## Evidence to save
+
+保存 result.json、完整命令、GPU/PyTorch/build identity 和任何 shape 调整。
+
+## What this proves
+
+你能实测矩阵 shape 与 precision 对该环境 GEMM 路径的影响。
+
+## What this does NOT prove
+
+它不是 LLM benchmark，也不能代表 Q4 kernel、attention、KV 或端到端 tok/s。
+
+## No-hardware fallback
+
+没有可见 CUDA/HIP GPU 时完成 Experiment 21 的 Roofline 模型，真实 probe 留到 Learner Verified。
+
+## Transfer question
+
+同一 GPU FP16 M=512 达到很高 TFLOP/s，但 M=1 很低。为什么这并不矛盾？
