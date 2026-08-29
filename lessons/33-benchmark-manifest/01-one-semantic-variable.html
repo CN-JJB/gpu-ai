@@ -31,5 +31,46 @@ variant.hardware
 <h2>Retrieval Practice</h2><ol><li>Manifest 比单条 benchmark 数字多保存了哪些关键上下文？</li><li>为什么 protocol 应在看到结果前冻结？</li><li>intentional variable 为什么应该写语义路径？</li><li>manifest declaration 与 raw command evidence 各自证明什么？</li><li>什么时候必须标 system comparison？</li><li>Synthetic fixture 能证明什么、不能证明什么？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>没有 exact identity + fixed protocol + raw audit evidence 的性能数字，不进入正式 comparison。多个语义块一起变化时只做 system comparison，不做单因素因果归因。</p></div>
 <h2>Transfer</h2><p>Manifest 思想同样适用于功耗、热稳态、二手验卡和服务 SLO：任何结果都应绑定“对象、条件、协议、原始证据”。</p>
+
+<h2>Manifest 交付物：每一项都要能追到 Evidence</h2>
+<p>一份可进入正式 comparison 的 manifest，至少应能回答：</p>
+<ul>
+<li>谁：exact hardware/profile；</li>
+<li>跑什么：exact model artifact、prompt、quality corpus；</li>
+<li>怎么跑：runtime/build/backend 与完整 execution settings；</li>
+<li>比较什么：唯一 intentional semantic variable，或明确声明 system comparison；</li>
+<li>如何判定：warmup、repetitions、metric、quality gate；</li>
+<li>原始证据在哪里：command/stdout/stderr/result/hash packet。</li>
+</ul>
+<p>任何一项只能靠“我记得”回答，都说明 manifest 还没有封口。</p>
+
+<h2>Worked Example：四种看起来像 A/B、其实语义不同的比较</h2>
+<table><thead><tr><th>比较</th><th>问题</th><th>正确处理</th></tr></thead><tbody>
+<tr><td>Q4 vs Q6，同时 context 不同</td><td>model + execution 都变</td><td>修协议或降级 system comparison</td></tr>
+<tr><td>同 quant，不同 runtime commit</td><td>runtime 是额外变量</td><td>明确 intentional variable = runtime</td></tr>
+<tr><td>同卡同模型，但 prompt token IDs 不同</td><td>workload 变了</td><td>重新固定 rendered/token identity</td></tr>
+<tr><td>同协议，driver 升级</td><td>环境栈变化</td><td>将 driver/runtime identity 作为版本 A/B</td></tr>
+</tbody></table>
+
+<h2>Failure Recovery：Validator BLOCKED 时不要“修结果”</h2>
+<pre>BLOCKED
+→ read exact failing field
+→ trace declaration to raw source
+→ decide:
+   input wrong?
+   evidence missing?
+   more than one semantic variable?
+   identity mismatch?
+→ create a clean rerun / corrected manifest
+→ preserve failed packet
+</pre>
+<p>失败 packet 很有价值：它记录了为什么这条数据不应进入正式 catalog。删除它只会让未来重复犯错。</p>
+
+<h2>No-hardware completion</h2>
+<p>完全没有 GPU 也可以完成本节：设计一份 flash-attention、KV dtype 或 runtime-version A/B manifest，用 fixture 验证 schema 与 single-variable contract；所有真实性能字段保持 synthetic/test-only，绝不填“像真的”PP/TG。</p>
+
+<h2>What this lesson does NOT prove</h2>
+<p>Manifest 让数据可解释、可审计，但不会自动消除系统噪声、样本不足、测量偏差或不诚实输入。它是可信 benchmark 的必要条件，不是充分条件。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61</a></li><li><a href="../../tools/intelligence/README.md">Intelligence Tooling</a></li></ul>
 </main></body></html>
