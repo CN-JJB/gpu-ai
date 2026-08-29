@@ -232,3 +232,45 @@ hipcc --resource-usage ...
 最后回答：
 
 **如果 tile 32 global-memory traffic 更少，但 GFLOP/s 比 tile 16 低，你会优先检查哪几类资源，为什么？**
+
+
+## Hypothesis
+
+tiled GEMM 有机会通过 shared/LDS reuse 减少高成本数据移动，但 tile 越大并不保证越快，因为 threads/block、shared/LDS、register pressure、residency 与同步成本会一起变化。
+
+## Fixed variables
+
+同一 GPU/compiler/N/dtype/input 固定；比较 kernel/tile 时不把 H2D/D2H copy 混进 timing。
+
+## What to observe
+
+- correctness；
+- kernel time/GFLOP/s；
+- shared/LDS per block；
+- active blocks/occupancy；
+- compiler register/VGPR/SGPR；
+- profiler memory/cache/bank/stall；
+- tile 8/16/32 的 tradeoff。
+
+## Troubleshooting
+
+- problem 太小会被 cache/launch 影响。
+- tile32 可能触及 thread/block 限制。
+- naive 接近 tiled 时不要先判 kernel 错，先查 actual traffic/cache。
+- 跨 NVIDIA/AMD 不只比单一 GFLOP/s。
+
+## What this proves
+
+你能把真实 tiling speedup 或 slowdown 解释为 data reuse 与片上资源之间的 tradeoff。
+
+## What this does NOT prove
+
+它不是厂商 GEMM library benchmark，也不能推广成所有矩阵 shape 的最佳 tile。
+
+## No-hardware fallback
+
+完成 Experiment 04。
+
+## Transfer question
+
+tile32 的 global traffic 更少但 GFLOP/s 更低时，为什么“流量更少”仍不足以判定它应该更快？
