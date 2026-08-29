@@ -74,6 +74,26 @@ Recent additions emphasize:
 - decision rules and non-claims;
 - human-review boundaries for purchase/release decisions.
 
+## Full-lesson substantive signal audit
+
+After the 34–49 opening remediation, the full stable lesson corpus was re-scanned for three learner-contract signals across all 62 HTML lessons:
+
+~~~text
+no-hardware fallback / hardware-independent path = 62 / 62
+troubleshooting / failure-recovery guidance = 62 / 62
+decision boundary / decision rule = 62 / 62
+~~~
+
+The first pass narrowed five pages for manual review. Lesson 37 already contained a substantive starvation troubleshooting path. Lessons 38, 45, 47 and 48 were strengthened with concrete troubleshooting flows covering:
+- service exposure and trust-boundary diagnosis;
+- sustained thermal/performance drift diagnosis;
+- PSU/power-delivery failure handling with explicit safe-stop boundaries;
+- blocked whole-machine dossier / unknown-closure diagnosis.
+
+A separate opening-marker scan found one older page, Lesson 13 matrix units, that had a real problem but no explicit `Prerequisite Check`. That page was repaired. Across the stable lesson corpus, every page now contains both prerequisite-recovery semantics and a real-problem framing, although older templates do not always use the same exact HTML heading level.
+
+These scans are substantive audit signals, not a substitute for the repository-integrity/link audit.
+
 ## Course Readiness execution boundary
 
 The repository contains:
