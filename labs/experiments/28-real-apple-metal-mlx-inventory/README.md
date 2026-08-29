@@ -126,3 +126,52 @@ Do not assume a hardware Neural Accelerator is active just because the chip is M
 ## G. Result
 
 Fill `RESULT-TEMPLATE.md` and preserve raw `apple-inventory.txt`.
+
+
+## Why this experiment
+
+Apple Silicon 上最容易混淆的是 installed unified memory、GPU recommended working set、memory bandwidth、Metal execution width、MLX device 和 Neural Engine。这个实验把它们分别用 runtime Evidence 固化。
+
+## Hypothesis
+
+一条可用 Apple GPU 路径应能从 exact chip/OS 一直连到 Metal device、pipeline execution properties、MLX/llama.cpp device visibility；任何一层不可见都应保留为 UNKNOWN/unsupported，而不是靠芯片营销名猜。
+
+## Fixed variables
+
+采集期间不修改系统 memory limits、不切换 macOS/Xcode/MLX/llama.cpp build。先记录当前机器。
+
+## What to observe
+
+- installed unified memory 与 recommendedMaxWorkingSetSize 的差异；
+- threadExecutionWidth 来自 pipeline runtime，不是营销常数；
+- MLX CPU/GPU identity；
+- llama.cpp Metal device/build；
+- memory bandwidth 必须来自独立规格来源；
+- M5/Metal 4 tensor path 属动态 backend 事实。
+
+## Troubleshooting
+
+- 没装 MLX/llama-bench 时记录 unavailable，不为“完成”强装。
+- recommended working set 不是 VRAM 额度保证，也不是 bandwidth。
+- MLX GPU 可用不证明 ANE 正在参与。
+- 新 tensor path 必须以 exact OS/Xcode/runtime log 为准。
+
+## Evidence to save
+
+保存 apple-inventory.txt、Metal probe、MLX probe、llama.cpp device/build identity 和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能建立真实 Apple Silicon 的 unified-memory/Metal/backend capability 档案。
+
+## What this does NOT prove
+
+它不证明真实 PP/TG、ANE 使用、长期稳定性或跨 Mac 性价比。
+
+## No-hardware fallback
+
+没有 Apple Silicon 时完成 Experiment 27。
+
+## Transfer question
+
+一台 Mac 有 64GB unified memory，但 recommended working set 较小。为什么不能直接把 64GB 写成“可用显存”？
