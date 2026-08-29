@@ -194,6 +194,18 @@ Step 5: compare preferences / cost</pre>
 → PSU/cooling</pre>
 <p>改模型量化，可能同时改变显存、质量、速度、能耗；所以 revision 之后必须重新跑受影响的 gate。</p>
 
+
+<h3>Troubleshooting：Dossier 被 BLOCKED 时怎么找最短闭环？</h3>
+<ol>
+<li><strong>先找 hard-gate blocker：</strong>不要先优化价格或跑分。列出所有 FAIL / UNKNOWN / BLOCKED，标出哪些会直接让整机不可用。</li>
+<li><strong>按依赖关系排序：</strong>优先关闭会同时影响多个后续判断的 unknown，例如 exact GPU identity、runtime support、PSU connector path、模型实际容量。</li>
+<li><strong>给每个 unknown 指定最小下一证据：</strong>文档可回答的就不要求买硬件；必须实测的则标记 DEFERRED-HARDWARE，而不是编一个结果。</li>
+<li><strong>一次只改变一个设计变量：</strong>换模型量化、换 GPU、加 RAM、换 PSU 都可能触发多个 Gate 重算；记录变更前后依赖，避免“综合评分”掩盖因果。</li>
+<li><strong>遇到冲突证据：</strong>保留冲突，不强行平均。提高证据等级、检查版本/型号/时间边界，直到可以解释为什么两份证据不同。</li>
+<li><strong>关键 unknown 仍未关闭：</strong>最终状态保持 BLOCKED / REVIEW。课程允许“现在还不能决定”作为成熟结论。</li>
+</ol>
+<p>故障恢复的目标不是让 Dossier 看起来完整，而是用最少的新假设把最高风险的不确定性逐个关闭。</p>
+
 <h3>Decision Rule</h3>
 <div class="callout"><strong>FAIL 不能被平均；关键 UNKNOWN 不能被乐观填空；只有 all-required PASS 的候选才进入“哪个更值”的讨论。</strong></div>
 
