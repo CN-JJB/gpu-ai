@@ -259,6 +259,7 @@
 </ul>
 <p>在“算力翻倍”和“带宽翻倍”之间分别选择，并解释 ridge point。</p>
 
+<h2>Transfer</h2><p>Roofline 思维不绑定某个 GPU。换独显、Apple unified memory、多 GPU 甚至 CPU 时，都先估“每单位输出要搬多少 byte”和“能做多少 useful compute”，再问实际软件路径能接近哪一个 roof。不同系统的 bandwidth 口径必须先统一。</p>
 <h2>Primary Sources</h2>
 <ul>
 <li><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/">NVIDIA CUDA C++ Best Practices Guide — Bandwidth</a></li>
