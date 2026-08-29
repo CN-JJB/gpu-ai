@@ -149,3 +149,50 @@ efficiency = speedup / GPU_count
 - “模型成功加载就说明 P2P 正常。”
 - “PP 提升 1.8×，所以 TG 也提升 1.8×。”
 - “一次 benchmark 就能决定任何机器上的双卡价值。”
+
+
+## Hypothesis
+
+多 GPU 首先可能增加 capacity；只有在同一模型能单卡运行时，才有资格计算 performance speedup。Scaling 效率会受到 topology、P2P、split mode、sync 与 imbalance 限制。
+
+## Fixed variables
+
+performance scaling A/B 必须固定 exact model/quant/PP/TG/config，只改变 device count/split。Capacity-only case 单独报告，不伪造 single-GPU baseline。
+
+## What to observe
+
+- topology/P2P capability 与实测 peer bandwidth；
+- single vs multi PP/TG；
+- per-GPU VRAM；
+- split mode；
+- speedup 与 efficiency；
+- PP 与 TG scaling 是否不同；
+- replica serving 与 model split 是否是不同目标。
+
+## Troubleshooting
+
+- device/split CLI 以本机 --help 为准。
+- PCIe 标称带宽不是 GPU↔GPU 实测。
+- model load 成功不证明 P2P 正常。
+- 两卡总 VRAM 不等于单一连续 VRAM。
+- 供电/散热安装必须已经安全完成，本实验不指导硬件改造。
+
+## Evidence to save
+
+保存 topology.txt、devices/help、peer bandwidth（如可用）、single/multi raw JSON、VRAM/thermal state 和结果表。
+
+## What this proves
+
+你能区分多 GPU 的 capacity benefit、单请求 scaling 与 aggregate-serving strategy。
+
+## What this does NOT prove
+
+一次机器的 split 结果不能推广到所有 topology/runtime。
+
+## No-hardware fallback
+
+完成 Experiment 17。
+
+## Transfer question
+
+双卡让一个 40GiB 模型终于能跑，但没有单卡可比结果。你应该报告“2× scaling”还是“capacity success”？为什么？
