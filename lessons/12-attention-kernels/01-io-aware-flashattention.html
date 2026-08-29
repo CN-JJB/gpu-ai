@@ -82,6 +82,10 @@ a' = α a + Σ exp(score - m') V</pre>
 + GPU-aware scheduling</pre>
 <p>目标是在保持 exact dense attention 数学结果的同时，减少 HBM 读写和中间 materialization。</p>
 
+<figure class="visual">
+<img src="../../assets/diagrams/attention-io-naive-vs-tiled.svg" alt="左侧 naive attention 将完整 scores 和 probabilities 中间矩阵写入 HBM，右侧 tiled online softmax 在片上维护局部 score tile、running max、running sum 和 weighted V accumulator">
+<figcaption>两边都可以计算<strong>同一个 exact dense attention</strong>。差别在于右边不要求把完整 N×N scores/probs 反复落到 HBM；这就是“复杂度没变，硬件成本仍能大幅变化”的视觉版本。</figcaption>
+</figure>
 <h2>8. 它没有消灭 N² 计算</h2>
 <p>全量 dense prefill 仍要做大量 QK dot products：</p>
 <pre>O(N²d)</pre>
