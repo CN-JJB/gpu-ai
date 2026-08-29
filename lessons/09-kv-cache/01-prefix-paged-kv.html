@@ -346,5 +346,43 @@ B → ...</code></pre>
 
 <p class="small">硬件门槛：L0 无需 GPU；Experiment 14 CPU-only 也能观察 cache_n/prompt_n，GPU 只是让 timing 更接近常见服务。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：KV Cache 的本质是“用内存换重复计算”</h2>
+<h3>Worked Example：为什么第二个 token 不需要重算全部历史 K/V</h3>
+<p>自回归 decode 第 t 步需要关注前面所有 token。如果每一步都重新算历史 token 的 K/V，重复工作会非常大。KV cache 保存历史结果：</p>
+<pre>step t:
+new token → compute new K,V
+history K,V → reuse from cache
+attention → all history</pre>
+
+<h3>Prefix Cache 与普通 KV Cache 不一样</h3>
+<p>普通 KV 是单条会话内部复用；prefix cache 试图让多个请求共享相同前缀的计算结果。共享收益依赖前缀命中率与实现。</p>
+
+<h3>Paged KV 为什么出现？</h3>
+<p>不同请求长度不同、不断增长。若给每个请求预留固定大块连续内存，容易浪费或碎片化。Paged 思路把 KV 分成较小页面/块，让 allocator 更灵活地复用空间。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>context 越长，KV 占用通常越高。</li>
+<li>GQA/MQA 会显著影响 KV 规模。</li>
+<li>prefix 命中时 TTFT 可能改善，但只在 workload 真有共享前缀时成立。</li>
+<li>paged allocator 的收益主要体现在容量利用与调度，而不是“每 token 自动更快”。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先确认 KV dtype、KV heads、context、并发。</li>
+<li>区分“cache hit”与“普通会话已有 KV”。</li>
+<li>看 allocator reserved/used，而不只看总 VRAM。</li>
+<li>比较 prefix cache 时固定请求前缀和 cache state。</li>
+</ol>
+
+<h3>无大模型/大显存怎么办？</h3>
+<p>用小模型、短 context 观察 KV 随 token 增长的趋势即可。目标是验证关系，不是制造大数字。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>KV 是 serving 容量的一等公民。</strong>选显卡、context、并发时必须把它和 weights 分开预算。</div>
+</section>
 </body>
 </html>
