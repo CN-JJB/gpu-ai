@@ -27,5 +27,45 @@ y = x / rms(x) × learned_scale</pre><p>你不需要手算大向量，只要理�
 <h2>Retrieval Practice</h2><ol><li>Residual path 为什么有助于深层网络传递信息？</li><li>RMSNorm 的最小直觉公式是什么？它需要哪些 kernel 操作？</li><li>RoPE 为什么更适合描述为 Q/K 旋转而不是位置加法？</li><li>“能分配 64k KV”为什么不能证明 64k quality？</li><li>改变 RoPE scaling 后为什么 quality comparison 不再是完全相同条件？</li><li>为什么权重量化位宽不能推导 Norm 的累加精度？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>长上下文能力必须同时通过 model-config/runtime semantic check、memory fit 和 quality fixture。任何手工 RoPE/scaling 改动都视为语义变量，不能只凭不崩溃宣布成功。</p></div>
 <h2>Transfer</h2><p>以后遇到 ALiBi、YaRN、不同 RoPE scaling 或新位置编码，都按“训练语义 → runtime implementation → memory cost → long-context quality”四层验证。</p>
+
+<h2>Semantic Integrity Packet：能跑与“跑对”之间差什么？</h2>
+<p>位置与归一化相关问题特别适合练习 semantic evidence。保存：</p>
+<ul>
+<li>exact model revision / config；</li>
+<li>tokenizer 与 chat template identity；</li>
+<li>runtime build；</li>
+<li>context length；</li>
+<li>RoPE base/scaling 相关实际参数；</li>
+<li>固定 long-context quality fixture；</li>
+<li>baseline 与 candidate 的 raw outputs。</li>
+</ul>
+<p>只有这样，出现“32k 能生成但找不到远处信息”时，才知道到底改变了模型语义、runtime implementation，还是测试任务本身。</p>
+
+<h2>Worked Example：为什么只看 PPL/一条回答都不够？</h2>
+<p>假设你手工改变 RoPE scaling 后，短对话仍正常。这个观察只能说明短范围没有明显崩坏。要验证长 context，fixture 应把可验证事实放在多个距离位置，并固定 prompt/tokenizer/runtime。然后观察随着距离增加，retrieval/answer quality 是否系统性变化。</p>
+<pre>short-context correctness
++ long-distance retrieval fixture
++ exact semantic parameters
+= stronger evidence than "it generated text"
+</pre>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>短 context 正常、长 context 失败：</strong>优先查 position semantics、window、runtime support 与训练边界。</li>
+<li><strong>所有长度都异常：</strong>先排 tokenizer/template/model artifact，不要只盯 RoPE。</li>
+<li><strong>换 runtime 才异常：</strong>把 implementation/version 作为变量固定做 A/B。</li>
+<li><strong>更省内存但质量变化：</strong>先确认是否同时改变 KV/position semantic variable。</li>
+</ul>
+
+<h2>Decision Rule：长上下文是三道 Gate</h2>
+<pre>semantic support
+→ memory fit
+→ quality under target distance
+</pre>
+<p>三道都过，才能说“这个 exact stack 对目标长上下文可用”。仅 allocation PASS 不等于模型理解能力 PASS。</p>
+
+<h2>What this lesson does NOT prove</h2>
+<p>本节不提供一个通用“最佳 RoPE 参数”，也不鼓励把别的模型参数复制过来。位置编码设置属于模型语义；除非模型文档/runtime 明确支持，否则任何手工改动都应视为实验变量而非免费扩容。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/1910.07467">RMSNorm</a></li><li><a href="https://arxiv.org/abs/2104.09864">RoFormer / RoPE</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
 </main></body></html>
