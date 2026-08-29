@@ -15,7 +15,16 @@ table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.5
 <body>
 <h1>Slice 13 — Tensor Core / MFMA 与数值格式：为什么 TOPS 不等于 LLM 速度</h1>
 
-<p><strong>真实问题：</strong>一张卡写着几百甚至上千 TOPS，为什么跑 4-bit LLM 时不一定比另一张卡快那么多？</p>
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该已经知道普通 GPU core/lane 负责标量或向量算术，也见过 GEMM/矩阵乘法在 LLM 中承担大量计算；同时知道 FP16、BF16、INT8、4-bit quantization 这些词描述的可能是不同层次的数值表示。</p>
+<div class="callout"><strong>如果还不熟：</strong>先记住两个层次再继续：<em>模型存储格式</em>决定权重怎样压缩保存，<em>执行数据类型/矩阵指令</em>决定硬件实际怎样计算。二者可以相关，但不能自动画等号。</div>
+
+<h2>真实问题</h2>
+<p>一张卡写着几百甚至上千 TOPS，为什么跑 4-bit LLM 时不一定比另一张卡快那么多？真正要判断的是：<strong>你的 runtime 是否把目标算子映射到了该卡支持的矩阵路径、使用了什么输入/累加格式，以及实际瓶颈是不是计算吞吐。</strong></p>
+</section>
+
 
 <h2>1. Matrix Unit 和普通 ALU 不一样</h2>
 <p>普通向量/标量单元更像：</p>
