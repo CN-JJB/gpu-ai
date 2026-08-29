@@ -218,4 +218,59 @@ follow-up A/B
 <h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://sre.google/sre-book/monitoring-distributed-systems/">Google SRE — Monitoring Distributed Systems</a></li><li><a href="https://sre.google/workbook/monitoring/">Google SRE Workbook — Monitoring</a></li><li><a href="../../reference/llm/observability-incident-diagnosis.md">Course Reference — Observability / Incident Diagnosis</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：可观测性不是“多装几个 Dashboard”</h2>
+<h3>诊断链条</h3>
+<pre>symptom
+→ timeline
+→ correlated signals
+→ hypothesis
+→ discriminating test
+→ result
+→ next hypothesis / fix</pre>
+<p>指标的价值在于帮助你区分假设，而不是让图表越多越专业。</p>
+
+<h3>Worked Example：TG 突然从 50 掉到 30</h3>
+<p>至少有多种候选原因：</p>
+<pre>A thermal/power throttle
+B concurrency increased
+C context grew / KV pressure
+D CPU/RAM/swap interference
+E backend/kernel changed
+F another process using GPU</pre>
+<p>只看 GPU utilization 不能区分这些。你需要时间对齐的 clocks、power、temperature、active requests、context/KV、RAM/swap、runtime identity 等信号。</p>
+
+<h3>先记录事件，再看指标</h3>
+<p>重要操作应该进入时间线：</p>
+<pre>14:01 deploy new runtime
+14:03 first request
+14:08 concurrency test begins
+14:12 TG degradation begins
+14:13 thermal limiter appears</pre>
+<p>没有事件时间线，监控图很容易变成“事后看云彩猜天气”。</p>
+
+<h3>Golden Signals 在本地 LLM 中怎么落地</h3>
+<ul>
+<li><strong>Latency：</strong>TTFT、ITL/E2E、tail。</li>
+<li><strong>Traffic：</strong>req/s、prompt/output tokens、active/queued。</li>
+<li><strong>Errors：</strong>HTTP/runtime/backend/driver failures。</li>
+<li><strong>Saturation：</strong>slots、KV/VRAM、GPU、RAM/swap、queue。</li>
+</ul>
+<p>再加模型服务特有的 PP/TG、cache hit、context distribution 等。</p>
+
+<h3>不要让监控污染实验</h3>
+<p>高频采样、verbose logging、profile 工具本身可能增加 CPU/I/O 开销。正式 benchmark 要记录监控采样频率，并尽量保持 A/B 一致。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>一个好 dashboard 应该能回答“下一步该验证哪个假设”，而不只是告诉你系统很忙。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 GPU utilization 100% 仍不能说明瓶颈是什么？</li>
+<li>事件时间线对根因分析有什么作用？</li>
+<li>本地 LLM 的 saturation 至少有哪些层？</li>
+<li>为什么监控工具本身也要进入 benchmark manifest？</li>
+</ol>
+</section>
 </body></html>
