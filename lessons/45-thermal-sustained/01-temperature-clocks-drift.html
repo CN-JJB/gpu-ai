@@ -241,4 +241,50 @@ fan curve change
 <h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://docs.nvidia.com/deploy/nvidia-smi/index.html">NVIDIA nvidia-smi</a></li><li><a href="https://docs.nvidia.com/deploy/nvml-api/group__nvmlClocksEventReasons.html">NVIDIA NVML Clock Event Reasons</a></li><li><a href="https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html">AMD SMI Monitoring</a></li><li><a href="../../reference/gpu/thermal-sustained-performance.md">Course Reference — Thermal / Sustained Performance</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：热设计的目标是“稳态性能”，不是最低温度</h2>
+<h3>建立稳态视角</h3>
+<pre>cold boost
+→ heat accumulation
+→ fan response
+→ power/thermal equilibrium
+→ sustained throughput</pre>
+<p>垃圾佬最容易犯的错误，是拿卖家 20 秒截图、开盖裸机跑分，推导机箱内 30 分钟双卡服务表现。</p>
+
+<h3>Worked Example：两张卡冷机一样，长期完全不同</h3>
+<table>
+<tr><th></th><th>0–30 s TG</th><th>20 min TG</th><th>噪声</th></tr>
+<tr><td>Card A</td><td>55</td><td>54</td><td>中</td></tr>
+<tr><td>Card B</td><td>56</td><td>43</td><td>高</td></tr>
+</table>
+<p>如果目标是 24/7 服务，A 的实际容量反而更高。</p>
+
+<h3>不要只测 core temperature</h3>
+<p>视硬件可用 telemetry，还应关注 hotspot/junction、memory temperature、clock、board power 与 limiter/event reason。某个传感器不支持时写 N/A，不要猜。</p>
+
+<h3>双卡/密集机箱的关键变量</h3>
+<pre>slot spacing
+airflow direction
+neighbor heat
+riser/layout
+ambient
+fan curve
+dust/filter resistance</pre>
+<p>单卡裸奔通过，不等于整机热设计通过。</p>
+
+<h3>安全边界</h3>
+<p>课程默认只做正常负载、只读 telemetry 与厂商允许的普通设置。不开盖带电操作，不用极端 power/voltage 设置来“证明稳定”。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>热验收看“经过足够 warmup 后的 TG/clock/temperature 是否进入稳定区间”，而不是追求一个通用温度数字。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么高温不自动等于 thermal throttling？</li>
+<li>为什么 cold benchmark 不能代表 sustained capacity？</li>
+<li>多 GPU 机箱中，哪几个变量会改变相邻 GPU 的散热？</li>
+<li>温度、clock、TG 一起下降时，还要检查哪些 limiter？</li>
+</ol>
+</section>
 </body></html>
