@@ -104,3 +104,20 @@ PR 不被 merge 也可以是成功学习 Evidence。
 
 - GitHub — Finding ways to contribute: https://docs.github.com/en/get-started/exploring-projects-on-github/finding-ways-to-contribute-to-open-source-on-github
 - GitHub — Contributing to open source: https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-open-source
+
+
+## Expected outcome
+
+形成一个最小、可复现、尊重项目规则的 issue/PR：问题清楚、Evidence 完整、change scope 小、测试与文档匹配。
+
+## Failure recovery
+
+维护者指出方向错误时，先复现反馈并缩小 patch；不要为了“贡献成功”扩大 scope 或与 review 对抗。
+
+## What this does NOT prove
+
+PR 被 merge 不等于你的方案在所有环境最优；未 merge 也不等于学习失败。
+
+## No-hardware path
+
+文档、测试、错误信息、复现 fixture 都可以成为有效贡献，不要求 GPU。
