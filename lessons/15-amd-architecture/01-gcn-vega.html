@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 1：GCN 与 Vega</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">AMD Architecture · 1/4 · L0→L1</p><h1>AMD 架构主线（一）：GCN → Vega</h1><p class="lead">AMD 不能用“NVIDIA 换名词版”来学。你需要先建立自己的 AMD 执行模型：CU、wavefront、SIMD、VGPR/SGPR、LDS 与 HBM/GDDR，然后再理解 GCN 为什么既服务图形又成为早期 ROCm/HPC 的重要基础。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/amd-generation-branch-map.svg" alt="AMD 从 GCN 与 Vega 之后分成 RDNA 消费图形路线和 CDNA AI HPC 计算路线的架构分支地图">
+<figcaption><strong>先看分叉，再看代数。</strong> RDNA 与 CDNA 都继承 GPU 的 wave/register/LDS/bandwidth 问题，但优化目标、memory system、矩阵路径与部署形态不同；“RDNA4”和“CDNA4”的数字 4 不能拿来横向等价。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应知道 GPU 通过成组线程和大量并行工作隐藏延迟，也知道 register/shared/cache/VRAM 是不同层级。无需会 HIP/OpenCL。</p>
 <h2>真实问题：为什么“64 个 CU”不能直接换算成“多少个 NVIDIA SM”？</h2><p>CU 和 SM 都是 GPU 的大粒度计算组织，但内部 scheduler、SIMD 宽度、wave/warp 语义、寄存器资源、指令吞吐与每代变化都不同。把它们做一比一换算，会像把“汽车发动机缸数”和“电机数量”直接换算一样失真。</p>
 <h2>1. GCN 的基本执行图</h2><pre>work-items / threads
