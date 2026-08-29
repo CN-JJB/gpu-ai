@@ -229,4 +229,66 @@ REVIEW
 <h3>如何选择 / 迁移</h3><p>换 vLLM、llama-server 或其他 runtime 后，指标名字可以变，但仍围绕 <strong>latency / traffic / errors / saturation + workload contract + per-user SLO</strong> 做判断。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md">llama.cpp Server Documentation</a></li><li><a href="../../reference/llm/service-exposure-privacy-auth.md">Course Reference — Service Exposure / Privacy / Auth</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：暴露服务时，先画 Trust Boundary</h2>
+<h3>从“谁能连”开始，而不是从参数开始</h3>
+<pre>same process
+↓
+same host
+↓
+trusted LAN
+↓
+VPN / overlay network
+↓
+public Internet</pre>
+<p>每向外跨一层，攻击面、身份校验、传输保护、日志与秘密管理要求都会上升。</p>
+
+<h3>Worked Example：家庭局域网并不等于“只有我”</h3>
+<p>假设你把聊天服务从 loopback 改为 LAN 可见。此时能接触它的可能不只是你的电脑，还包括手机、电视、IoT、访客设备，以及任何已经被攻陷的内网主机。</p>
+<p>如果 API 没有认证，而模型又能读取私人 RAG 文档，那么“只是家里用”已经不足以构成安全边界。</p>
+
+<h3>四个不同控制面</h3>
+<table>
+<tr><th>控制</th><th>解决什么</th><th>不能替代什么</th></tr>
+<tr><td>bind/firewall</td><td>谁能建立网络连接</td><td>身份认证</td></tr>
+<tr><td>authentication</td><td>你是谁</td><td>链路加密</td></tr>
+<tr><td>TLS</td><td>传输机密性/完整性</td><td>授权策略</td></tr>
+<tr><td>authorization</td><td>你能调用什么</td><td>日志/隐私治理</td></tr>
+</table>
+
+<h3>Secrets 的正确证据方式</h3>
+<pre>BAD:
+--api-key my-real-secret
+
+GOOD evidence:
+auth_enabled = true
+secret_source = environment
+secret_value = REDACTED</pre>
+<p>课程证据包永远不需要你的真实 API key、cookie、token 或私人 prompt。</p>
+
+<h3>工具调用会把风险等级再抬高</h3>
+<p>纯文本生成的最坏结果通常是输出错误文本；如果模型被允许写文件、执行 shell 或操作外部系统，后果边界完全不同。此时要把工具权限、可访问目录、凭证和网络出口单独建模。</p>
+
+<h3>最小暴露检查单</h3>
+<ol>
+<li>确认实际监听地址与端口。</li>
+<li>确认主机防火墙/路由实际允许的来源。</li>
+<li>需要跨不可信网络时使用认证与加密。</li>
+<li>关闭不需要的管理、metrics、slot/debug endpoints。</li>
+<li>日志不保存不必要的 prompt/secret。</li>
+<li>工具/agent 权限与普通 chat API 分离。</li>
+</ol>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>只有在“连接来源、身份、传输、授权、日志、工具权限”都说得清楚时，才把本地模型服务从 loopback 扩出去。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 0.0.0.0 不等于“已经暴露到公网”？</li>
+<li>为什么 CORS 不能代替 authentication？</li>
+<li>为什么 TLS 和 API key 解决的是不同问题？</li>
+<li>为什么 agent/tool server 的信任边界必须比纯 chat API 更严格？</li>
+</ol>
+</section>
 </body></html>
