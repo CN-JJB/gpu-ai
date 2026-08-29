@@ -113,3 +113,29 @@ Arc
 - llama.cpp backend operation coverage: https://github.com/ggml-org/llama.cpp/blob/master/docs/ops.md
 
 所有 current-support claim 运行挑战时重新验证。
+
+
+## Expected outcome
+
+你最终应该得到一条分层结论：
+
+~~~text
+historical capability
+→ current driver/runtime support
+→ current backend build
+→ actual workload evidence
+~~~
+
+其中任何一层缺失，都保留 UNKNOWN，而不是用“老卡以前支持 CUDA”替代当前可用性。
+
+## Failure recovery
+
+如果官方旧文档难找，先冻结 exact GPU/compute capability，再从当前 driver/runtime support matrix 反向查；不要用论坛一句“还能跑”直接升级成正式结论。
+
+## What this does NOT prove
+
+兼容性考古不证明性能值得、不证明功耗划算，也不等于购买建议。
+
+## No-hardware path
+
+主路径本来就是资料考古；有真卡时才追加 device/runtime probe。
