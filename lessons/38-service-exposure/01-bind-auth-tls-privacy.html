@@ -16,6 +16,7 @@
 <p>真正的问题是：<strong>如何让需要的客户端访问服务，同时不把 prompt、RAG 私有数据、metrics、管理接口、密钥或工具权限暴露给不该访问的人？</strong>答案必须同时覆盖 bind/firewall、authentication、TLS、authorization、logs/privacy 与 tools/actions，而不是复制一条“公网部署命令”。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/service-exposure.svg" alt="本地 LLM 服务从 localhost、LAN、VPN、公网到 Auth、TLS、CORS、metrics logs cache 等暴露面的网络边界图"><figcaption><strong>Bind address、reachability、Auth、TLS、CORS 是不同安全层。</strong> 图里故意把它们拆开：0.0.0.0 只说明监听所有接口，不自动等于公网开放；CORS 也不会替你做身份认证。</figcaption></figure>
 <h2>1. 这不是一个“小网络参数”</h2>
 
 <p>默认 loopback：</p>
