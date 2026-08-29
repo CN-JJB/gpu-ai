@@ -173,6 +173,37 @@ V: [batch, kv_heads, seq_len, head_dim]</code></pre>
 
 <p><strong>这不应该被写成“稳了”。</strong></p>
 
+<section class="card interactive-lab" data-vram-budget>
+<h3>交互预算器：把“能不能塞”拆成 weights + KV + reserve</h3>
+<p>默认值就是上面的 7B-like 示例。先改 context 和 concurrency，再观察 KV 为什么会快速吞掉 headroom。</p>
+<div class="control-grid">
+<label>参数量 (B)<input data-params type="number" min="0.1" step="0.1" value="7"></label>
+<label>Effective bpw<input data-bpw type="number" min="1" step="0.1" value="4.5"></label>
+<label>Layers<input data-layers type="number" min="1" step="1" value="32"></label>
+<label>KV heads<input data-kvheads type="number" min="1" step="1" value="8"></label>
+<label>Head dim<input data-headdim type="number" min="1" step="1" value="128"></label>
+<label>KV bytes/element<input data-kvbytes type="number" min="0.5" step="0.5" value="2"></label>
+<label>Context tokens<input data-context type="number" min="1" step="1024" value="4096"></label>
+<label>Active sequences<input data-concurrency type="number" min="1" step="1" value="4"></label>
+<label>Runtime reserve (GiB)<input data-reserve type="number" min="0" step="0.25" value="1.5"></label>
+<label>GPU capacity (GiB)<input data-capacity type="number" min="1" step="1" value="8"></label>
+</div>
+<div class="metric-grid">
+<div class="metric">Weights<strong data-weights-out>—</strong></div>
+<div class="metric">KV<strong data-kv-out>—</strong></div>
+<div class="metric">Estimated total<strong data-total-out>—</strong></div>
+<div class="metric">Paper headroom<strong data-headroom-out>—</strong></div>
+</div>
+<div class="stacked-budget" aria-label="VRAM budget stacked bar">
+<span class="weights" data-weights-bar title="weights"></span>
+<span class="kv" data-kv-bar title="KV cache"></span>
+<span class="reserve" data-reserve-bar title="runtime reserve"></span>
+</div>
+<p class="legend-inline"><span class="lg-weights">weights</span><span class="lg-kv">KV</span><span class="lg-reserve">runtime reserve</span></p>
+<p><strong data-verdict>—</strong></p>
+<p class="small"><strong>边界：</strong>这是 full-attention homogeneous-layer baseline。Paged/sliding/hybrid KV、allocator、backend layout、display 占用和 offload 都可能改变真实结果。</p>
+</section>
+
 <h2>8. 为什么公式算得对，运行还可能不一样？</h2>
 
 <p>因为现实 backend 还会改变 memory policy。</p>
@@ -336,5 +367,6 @@ total: 24 GiB</pre>
 <h3>Decision Rule</h3>
 <div class="callout"><strong>买卡前先做 VRAM budget；如果只有“模型文件 &lt; 显存”这一条依据，视为证据不足。</strong>必须给 KV、runtime/workspace 和 headroom 留位置。</div>
 </section>
+<script src="../../assets/components/vram-budget.js"></script>
 </body>
 </html>
