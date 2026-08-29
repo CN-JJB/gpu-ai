@@ -271,5 +271,40 @@
 
 <p class="small">L0 使用抽象 GPU，不代表任何真实型号。真实购卡结论必须进入 benchmark/intelligence 流程并记录软件版本与测试条件。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：Roofline 是上限模型，不是性能预测器</h2>
+<h3>Worked Example：decode 为什么常被带宽卡住</h3>
+<p>极简化地看，一次 decode step 需要把大量权重读入参与计算。如果一个模型每生成 token 需要有效读取约 20 GB 权重，而可持续有效带宽约 600 GB/s：</p>
+<pre>idealized upper bound
+≈ 600 / 20
+≈ 30 token/s</pre>
+<p>这只是非常粗的带宽上限：真实实现还包含 cache、kernel efficiency、KV、量化解码、同步与其他流量。</p>
+
+<h3>Arithmetic Intensity</h3>
+<pre>AI = operations / bytes moved</pre>
+<p>低 AI 更容易撞 memory roof；高 AI 更可能撞 compute roof。Prefill 与大 batch 往往比单 token decode 有更高的计算复用，因此瓶颈可能不同。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>单用户 decode 常更接近 memory-bound。</li>
+<li>扩大 batch / prompt matrix 后，计算单元利用率可能提高。</li>
+<li>理论显存带宽高，不代表 backend 能达到同样有效带宽。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先确认模型/量化实际每 token 需要搬多少数据。</li>
+<li>不要用厂商峰值带宽冒充持续有效带宽。</li>
+<li>检查是否被 CPU offload / PCIe / kernel implementation 限制。</li>
+<li>区分 PP 与 TG；它们可能撞不同 roof。</li>
+</ol>
+
+<h3>无 GPU 怎么办？</h3>
+<p>可用厂商公开规格 + 模型文件大小做上限估算练习，但必须标注为 <strong>theoretical bound</strong>，不能写成实测 TG。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>Roofline 用来排除不可能、定位瓶颈方向，不用来替代 benchmark。</strong>理论上限与真实性能之间永远需要实现效率证据。</div>
+</section>
 </body>
 </html>
