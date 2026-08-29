@@ -273,4 +273,46 @@ F another process using GPU</pre>
 <li>为什么监控工具本身也要进入 benchmark manifest？</li>
 </ol>
 </section>
+
+<section class="diagnosis-evidence">
+<h2>Incident Worksheet：每个 Hypothesis 都要能被一个测试区分</h2>
+<pre>symptom:
+first bad timestamp:
+user-visible metric:
+recent change/event:
+hypothesis A:
+evidence for/against:
+smallest discriminating test:
+result:
+next action:
+</pre>
+<p>“GPU 100%”“VRAM 95%”只是 signal，不是 hypothesis。好 hypothesis 应该能被新 Evidence 推翻，例如“TG 下降来自 thermal throttle”就应预测 clock/limiter/temperature 与 workload 时间线存在一致关系。</p>
+
+<h3>Worked Example：TG 下降但 GPU util 仍 100%</h3>
+<p>至少同时检查：</p>
+<ul>
+<li>clock/power/temperature 是否变化；</li>
+<li>context/KV 是否增长；</li>
+<li>active/queued request 数是否变化；</li>
+<li>runtime/backend/model identity 是否刚升级；</li>
+<li>CPU/RAM/swap 是否出现干扰；</li>
+<li>是否有其他 GPU process。</li>
+</ul>
+<p>如果只有温度升高但 clock 不变、用户 latency 不变，就没有足够证据把高温宣布为根因。</p>
+
+<h3>Observability Evidence Packet</h3>
+<p>保存时间同步的 request metrics、system/GPU telemetry、关键 logs、deploy/config events 与监控采样配置。正式 A/B 中监控本身也要固定，因为更高采样频率和 profiler 可能改变系统负载。</p>
+
+<h3>Failure Recovery</h3>
+<ul>
+<li>没有统一时间轴：先对齐时间戳，不凭截图顺序猜因果。</li>
+<li>指标互相矛盾：保留矛盾并设计下一项 discriminating test。</li>
+<li>只有一个异常点：先确认持续性/重复性，不立刻改系统。</li>
+<li>监控造成明显开销：降频或分离 profiling run，明确 measurement boundary。</li>
+</ul>
+
+<h3>What this lesson does NOT prove</h3>
+<p>相关信号不能自动证明因果。Observability 的目标是更快缩小假设空间；真正 root cause 仍需复现、对照或能够区分竞争假设的实验。</p>
+</section>
+
 </body></html>
