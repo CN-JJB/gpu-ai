@@ -176,4 +176,37 @@ final decision + reason</pre>
 <li>为什么你自己的 LLM workload 比单一通用 stress test 更有购买相关性？</li>
 </ol>
 </section>
+
+<section class="acceptance-protocol">
+<h2>到货 30 分钟、2 小时、长期观察分别能证明什么？</h2>
+<table><thead><tr><th>阶段</th><th>优先目标</th><th>不能宣称</th></tr></thead><tbody>
+<tr><td>快速初检</td><td>identity/VRAM/明显物理异常/基本枚举</td><td>长期稳定</td></tr>
+<tr><td>受控验收</td><td>代表性 LLM workload、错误/热/clock、重复运行</td><td>覆盖所有显存地址和接口</td></tr>
+<tr><td>后续使用</td><td>更长时间的真实 workload 可靠性</td><td>未来永不故障</td></tr>
+</tbody></table>
+<p>这能防止“10 分钟没崩 = 全好”和“一个 unsupported telemetry 字段 = 坏卡”两种极端。</p>
+
+<h3>Worked Example：卖家说 24 GB，runtime 也显示 24 GB，但持续 TG 逐轮下降</h3>
+<p>identity/容量已经通过，但 acceptance 还没完成。下一步看 temperature、clock、power limiter、error/event 与环境风道；如果性能在相同 workload 下不可接受地漂移，就按你的 prewritten acceptance policy 进入 REVIEW/REJECT，而不是因为型号正确就接受。</p>
+
+<h3>Acceptance Policy 要在通电前写</h3>
+<pre>must-match identity:
+required VRAM:
+allowed physical defects:
+representative workload:
+minimum sustained behavior:
+error conditions:
+thermal/power review conditions:
+return window/deadline:
+ACCEPT / REVIEW / REJECT rules:
+</pre>
+<p>先写规则能减少“已经到手了就想办法说服自己留下”的沉没成本偏差。</p>
+
+<h3>Evidence Preservation</h3>
+<p>如果出现异常，先保存 seller claim、时间、原始日志/截图、runtime identity、测试命令与状态，再决定是否重测。退货窗口内避免会改变卡况或争议证据的刷 BIOS、拆修、改焊、高风险改造。</p>
+
+<h3>What this lesson does NOT prove</h3>
+<p>本课程的普通 workload 验收不是芯片厂生产测试，也不能保证覆盖每个 VRAM cell、显示口或极端环境。验收目标是为你的 Local LLM 使用建立足够可信、风险可接受的购买 Evidence。</p>
+</section>
+
 </body></html>
