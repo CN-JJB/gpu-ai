@@ -2,6 +2,10 @@
 <p class="kicker">Vendor Capstone · Intel · L0→L2</p><h1>Intel / SYCL 实战闭环：从 Arc 枚举到可复现 LLM GPU 证据</h1><p class="lead">Intel capstone 的目标是让你摆脱“Arc 能不能跑 LLM”的二元争论，改成精确回答：哪张 exact device、哪条 backend、哪版 driver/runtime、哪个模型/量化能跑，哪里 fallback，真实 PP/TG/质量怎样。</p>
 <h2>Prerequisite Check</h2><p>完成 Xe-core/XMX 与 Arc/oneAPI 软件栈课程，能画出 device→driver→runtime→backend→model kernel 的链。</p>
 <h2>真实问题：为什么“Arc 支持 SYCL”不是应用可用性的充分条件？</h2><p>SYCL 是编程模型；LLM 应用还必须实际提供并启用对应 backend，编译器/runtime 要支持 exact device，模型量化还要有可用 kernel。任何一层都可能阻断。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/vendor-evidence-chain.svg" alt="NVIDIA CUDA、AMD ROCm HIP、Apple Metal MLX、Intel SYCL Level Zero 四条本地 LLM 路径共同遵循 hardware identity、driver runtime、application backend、kernel path、model config 和 measured evidence 的证据链">
+<figcaption>四家生态的名词不同，但排错结构相同：<strong>系统看见设备 → runtime 能用 → 应用 backend 启用 → 目标 kernel 生效 → model/config 固定 → benchmark 可复现</strong>。任何一层 UNKNOWN 都不能用品牌印象补上。</figcaption>
+</figure>
 <h2>1. Intel evidence chain</h2><pre>exact Arc/Xe device
 → graphics/compute driver
 → Level Zero / oneAPI runtime
