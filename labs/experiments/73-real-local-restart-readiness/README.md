@@ -91,3 +91,52 @@ Do not compare first-after-restart latency with a warm cached request and call t
 
 Fill:
 `RESULT-TEMPLATE.md`.
+
+
+## Why this experiment
+
+“自动重启成功”不能只看进程重新出现。一个 Local LLM 服务真正恢复，至少要重新完成模型加载、readiness 和代表性 smoke inference。
+
+## Hypothesis
+
+两次独立启动应都形成完整状态链；binary/model SHA 应保持一致。first HTTP 可能早于 /health ready，而 first smoke completion 又晚于 ready。
+
+## Fixed variables
+
+server binary、model、port policy、extra args 固定；脚本只管理自己的 child PID，不接管系统服务。
+
+## What to observe
+
+1. spawn→first HTTP。
+2. first HTTP→health 200。
+3. ready→smoke completion。
+4. run1/run2 时间差。
+5. binary/model SHA 是否一致。
+6. restart 后是否存在 cache warm/cold 差异。
+
+## Troubleshooting
+
+- 503 loading 不是服务故障本身。
+- 不要把 process signal 描述成 graceful drain。
+- first-after-restart 与 warm cached request 不可直接当 GPU regression。
+- 失败时保留 server log，而不是只重跑到成功。
+
+## Evidence to save
+
+保存两份 server log、restart-result.json、binary/model hash 和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能验证一个本地 server 的“失败/停止后重新启动并恢复可用”的最小闭环。
+
+## What this does NOT prove
+
+它不测试 in-flight drain、systemd/container orchestration 或 crash-loop policy。
+
+## No-hardware fallback
+
+没有可运行模型时先完成 Experiment 72。
+
+## Transfer question
+
+进程 PID 已经出现，但 /health 仍 503。此时 load balancer 应该把请求送进来吗？
