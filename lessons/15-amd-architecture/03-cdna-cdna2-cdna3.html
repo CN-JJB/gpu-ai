@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 3：CDNA、CDNA2、CDNA3</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">AMD Architecture · 3/4 · L0→L2</p><h1>AMD 架构主线（三）：CDNA → CDNA2 → CDNA3</h1><p class="lead">CDNA 是理解 AMD 数据中心 AI/HPC 路线的关键。这里要学的不是 MI 系列型号表，而是 AMD 如何把图形导向的设计约束放到一边，把晶体管预算更集中地投入矩阵计算、HBM、chiplet/封装与 GPU 间互联。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/amd-generation-branch-map.svg" alt="AMD 从 GCN 与 Vega 之后分成 RDNA 消费图形路线和 CDNA AI HPC 计算路线的架构分支地图">
+<figcaption><strong>先看分叉，再看代数。</strong> RDNA 与 CDNA 都继承 GPU 的 wave/register/LDS/bandwidth 问题，但优化目标、memory system、矩阵路径与部署形态不同；“RDNA4”和“CDNA4”的数字 4 不能拿来横向等价。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应理解 RDNA 为图形效率优化，而本地 LLM 的主要约束常包括模型 fit、memory bandwidth、matrix/general kernel 与软件支持。</p>
 <h2>真实问题：为什么 AMD 需要一条和 RDNA 分开的计算架构线？</h2><p>游戏 GPU 必须承担图形前端、显示、光栅/光追等需求；数据中心加速器则更关心 FP/矩阵吞吐、HBM 容量与带宽、ECC、GPU 间通信和大规模部署。如果两类产品长期用完全相同的晶体管预算，很难同时做到最优。</p>
 <h2>1. CDNA：把“计算优先”写进产品目标</h2><p>CDNA 延续 AMD 计算生态，同时把设计重心更明确放在 HPC/AI。对于学生，最重要的观察是：<strong>产品目标会改变硬件资源比例。</strong></p><table><tr><th>更偏 RDNA/消费图形</th><th>更偏 CDNA/计算</th></tr><tr><td>图形前端、显示与游戏效率</td><td>矩阵/向量计算吞吐</td></tr><tr><td>GDDR/消费板卡成本</td><td>HBM 容量与带宽</td></tr><tr><td>单卡游戏 workload</td><td>多卡/HPC/AI workload</td></tr><tr><td>消费散热/接口</td><td>服务器形态、互联、可靠性</td></tr></table>
