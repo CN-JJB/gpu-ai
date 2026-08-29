@@ -143,6 +143,103 @@ Hash 是 identity/integrity，不是 truth。
 - SHA256；
 - 一条 argv array。
 
+
+## Mental Model：JSON 描述“你说你做了什么”，Hash 绑定“你实际引用了什么 bytes”
+
+把 Evidence 分成三层：
+
+~~~text
+semantic record
+  JSON / manifest / argv
+
+artifact identity
+  path + bytes + SHA256
+
+execution evidence
+  command/raw stdout/stderr/return code
+~~~
+
+只保留其中一层都不够。
+
+## Worked Example：文件名没变，但模型已经换了
+
+你有一个路径：
+
+~~~text
+models/qwen.gguf
+~~~
+
+第一次 SHA256 是 A，后来重新下载同名文件后是 B。
+
+如果 benchmark 只记录模型路径，两次实验看起来“同模型”，其实 artifact identity 已经变化。正确记录至少包括：
+
+~~~json
+{
+  "path": "models/qwen.gguf",
+  "bytes": 123456789,
+  "sha256": "<actual sha256>"
+}
+~~~
+
+## JSON 常见失败
+
+- 尾随逗号；
+- 把 false 写成字符串 "false"；
+- 把数字 4096 写成字符串 "4096"；
+- argv 写成一整条字符串；
+- 手工编辑 hash；
+- Windows/Unix 路径转义混乱。
+
+验证 JSON：
+
+~~~bash
+python3 -m json.tool file.json
+~~~
+
+## 为什么“改脚本让它 PASS”通常是错误修法
+
+Validator 报 BLOCKED 时，你应先问：
+
+~~~text
+input wrong?
+identity mismatch?
+required evidence missing?
+schema version wrong?
+~~~
+
+而不是删除检查条件。课程工具的失败往往是在保护 Evidence 语义。
+
+## Troubleshooting
+
+~~~text
+JSON parse error
+→ syntax/type
+
+hash mismatch
+→ wrong file / changed bytes / wrong path
+
+argv mismatch
+→ command identity changed
+
+tool says missing field
+→ read schema/contract, do not invent
+
+same hash but claim still invalid
+→ integrity passed; provenance/semantics may still fail
+~~~
+
+## No-hardware fallback
+
+用两个几字节文本文件即可完成全部目标。不需要 GPU，也不需要下载大模型。
+
+## Decision Rule
+
+只有当 semantic record + exact artifact identity + execution evidence 对得上，才允许把一次结果当作可复查观察。Hash PASS 只代表完整性/身份的一部分，不代表实验真相自动成立。
+
+## Transfer
+
+这个方法可迁移到模型权重、prompt corpus、驱动安装包、配置文件、benchmark raw output、甚至二手卡照片归档：凡是“以后要确认是不是同一份内容”，都可以使用内容 hash。
+
 ## Primary Sources
 
 - Python documentation: https://docs.python.org/3/
