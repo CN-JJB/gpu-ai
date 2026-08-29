@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+<title id="title">二手显卡市场样本从 listing 到可比 cohort 的处理流程</title><desc id="desc">不同地区、币种、挂牌或成交语义、卡况和时间窗的价格不能直接混合；先记录 observation，再筛成同一 cohort，最后才计算中位数并标 freshness。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.bad{fill:#f4f4f4;stroke:#aaa;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“我看到一个价格”不是 market price；先把 observation 变成同语义样本</text>
+<g transform="translate(45 90)">
+<rect class="bad" x="0" y="0" width="210" height="70" rx="12"/><text class="t" x="105" y="29" text-anchor="middle">active ask · USD</text><text class="s" x="105" y="51" text-anchor="middle">claimed working · today</text>
+<rect class="bad" x="0" y="88" width="210" height="70" rx="12"/><text class="t" x="105" y="117" text-anchor="middle">displayed sold price</text><text class="s" x="105" y="139" text-anchor="middle">final transaction unknown</text>
+<rect class="bad" x="0" y="176" width="210" height="70" rx="12"/><text class="t" x="105" y="205" text-anchor="middle">different region · CNY</text><text class="s" x="105" y="227" text-anchor="middle">fees / market differ</text>
+<rect class="bad" x="0" y="264" width="210" height="70" rx="12"/><text class="t" x="105" y="293" text-anchor="middle">parts / repair</text><text class="s" x="105" y="315" text-anchor="middle">different condition cohort</text>
+</g>
+<path class="arrow" d="M270 255 H355"/>
+<g transform="translate(360 95)">
+<rect class="box" x="0" y="0" width="300" height="320" rx="16"/><text x="150" y="34" text-anchor="middle" font-size="18" font-weight="700">Observation record</text>
+<text class="t" x="28" y="75">exact SKU / hardware id</text><text class="t" x="28" y="108">region + platform + currency</text><text class="t" x="28" y="141">observed_at</text><text class="t" x="28" y="174">asking / transaction semantics</text><text class="t" x="28" y="207">condition claim</text><text class="t" x="28" y="240">shipping / tax included?</text><text class="t" x="28" y="273">source / provenance</text><text class="t" x="28" y="306">cohort identity</text>
+</g>
+<path class="arrow" d="M665 255 H735"/>
+<g transform="translate(740 95)">
+<rect class="box" x="0" y="0" width="330" height="145" rx="16"/><text x="165" y="32" text-anchor="middle" font-size="18" font-weight="700">Comparable cohort</text><text class="s" x="165" y="62" text-anchor="middle">same SKU · condition · region/platform</text><text class="s" x="165" y="84" text-anchor="middle">same price semantics · same time window</text><text class="t" x="165" y="116" text-anchor="middle">700 · 720 · 740 · 760 · 1800</text>
+<rect class="box" x="0" y="175" width="330" height="145" rx="16"/><text x="165" y="207" text-anchor="middle" font-size="18" font-weight="700">Market signal</text><text class="t" x="165" y="239" text-anchor="middle">median = 740</text><text class="s" x="165" y="264" text-anchor="middle">not “the true price”</text><text class="s" x="165" y="286" text-anchor="middle">attach freshness + n + provenance</text>
+</g>
+<text x="560" y="470" text-anchor="middle" class="t">汇率只能换单位，不能把不同地区、风险、费用和成交语义变成同一个市场。</text></svg>
