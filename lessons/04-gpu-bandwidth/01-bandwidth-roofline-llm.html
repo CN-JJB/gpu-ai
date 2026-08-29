@@ -104,6 +104,36 @@
 <li>AI &gt; 40：compute roof 更低。</li>
 </ul>
 
+<section class="card interactive-lab" data-roofline>
+<h3>交互 Roofline：拖 AI，直接看瓶颈在哪边</h3>
+<p>先用本节的抽象 GPU。你也可以改 compute / bandwidth，看 ridge point 怎样移动。</p>
+<div class="control-grid">
+<label>Compute roof (TFLOP/s)<input data-compute type="number" min="1" max="200" step="1" value="20"></label>
+<label>Memory bandwidth (GB/s)<input data-bandwidth type="number" min="50" max="5000" step="50" value="500"></label>
+<label>Arithmetic Intensity：<strong data-ai-out>4 FLOP/B</strong><input data-ai type="range" min="1" max="120" step="1" value="4"></label>
+</div>
+<div class="metric-grid">
+<div class="metric">Compute roof<strong data-compute-out>—</strong></div>
+<div class="metric">Bandwidth<strong data-bandwidth-out>—</strong></div>
+<div class="metric">Ridge point<strong data-ridge>—</strong></div>
+<div class="metric">Roofline upper bound<strong data-perf>—</strong></div>
+</div>
+<svg class="roofline-plot" viewBox="0 0 650 315" role="img" aria-label="可交互 Roofline 教学图：横轴 Arithmetic Intensity，纵轴 performance upper bound">
+<line class="roofline-axis" x1="58" y1="270" x2="615" y2="270"></line>
+<line class="roofline-axis" x1="58" y1="270" x2="58" y2="25"></line>
+<path class="roofline-line" data-memory-path d=""></path>
+<path class="roofline-line" data-compute-path d=""></path>
+<line class="roofline-guide" data-ridge-line x1="0" y1="0" x2="0" y2="0"></line>
+<circle class="roofline-point" data-roof-point cx="0" cy="0" r="7"></circle>
+<text x="330" y="303" text-anchor="middle" font-size="14">Arithmetic Intensity →</text>
+<text x="18" y="155" text-anchor="middle" font-size="14" transform="rotate(-90 18 155)">Performance upper bound →</text>
+<text x="90" y="245" font-size="13">memory roof</text>
+<text x="470" y="52" font-size="13">compute roof</text>
+</svg>
+<p><strong data-bound>—</strong></p>
+<p class="small"><strong>边界：</strong>这张图只画两层 roof，且横轴使用线性教学尺度。它用于理解瓶颈转换，不替代 profiler 或真实 benchmark。</p>
+</section>
+
 <h2>5. 为什么只加 TFLOPS 对低-AI workload 可能完全没用？</h2>
 
 <table>
@@ -308,5 +338,6 @@
 <h3>Decision Rule</h3>
 <div class="callout"><strong>Roofline 用来排除不可能、定位瓶颈方向，不用来替代 benchmark。</strong>理论上限与真实性能之间永远需要实现效率证据。</div>
 </section>
+<script src="../../assets/components/roofline-explorer.js"></script>
 </body>
 </html>
