@@ -212,3 +212,49 @@ y = achieved GFLOP/s
 最后回答：
 
 **如果两张卡的 high-AI point 差很多，但 low-AI point 几乎一样，你会如何解释它们的 compute/bandwidth balance？**
+
+
+## Hypothesis
+
+在同一真实 GPU 上增加 register-local FMA work、保持 useful global bytes 近似固定，应让低 AI point 更像 memory-side limitation，高 AI point 更接近 compute-side limitation；empirical crossover 由真实实现决定。
+
+## Fixed variables
+
+同一 GPU/compiler/build/workset/power-clock policy 固定，只改变 repeats/nominal AI。手动改变 elements 时另开实验记录。
+
+## What to observe
+
+- low-AI achieved effective bandwidth；
+- high-AI achieved GFLOP/s；
+- crossover 形状；
+- compiler resource usage/register pressure；
+- profiler actual traffic 与 12B/element useful-byte proxy 的差异；
+- 多次运行稳定性。
+
+## Troubleshooting
+
+- useful bytes 不是 actual DRAM transaction bytes。
+- 工作集过小会更受 cache 影响。
+- repeats 增大可能改变 register pressure/occupancy。
+- profiler/driver 版本差异要记录。
+- 不把结果替代官方 peak specs。
+
+## Evidence to save
+
+保存 binary/compiler command、resource usage、完整输出、GPU/runtime identity；有 profiler 时保存 roofline/traffic/stall evidence。
+
+## What this proves
+
+你能在真实 GPU 上观察 arithmetic-intensity sweep 的经验形状，并把它与理论 Roofline 联系起来。
+
+## What this does NOT prove
+
+它不是厂商峰值认证，也不直接预测 LLM TG。
+
+## No-hardware fallback
+
+完成 Experiment 06。
+
+## Transfer question
+
+两张卡 low-AI point 接近而 high-AI point 差很大，这更像说明它们哪一类资源差异更明显？
