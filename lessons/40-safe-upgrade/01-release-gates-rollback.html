@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safe Upgrade / Rollback</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>Safe Upgrade / Rollback — 新版本快 20%，为什么我还是可能拒绝它？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该会保存一个可复现 baseline：runtime/version 或 commit、model identity、关键配置、workload、质量检查与 serving SLO，并知道这些变量共同决定一次可比较的 release。</p>
+<div class="callout"><strong>如果还不熟：</strong>先把旧版本视为 <em>known-good state</em>，候选版本视为 <em>candidate state</em>。在测试 candidate 之前，必须能重新启动 known-good state；否则“回滚”只是愿望，不是能力。</div>
+
+<h2>真实问题</h2>
+<p>新 runtime 在你的卡上快了 20%，你很想直接覆盖旧版本。但它可能同时改变 chat template、量化路径、显存占用、启动时间、质量或 tail latency。只看吞吐上涨，会把一次多变量变化误当成纯性能升级。</p>
+<p>真正的问题是：<strong>什么证据足以让 candidate 通过 release gate；一旦质量、兼容性或 SLO 失败，怎样在不丢失 baseline 的情况下快速回到已验证状态？</strong>升级必须同时包含 acceptance 与 rollback 两条路径。</p>
+</section>
+
 <h2>1. Release 不是只看 version</h2>
 
 <pre>
