@@ -72,3 +72,51 @@ position/norm/activation features
 You may use any already downloaded config.
 
 Do not hardcode one model URL into the course.
+
+
+## Why this experiment
+
+模型名和参数量只是入口。真正做本地部署时，你需要从 config.json 读出层数、hidden、heads、FFN、位置编码和特殊结构，才能形成内存与 kernel 假设。
+
+## Hypothesis
+
+同一个“14B”标签无法唯一决定 KV、FFN shape 或长上下文行为；config fields 才能给出更具体的结构证据。
+
+## Fixed variables
+
+一次只检查一个 exact config/revision。可选 context/KV 参数必须显式记录。
+
+## What to observe
+
+1. hidden/layers/intermediate。
+2. Hq/Hkv/head_dim。
+3. RMSNorm、RoPE、activation 等结构字段。
+4. sliding window / MoE caveat。
+5. context 输入如何转换成 KV proxy。
+
+## Troubleshooting
+
+- config schema 不统一，缺失字段时保留 UNKNOWN。
+- head_dim 可能显式给出，也可能由 hidden/Hq 推导；要记录来源。
+- max_position_embeddings 不等于 runtime 一定能高质量使用全部 context。
+- config facts 不等于 backend support。
+
+## Evidence to save
+
+保存原始 config、来源/revision、命令和输出摘要。
+
+## What this proves
+
+你会把真实 config 转成结构化本地推理问题。
+
+## What this does NOT prove
+
+它不证明模型质量、真实 VRAM、速度或兼容性。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+两个模型都写 32k max position，但一个有 sliding_window、一个全局 attention，你为什么不能假设它们 KV 增长相同？
