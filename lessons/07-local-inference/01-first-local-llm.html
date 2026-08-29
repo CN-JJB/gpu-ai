@@ -26,6 +26,10 @@
 <span class="node">run config</span>
 </div>
 
+<figure class="visual">
+<img src="../../assets/diagrams/local-inference-evidence-chain.svg" alt="从模型 artifact 指纹、runtime build、设备发现、offload placement、backend kernel 到 raw evidence 的本地推理证据链">
+<figcaption><strong>一条日志只能证明一层。</strong> 编译了 CUDA/HIP/Metal、发现了设备、把权重放进显存、真正跑到目标 kernel、得到可比较 benchmark，是五个不同命题。</figcaption>
+</figure>
 <h2>1. Runtime identity：你跑的是哪一版 llama.cpp？</h2>
 <pre><code>llama-cli --version
 llama-cli --help</code></pre>
