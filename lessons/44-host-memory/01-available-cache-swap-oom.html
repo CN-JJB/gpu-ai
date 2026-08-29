@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>怎样判断瓶颈来自正常 page cache、可回收内存、持续 swap 还是不可恢复的 host-RAM 不足，并据此决定减小 workload、关闭并发、调整 offload，还是整机内存确实不够？</strong></p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/host-memory-pressure.svg" alt="Host RAM 中 MemFree、MemAvailable、page cache、anonymous memory、swap activity、major faults 与 OOM 的关系图，并与 GPU OOM 区分"><figcaption><strong>Linux 把空闲 RAM 用作 cache 并不是“内存泄漏”。</strong> 真正的 host-memory pressure 要结合 Available、anonymous memory、swap activity、major faults 和 OOM，而不是看到 Free 很低就下结论。</figcaption></figure>
 <h2>1. 先别只看 Free</h2>
 
 <p>Linux：</p>
