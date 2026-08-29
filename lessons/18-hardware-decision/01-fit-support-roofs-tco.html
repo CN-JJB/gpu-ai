@@ -2,6 +2,10 @@
 <p class="kicker">Hardware Decision · L0→L2</p><h1>硬件决策不是排行榜：Fit → Support → Roofs → Evidence → TCO</h1><p class="lead">买本地 LLM 硬件最危险的习惯，是先搜“显卡性能排行”。正确顺序相反：先排除根本做不了的，再比较理论上限，再看真实证据，最后把整机成本和风险算进去。</p>
 <h2>Prerequisite Check</h2><p>你应理解显存 fit、memory bandwidth、matrix/general compute、四厂商软件链。无需会财务模型。</p>
 <h2>真实问题：为什么一张“性价比最高”的卡可能对你完全没价值？</h2><p>因为你的目标可能要求 24 GB 显存，而榜单第一只有 12 GB；或者目标 runtime 不支持；或者卡便宜但需要换 PSU/机箱/散热；或者 benchmark 来自不同模型/量化，根本不可比。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/hardware-decision-gates.svg" alt="本地 LLM 硬件决策从 Fit、Support 两个硬门槛，到 Roofs、Evidence、TCO 和人工决策的流程图">
+<figcaption><strong>顺序非常重要。</strong> Fit 或 Support 仍是 FAIL/UNKNOWN 时，后面的低价、峰值算力和别人 benchmark 都不能把候选自动变成可买。</figcaption>
+</figure>
 <h2>1. Fit 是 hard gate</h2><pre>weights
 + KV cache
 + runtime buffers
