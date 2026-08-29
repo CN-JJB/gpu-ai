@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Apple Silicon 2：Metal GPU 执行模型</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">Apple Silicon · 2/3 · L0→L1</p><h1>Apple Silicon（二）：Metal GPU 的 thread、SIMD-group 与 threadgroup</h1><p class="lead">Apple GPU 也不是“CUDA 术语换名字”。本节建立 Metal 计算的基本映射：grid、threadgroup、thread、SIMD-group、threadgroup memory，以及这些抽象怎样决定并行度、同步和片上复用。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/apple-silicon-generation-map.svg" alt="Apple Silicon 从 M1 到 M5 按 unified memory、GPU、Neural Engine 与 software path 四条线阅读的架构地图">
+<figcaption>Apple Silicon 最容易被一个“总内存”或“AI TOPS”数字带偏。课程固定同时看四条线：<strong>统一内存容量/带宽、GPU 路径、Neural Engine/AI 专用路径、runtime 能否真正调用</strong>。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应知道 NVIDIA 的 thread/warp/block/shared memory 或 AMD 的 work-item/wave/workgroup/LDS 的粗略作用。这里只做“功能层类比”，不假设内部硬件相同。</p>
 <h2>真实问题：为什么把 CUDA kernel 机械翻译成 Metal 名词，常常跑得不理想？</h2><p>因为不同 GPU 的 SIMD-group 宽度、片上资源、memory hierarchy、threadgroup 上限与最佳 tile 都可能不同。跨平台移植应该迁移算法的数据流，不是照抄 launch 参数。</p>
 <h2>1. Metal compute 的三层工作组织</h2><pre>grid
