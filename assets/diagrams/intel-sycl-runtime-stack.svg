@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 640" role="img" aria-labelledby="title desc">
+<title id="title">Intel Arc 本地 LLM 从应用到 Level Zero 与 Xe GPU 的软件证据链</title>
+<desc id="desc">展示 LLM 应用选择 SYCL 或 Vulkan 等 backend，经 SYCL/oneAPI 运行时和 Unified Runtime 适配到 Level Zero，再由驱动访问 Intel Xe GPU；强调设备枚举、应用后端启用、GPU offload 和 XMX kernel 是四个不同证据层。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">Arc “系统能看到卡”只是最底层事实；LLM 要一路证明到实际 kernel</text>
+<rect class="box" x="365" y="75" width="430" height="72" rx="14"/><text x="580" y="105" text-anchor="middle" font-size="18" font-weight="700">LLM application</text><text class="s" x="580" y="128" text-anchor="middle">llama.cpp / framework / server / benchmark</text>
+<path class="line" d="M580 147 V200"/>
+<g transform="translate(160 202)">
+<rect class="soft" x="0" y="0" width="340" height="76" rx="12"/><text x="170" y="30" text-anchor="middle" class="t">Intel-oriented backend</text><text x="170" y="54" text-anchor="middle" class="s">SYCL / oneAPI libraries / framework integration</text>
+<rect class="soft" x="500" y="0" width="340" height="76" rx="12"/><text x="670" y="30" text-anchor="middle" class="t">Cross-vendor / alternate backend</text><text x="670" y="54" text-anchor="middle" class="s">Vulkan / other application path</text>
+</g>
+<path class="line" d="M330 278 V332"/>
+<g transform="translate(120 334)">
+<rect class="box" x="0" y="0" width="420" height="112" rx="14"/><text x="210" y="28" text-anchor="middle" font-size="18" font-weight="700">SYCL runtime / oneAPI stack</text><text class="s" x="210" y="55" text-anchor="middle">device selection · queues · memory · kernels</text><text class="s" x="210" y="79" text-anchor="middle">Unified Runtime adapter maps to low-level backend</text><text class="s" x="210" y="101" text-anchor="middle">Level Zero is a common Intel GPU backend</text>
+</g>
+<path class="line" d="M330 446 V490"/>
+<rect class="box" x="140" y="492" width="380" height="70" rx="12"/><text x="330" y="520" text-anchor="middle" class="t">Level Zero / GPU driver</text><text x="330" y="544" text-anchor="middle" class="s">enumeration · allocation · command submission</text>
+<path class="line" d="M520 527 H650"/>
+<rect class="box" x="655" y="475" width="370" height="105" rx="14"/><text x="840" y="505" text-anchor="middle" font-size="18" font-weight="700">exact Xe / Arc device</text><text class="s" x="840" y="532" text-anchor="middle">Xe-core / subgroup / XMX / memory system</text><text class="s" x="840" y="555" text-anchor="middle">硬件有 XMX ≠ 当前 operator 已 dispatch 到 XMX</text>
+<path class="line" d="M830 278 V475"/>
+<text x="865" y="380" class="s">alternate backend 有自己的 runtime/driver path</text>
+<g transform="translate(735 90)">
+<rect class="box" x="0" y="0" width="350" height="300" rx="14"/><text x="175" y="30" text-anchor="middle" font-size="18" font-weight="700">四层证据不要互相冒充</text>
+<text class="s" x="24" y="72">① OS / driver 能看到 GPU</text>
+<text class="s" x="24" y="112">② SYCL/Level Zero 或 Vulkan 能枚举 device</text>
+<text class="s" x="24" y="152">③ LLM 应用确认 backend + GPU offload</text>
+<text class="s" x="24" y="192">④ profiler/log + A/B 证明目标 kernel / XMX 路径</text>
+<text class="s" x="24" y="242">任何一层 UNKNOWN，都不能用“16 GB 很便宜”</text>
+<text class="s" x="24" y="267">跳过 compatibility/performance gate。</text>
+</g>
+<text x="580" y="620" text-anchor="middle" class="s">教学抽象。SYCL backend、Unified Runtime、Level Zero 与应用集成会随版本演进；实验必须记录 exact driver/runtime/backend identity。</text>
+</svg>
