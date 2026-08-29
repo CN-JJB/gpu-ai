@@ -12,6 +12,7 @@
 <h1>为什么单用户很快，八个人一起用却像卡住了？</h1>
 <p class="lead">上一节你测的是单机、单请求 backend baseline。服务器世界多了两个变量：谁能立刻进入模型执行，谁必须排队；以及多个 active sequence 能不能一起形成有效 batch。</p>
 
+<h2>Prerequisite Check</h2><p>你应完成 Lesson 07，能证明一次本地推理的 runtime、device、model artifact 与 run config，并知道 PP/TG 不是同一个性能阶段。不会部署公网服务不影响本节；先把 server 当成“同时管理多个请求的本地进程”。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>我的模型单用户能 30 tok/s。为什么开 8 个客户端以后，不是每人 30 tok/s，也不是总共 240 tok/s？</strong></p>
@@ -319,6 +320,7 @@ continuous batching ON
 
 <p><strong>当 concurrency 从 4 提到 8 时，如果 aggregate throughput 几乎不再涨，但 p95 TTFT 翻倍、requests_deferred 明显上升，你会把瓶颈描述成什么？下一步是加 slots，还是先检查 KV/headroom 与硬件 saturation？</strong></p>
 
+<h2>Transfer</h2><p>换成 vLLM、SGLang 或未来其他 server 时，slots、batching 的具体名字会变，但仍然问同样的问题：请求在哪里排队、哪些序列同时执行、KV 为每个活跃序列占多少、吞吐提升是否牺牲 TTFT/ITL。</p>
 <h2>Primary Sources</h2>
 <ul>
 <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md">llama.cpp — HTTP Server</a></li>
