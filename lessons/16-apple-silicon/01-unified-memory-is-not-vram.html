@@ -15,6 +15,10 @@ GPU ↔ VRAM</pre><p>当 CPU 准备的数据需要 GPU 使用时，很多 API/�
         ↙        ↓        ↘
       CPU       GPU      Neural/other engines
 </pre><p>Apple Silicon 把 CPU/GPU 等组件放在高带宽统一内存架构中。对程序的价值是减少许多传统 discrete GPU 必须显式复制的场景，并让 CPU/GPU 更容易共享同一份数据。</p><div class="callout"><strong>但：</strong>共享 pool 仍有 bandwidth、latency、cache coherence、page residency、系统占用与 memory pressure。物理共享不是“无限快、无限可用”。</div>
+<figure class="visual">
+<img src="../../assets/diagrams/apple-unified-memory-data-path.svg" alt="Apple Silicon unified memory 本地 LLM 数据路径，CPU GPU 共享物理内存池，但模型权重 KV 运行时 系统和安全余量共同占用容量，GPU 内仍有寄存器 threadgroup memory 和 cache 层级">
+<figcaption><strong>Unified memory 改变了“CPU RAM ↔ 独显 VRAM”这条边界，但没有把所有内存层级抹平。</strong> 学生应该同时看到两本账：容量账是 OS + weights + KV + scratch + headroom；性能账仍然要看片上复用、统一内存带宽以及 Metal/MLX 是否真的走目标 GPU kernel。</figcaption>
+</figure>
 <h2>3. “模型能放下”应该怎么算？</h2><p>不要用：</p><pre>model file size < total unified memory → PASS</pre><p>更合理的是预算：</p><pre>usable headroom
 ≈ total unified memory
 - macOS + background apps
