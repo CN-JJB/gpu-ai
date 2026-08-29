@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 650" role="img" aria-labelledby="title desc">
+<title id="title">本地 LLM 整机集成的 Hard Gates、Unknowns 与 Preference</title>
+<desc id="desc">模型容量、软件兼容、多GPU拓扑、主机内存存储、供电、散热和物理安装先分别经过PASS FAIL UNKNOWN门槛；只有所有硬门槛可接受后才比较价格噪声能效扩展性等偏好，不使用万能综合分。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">整机设计不要做“总分 87 分”：先让每个不能妥协的 Hard Gate 单独说话</text>
+<g transform="translate(55 85)">
+<rect class="soft" x="0" y="0" width="230" height="82" rx="12"/><text x="115" y="28" text-anchor="middle" class="t">Model / VRAM fit</text><text x="115" y="53" text-anchor="middle" class="s">weights + KV + buffers + headroom</text>
+<rect class="soft" x="270" y="0" width="230" height="82" rx="12"/><text x="385" y="28" text-anchor="middle" class="t">Software support</text><text x="385" y="53" text-anchor="middle" class="s">driver/runtime/backend/quant</text>
+<rect class="soft" x="540" y="0" width="230" height="82" rx="12"/><text x="655" y="28" text-anchor="middle" class="t">Power delivery</text><text x="655" y="53" text-anchor="middle" class="s">PSU/cables/connectors/transients</text>
+<rect class="soft" x="810" y="0" width="230" height="82" rx="12"/><text x="925" y="28" text-anchor="middle" class="t">Physical / thermal</text><text x="925" y="53" text-anchor="middle" class="s">slots/clearance/airflow/sustained</text>
+<rect class="soft" x="135" y="120" width="310" height="82" rx="12"/><text x="290" y="28" text-anchor="middle" class="t">Host RAM / storage / PCIe</text><text x="290" y="53" text-anchor="middle" class="s">load path, page cache, topology, lane width</text>
+<rect class="soft" x="595" y="120" width="310" height="82" rx="12"/><text x="750" y="28" text-anchor="middle" class="t">Multi-GPU / workload gates</text><text x="750" y="53" text-anchor="middle" class="s">split, P2P, interconnect, PP/TG target</text>
+</g>
+<path class="line" d="M580 300 V355"/>
+<rect class="box" x="330" y="360" width="500" height="100" rx="16"/><text x="580" y="393" text-anchor="middle" font-size="19" font-weight="700">Per-gate outcome: PASS / FAIL / UNKNOWN / BLOCKED</text><text class="s" x="580" y="422" text-anchor="middle">FAIL = evidence says requirement not met · UNKNOWN = evidence missing</text><text class="s" x="580" y="446" text-anchor="middle">UNKNOWN 不能平均掉，也不能假装成“可能没事”</text>
+<path class="line" d="M580 460 V515"/>
+<rect class="box" x="210" y="520" width="740" height="82" rx="14"/><text x="580" y="550" text-anchor="middle" font-size="18" font-weight="700">Only after hard gates: compare Preference</text><text class="s" x="580" y="577" text-anchor="middle">price · energy · noise · size · resale · maintenance · expansion · convenience</text>
+<text x="580" y="635" text-anchor="middle" class="s">人类最终决策可以接受 trade-off，但不能让低价格或高 TOPS 抵消供电/兼容/fit 等硬失败。</text>
+</svg>
