@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 620" role="img" aria-labelledby="title desc">
+<title id="title">PSU 功率、余量、连接器与模组线的供电路径</title>
+<desc id="desc">从墙上交流电到PSU额定输出、12V rail、PSU端模组接口与厂商匹配线材，再到GPU主板插槽和辅助供电；强调总瓦数通过不代表线材连接器瞬态与兼容性自动通过。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.bad{stroke:#777;stroke-width:2;stroke-dasharray:7 5;fill:none}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">“1000 W PSU”只是第一道算术：供电还要沿连接器、线材与瞬态路径逐层通过</text>
+<rect class="box" x="45" y="105" width="180" height="85" rx="14"/><text x="135" y="137" text-anchor="middle" font-size="18" font-weight="700">System load</text><text class="s" x="135" y="164" text-anchor="middle">CPU + GPU(s) + drives + fans</text>
+<path class="line" d="M225 148 H305"/>
+<rect class="box" x="310" y="92" width="215" height="112" rx="14"/><text x="417" y="124" text-anchor="middle" font-size="18" font-weight="700">PSU capacity</text><text class="s" x="417" y="151" text-anchor="middle">rated watts / 12 V capability</text><text class="s" x="417" y="177" text-anchor="middle">headroom + transient behavior</text>
+<path class="line" d="M525 148 H605"/>
+<rect class="box" x="610" y="80" width="220" height="140" rx="14"/><text x="720" y="112" text-anchor="middle" font-size="18" font-weight="700">Cable identity</text><text class="s" x="720" y="140" text-anchor="middle">PSU-side pinout is vendor/model specific</text><text class="s" x="720" y="166" text-anchor="middle">“能插进去”不证明 pinout 安全</text><text class="s" x="720" y="192" text-anchor="middle">只用明确兼容的原厂/认证线材</text>
+<path class="line" d="M830 148 H910"/>
+<rect class="box" x="915" y="92" width="200" height="112" rx="14"/><text x="1015" y="124" text-anchor="middle" font-size="18" font-weight="700">GPU input</text><text class="s" x="1015" y="151" text-anchor="middle">slot + auxiliary connectors</text><text class="s" x="1015" y="177" text-anchor="middle">8-pin / 12V-2x6 etc.</text>
+<g transform="translate(85 300)">
+<rect class="soft" x="0" y="0" width="300" height="105" rx="12"/><text x="150" y="30" text-anchor="middle" class="t" font-weight="700">Gate A · total power</text><text x="150" y="58" text-anchor="middle" class="s">steady-state budget + sensible headroom</text><text x="150" y="82" text-anchor="middle" class="s">不是固定“永远留 20%”公式</text>
+<rect class="soft" x="345" y="0" width="300" height="105" rx="12"/><text x="495" y="30" text-anchor="middle" class="t" font-weight="700">Gate B · delivery path</text><text x="495" y="58" text-anchor="middle" class="s">connector count / per-cable routing</text><text x="495" y="82" text-anchor="middle" class="s">adapter / pigtail 需按厂商要求验证</text>
+<rect class="soft" x="690" y="0" width="300" height="105" rx="12"/><text x="840" y="30" text-anchor="middle" class="t" font-weight="700">Gate C · cable compatibility</text><text x="840" y="58" text-anchor="middle" class="s">PSU modular cable pinout 必须匹配</text><text x="840" y="82" text-anchor="middle" class="s">未知 = BLOCKED，不靠试插验证</text>
+</g>
+<path class="bad" d="M230 475 H930"/>
+<text x="580" y="458" text-anchor="middle" class="t" font-weight="700">任何一条安全 gate 失败，都不能被“PSU 总瓦数很大”覆盖</text>
+<text x="580" y="510" text-anchor="middle" class="s">多 GPU 会同时放大稳态功率、瞬态、连接器数量、线材布置、机箱散热和主板插槽供电问题。</text>
+<text x="580" y="575" text-anchor="middle" class="s">教学图不替代 PSU/GPU 厂商的具体线材与连接要求；不确定 pinout 时不要通电试错。</text>
+</svg>
