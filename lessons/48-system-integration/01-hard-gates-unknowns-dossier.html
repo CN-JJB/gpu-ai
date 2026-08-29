@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Whole-Machine Integration</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>整机 System Integration — 为什么“综合 90 分”仍然可能不能买？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该已经会把单项证据分成 <strong>hard gate</strong>、可优化的 soft tradeoff 和尚未闭合的 unknown，并理解兼容性、显存/内存容量、PSU/连接器、物理空间、软件支持、持续稳定性与预算都可能成为整机级约束。</p>
+<div class="callout"><strong>如果还不熟：</strong>先不要做“总分”。把每个条件写成 PASS / FAIL / UNKNOWN / BLOCKED；任何不可接受的 hard-gate FAIL 都不能被其他项目的高分抵消，关键 unknown 也不能自动按 PASS 处理。</div>
+
+<h2>真实问题</h2>
+<p>你有一张看起来性价比极高的 GPU：显存大、价格低、benchmark 也不错，于是整套方案“综合评分 90 分”。但主板链路、机箱空间、PSU 连接器、runtime 支持或目标模型质量路径里只要有一个硬门槛没过，整机仍然可能不可用。</p>
+<p>真正的问题是：<strong>在花钱之前，怎样把 GPU、主机、软件、模型、workload、SLO、功耗与风险证据合成一个可审计 dossier，并明确哪些 unknown 必须先关闭？</strong>整机设计不是把优点相加，而是先证明所有硬门槛同时成立。</p>
+</section>
+
 <h2>1. 现在把前 47 个 Slice 汇合</h2>
 <pre>workload/model
 + GPU/VRAM
