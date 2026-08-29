@@ -194,4 +194,54 @@ Step 5: compare preferences / cost</pre>
 <li>整机 dossier 的每个 PASS 最少需要什么？</li>
 </ol>
 </section>
+
+<section class="integration-dossier">
+<h2>Machine Dossier 的最终交付格式</h2>
+<p>每个 required gate 用同一结构：</p>
+<pre>gate:
+requirement:
+status: PASS / FAIL / UNKNOWN
+evidence:
+assumptions:
+what would invalidate this PASS:
+next action if UNKNOWN:
+</pre>
+<p>特别要写“什么会让 PASS 失效”。例如换 quant、context、runtime、第二张 GPU 或机箱，都可能让旧的容量/供电/热/软件结论需要重算。</p>
+
+<h3>Worked Example：只换模型量化，为什么可能触发五个 Gate 重跑？</h3>
+<pre>quant changes
+→ artifact bytes / fit
+→ kernel support
+→ PP/TG
+→ quality
+→ power/thermal/runtime buffers
+</pre>
+<p>所以 revision management 不是“只把 VRAM 那一格改掉”。Dossier 应显式记录依赖关系，并对受影响 gate 重新验证。</p>
+
+<h3>Unknown Closure Strategy</h3>
+<p>对每个 critical UNKNOWN，找最便宜、最安全、最能区分结果的下一步：</p>
+<ul>
+<li>能查 exact 官方文档就先不买硬件；</li>
+<li>能用 fixture/preflight 验 backend 就先不跑长 benchmark；</li>
+<li>能让卖家提供 identity evidence 就先不付款；</li>
+<li>只有必须真机测的项才留 DEFERRED-HARDWARE。</li>
+</ul>
+<p>成熟工程不是“把所有测试都做一遍”，而是用最小 Evidence 逐个关闭最贵的未知。</p>
+
+<h3>Final States</h3>
+<pre>FAIL on required gate
+→ REVISE DESIGN
+
+critical UNKNOWN
+→ BLOCKED / DO NOT BUY YET
+
+all required gates PASS
+→ EVIDENCE-SUFFICIENT-FOR-HUMAN-REVIEW
+</pre>
+<p>即使全部 PASS，也不自动发出购买动作；市场价格、资金、退货条件与个人偏好仍属于最后的人类决策。</p>
+
+<h3>What this lesson does NOT prove</h3>
+<p>Dossier PASS 只对写明的 workload、时间点、硬件/软件 identity 与环境成立。它不是“一次认证永久有效”。任何关键依赖变化，都应触发对应 gate 的 revision。</p>
+</section>
+
 </body></html>
