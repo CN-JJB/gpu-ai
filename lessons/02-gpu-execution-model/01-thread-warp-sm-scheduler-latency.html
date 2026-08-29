@@ -12,6 +12,7 @@
 <h1>GPU 为什么要同时养很多 warp？</h1>
 <p class="lead">你已经知道 GPU 变成了高度可编程的并行机器。下一步不是背“CUDA Core 数量”，而是看清：逻辑 thread 怎样变成 warp/wavefront，block 怎样驻留到 SM/CU，scheduler 又怎样把等待藏在其他工作后面。</p>
 
+<h2>Prerequisite Check</h2><p>先完成 Lesson 01，并能区分“GPU 架构代际”与“具体产品规格”。你只需要会整数除法和基本的 thread/任务概念；不会 CUDA 不阻塞本节。若 warp、scheduler 等词完全陌生，先把它们临时理解为“把很多线程分组并轮流发射工作的硬件组织”。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>显存访问很慢，为什么 GPU 还能保持很高吞吐？如果一个 warp 在等数据，SM/CU 难道就跟着一起发呆吗？</strong></p>
