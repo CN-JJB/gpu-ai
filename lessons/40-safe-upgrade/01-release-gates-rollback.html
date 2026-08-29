@@ -218,4 +218,65 @@ known-good baseline
 <h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp Upstream Repository</a></li><li><a href="../../reference/llm/safe-upgrade-rollback.md">Course Reference — Safe Upgrade / Rollback</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：升级不是“新版本能启动”</h2>
+<h3>升级改变的变量远比版本号多</h3>
+<pre>runtime version
+backend/kernel selection
+model loader
+quant implementation
+default flags
+scheduler
+API behavior
+memory allocator
+driver interaction</pre>
+<p>因此升级必须把“功能正确、性能、质量、资源占用、接口兼容”分开验。</p>
+
+<h3>一个最小 Release Gate</h3>
+<table>
+<tr><th>Gate</th><th>例子</th></tr>
+<tr><td>startup</td><td>模型能加载并 Ready</td></tr>
+<tr><td>correctness</td><td>关键 API/模板行为符合预期</td></tr>
+<tr><td>quality</td><td>固定 corpus / prompts 不出现不可接受退化</td></tr>
+<tr><td>performance</td><td>PP/TG/TTFT 不越过阈值</td></tr>
+<tr><td>resource</td><td>VRAM/RAM/KV 不产生新 hard fail</td></tr>
+<tr><td>operations</td><td>restart/metrics/logging 仍可用</td></tr>
+</table>
+
+<h3>Worked Example：TG +8% 但不能发布</h3>
+<pre>old:
+TG 50 tok/s
+PPL 6.4
+VRAM 20 GiB
+
+new:
+TG 54 tok/s
+PPL 7.8
+VRAM 23.8 GiB</pre>
+<p>如果你的质量 gate 要求 PPL 不超过既定阈值，或 24 GiB 卡必须保留 KV headroom，那么“更快”仍然不能发布。</p>
+
+<h3>Rollback 必须提前设计</h3>
+<p>真正的 rollback 不是“出问题以后再想办法装旧版”，而是发布前已经知道：</p>
+<pre>old binary/container
+old config
+old model artifact
+old command/flags
+rollback trigger
+rollback verification</pre>
+
+<h3>一次只升级一个语义变量</h3>
+<p>同时升级 driver、runtime、model、quant、prompt template，会让任何回归都无法定位。必要时可以做大升级，但必须承认它不适合根因归因。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>Release = 所有必要 gate 通过；Rollback = 已验证的恢复路径。</strong>“能启动”和“跑分更高”都不够。</div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 runtime 升级可能改变质量，而不只是速度？</li>
+<li>为什么 rollback 需要固定旧 model/config，而不只是旧 binary？</li>
+<li>哪些指标应该成为 hard gate，哪些只是 preference？</li>
+<li>为什么一次改五个变量会破坏回归诊断？</li>
+</ol>
+</section>
 </body></html>
