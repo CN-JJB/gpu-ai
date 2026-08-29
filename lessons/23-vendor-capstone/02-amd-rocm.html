@@ -2,6 +2,10 @@
 <p class="kicker">Vendor Capstone · AMD · L0→L2</p><h1>AMD / ROCm 实战闭环：从设备支持到 HIP LLM 真实 offload</h1><p class="lead">AMD 的 capstone 核心不是“把 ROCm 装上”。你要学会把 exact GPU、OS/kernel driver、ROCm runtime、HIP libraries、应用 backend、model kernel 与 benchmark 绑定成一条可复现证据链。这样即使未来 ROCm 支持矩阵变化，你仍知道怎样重新验证。</p>
 <h2>Prerequisite Check</h2><p>完成 GCN/RDNA/CDNA 课程，知道 CU/wave/LDS 是硬件层概念，也知道“AMD GPU 有计算能力”不等于“当前 ROCm 支持 exact device”。</p>
 <h2>真实问题：为什么 AMD 本地 LLM 最怕一句“理论上支持”？</h2><p>因为“理论上”常混合了不同命题：ISA 能执行、Linux driver 能枚举、ROCm 官方支持、HIP runtime 能打开、llama.cpp build 含 HIP、目标 quant 有 GPU kernel。真正可用必须逐层通过。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/vendor-evidence-chain.svg" alt="NVIDIA CUDA、AMD ROCm HIP、Apple Metal MLX、Intel SYCL Level Zero 四条本地 LLM 路径共同遵循 hardware identity、driver runtime、application backend、kernel path、model config 和 measured evidence 的证据链">
+<figcaption>四家生态的名词不同，但排错结构相同：<strong>系统看见设备 → runtime 能用 → 应用 backend 启用 → 目标 kernel 生效 → model/config 固定 → benchmark 可复现</strong>。任何一层 UNKNOWN 都不能用品牌印象补上。</figcaption>
+</figure>
 <h2>1. ROCm evidence chain</h2><pre>exact PCI device / ASIC
 → kernel GPU driver
 → ROCm userspace runtime
