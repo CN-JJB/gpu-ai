@@ -14,6 +14,25 @@ personal ceiling:
 - risk reserve
 - transaction/shipping/tax costs
 </pre><p>然后再检查这个 ceiling 是否与替代方案一致。例如若新卡加保修只贵很少，旧卡 ceiling 应相应下降。</p>
+<section class="card interactive-lab" data-max-buy>
+<h3>交互：你的最大买入价到底被哪些成本吃掉？</h3>
+<p>把“市场价”暂时放一边。先从你的<strong>总项目预算</strong>倒推 sticker ceiling，再给 watch band 留一点观察空间。</p>
+<div class="control-grid">
+<label>总项目预算<input data-budget type="number" min="0" step="10" value="1000"></label>
+<label>必须的系统升级<input data-upgrades type="number" min="0" step="10" value="100"></label>
+<label>即时维护预留<input data-maintenance type="number" min="0" step="10" value="0"></label>
+<label>卡况风险预留<input data-risk type="number" min="0" step="10" value="70"></label>
+<label>交易/运输/税费<input data-transaction type="number" min="0" step="10" value="30"></label>
+<label>Watch band 上浮<input data-watch type="number" min="0" step="10" value="50"></label>
+</div>
+<div class="metric-grid">
+<div class="metric">非显卡成本/预留<strong data-reserve-out>—</strong></div>
+<div class="metric">Personal sticker ceiling<strong data-ceiling-out>—</strong></div>
+<div class="metric">Watch upper<strong data-watch-out>—</strong></div>
+</div>
+<p data-verdict></p>
+<p class="small"><strong>边界：</strong>这个计算器不会替你决定 BUY。Support、condition、performance、退货路径和证据强度仍是独立 gate。</p>
+</section>
 <h2>3. Risk reserve：为什么弱卡况证据应该压低 ceiling？</h2><p>同一型号：</p><ul><li>卖家只有文字描述；</li><li>有可核对 identity/温度/负载视频；</li><li>本地面交可完整测试；</li><li>平台有可靠退货。</li></ul><p>风险并不相同。你可以选择不量化成精确概率，但要么降低 ceiling，要么提高所需证据，不能无视。</p>
 <h2>4. Watch band：避免“差 10 块就冲”的情绪</h2><p>与其只有一个硬阈值，可以定义：</p><pre>price <= max ceiling        → WITHIN-CEILING
 max < price <= watch upper  → WATCH-BAND
@@ -105,4 +124,5 @@ net project delta = -20
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../examples/evidence/intelligence-48-price-ceiling-policy.md">I48 Price Ceiling Policy</a></li><li><a href="../../examples/evidence/intelligence-49-price-ceiling-readiness-bridge.md">I49 Price Readiness</a></li><li><a href="../../intelligence/README.md">Market evidence lane</a></li></ul>
-</main></body></html>
+</main><script src="../../assets/components/max-buy-price.js"></script>
+</body></html>
