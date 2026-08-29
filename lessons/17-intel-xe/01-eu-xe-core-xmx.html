@@ -23,5 +23,53 @@
 <h2>Retrieval Practice</h2><ol><li>为什么 EU/Xe-core 数不能与 SM/CUDA Core 直接换算？</li><li>subgroup 在并行编程里解决什么问题？</li><li>XMX 要通过哪几层才能变成 LLM 实际加速？</li><li>为什么 matrix instruction 对 layout/packing 敏感？</li><li>Arc 大显存通过了哪个 gate？还有哪些 gate 没过？</li><li>四厂商的 lane-group 抽象可以迁移什么，不能迁移什么？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>Intel 候选必须先证明 exact driver/runtime/backend + model kernel 可用，再让显存、带宽、XMX 和价格进入比较。没有软件证据时，纸面 XMX/TOPS 只算潜在能力。</p></div>
 <h2>Transfer</h2><p>下一节进入 Arc/oneAPI/LLM 软件路线。把这一节的硬件层与下一节的软件层接成完整 evidence chain。</p>
+
+<h2>把 Intel 执行模型压成一张图</h2>
+<pre>work-item
+  ↓ grouped by software work-group
+subgroup
+  ↓ mapped onto hardware execution lanes
+Xe-core vector / matrix datapaths
+  ├─ registers: thread-local working state
+  ├─ SLM: work-group-local reusable tiles
+  ├─ caches: automatic data reuse
+  └─ XMX: matrix path only when a matching kernel dispatches it
+        ↓
+local VRAM / system memory
+</pre>
+<p>这张图的价值在于：以后看到任何 Intel 性能问题，都先问“数据和线程卡在哪一层”，而不是先问 EU/Xe-core 数量。比如某个量化 kernel 已经 full offload，却 TG 仍低，问题可能在显存流量、解包、cache reuse 或普通 vector path；只有证据表明目标 kernel 确实 dispatch 到矩阵路径时，才应把 XMX 纳入解释。</p>
+
+<h2>Worked Example：为什么同样是 16 GB，两个 backend 的结果可以完全不同？</h2>
+<p>假设同一张 Intel GPU、同一个模型 artifact、同一个 context，Backend A 能完整 offload，但只走通用 vector kernel；Backend B 也完整 offload，同时为该量化格式提供适配的矩阵 kernel。两者都通过了 <strong>fit gate</strong>，但并没有通过同一个 <strong>execution-path gate</strong>。</p>
+<table><thead><tr><th>问题</th><th>Backend A</th><th>Backend B</th></tr></thead><tbody>
+<tr><td>模型是否装得下</td><td>是</td><td>是</td></tr>
+<tr><td>是否 GPU offload</td><td>是</td><td>是</td></tr>
+<tr><td>是否有目标量化的矩阵 kernel</td><td>未证明</td><td>已证明</td></tr>
+<tr><td>可否仅凭 XMX TOPS 预测 TG</td><td>不可以</td><td>仍然不可以</td></tr>
+</tbody></table>
+<p>即使 B 使用 XMX，最终 token/s 仍可能被显存带宽、KV、host work、同步或调度限制。这正是“feature present → kernel uses feature → workload benefits”三层证据不能跳步的原因。</p>
+
+<h2>Experiment Evidence：这一节完成后要留下什么？</h2>
+<p>保存一张 Intel execution worksheet，至少包含：</p>
+<ul>
+<li>work-item / work-group / subgroup 的关系；</li>
+<li>Xe-core、SLM、cache、local memory、XMX 分别属于哪一层；</li>
+<li>你所调查设备的 subgroup capability 来源；</li>
+<li>一个“feature exists 但 application 未必使用”的反例；</li>
+<li>一个你明确拒绝做的跨厂商数量等价，例如 Xe-core = N 个 CUDA Core。</li>
+</ul>
+<p>没有 Intel GPU 时也能完成：使用官方架构/SYCL 文档做只读 worksheet，并把所有设备相关数值标成 <strong>DOCUMENTED</strong>，不要伪装成 measured evidence。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>设备枚举失败：</strong>先停在 driver/runtime 层，不能讨论 XMX 性能。</li>
+<li><strong>设备可见但应用走 CPU：</strong>问题在 application build/backend，不是“Intel GPU 没算力”。</li>
+<li><strong>GPU full offload 但矩阵路径未知：</strong>只能证明 GPU execution，不能宣称 XMX-used。</li>
+<li><strong>矩阵路径已证明但速度仍低：</strong>继续检查 memory traffic、quant unpack、host overhead、thermal/power 和 workload shape。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>完成本节不会证明任何一张 Arc 卡“值得买”，也不会证明某个 SYCL/Vulkan/oneAPI backend 更快。它只让你建立一套不会被厂商名词变化带偏的执行模型。购买与性能结论必须等 exact device、软件链、模型 artifact 和实测 Evidence 都绑定后再下。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-spine.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>
