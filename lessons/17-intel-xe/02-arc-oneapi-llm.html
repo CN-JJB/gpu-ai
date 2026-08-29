@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Intel Xe 2：Arc、oneAPI 与本地 LLM</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">Intel Xe · 2/2 · L0→L2</p><h1>Intel Xe（二）：Arc / oneAPI / Level Zero / SYCL 与本地 LLM</h1><p class="lead">Intel Arc 的学习价值在于它把“硬件看起来有潜力”与“软件生态能否兑现”这个问题暴露得很清楚。本节不做厂商站队，而是教你如何验证一条从驱动到 LLM kernel 的真实可用链。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/intel-xe-name-hierarchy.svg" alt="Intel Xe 架构家族、Xe 与 Xe2 generation、HPG HPC LPG microarchitecture 和 Arc A770 B580 具体产品之间的命名层级">
+<figcaption>Intel 的第一道门槛常常是<strong>名字层级</strong>：Xe 是架构家族，Xe/Xe2 是 generation，HPG/HPC/LPG 是不同目标的 microarchitecture，Arc A/B 才是具体产品。先对齐层级，再比较 Xe-core、XMX 与 memory。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应知道 Xe-core/XMX/subgroup 只是硬件能力，必须通过 runtime/library/backend 才能变成应用性能。</p>
 <h2>真实问题：为什么同一张 Arc 卡，有人能跑很快，有人却连 GPU offload 都没成功？</h2><p>因为“支持 Intel GPU”可能指完全不同的路径：SYCL、Level Zero、OpenCL、Vulkan、DirectML、特定框架插件等；操作系统、driver 版本和 build option 也会改变结果。</p>
 <h2>1. 把 Intel 软件栈画成层</h2><pre>LLM application
@@ -19,6 +23,7 @@ exact Arc / Xe device</pre><p>排错必须从底向上或从上向下逐层证�
 <h2>4. Level Zero：为什么底层 runtime identity 要记录？</h2><p>底层 runtime 决定设备枚举、memory allocation、command submission 等。真实 benchmark 若不记录 driver/runtime build，很难解释未来升级后为什么性能、兼容性或 bug 行为变化。</p><p>这也是课程 Intelligence lane 要求把 hardware/runtime/build identity 与 benchmark 绑定的原因。</p>
 <h2>5. Arc 本地 LLM 的三条候选路径</h2><p>具体可用路径会随软件版本变化，因此稳定教材不写“今天唯一正确 backend”，而教你验证：</p><ol><li><strong>Native Intel-oriented path：</strong>应用的 SYCL/oneAPI 等 backend；</li><li><strong>Cross-vendor path：</strong>Vulkan 等图形/compute API backend；</li><li><strong>Framework-specific path：</strong>某 ML framework/extension 对 Intel GPU 的集成。</li></ol><p>同一模型可以在不同路径得到不同 kernel coverage 和性能，所以任何 benchmark 必须记录 backend。</p>
 <h2>Worked Example：Arc A770 16 GB 类候选为什么不能用“16 GB 很便宜”直接下单？</h2><p>先建立 acceptance ladder：</p><ol><li><strong>Fit：</strong>16 GB 是否能放下目标模型+KV+buffer？</li><li><strong>Enumerate：</strong>driver/runtime 能否稳定看到 exact device？</li><li><strong>Offload：</strong>LLM 应用是否确认 layers/ops 在 GPU 上运行？</li><li><strong>Kernel：</strong>目标 quant 是否走高效 GPU/XMX 路径？</li><li><strong>Measure：</strong>固定 prompt/protocol 测 PP/TG/quality。</li><li><strong>System：</strong>power、ReBAR/PCIe、主板、散热是否合理？</li><li><strong>Cost：</strong>价格优势是否足以覆盖生态/转售/排错时间？</li></ol><p>任何一步失败，都不能用后面的纸面优势越过。</p>
+<div class="callout"><strong>关于 Arc A770 这个 Worked Example：</strong>它是用来练 acceptance ladder 的教学候选，不代表 Intel 消费 GPU 停在 Arc A 系列。当前 Xe2-HPG / Arc B 系列已经存在；换成 B 系列时仍要重新走同一套 fit → enumerate → offload → kernel → measure → system → cost gate，不能因为“更新一代”跳过软件证据。</div>
 <h2>6. ReBAR / host mapping 为什么可能影响离散 GPU？</h2><p>Resizable BAR 允许 CPU 映射更大的 GPU address window。某些现代 GPU/driver/workload 会受 host-to-device mapping 和平台配置影响。对 LLM 不要先假设“开了就快 X%”，但在设备/驱动文档要求时，应把 BIOS/platform 设置纳入可重复环境记录。</p>
 <h2>7. XMX 的实际使用如何验证？</h2><p>三层证据：</p><ul><li><strong>Static：</strong>硬件和 library 文档说明支持某 numeric path；</li><li><strong>Dispatch：</strong>应用日志/profiler 表明目标 kernel 被调用；</li><li><strong>Measured：</strong>与控制变量 baseline 的性能变化一致。</li></ul><p>只有第一层时，仍然只是“可能可用”。</p>
 <h2>Why it matters</h2><ul><li>Arc 常以容量/价格吸引“垃圾佬”，最需要严谨 software gate。</li><li>oneAPI/SYCL 学习帮助你理解跨厂商 portability 的真实边界。</li><li>记录 driver/runtime/backend 能让 benchmark 在未来可解释。</li><li>让你不会把“能启动模型”误当“高效 GPU inference”。</li></ul>
@@ -51,5 +56,5 @@ exact Arc / Xe device</pre><p>排错必须从底向上或从上向下逐层证�
 </ul>
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
-<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-arc-xmx.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2025-2/intel-xe-gpu-architecture.html">Intel oneAPI GPU Optimization Guide — Xe GPU Architecture</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-arc-xmx.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>
