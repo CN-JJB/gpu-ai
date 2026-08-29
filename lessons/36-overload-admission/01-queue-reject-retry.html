@@ -16,6 +16,7 @@
 <p>真正的问题是：<strong>当负载接近或超过稳定容量时，怎样让一部分请求快速、明确地失败，而不是让所有请求一起陷入长尾；同时又不让 retry 把过载继续放大？</strong>Admission control 的目标不是追求“0 reject”，而是保护可预测的 SLO。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/overload-retry.svg" alt="LLM 服务过载时无界队列、有限队列 reject、客户端立即重试和 backoff 的因果流程"><figcaption><strong>过载不是“再等等就好”。</strong> 当 incoming work 长期超过 service capacity，无界 queue 会把问题变成尾延迟；bounded queue 会显式 reject；立即重试还可能把原始负载放大成 retry storm。</figcaption></figure>
 <h2>1. 先看最基本不等式</h2>
 
 <pre>
