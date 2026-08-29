@@ -166,3 +166,43 @@ proposal + verification overhead
 4. acceptance 不变但 verification cost 上升，speedup 为什么下降？
 5. 为什么 real benchmark 还要记录 concurrency？
 6. two-model speculation 为什么还要记录 VRAM/offload？
+
+
+## Hypothesis
+
+Speculation 只有在 expected useful progress 足以覆盖 draft + verification overhead 时才有正收益；acceptance 较低或 proposer/verification 太贵时，增加 draft length 会出现收益递减甚至负收益。
+
+## Fixed variables
+
+一次 sweep 固定 cost model，只改变 p 和 D；Sensitivity 实验一次只改 draft-cost 或 verify-base。
+
+## What to observe
+
+- p=0.3/0.6/0.9 下 optimal D 的变化；
+- expected progress 对 D 的饱和；
+- proposer 变慢时 optimum 左移；
+- verification overhead 增加时所有 speedup 下移；
+- speedup ceiling 与真实 end-to-end speedup 的边界。
+
+## Troubleshooting
+
+- p 是 toy independent survival probability，不是真实 acceptance trace。
+- 不能用模型 ceiling 宣布某 runtime 会 3×。
+- two-model path 还会消耗额外 VRAM/带宽。
+- concurrency 会改变 proposer/target scheduling，因此真实 benchmark 必须记录。
+
+## What this proves
+
+你能解释 acceptance、draft length 与 overhead 三者共同决定 speculative opportunity。
+
+## What this does NOT prove
+
+它不预测 llama.cpp、tree speculation 或任何具体模型组合的性能。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+acceptance 从 90% 降到 60%，为什么“继续把 draft length 拉长”可能反而更慢？
