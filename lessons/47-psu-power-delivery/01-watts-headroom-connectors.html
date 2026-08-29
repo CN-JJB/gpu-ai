@@ -177,6 +177,18 @@ modular GPU cable provenance unknown</pre>
 <h3>安全边界</h3>
 <div class="callout"><strong>出现熔化、烧蚀、异常发热/气味、可疑模组线来源时停止使用。</strong>课程不指导拆 PSU、测市电裸露节点、绕过保护或自制危险适配。</div>
 
+
+<h3>Troubleshooting：负载下重启或掉卡时，先做什么？</h3>
+<ol>
+<li><strong>先停止高负载并断电检查：</strong>如果出现掉电、重启、烧焦气味、异常发热或连接器变色，不继续反复压测。</li>
+<li><strong>核对 exact PSU 与线材身份：</strong>确认模组线确实属于该 PSU 型号/系列，并按 PSU 与 GPU 厂商文档核对连接方式。<strong>不要用“插得进去”当兼容证据。</strong></li>
+<li><strong>重新做整机预算：</strong>把 GPU、CPU、其他设备和安全余量放回同一张功率表；不要只比较 GPU board power 与 PSU 总瓦数。</li>
+<li><strong>检查连接器路径：</strong>记录 GPU 每个供电入口、使用的线材和 PSU 端口；不确定的适配器、分线或第三方线材直接记为 BLOCKED，等待可靠文档确认。</li>
+<li><strong>如果只有高瞬时负载触发：</strong>把 transient/headroom 作为假设，而不是马上通过改电压、改线或替换保护机制“修好”。</li>
+<li><strong>换已知良好的兼容组件做隔离时：</strong>仍要保持厂商规定的连接方式，并一次只改变一个变量，保存前后 Evidence。</li>
+</ol>
+<div class="callout"><strong>安全停止条件：</strong>任何涉及未知线序、烧蚀、裸露导体、带电测量或保护电路绕过的情况，本课程路径直接停止并交给合格人员/厂商文档处理。</div>
+
 <h3>Decision Rule</h3>
 <p><strong>容量足够只是必要条件，不是充分条件。</strong>安全关键 cable/connector provenance 不明确时，整机方案保持 BLOCKED。</p>
 
