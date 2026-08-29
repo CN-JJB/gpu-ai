@@ -184,6 +184,7 @@
 <p>然后回答：</p>
 <p><strong>如果把 tile 16 改成 tile 32，除了“global loads 更少”，你至少还要检查哪五项资源或 profiler 指标，才能判断它是不是更好的 kernel？</strong></p>
 
+<h2>Transfer</h2><p>换 NVIDIA shared memory、AMD LDS、Apple threadgroup memory、Intel SLM 时，名称不同但问题相同：哪些数据值得搬到更近的片上资源、一个 tile 能复用多少次、容量/同步/register pressure 会不会抵消收益。不要跨厂商比较“KB 数越大就一定越快”。</p>
 <h2>Primary Sources</h2>
 <ul>
 <li><a href="https://docs.nvidia.com/cuda/cuda-programming-guide/">NVIDIA CUDA Programming Guide</a></li>
