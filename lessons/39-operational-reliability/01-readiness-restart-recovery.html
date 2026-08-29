@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Operational Reliability / Recovery</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>Operational Reliability — 进程活着，为什么还不能接请求？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该知道一个本地 LLM 服务至少包含进程、监听 socket、模型加载、后端初始化与一次真实推理路径，并理解 <strong>liveness</strong> 和 <strong>readiness</strong> 是不同问题。</p>
+<div class="callout"><strong>如果还不熟：</strong>先用这条最小链路继续：process alive → socket reachable → model ready → smoke inference passes。只要其中任一步没验证，就不能把“进程没退出”写成“服务已经可用”。</div>
+
+<h2>真实问题</h2>
+<p>你重启本地 LLM 后看到进程已经起来、端口也能连接，于是立刻让上层应用恢复流量；但前几批请求持续 503、超时，甚至第一次推理还因为模型或 backend 初始化失败。</p>
+<p>真正的问题是：<strong>怎样定义“已经恢复到可接真实请求”的可验证状态，并在重启、崩溃或断电后证明系统能重复回到这个状态？</strong>可靠性不是“今天能跑”，而是故障发生后仍能按已知步骤恢复。</p>
+</section>
+
 <h2>1. 启动不是一个瞬间</h2>
 
 <pre>
