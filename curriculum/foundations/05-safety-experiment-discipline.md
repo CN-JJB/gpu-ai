@@ -129,3 +129,119 @@ This evidence does not prove...
 ## Primary Sources
 
 具体硬件安全与接线始终以目标 PSU/GPU/主板厂商手册为准。
+
+## Mental Model：先分“可逆软件实验”与“可能造成不可逆损失的硬件动作”
+
+课程默认升级路径：
+
+~~~text
+read-only inspection
+→ user-space software
+→ normal benchmark
+→ reversible config
+→ standard installation
+→ advanced / risky challenge only when explicitly designed
+~~~
+
+越往下风险越高，Evidence 要求和止损条件也越严格。
+
+## 实验 Stop Conditions
+
+出现以下情况时，先停实验而不是“再跑一次看看”：
+
+- 异常气味、冒烟、火花；
+- 线材或接头异常发热、变色；
+- 风扇停转同时温度持续上升；
+- PSU/GPU/主板反复掉电；
+- 文件系统或模型 Evidence 正在被错误命令覆盖；
+- 工具明确给出 BLOCKED/unsafe；
+- 你无法解释下一步动作是否可逆。
+
+软件 crash 通常可以调查；电气异常不能用“多试几次”建立统计信心。
+
+## Worked Example：Benchmark 更快了，但同时改了 4 个变量
+
+Baseline：
+
+~~~text
+driver A
+backend X
+quant Q4
+power limit default
+~~~
+
+Candidate：
+
+~~~text
+driver B
+backend Y
+quant Q5
+power limit changed
+~~~
+
+即使 candidate 快 30%，你也不能回答“哪个改动导致更快”。正确做法是回到 baseline，逐个变量 A/B，并为每一步先过 correctness/quality gate。
+
+## Failure Evidence 为什么尤其重要
+
+假设一次运行 OOM：
+
+~~~text
+FAILED run
+model artifact = exact
+context = 32768
+KV type = exact
+available VRAM = recorded
+stderr = preserved
+~~~
+
+这不是“废数据”。它可以证明在该条件下 fit gate 失败，并帮助你设计下一次只改变 context 或 KV type 的实验。
+
+## 二手 GPU 到货止损顺序
+
+~~~text
+identity / external inspection
+→ normal power-on
+→ basic device enumeration
+→ conservative memory/load test
+→ sustained LLM workload
+→ only then consider tuning
+~~~
+
+如果还在退货窗口，优先保存 Evidence 和判断是否退货；不要先拆散热器、刷 VBIOS、改焊或做会破坏争议证据的操作。
+
+## No-hardware fallback
+
+写一份“未来真实 GPU benchmark preflight + stop conditions”即可完成 Foundation 05。没有 GPU 不影响掌握实验纪律。
+
+## Decision Rule
+
+一个结果只有同时满足：
+
+~~~text
+safe
++ correct
++ comparable
++ reproducible enough
+~~~
+
+才有资格进入性能解释。任何一项失败都应先 BLOCKED，而不是拿速度数字继续比较。
+
+## Transfer
+
+同一纪律可迁移到量化 A/B、driver upgrade、多 GPU、散热/功耗优化、二手验卡、kernel patch、服务升级/回滚。核心一直是：先保护人和设备，再保护 Evidence，再追性能。
+
+## 完成模板
+
+~~~text
+Experiment:
+Safety boundary:
+One semantic variable:
+Fixed variables:
+Correctness/quality gate:
+Warm-up/repetitions:
+Raw evidence:
+Stop conditions:
+Rollback/recovery:
+What this does NOT prove:
+~~~
+
