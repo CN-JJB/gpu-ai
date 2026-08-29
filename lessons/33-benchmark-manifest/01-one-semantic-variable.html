@@ -6,6 +6,10 @@
 + exact identities
 + variant blocks
 + audit links</pre><p>固定协议描述比较规则；identity 绑定实际对象；variant 记录硬件/runtime/model/execution/prompt；audit 指向原始命令与结果。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/benchmark-manifest.svg" alt="Benchmark Manifest 的四层：固定 protocol、精确 hardware runtime model tokenizer 身份、intentional semantic variant、command 和 raw result 审计链接">
+<figcaption>Manifest 的作用不是“多写点元数据”，而是让任何结果都能回答：<strong>什么固定了、什么变了、身份是谁、原始证据在哪里。</strong></figcaption>
+</figure>
 <h2>2. Exact identity：名字不是证据</h2><p>应优先保存：</p><ul><li>GPU device identity/profile hash；</li><li>model artifact SHA/bytes/source revision/quant；</li><li>runtime commit/version/backend/build；</li><li>prompt rendered/token-ID hash；</li><li>quality corpus/identity hash。</li></ul><p>“RTX 3090 + Qwen 8B + llama.cpp”太粗，无法排除多个实际对象。</p>
 <h2>3. Protocol：在看到结果前冻结</h2><p>例如：</p><pre>PP tokens = 512
 TG tokens = 128
