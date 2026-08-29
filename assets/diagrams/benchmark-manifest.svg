@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+<title id="title">Benchmark Manifest 的四层身份结构</title><desc id="desc">Manifest将固定协议、精确身份、变体路径和审计链接分开，确保结果可以追溯到命令和原始输出，并避免把多个语义变量混成一个比较。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.layer{fill:#fff;stroke:#555;stroke-width:2}.sub{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“同一模型同一 3090”还不够：Manifest 要把比较身份拆成四层</text>
+<g transform="translate(130 85)">
+<rect class="layer" x="0" y="0" width="860" height="78" rx="14"/><text x="25" y="31" font-size="18" font-weight="700">1 · Fixed protocol</text><text class="t" x="240" y="31">PP/TG tokens · warmup · repetitions · quality corpus · stop rules</text><text class="s" x="240" y="55">必须在看到结果前冻结</text>
+<rect class="layer" x="0" y="98" width="860" height="78" rx="14"/><text x="25" y="129" font-size="18" font-weight="700">2 · Exact identities</text><text class="t" x="240" y="129">hardware UUID · driver/runtime · model SHA · tokenizer · OS</text><text class="s" x="240" y="153">名字不是证据；revision/build 才能复现</text>
+<rect class="layer" x="0" y="196" width="860" height="78" rx="14"/><text x="25" y="227" font-size="18" font-weight="700">3 · Intentional variant</text><text class="t" x="240" y="227">variant.execution.flash_attention · kv type · model · runtime · hardware</text><text class="s" x="240" y="251">写语义路径，而不是备注“我改了点设置”</text>
+<rect class="layer" x="0" y="294" width="860" height="78" rx="14"/><text x="25" y="325" font-size="18" font-weight="700">4 · Audit links</text><text class="t" x="240" y="325">command.json · environment · raw result · parser output</text><text class="s" x="240" y="349">结果数字必须能反查回原始 Evidence</text>
+</g>
+<path class="arrow" d="M560 460 V487"/>
+<text x="560" y="505" text-anchor="middle" class="s">如果 identity mismatch 或一次改了多个 semantic variables，就把比较标成 BLOCKED，而不是硬算百分比。</text></svg>
