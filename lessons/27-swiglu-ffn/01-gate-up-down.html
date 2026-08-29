@@ -38,5 +38,52 @@ MoE:       token → router → selected expert FFN(s)</pre><p>因此下一节�
 <h2>Retrieval Practice</h2><ol><li>标准 dense FFN 与 SwiGLU 的结构差别是什么？</li><li>为什么 SwiGLU 每层粗略是 3HI 参数？</li><li>intermediate size 为什么是模型硬件预算的重要 config？</li><li>Gate 为什么不等于 MoE 稀疏 routing？</li><li>量化 FFN 权重为何可能帮助 decode，但不会保证线性加速？</li><li>Prefill 与 decode 的 FFN matrix shape 为什么不同？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>读模型硬件需求时，不只看参数总数；至少读取 hidden size、intermediate size、layers、attention/KV 结构。量化收益必须区分“权重字节减少”与“实际 kernel 速度变化”。</p></div>
 <h2>Transfer</h2><p>下一节 MoE 把多个 FFN expert 放进同一层。继续追踪三件事：总 resident 权重、每 token active expert、expert routing/数据移动。</p>
+
+<h2>把 FFN 看成“权重流量 + 大矩阵”而不是一个激活函数</h2>
+<pre>hidden x
+  ├→ gate projection ─→ activation ┐
+  └→ up projection ────────────────×
+                                   ↓
+                              down projection
+                                   ↓
+                                residual
+</pre>
+<p>对硬件判断最重要的是：SwiGLU 通常包含多组大权重矩阵。模型 decode 时这些权重会反复参与每个 token 的计算；prefill 时更大的 token batch 又更容易形成高利用率 GEMM。于是同一个 FFN 可以在两阶段呈现不同 roof。</p>
+
+<h2>Worked Example：为什么 intermediate size 会直接改变模型体积与每-token 工作？</h2>
+<p>对 hidden size H、intermediate size I 的 dense SwiGLU，粗略只看三组投影，单层 FFN 参数规模约为：</p>
+<pre>gate: H × I
+up:   H × I
+down: I × H
+
+total ≈ 3 × H × I parameters per layer
+</pre>
+<p>这不是精确模型总参数公式，但足以解释：I 增大时，权重容量与 FFN 计算都明显增加。若量化位宽降低，权重 bytes 会下降；但实际 kernel 是否高效，还要看 packing、解包、矩阵路径与 backend。</p>
+
+<h2>Fusion 为什么是性能变量？</h2>
+<p>如果 gate、activation、elementwise multiply、downstream layout conversion 被拆成很多小 kernel，就会增加中间张量读写和 launch/synchronization。Fusion 的目标常是减少这些中间 traffic，而不改变模型语义。</p>
+<p>因此比较 fused/non-fused path 时，必须固定 model artifact、quant、输入 shape 和输出质量；不能同时换 backend 或模型版本。</p>
+
+<h2>Experiment Evidence</h2>
+<ul>
+<li>exact model config 中 H/I/layers；</li>
+<li>目标 quant/artifact identity；</li>
+<li>prefill 与 decode 分开的 PP/TG；</li>
+<li>如果 profiler 可用：FFN kernel 数、主要 kernel、memory/compute 迹象；</li>
+<li>改变 fusion/kernel path 时的 correctness/quality gate。</li>
+</ul>
+<p>无 GPU 时，用两个不同 intermediate size 的 toy config 计算 FFN 参数比例，并预测对 artifact size 与每-token work 的方向性影响。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>PP 提升明显、TG 提升有限：</strong>可能大矩阵路径获益更大，decode 仍受权重流量限制。</li>
+<li><strong>量化更小但 TG 不升：</strong>检查解包/kernel/fallback，不能只看 bytes。</li>
+<li><strong>fusion 后更快但质量变化：</strong>先视为 correctness failure，不接受性能结论。</li>
+<li><strong>FFN 占比高：</strong>模型结构 H/I/layers 可能比“attention 优化”更值得关注。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>SwiGLU 并不意味着某种固定硬件需求或固定性能优势。这里的 3HI 是结构级近似；exact model 还可能有 bias、shared experts、MoE、特殊投影或不同定义，最终以 exact config/source 与 artifact 为准。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/2002.05202">GLU Variants Improve Transformer</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
 </main></body></html>
