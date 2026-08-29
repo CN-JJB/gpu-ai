@@ -186,4 +186,85 @@ decision inconsistent</pre>
 <li><a href="../../resources/RESOURCES.md">Course Resources — Primary-source index</a></li>
 </ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：毕业标准是“可以被别人复核”</h2>
+<h3>最终交付物不是答案，而是一条可追踪论证</h3>
+<pre>goal
+→ workload contract
+→ model dossier
+→ candidate machine
+→ gate matrix
+→ evidence
+→ measurements
+→ decision
+→ revision / upgrade triggers</pre>
+<p>任何读者都应该能顺着路径找到“这个结论来自哪份原始证据”。</p>
+
+<h3>毕业 Design Review 的六个问题</h3>
+<ol>
+<li><strong>目标明确吗？</strong>模型、context、concurrency、SLO、预算是什么？</li>
+<li><strong>硬门槛都列出来了吗？</strong>VRAM、backend、RAM、storage、PSU、thermal 等。</li>
+<li><strong>证据层级匹配 claim 吗？</strong>厂商规格、卖家 claim、runtime log、真实 benchmark 不互相冒充。</li>
+<li><strong>比较实验公平吗？</strong>只改变了声明的变量吗？</li>
+<li><strong>Non-claims 写了吗？</strong>证据不能证明什么？</li>
+<li><strong>结论可执行吗？</strong>ACCEPT / REVISE / BLOCKED 之后下一步是什么？</li>
+</ol>
+
+<h3>Worked Example：为什么 BLOCKED 也能毕业</h3>
+<pre>Goal:
+二手双 GPU Local LLM server
+
+Evidence:
+GPU identity PASS
+VRAM PASS
+runtime PASS
+performance PASS
+PSU total watts PASS
+modular cable compatibility UNKNOWN
+
+Decision:
+BLOCKED</pre>
+<p>如果报告明确指出 cable provenance 是安全关键 unknown，并给出最小解决路径，那么这是比“先买回来试试”更高质量的工程结果。</p>
+
+<h3>Revision 必须能追溯到失败</h3>
+<pre>FAIL: VRAM insufficient
+
+good revision:
+reduce context / different quant / different GPU
+→ rerun affected quality + performance + memory gates
+
+bad revision:
+“升级更强显卡”</pre>
+
+<h3>升级触发器必须可测</h3>
+<p>例如：</p>
+<pre>if TTFT p95 > 800 ms
+AND queue_wait dominates
+AND GPU/KV saturated
+→ evaluate capacity upgrade</pre>
+<p>而不是“以后有钱就换 5090”。课程要培养的是由证据触发升级，而不是硬件欲望触发升级。</p>
+
+<h3>最终 Rubric</h3>
+<table>
+<tr><th>维度</th><th>毕业要求</th></tr>
+<tr><td>Understand</td><td>能解释各层机制与限制</td></tr>
+<tr><td>Investigate</td><td>能从 claim 找到合适 Evidence</td></tr>
+<tr><td>Choose</td><td>能用 hard gates 做机器/模型选择</td></tr>
+<tr><td>Practice</td><td>能产生可复现实验与原始记录</td></tr>
+<tr><td>Modify</td><td>能在失败后只改必要变量并重新验证</td></tr>
+</table>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>毕业不是“配出最强电脑”，而是能对一个真实 Local LLM 系统做可复核的设计、测量、诊断、修改与决策。</strong></div>
+
+<h3>最后的 Retrieval Practice</h3>
+<ol>
+<li>为什么配置单不是 machine design？</li>
+<li>为什么 claim 与 evidence 必须一一绑定？</li>
+<li>Non-claims 在工程报告里有什么价值？</li>
+<li>ACCEPT、REVISE、BLOCKED 各自说明了什么？</li>
+<li>如果一个新 GPU 发布了，你如何用整套课程重新判断它，而不是等别人给“值不值”答案？</li>
+</ol>
+</section>
 </body></html>
