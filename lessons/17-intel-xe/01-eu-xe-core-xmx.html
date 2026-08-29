@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Intel Xe 1：EU、Xe-core、XMX</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">Intel Xe · 1/2 · L0→L1</p><h1>Intel Xe（一）：EU → Xe-core → XMX，应该怎样建立执行模型？</h1><p class="lead">Intel GPU 的术语变化很容易让人迷路：EU、Xe-core、subgroup、XMX、oneAPI。不要急着和 CUDA Core 做数量换算。本节先建立 Intel 自己的“并行执行 + 矩阵专用 + memory hierarchy”模型。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/intel-xe-name-hierarchy.svg" alt="Intel Xe 架构家族、Xe 与 Xe2 generation、HPG HPC LPG microarchitecture 和 Arc A770 B580 具体产品之间的命名层级">
+<figcaption>Intel 的第一道门槛常常是<strong>名字层级</strong>：Xe 是架构家族，Xe/Xe2 是 generation，HPG/HPC/LPG 是不同目标的 microarchitecture，Arc A/B 才是具体产品。先对齐层级，再比较 Xe-core、XMX 与 memory。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应理解 GPU 线程会被成组调度，也知道 NVIDIA warp / AMD wave / Apple SIMD-group 只能做功能类比。</p>
 <h2>真实问题：为什么“多少 EU”或“多少 Xe-core”不能直接变成 token/s？</h2><p>因为产品代际改变了执行组织，且 LLM 性能还受 XMX/低精度 kernel、显存带宽、容量和软件 backend 影响。计数单位只有在同一架构、同一工作条件下才可能作为粗指标。</p>
 <h2>1. 从 EU 到 Xe-core：名称变化背后要看资源组织</h2><p>Intel 早期/集成 GPU 文档常用 Execution Unit（EU）描述可编程执行资源；Xe 世代更常以 Xe-core 等更高层组织呈现。你应该问：</p><ul><li>一个调度组如何组织 threads/subgroups？</li><li>vector/ALU datapath 在哪里？</li><li>register/local memory/cache 怎样共享？</li><li>matrix/XMX 是否在同一 core tile 内？</li></ul><p>而不是问“一个 Xe-core 等于几个 SM”。</p>
@@ -14,6 +18,9 @@
 = usable matrix acceleration</pre><p>如果应用走的是普通 vector path，XMX 峰值不会自动出现。</p>
 <h2>4. DPAS/矩阵指令概念：为什么 layout 很重要？</h2><p>矩阵专用指令通常要求特定 tile、数据布局和数据类型。高层 library 会负责大量映射，但 kernel 编写者必须考虑如何把 packed data 喂给指令。</p><p>这也解释了为什么模型量化格式与硬件位宽看起来“都 4-bit/8-bit”，仍可能需要专门 kernel 转换/解包。</p>
 <h2>5. Cache / local memory：Intel GPU 仍然受数据移动约束</h2><p>不论叫 SLM（shared local memory）还是其他层级，核心思想相同：把可复用 tile 放到更近的片上资源，减少显存往返。Arc 等离散 GPU 还要区分本地 VRAM 与 PCIe host transfer。</p>
+<h2>当前命名更新：Xe2 不是“另一家公司式的新架构名”，而是 Xe 家族的第二代</h2>
+<p>Intel 当前 oneAPI GPU Optimization Guide 明确把 <strong>Xe2</strong> 称为第二代 Xe GPU，并以 Arc B580 这类 Xe2-HPG 产品作为例子。这个更新反而证明为什么不能死背“多少 EU / 多少 Xe-core”：generation、microarchitecture 和具体 SKU 会一起改变 vector engine、XMX、register、SLM/cache 与 memory system。</p>
+<div class="callout"><strong>长期规则：</strong>比较 Intel GPU 前先写完整身份：<code>generation → microarchitecture → exact SKU → backend/runtime</code>。只有同层级比较时，core count 才开始有解释力。</div>
 <h2>Worked Example：Arc 16 GB 卡为什么可能很有吸引力，却仍不能只看显存？</h2><p>大显存可以让某些模型通过 fit gate，但接下来必须确认：</p><ol><li>目标 OS/driver 对 exact GPU 的稳定性；</li><li>oneAPI/Level Zero/SYCL 或应用使用的 backend；</li><li>目标 LLM runtime 是否拥有 Intel GPU kernel；</li><li>quant format 是否能利用 XMX/适合的数据路径；</li><li>memory bandwidth、power/thermal 与真实 token/s；</li><li>价格是否补偿生态成熟度差异。</li></ol><p>因此 Intel 候选卡常常是“规格看起来很好，软件证据决定最后能不能兑现”的典型教材。</p>
 <h2>Why it matters</h2><ul><li>让你能读 Intel GPU 而不依赖 NVIDIA 术语翻译。</li><li>理解 XMX 只是矩阵 datapath，应用必须有 kernel 映射。</li><li>建立 subgroup/SLM 的跨厂商并行算法迁移能力。</li><li>为判断 Arc 的大显存/价格优势是否能转化为 LLM 价值打基础。</li></ul>
 <h2>常见误区</h2><ul><li>“EU 数可以与 CUDA Core 直接换算”——执行组织/吞吐口径不同。</li><li>“XMX 数多就等于 AI token/s 高”——还缺模型格式、kernel、memory。</li><li>“SYCL 是 Intel 专属语言”——SYCL 是跨厂商异构编程标准/生态，但实现和 backend 能力有差异。</li><li>“16 GB 显存通过 fit 就够了”——support/performance/quality/system/cost 仍要过 gate。</li></ul>
@@ -82,5 +89,5 @@ local VRAM / system memory
 </ul>
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
-<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-arc-xmx.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
+<h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2025-2/intel-xe-gpu-architecture.html">Intel oneAPI GPU Optimization Guide — Xe GPU Architecture</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-arc-xmx.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>
