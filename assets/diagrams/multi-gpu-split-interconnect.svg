@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 540" role="img" aria-labelledby="title desc">
+<title id="title">单机多 GPU 的容量、切分和通信</title>
+<desc id="desc">展示两块独立 VRAM、模型层切分、张量并行和独立副本三种组织，强调聚合容量依赖软件切分且跨卡边界产生通信。</desc>
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.gpu{fill:#fff;stroke:#555;stroke-width:2}.mem{fill:#f2f2f2;stroke:#777;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.dash{stroke:#888;stroke-width:2;stroke-dasharray:7 5;fill:none;marker-end:url(#m)}.h{font-size:22px;font-weight:700}.t{font-size:15px}.s{font-size:13px}
+</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">两张卡不是“一块更大的 GPU”：容量能聚合，边界也必须付费</text>
+<g transform="translate(55 80)">
+<rect class="gpu" x="0" y="0" width="290" height="160" rx="18"/><text x="145" y="32" text-anchor="middle" font-size="19" font-weight="700">GPU 0</text>
+<rect class="mem" x="25" y="55" width="240" height="75" rx="12"/><text x="145" y="86" text-anchor="middle" class="t">local VRAM</text><text x="145" y="109" text-anchor="middle" class="s">weights / KV / workspace</text>
+</g>
+<g transform="translate(755 80)">
+<rect class="gpu" x="0" y="0" width="290" height="160" rx="18"/><text x="145" y="32" text-anchor="middle" font-size="19" font-weight="700">GPU 1</text>
+<rect class="mem" x="25" y="55" width="240" height="75" rx="12"/><text x="145" y="86" text-anchor="middle" class="t">local VRAM</text><text x="145" y="109" text-anchor="middle" class="s">weights / KV / workspace</text>
+</g>
+<path class="arrow" d="M350 160 H745"/><text x="548" y="144" text-anchor="middle" class="t">PCIe / NVLink / xGMI / other interconnect</text><text x="548" y="184" text-anchor="middle" class="s">effective bandwidth + sync latency = third roof</text>
+
+<g transform="translate(40 305)">
+<rect class="gpu" x="0" y="0" width="310" height="170" rx="16"/><text x="155" y="30" text-anchor="middle" font-size="18" font-weight="700">Layer / pipeline split</text>
+<rect class="mem" x="28" y="52" width="105" height="68" rx="10"/><text x="80" y="82" text-anchor="middle" class="s">layers 0…15</text><text x="80" y="102" text-anchor="middle" class="s">GPU0</text>
+<rect class="mem" x="177" y="52" width="105" height="68" rx="10"/><text x="230" y="82" text-anchor="middle" class="s">layers 16…31</text><text x="230" y="102" text-anchor="middle" class="s">GPU1</text>
+<path class="arrow" d="M135 86 H172"/><text x="155" y="148" text-anchor="middle" class="s">容量优先；activation 跨边界</text>
+</g>
+<g transform="translate(395 305)">
+<rect class="gpu" x="0" y="0" width="310" height="170" rx="16"/><text x="155" y="30" text-anchor="middle" font-size="18" font-weight="700">Tensor / row parallel</text>
+<rect class="mem" x="35" y="55" width="95" height="62" rx="10"/><text x="82" y="92" text-anchor="middle" class="s">shard A</text>
+<rect class="mem" x="180" y="55" width="95" height="62" rx="10"/><text x="227" y="92" text-anchor="middle" class="s">shard B</text>
+<path class="dash" d="M132 86 H178"/><text x="155" y="145" text-anchor="middle" class="s">频繁 collect / reduce / sync</text>
+</g>
+<g transform="translate(750 305)">
+<rect class="gpu" x="0" y="0" width="310" height="170" rx="16"/><text x="155" y="30" text-anchor="middle" font-size="18" font-weight="700">Independent replicas</text>
+<rect class="mem" x="32" y="55" width="105" height="62" rx="10"/><text x="84" y="82" text-anchor="middle" class="s">whole model</text><text x="84" y="101" text-anchor="middle" class="s">request A</text>
+<rect class="mem" x="173" y="55" width="105" height="62" rx="10"/><text x="225" y="82" text-anchor="middle" class="s">whole model</text><text x="225" y="101" text-anchor="middle" class="s">request B</text>
+<text x="155" y="145" text-anchor="middle" class="s">吞吐扩展；不解决单模型 fit</text>
+</g>
+<text x="550" y="520" text-anchor="middle" class="t">先问目标：容量、单请求延迟，还是多请求吞吐？三种目标对应完全不同的通信账本。</text>
+</svg>
