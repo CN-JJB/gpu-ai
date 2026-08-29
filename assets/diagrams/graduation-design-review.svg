@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 650" role="img" aria-labelledby="title desc">
+<title id="title">本地 LLM 毕业 Design Review：Claim、Evidence、Non-claim 与 Revision</title>
+<desc id="desc">毕业设计从需求与约束开始，为每个claim绑定具体evidence与provenance，同时记录non-claims和unknowns，经过人类design review形成当前方案；失败或新证据触发revision并重新验证，而不是自动购物。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.back{stroke:#888;stroke-width:2;stroke-dasharray:7 5;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">毕业不是“列一台最强配置”，而是把每个工程结论变成可审查的 Claim → Evidence</text>
+<rect class="box" x="55" y="95" width="210" height="90" rx="14"/><text x="160" y="128" text-anchor="middle" font-size="18" font-weight="700">Requirements</text><text class="s" x="160" y="155" text-anchor="middle">budget · model · context · latency · risk</text>
+<path class="line" d="M265 140 H340"/>
+<rect class="box" x="345" y="80" width="230" height="120" rx="14"/><text x="460" y="112" text-anchor="middle" font-size="18" font-weight="700">Claims</text><text class="s" x="460" y="141" text-anchor="middle">“fits target model”</text><text class="s" x="460" y="164" text-anchor="middle">“meets TG target”</text><text class="s" x="460" y="187" text-anchor="middle">“used GPU acceptable”</text>
+<path class="line" d="M575 140 H650"/>
+<rect class="box" x="655" y="72" width="250" height="136" rx="14"/><text x="780" y="104" text-anchor="middle" font-size="18" font-weight="700">Evidence + provenance</text><text class="s" x="780" y="133" text-anchor="middle">exact identities / raw artifacts</text><text class="s" x="780" y="157" text-anchor="middle">benchmark / quality / condition / market</text><text class="s" x="780" y="181" text-anchor="middle">DOCUMENTED vs MEASURED vs UNKNOWN</text>
+<path class="line" d="M905 140 H1080"/>
+<text class="s" x="1010" y="120" text-anchor="middle">reviewable</text>
+<g transform="translate(115 290)">
+<rect class="soft" x="0" y="0" width="400" height="120" rx="14"/><text x="200" y="30" text-anchor="middle" class="t" font-weight="700">Non-claims / Unknowns</text><text x="24" y="62" class="s">明确写“这份证据还不能证明什么”</text><text x="24" y="86" class="s">缺失证据保留 UNKNOWN，不靠经验补空白</text><text x="24" y="108" class="s">future evidence gap 进入下一步实验</text>
+<rect class="soft" x="530" y="0" width="400" height="120" rx="14"/><text x="730" y="30" text-anchor="middle" class="t" font-weight="700">Human Design Review</text><text x="554" y="62" class="s">hard gates 是否通过？trade-off 是否接受？</text><text x="554" y="86" class="s">购买 / 发布 / 改造仍是人工决定</text><text x="554" y="108" class="s">自动系统只整理证据，不自动 BUY</text>
+</g>
+<path class="line" d="M845 410 V485"/>
+<rect class="box" x="650" y="490" width="390" height="85" rx="14"/><text x="845" y="522" text-anchor="middle" font-size="18" font-weight="700">Current design + roadmap</text><text class="s" x="845" y="550" text-anchor="middle">now / next experiment / later upgrade 分开</text>
+<path class="back" d="M650 532 C470 610 300 590 250 425"/><text class="s" x="430" y="598">new evidence or failure → revise claim/design → re-validate</text>
+<text x="580" y="635" text-anchor="middle" class="s">毕业标准是“能解释并迁移”：方案可以保守、便宜或暂缓购买，只要 claim/evidence/non-claim/decision boundary 完整。</text>
+</svg>
