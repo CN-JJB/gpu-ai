@@ -146,4 +146,52 @@ all gates pass → ACCEPT</pre>
 <h3>如何选择 / 迁移</h3><p>换 GPU、模型或平台后，从 hard gates 重新算，不继承旧机器的 PASS；任何新未知都回到 evidence collection，而不是靠经验口头补齐。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="../../reference/system/whole-machine-integration-dossier.md">Course Reference — Whole-Machine Integration Dossier</a></li><li><a href="../../reference/hardware/cross-vendor-decision-card.md">Course Reference — Cross-vendor Decision Card</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：整机设计是约束满足问题，不是跑分排名</h2>
+<h3>先做 Gate，再做 Preference</h3>
+<pre>Step 1: define workload
+Step 2: enumerate hard gates
+Step 3: resolve critical unknowns
+Step 4: keep only feasible designs
+Step 5: compare preferences / cost</pre>
+<p>这能避免经典错误：一台机器性价比、能效、噪声都很好，但目标模型根本装不下。</p>
+
+<h3>Worked Example：三台候选机</h3>
+<table>
+<tr><th>候选</th><th>VRAM Gate</th><th>Backend Gate</th><th>PSU Gate</th><th>价格</th><th>结论</th></tr>
+<tr><td>A</td><td>FAIL</td><td>PASS</td><td>PASS</td><td>最低</td><td>REVISE</td></tr>
+<tr><td>B</td><td>PASS</td><td>UNKNOWN</td><td>PASS</td><td>中</td><td>BLOCKED</td></tr>
+<tr><td>C</td><td>PASS</td><td>PASS</td><td>PASS</td><td>最高</td><td>可进入 preference 比较</td></tr>
+</table>
+<p>A 不能因为便宜“综合 90 分”；B 也不能因为看起来很可能支持就当 PASS。</p>
+
+<h3>Unknown Debt</h3>
+<p>设计越靠近购买/部署，关键 UNKNOWN 的成本越高。一个成熟 dossier 应该显示：</p>
+<pre>unknown
+→ why it matters
+→ cheapest evidence to resolve it
+→ owner / next action</pre>
+
+<h3>依赖关系要显式写</h3>
+<p>某些 gate 会串联：</p>
+<pre>model/context
+→ VRAM/KV
+→ concurrency
+→ serving SLO
+→ power/thermal
+→ PSU/cooling</pre>
+<p>改模型量化，可能同时改变显存、质量、速度、能耗；所以 revision 之后必须重新跑受影响的 gate。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>FAIL 不能被平均；关键 UNKNOWN 不能被乐观填空；只有 all-required PASS 的候选才进入“哪个更值”的讨论。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>Hard Gate、Critical Unknown、Preference 各自怎么处理？</li>
+<li>为什么更换量化后不能只重算 VRAM？</li>
+<li>“Do not buy yet”为什么可能是最成熟的工程结论？</li>
+<li>整机 dossier 的每个 PASS 最少需要什么？</li>
+</ol>
+</section>
 </body></html>
