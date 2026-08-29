@@ -56,6 +56,10 @@ GDDR DRAM</pre>
 <h3>Fermi 为什么被 HPC 看重？</h3>
 <p>更成熟的 FP64、ECC、64-bit addressing、并发执行能力等，让 GPU 不再只是“便宜但语义弱的加速器”。对本地 LLM 初学者而言，重点不是去买 Fermi，而是理解：<strong>数据中心/计算架构经常会为了数值、可靠性和并发牺牲一部分纯图形性价比。</strong></p>
 
+<figure class="visual">
+<img src="../../assets/diagrams/nvidia-sm-execution-lens.svg" alt="NVIDIA SM 跨代教学抽象，显示 threads 组成 warp，warp scheduler 从 ready warps 发射到通用算术、矩阵与特殊功能路径，并通过寄存器、shared L1、L2 和显存形成数据层级">
+<figcaption><strong>把 SM 看成一台吞吐机器，而不是 CUDA Core 计数盒。</strong> Fermi/Kepler 这一段真正要建立的是：scheduler 必须找到 ready warp，执行资源必须被喂饱，register/shared/cache/VRAM 的数据距离又会决定等待多久。后续 Tensor Core 只是给这张图增加新的执行路径，不会取消调度和 memory roof。</figcaption>
+</figure>
 <h2>4. Kepler：执行资源变宽以后，喂不饱怎么办？</h2>
 <p>Kepler 把单个 SMX 做得更宽。硬件有更多执行槽并不自动等于更高性能，因为 scheduler 还必须找到足够的可运行工作。</p>
 <pre>more execution resources
