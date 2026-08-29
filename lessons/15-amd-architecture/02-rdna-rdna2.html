@@ -28,5 +28,57 @@ required kernels exist ?</pre><p>如果 A 通过两棵树，它的大显存可�
 <h2>Retrieval Practice</h2><ol><li>为什么 wave32 不意味着相对 wave64 通用性能翻倍？</li><li>为什么跨 GCN/RDNA 不能只比 CU 数？</li><li>Infinity Cache 与 VRAM 分别解决什么？</li><li>为什么一张 Radeon 的硬件能力必须经过 support tree 才能转化成本地 LLM 价值？</li><li>RDNA 与 CDNA 分叉反映了什么产品目标差异？</li><li>如果一个应用通过 Vulkan 支持某卡而 ROCm 不支持，这说明了什么？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>RDNA 候选先过 exact device + target backend 的可用性 gate，再谈容量、带宽、价格和性能。不能因为“AMD 性价比高”或“ROCm 麻烦”做厂商级一刀切结论。</p></div>
 <h2>Transfer</h2><p>下一节 CDNA 会把“计算导向”放大。请比较：同是 AMD，为什么 CDNA 更愿意把晶体管预算投入 matrix/HBM/interconnect，而 RDNA 仍必须服务图形前端与消费场景。</p>
+
+<h2>把 RDNA 的变化翻译成“可迁移问题”</h2>
+<p>不要背“RDNA 比 GCN 新”。真正应该保留的是四个问题：</p>
+<ol>
+<li><strong>lane group 多宽？</strong> wave32/wave64 会怎样改变控制流与调度粒度？</li>
+<li><strong>资源怎么分组？</strong> CU/WGP 内哪些 scheduler、LDS、register、cache 资源共享？</li>
+<li><strong>数据从哪里来？</strong> cache 是否减少外部显存流量，还是 workload 几乎没有复用？</li>
+<li><strong>软件能否把硬件用起来？</strong> exact ASIC 是否有目标 backend、quant kernel 与稳定 driver/runtime？</li>
+</ol>
+<p>以后换到 RDNA3/RDNA4，甚至换厂商，这四问仍然有效；架构名本身反而会过时。</p>
+
+<h2>Worked Example：wave32 为什么可能帮助分支，但不保证 LLM decode 更快？</h2>
+<p>假设一个并行 kernel 中，一半 lanes 走分支 A，另一半走分支 B。更窄的 lane group 有机会让控制流浪费更细粒度，但 LLM decode 的主要瓶颈可能根本不是分支，而是每 token 读取大量权重与 KV。此时 wave 组织改善即使存在，也可能被显存流量淹没。</p>
+<pre>control-flow improvement
+        ↓
+only matters if control flow is a meaningful bottleneck
+
+LLM decode:
+weights / KV traffic
+        ↓
+may dominate before wave width matters
+</pre>
+<p>所以“wave32 更现代”只能形成机制假设，不能直接形成 token/s 结论。</p>
+
+<h2>Cache 与 VRAM：做一次数量级检查</h2>
+<p>假设一个模型权重本身就是数 GB，而片上 cache 是 MB 级。即使 cache 很大，它也不可能替代模型容量；它能做的是让某些被重复访问的数据在更近的层级命中，从而减少一部分外部显存访问。学习时始终分开两种问题：</p>
+<ul>
+<li><strong>容量问题：</strong>模型 + KV + buffers 能否 fit；</li>
+<li><strong>流量问题：</strong>已经 fit 的数据每一步要搬多少、能复用多少。</li>
+</ul>
+
+<h2>Experiment Evidence</h2>
+<p>完成本节后保存一张 GCN/Vega → RDNA/RDNA2 对照表。每一行都必须分成：</p>
+<ul>
+<li>DOCUMENTED architecture fact；</li>
+<li>DOCUMENTED current support fact；</li>
+<li>MEASURED learner evidence（有真机时才允许出现）；</li>
+<li>NON-CLAIM：你明确不能从这一行推出什么。</li>
+</ul>
+<p>例如“某卡支持 wave32”不等于“某 LLM backend 使用 wave32 最优 kernel”；“有 Infinity Cache”也不等于“模型容量增加”。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>容量通过、backend 不通过：</strong>硬件潜力存在，但当前方案 BLOCKED。</li>
+<li><strong>backend 通过、full offload、TG 低：</strong>检查权重/KV流量、quant kernel、clocks，而不是重新数 CU。</li>
+<li><strong>Vulkan 可用、HIP 不可用：</strong>记录两条独立 compatibility path，不做品牌级结论。</li>
+<li><strong>新架构纸面更强但实测不升：</strong>检查 workload、软件成熟度、功耗/热、实际 memory path。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>本节不会证明 RDNA 比 GCN 在所有计算中更快，也不会证明 Radeon 在本地 LLM 中优于或劣于 NVIDIA。它只建立“架构机制 + support gate + workload Evidence”三层阅读方法。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>
