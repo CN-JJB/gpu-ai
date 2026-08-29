@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>怎样把用户症状、事件时间线和多类 telemetry 拼成可证伪的 hypothesis，并用下一条最有区分度的证据决定该查 queue、GPU、memory、thermal 还是软件变更？</strong>可观测性的目标是缩小原因空间，而不是堆更多图表。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/incident-timeline.svg" alt="同一时间轴上对齐 traffic、latency、errors、saturation、GPU clocks 和 temperature 的 incident diagnosis 图"><figcaption><strong>Observability 的核心是时间相关性，不是截图收藏。</strong> 把 traffic、latency、errors、saturation、clock、temperature 对齐后，才有资格形成可被最小实验区分的 hypothesis。</figcaption></figure>
 <h2>1. 单个指标不能直接当根因</h2>
 
 <pre>
