@@ -18,6 +18,24 @@ Layer 4 local W
 <h2>Worked Example：32 层，其中 24 层 window=4k，8 层 full context=32k</h2><p>忽略其他差异，只看“token-history length factor”：</p><pre>traditional all-full factor = 32 layers × 32k
 hybrid factor = 24×4k + 8×32k
 </pre><p>两者显著不同。这个例子只展示比例；真实 KV 还要乘 KV heads/head dim/dtype，并确认 runtime allocation。</p>
+<section class="card interactive-lab" data-hybrid-kv>
+<h3>交互：Hybrid Attention 为什么可能远小于“所有层 × 全 context”预算？</h3>
+<p>先假设每层每 token 的 KV 成本相同，只比较“历史位置数”。把 full-attention layers、local layers、context 与 sliding window 改掉，看总 layer-token factor 怎么变化。</p>
+<div class="control-grid">
+<label>Full-attention layers<input data-fullLayers type="number" min="0" step="1" value="8"></label>
+<label>Local/sliding layers<input data-localLayers type="number" min="0" step="1" value="24"></label>
+<label>Full context tokens<input data-context type="number" min="1" step="1024" value="32768"></label>
+<label>Local window tokens<input data-window type="number" min="1" step="1024" value="4096"></label>
+</div>
+<div class="metric-grid">
+<div class="metric">All-full factor<strong data-allfull-out>—</strong></div>
+<div class="metric">Hybrid factor<strong data-factor-out>—</strong></div>
+<div class="metric">Hybrid / all-full<strong data-ratio-out>—</strong></div>
+<div class="metric">Position-count saving<strong data-saving-out>—</strong></div>
+</div>
+<p data-verdict></p>
+<p class="small"><strong>边界：</strong>真实模型各层的 KV heads、head dim、cache dtype、latent representation、paged allocator 都可能不同；这个模型只解释“并非每层都保存全历史”这一件事。</p>
+</section>
 <h2>3. Latent / Compressed KV：历史状态不一定直接保存完整 K/V</h2><p>一些现代 attention 设计尝试把历史信息存成更小的 latent representation，decode 时从 latent state 重构/使用需要的 attention 信息。</p><p>这种设计的核心 tradeoff：</p><pre>store less historical state
 → lower memory capacity/traffic
 but
@@ -94,4 +112,5 @@ allocation policy / KV dtype
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../reference/llm/">Course LLM Reference</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
-</main></body></html>
+</main><script src="../../assets/components/hybrid-kv-budget.js"></script>
+</body></html>
