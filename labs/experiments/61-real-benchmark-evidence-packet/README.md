@@ -425,3 +425,57 @@ It does not prove:
 - statistical conclusions are valid.
 
 Those require experiment discipline and interpretation.
+
+
+## Why this experiment
+
+Experiment 61 是整门课的严格 reproducibility contract。它不再只保存“跑分是多少”，而是把硬件、runtime、exact artifact、执行参数、prompt token identity、质量、raw streams 与 hash packet 绑成一条可复查证据链。
+
+## Hypothesis
+
+只有当 source identity、semantic manifest、真实 benchmark/quality execution 和 PACKET integrity 全部一致时，一条真实结果才有资格进入后续 catalog/compatibility/tradeoff；任何缺失 semantic fact 或不一致 hash 都应 BLOCKED。
+
+## Fixed variables
+
+先冻结 comparison protocol 与 intentional semantic variable。I54/I53 只捕获/物化可由真实来源证明的事实，绝不自动猜 runtime、backend、quant 或执行语义。
+
+## What to observe
+
+- I54 raw semantic source capture；
+- human-reviewed semantic manifest；
+- I53 byte-derived identity/preflight；
+- I52 real execution；
+- performance command/raw streams；
+- quality command/raw streams + machine-readable PPL；
+- prompt/token/artifact/profile/corpus identity；
+- PACKET coverage；
+- validator/intake READY 与真实结果含义的区别。
+
+## Troubleshooting
+
+- READY-FOR-SEMANTIC-REVIEW 不是 manifest truth。
+- READY-TO-RUN-I52 不是 benchmark result。
+- REAL SESSION: READY 也不是购买建议。
+- unsupported attribution 路径保持 descriptive，不强塞进 quality causality contract。
+- failed execution/raw evidence 仍应保留。
+- 不在作者阶段制造 synthetic PP/TG/PPL 冒充 production rows。
+
+## Evidence to save
+
+保存整个 real workspace：probe sources、profile、session/manifests、exact model/corpus/prompt identity、benchmark/quality raw bundles、validator/intake output、PACKET 和人工 review notes。
+
+## What this proves
+
+完成并通过人工复核后，它证明某一次真实 benchmark/quality observation 具备严格可追踪的执行与身份 provenance。
+
+## What this does NOT prove
+
+Packet hash 不证明实验者诚实、不证明背景/热状态完全相同、不自动给出统计结论、兼容性 ranking 或购买决定。
+
+## No-hardware fallback
+
+教材阶段完整学习模板、字段来源和流程即可；真实 production packet 必须等你以后在自己的机器上执行，当前保持 real production benchmark rows = 0。
+
+## Transfer question
+
+一个 benchmark JSON 数字看起来正常，但 model artifact SHA 与 manifest 不一致。为什么这条数据应该 BLOCKED，而不是“先收进去以后再修”？
