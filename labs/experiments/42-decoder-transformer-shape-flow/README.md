@@ -82,3 +82,51 @@ Tiny numbers are intentional. The formula scales to real models.
 The script reports conceptual score elements.
 
 It does not claim a FlashAttention backend materializes those full score tensors.
+
+
+## Why this experiment
+
+Decoder-only Transformer 很容易被公式淹没。这个实验把它缩成极小 shape，让你能一眼看到 prefill 与 decode 的差别，以及 KV 为什么随 token 增长。
+
+## Hypothesis
+
+Prefill 一次处理 T 个 token，因此 Q/K/V 带 T 维；decode 只处理新 token，但 attention 仍要读取已有 KV cache，因此 score 长度随历史 context 增长。
+
+## Fixed variables
+
+B、layers、hidden、Hq/Hkv、head_dim、FFN、KV bytes 不变；只比较 prompt prefill 和 append 一个 decode token。
+
+## What to observe
+
+1. Prefill 的 X/Q/K/V shape。
+2. Decode 时新 Q/K/V 只有 length=1。
+3. cache length 从 8 → 9。
+4. KV bytes/token 公式中每个因子的意义。
+5. conceptual score matrix 与真实 FlashAttention materialization 的区别。
+
+## Troubleshooting
+
+- Hq 与 Hkv 不要混。
+- KV 要同时计 K 和 V，所以有 ×2。
+- per-token KV 还要乘 layers。
+- score shape 只是数学概念，不代表 backend 一定把完整矩阵写入显存。
+
+## Evidence to save
+
+保存输出，并手工画一张 prefill/decode shape flow 图。
+
+## What this proves
+
+你能从 decoder config 推导核心 tensor shape 与 KV 增长。
+
+## What this does NOT prove
+
+它不代表真实 kernel、显存 allocator 或性能。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+为什么 decode 每步 Q 只有一个 token，却仍会随着 context 变长而越来越依赖历史 KV？
