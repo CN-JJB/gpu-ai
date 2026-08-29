@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 320" role="img" aria-labelledby="title desc">
+<title id="title">GPU 从固定功能到现代通用加速器的因果时间线</title>
+<desc id="desc">五个阶段依次为固定功能、可编程 Shader、统一执行池、GPGPU 编程模型、通用执行加矩阵专用单元，并标出每一步解决的问题。</desc>
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}
+.box{fill:#fff;stroke:#555;stroke-width:2}
+.problem{fill:#f4f4f4;stroke:#aaa;stroke-width:1.5}
+.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}
+.phase{font-size:18px;font-weight:700}
+.small{font-size:14px}
+.label{font-size:13px;font-weight:600}
+</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text x="40" y="38" font-size="24" font-weight="700">不是“核心越来越多”，而是不断解决新的限制</text>
+
+<g transform="translate(35 80)">
+  <rect class="box" x="0" y="0" width="180" height="92" rx="14"/>
+  <text class="phase" x="90" y="34" text-anchor="middle">固定功能</text>
+  <text class="small" x="90" y="60" text-anchor="middle">很快，但算法被硬件写死</text>
+  <rect class="problem" x="8" y="112" width="164" height="58" rx="10"/>
+  <text class="label" x="90" y="136" text-anchor="middle">新问题</text>
+  <text class="small" x="90" y="158" text-anchor="middle">效果越来越难表达</text>
+</g>
+
+<path class="arrow" d="M220 126 H260"/>
+
+<g transform="translate(265 80)">
+  <rect class="box" x="0" y="0" width="180" height="92" rx="14"/>
+  <text class="phase" x="90" y="34" text-anchor="middle">可编程 Shader</text>
+  <text class="small" x="90" y="60" text-anchor="middle">程序员开始决定算法</text>
+  <rect class="problem" x="8" y="112" width="164" height="58" rx="10"/>
+  <text class="label" x="90" y="136" text-anchor="middle">新问题</text>
+  <text class="small" x="90" y="158" text-anchor="middle">不同工位会冷热不均</text>
+</g>
+
+<path class="arrow" d="M450 126 H490"/>
+
+<g transform="translate(495 80)">
+  <rect class="box" x="0" y="0" width="180" height="92" rx="14"/>
+  <text class="phase" x="90" y="34" text-anchor="middle">统一执行池</text>
+  <text class="small" x="90" y="60" text-anchor="middle">资源按 workload 调度</text>
+  <rect class="problem" x="8" y="112" width="164" height="58" rx="10"/>
+  <text class="label" x="90" y="136" text-anchor="middle">新问题</text>
+  <text class="small" x="90" y="158" text-anchor="middle">非图形计算表达仍别扭</text>
+</g>
+
+<path class="arrow" d="M680 126 H720"/>
+
+<g transform="translate(725 80)">
+  <rect class="box" x="0" y="0" width="180" height="92" rx="14"/>
+  <text class="phase" x="90" y="34" text-anchor="middle">GPGPU / CUDA 类</text>
+  <text class="small" x="90" y="60" text-anchor="middle">kernel 直接表达并行计算</text>
+  <rect class="problem" x="8" y="112" width="164" height="58" rx="10"/>
+  <text class="label" x="90" y="136" text-anchor="middle">新热点</text>
+  <text class="small" x="90" y="158" text-anchor="middle">矩阵乘加占比越来越高</text>
+</g>
+
+<path class="arrow" d="M910 126 H950"/>
+
+<g transform="translate(955 80)">
+  <rect class="box" x="0" y="0" width="110" height="92" rx="14"/>
+  <text class="phase" x="55" y="30" text-anchor="middle">现代 GPU</text>
+  <text class="small" x="55" y="55" text-anchor="middle">通用执行</text>
+  <text class="small" x="55" y="75" text-anchor="middle">+ 矩阵专用</text>
+  <rect class="problem" x="5" y="112" width="100" height="58" rx="10"/>
+  <text class="small" x="55" y="138" text-anchor="middle">兼顾表达力</text>
+  <text class="small" x="55" y="158" text-anchor="middle">与热点效率</text>
+</g>
+
+<text x="550" y="292" text-anchor="middle" font-size="15">教学抽象：用于解释因果，不代表任何单一厂商的精确微架构。</text>
+</svg>
