@@ -75,6 +75,22 @@
 
 <p><strong>这不是任何真实 GPU 的周期模拟。</strong>它只验证“更多 ready resident groups 可以减少 scheduler idle cycles”这个因果关系。</p>
 
+<section class="card interactive-lab" data-scheduler-sim>
+<h3>动手看：resident groups 增加时，scheduler 的空洞怎样消失？</h3>
+<p>这个教学模型让每个 group 连续发射 4 条 compute + 1 条 memory 指令，然后等待 20 cycles。拖动 resident groups，只观察一件事：<strong>有多少 cycle 能找到 ready group 发射。</strong></p>
+<label>Resident groups：<strong data-group-count>8</strong>
+<input data-groups type="range" min="1" max="32" step="1" value="8">
+</label>
+<div class="metric-grid">
+<div class="metric">Issue utilization<strong data-issue-util>—</strong></div>
+<div class="metric">120 cycles 内 idle<strong data-idle-cycles>—</strong></div>
+</div>
+<p class="small">下方只画前 72 cycles。数字代表本 cycle 发射了哪个 group；“·”代表 scheduler 没有 ready work。</p>
+<div class="timeline-cells" data-schedule-trace aria-label="scheduler issue timeline"></div>
+<p data-schedule-verdict></p>
+<p class="small"><strong>边界：</strong>真实 GPU 有多个 scheduler、不同 issue width、cache、依赖、执行管线和架构限制；这里不模拟真实型号。</p>
+</section>
+
 <h2>6. Occupancy：为什么 registers 和 shared memory 会突然变重要？</h2>
 <p>想同时驻留更多 warp/wavefront，SM/CU 必须给它们留出执行状态和资源。问题是这些资源有限。</p>
 <ul>
@@ -183,5 +199,6 @@ warp A → data ready</pre>
 <h3>Decision Rule</h3>
 <div class="callout"><strong>看到“更多 CUDA cores / 更高 occupancy”时，不直接推出更快。</strong>先问 workload 是否有足够并行、是否受 latency、bandwidth、register 或 branch 限制。</div>
 </section>
+<script src="../../assets/components/scheduler-latency.js"></script>
 </body>
 </html>
