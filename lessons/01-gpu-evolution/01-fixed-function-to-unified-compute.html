@@ -29,6 +29,11 @@
 <span class="node">AI 热点再专用化</span>
 </div>
 
+<figure class="visual">
+<img src="../../assets/diagrams/gpu-evolution-causal-timeline.svg" alt="GPU 从固定功能到可编程 Shader、统一执行池、GPGPU 编程模型，再到通用执行加矩阵专用单元的因果时间线">
+<figcaption><strong>先看因果，再背年代。</strong>每一代变化都在解决上一种组织方式暴露出的限制；这张图是教学抽象，不是某一颗 GPU 的精确方框图。</figcaption>
+</figure>
+
 <h2>第一阶段：固定功能——快，但只能走设计好的路</h2>
 <p>想象一家流水线工厂：第一个工位永远切材料，第二个永远喷漆，第三个永远包装。只要产品永远按同一流程生产，这种设计非常高效，因为每个工位都能针对单一任务做得很快。</p>
 <p>早期 3D GPU 很像这种工厂。图形流水线中的变换、光照、纹理、光栅化等工作有大量重复并行计算，因此把步骤直接固化进硬件可以获得很高吞吐。</p>
