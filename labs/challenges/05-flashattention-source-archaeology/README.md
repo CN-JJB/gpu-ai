@@ -99,3 +99,20 @@ HBM Q/K/V
 
 - FlashAttention paper: https://arxiv.org/abs/2205.14135
 - Official implementation repository: https://github.com/Dao-AILab/flash-attention
+
+
+## Expected outcome
+
+建立一张 paper concept → source file/function → data movement/tiling → runtime dispatch 的地图，并能指出某个版本里 fast path 的约束。
+
+## Failure recovery
+
+源码太大时不要从入口一路顺读；先选一个 shape/dtype/backend，沿 dispatch 到一个具体 kernel，再反向连接论文概念。
+
+## What this does NOT prove
+
+读懂源码路径不证明运行时一定选择该 kernel；必须用 build/runtime/profiler Evidence 确认实际 dispatch。
+
+## No-hardware path
+
+源码考古本身完整可做；profiler 只是增强。
