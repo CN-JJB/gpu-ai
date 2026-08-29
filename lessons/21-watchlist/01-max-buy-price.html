@@ -45,5 +45,53 @@ watch upper:                  850
 <h2>Retrieval Practice</h2><ol><li>market price 与 personal ceiling 有什么本质区别？</li><li>为什么 system upgrade 应从 sticker ceiling 中扣除？</li><li>弱卡况证据怎样影响 ceiling 或购买要求？</li><li>WATCH-BAND 的作用是什么？</li><li>低于 ceiling 后还必须通过哪些 gate？</li><li>什么变化可以合理触发 ceiling revision，什么只是 FOMO？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>个人最大买入价必须在看到具体诱人商品之前定义，并绑定预算、目标、系统成本和风险。WITHIN-CEILING 只是价格条件通过，不是 BUY。任何价格策略都不得自动覆盖技术/安全 gate。</p></div>
 <h2>Transfer</h2><p>这套 ceiling/watch-band 方法可用于 CPU、Mac、SSD、服务器和其他二手硬件。核心始终是：先定义自己的约束，再观察市场，而不是反过来。</p>
+
+<h2>Ceiling Revision Log：什么时候允许改上限？</h2>
+<p>最大买入价可以变，但每次变化都要留下 revision：</p>
+<pre>date:
+old ceiling:
+new ceiling:
+trigger:
+new evidence:
+system/TCO change:
+alternative change:
+approved by: human review
+</pre>
+<p>“卖家说今晚有人要”“我已经聊很久了”不是新 evidence；目标模型、替代方案、系统成本、卡况证据或可验证市场 cohort 的变化才可能是合法 trigger。</p>
+
+<h2>Worked Example：便宜 100，但需要换 PSU</h2>
+<p>候选看起来比另一张卡便宜 100，但你的机器为它需要额外 120 的 PSU/线材升级。若其他条件相同，sticker price 的“便宜”已经被 system delta 反转。</p>
+<pre>sticker saving = 100
+required system delta = 120
+net project delta = -20
+</pre>
+<p>还没算电、噪声、风险和转售。这就是 ceiling 从总项目预算反推，而不是从市场均价打折得到的原因。</p>
+
+<h2>Condition Evidence 如何影响价格策略</h2>
+<p>你有两种合法做法：</p>
+<ul>
+<li>证据越弱，risk reserve 越高、ceiling 越低；</li>
+<li>或者保持 ceiling，但把更强验卡/退货条件作为 hard requirement。</li>
+</ul>
+<p>不能既不给风险折价，也不增加验卡要求。</p>
+
+<h2>Watchlist Packet</h2>
+<ul>
+<li>exact SKU/cohort；</li>
+<li>你的 fit/support/system gate 状态；</li>
+<li>personal ceiling/watch band；</li>
+<li>ceiling revision history；</li>
+<li>市场 observation 的语义类型与日期；</li>
+<li>condition/return evidence；</li>
+<li>替代方案；</li>
+<li>明确说明“WITHIN-CEILING ≠ BUY”。</li>
+</ul>
+
+<h2>No-purchase completion</h2>
+<p>本课最理想的教材练习就是完全不下单：先对三个虚拟候选写 ceiling，再给出几组挂牌价与卡况证据，练习何时 WAIT、REJECT、REVIEW。能够拒绝一个“看起来很划算”的例子，说明你真的掌握了规则。</p>
+
+<h2>What this lesson does NOT prove</h2>
+<p>个人 ceiling 不预测未来市场，也不定义客观公允价值。它只是你的风险/预算政策；即使后来市场更低，也不代表当时按规则拒绝就是错误决策。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../examples/evidence/intelligence-48-price-ceiling-policy.md">I48 Price Ceiling Policy</a></li><li><a href="../../examples/evidence/intelligence-49-price-ceiling-readiness-bridge.md">I49 Price Readiness</a></li><li><a href="../../intelligence/README.md">Market evidence lane</a></li></ul>
 </main></body></html>
