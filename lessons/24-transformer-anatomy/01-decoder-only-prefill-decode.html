@@ -10,6 +10,10 @@
 → vocabulary projection
 → logits
 → sampler chooses next token</pre><p>每生成一个新 token，它又被送回模型，继续下一轮。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/transformer-prefill-decode.svg" alt="Decoder-only Transformer 的整体数据流，以及 Prefill 一次处理多个 prompt token 并建立 KV、Decode 每轮只推进一个新 token 并读取历史 KV 的对比图">
+<figcaption><strong>同一个模型有两种执行形状。</strong> Prefill 更像大块矩阵工作，Decode 更像逐 token 推进并反复读取权重与历史 KV；因此 PP 与 TG 必须分开测。</figcaption>
+</figure>
 <h2>2. Prefill：把已有 prompt 一次“读进去”</h2><p>Prefill 已经知道整段 prompt，因此同一层可以对很多 token 并行做大矩阵计算，并构建每层的 KV cache。</p><pre>prompt: t1 t2 t3 ... tN
       ↓
 process many positions in parallel
