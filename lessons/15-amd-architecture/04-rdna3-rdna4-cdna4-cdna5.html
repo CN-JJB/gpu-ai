@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 4：RDNA3/4 与 CDNA4/5</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">AMD Architecture · 4/4 · L0→L2</p><h1>AMD 架构主线（四）：RDNA3 / RDNA4 与 CDNA4 / CDNA5</h1><p class="lead">这一节的目标不是追逐“最新型号”，而是学会读现代 AMD 的两条并行路线：RDNA 继续面向高性能图形与消费 AI，CDNA 则围绕大规模 AI/HPC 的矩阵、HBM、chiplet 与互联。现代产品变化快，所以稳定教材只保留架构方向，具体 SKU/支持矩阵必须在你学习时重新查询。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/amd-generation-branch-map.svg" alt="AMD 从 GCN 与 Vega 之后分成 RDNA 消费图形路线和 CDNA AI HPC 计算路线的架构分支地图">
+<figcaption><strong>先看分叉，再看代数。</strong> RDNA 与 CDNA 都继承 GPU 的 wave/register/LDS/bandwidth 问题，但优化目标、memory system、矩阵路径与部署形态不同；“RDNA4”和“CDNA4”的数字 4 不能拿来横向等价。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应能分别解释 RDNA 的图形效率目标与 CDNA 的计算/HBM/互联目标，并知道 current runtime support 属于动态事实。</p>
 <h2>真实问题：AMD 现在都宣传 AI accelerator，RDNA 与 CDNA 是否已经“变成一回事”？</h2><p>没有。两条线都可以加入 AI/矩阵加速能力，但产品目标仍不同。消费图形 GPU 需要平衡 raster、ray tracing、display、成本和游戏能效；Instinct 计算加速器则可以把更多面积、封装和功耗预算投入矩阵吞吐、HBM、可靠性与 GPU-to-GPU fabric。</p>
 <h2>1. RDNA3：chiplet 思维进入高端消费 GPU</h2><p>RDNA3 把 chiplet/分离 die 的思路用于部分高端 GPU，把不同功能放在不同 die 上。你不需要记每个 die 名称，只需理解现代 GPU 可以把“计算”和“memory/cache/I/O”在封装内重新组合。</p><pre>monolithic mental model:
@@ -20,7 +24,16 @@ compute die(s) ↔ package fabric ↔ memory/cache related die(s)</pre><p>这样
 → less memory traffic + more potential compute
 → stricter numerical/format requirements
 → needs model + kernel + runtime cooperation</pre><p>“支持 FP4”绝不等于“任意 4-bit 模型都以峰值 FP4 跑”。</p>
-<h2>4. CDNA5：如何写“未来/新一代”而不让教材马上过期？</h2><p>AMD 已在官方 CDNA generation overview 中列出 CDNA5，并继续强调更先进制程、HBM 与 AI/HPC 计算扩展。稳定教材不冻结发布时的营销峰值，而教你将任何新代际放进固定模板：</p><ol><li>Compute Unit / WGP 是否改变？</li><li>Matrix/vector numeric modes 增加什么？</li><li>HBM 容量与带宽如何变化？</li><li>package/chiplet/fabric 拓扑如何变化？</li><li>runtime/library/framework 何时真正支持？</li><li>目标 workload 是否命中新能力？</li></ol><p>第 5、6 项尤其重要，因为新硬件发布和开源/应用 backend 成熟往往不是同一天。</p>
+<h2>4. CDNA5：现在已经能从“路线图”升级成具体架构理解</h2>
+<p>这页早期版本把 CDNA5 当成“未来/新一代”来写；到 2026 年，AMD 官方 CDNA generation overview 已经给出更具体的 CDNA5 架构信息，因此这里可以把它当作一个很好的<strong>教材维护案例</strong>：稳定方法不变，但已公开的 architecture fact 应及时升级。</p>
+<ul>
+<li><strong>执行组织：</strong>官方资料把 CDNA5 描述为新的 Work Group Processor（WGP）组织，并加入 Wave32 execution。不要把旧代 CU 数量直接拿来做等比例比较。</li>
+<li><strong>低精度：</strong>继续扩展 MXFP8 / MXFP6 / MXFP4 等 block-scaled AI 数值路径；这仍不等于任意 GGUF/AWQ “4-bit”都会自动落到这些指令。</li>
+<li><strong>Memory system：</strong>MI400 系列把 HBM4 带入这一代，架构目标继续围绕更大的模型、context 与 KV traffic 抬高 memory roof。</li>
+<li><strong>数据移动：</strong>官方还列出 Tensor Data Mover、L2 multicast 等减少 register staging / 重复 memory traffic 的机制。它们再次说明现代 AI GPU 的进步不仅是“矩阵单元更多”。</li>
+</ul>
+<div class="callout"><strong>稳定结论：</strong>新架构发布后，先更新 architecture fact；但 runtime/library/framework readiness 仍然是另一条时间线。硬件支持某 datatype 或 data mover，不代表你的本地 LLM backend 已经调用到它。</div>
+<p>以后 CDNA6 或其他新代际出现时，仍用同一模板重查：执行组织、numeric modes、HBM/cache、package/fabric、runtime support、目标 workload 是否命中新能力。</p>
 <h2>5. RDNA4 与 CDNA4：同一个“4”没有比较意义</h2><table><tr><th>维度</th><th>RDNA4 路线</th><th>CDNA4 路线</th></tr><tr><td>首要目标</td><td>消费图形性能/效率 + AI features</td><td>AI/HPC compute throughput</td></tr><tr><td>内存</td><td>消费 GPU VRAM 体系</td><td>HBM3E 等高带宽大容量体系</td></tr><tr><td>专用资源</td><td>图形、光追、AI 等平衡</td><td>矩阵/向量计算优先</td></tr><tr><td>系统</td><td>桌面/工作站/消费平台</td><td>服务器、OAM、多加速器互联</td></tr><tr><td>本地 LLM 判断</td><td>SKU fit + backend + price</td><td>部署/软件/形态 gate 先行</td></tr></table>
 <h2>Worked Example：一张新 RDNA4 消费卡和一张退役 CDNA 卡怎么比较？</h2><p>先拒绝“哪个架构更高级”这个问题。改问：</p><ol><li>我的模型/上下文需要多少真实可用显存？</li><li>目标 runtime 在我的 OS 上支持哪张？</li><li>目标 quant/model kernel 哪边成熟？</li><li>是否需要显示输出、普通风冷、桌面机箱？</li><li>持续功耗/噪声/PSU 能否接受？</li><li>真实 PP/TG/PPL 与价格差多少？</li></ol><p>CDNA 可能在 HBM/matrix 上压倒性强，却在家用部署上付出巨大成本；RDNA 可能更易装机，却需要验证 AI backend。系统目标决定答案。</p>
 <h2>Why it matters</h2><ul><li>帮助你读现代 AMD，而不是把“AI”三个字当成统一能力。</li><li>理解 chiplet/package 已成为 GPU 架构的一部分。</li><li>学会处理更低精度格式：位宽越低，越需要数值与软件证据。</li><li>把“新架构发布”与“我的 runtime 可用”拆成两条时间线。</li><li>形成不会被下一代产品名打乱的长期阅读模板。</li></ul>
