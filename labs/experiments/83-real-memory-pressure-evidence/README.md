@@ -121,3 +121,51 @@ Correlate with:
 
 Use:
 `RESULT-TEMPLATE.md`.
+
+
+## Why this experiment
+
+真实内存问题最容易被“free 很少”“VRAM 很满”这类单点截图误导。本实验只读采样 host memory、swap/page-fault counters 和可选 GPU VRAM，并把它们放到同一时间线上。
+
+## Hypothesis
+
+如果真实 host pressure 正在影响服务，MemAvailable、swap delta、major-fault/refault 等信号应与 latency/throughput 时间线出现可解释关系；单独低 MemFree 不足以判定压力。
+
+## Fixed variables
+
+采样期间保持同一正常 LLM workload，不故意制造压力、不清 page cache、不改 swap/kernel 参数。A/B 时一次只改一个 workload 或配置变量。
+
+## What to observe
+
+1. MemFree 与 MemAvailable 的差异。
+2. pswpin/pswpout、pgmajfault 等累计 counter 的窗口 delta。
+3. process RSS/anon/file/swap 的构成。
+4. host RAM 与 discrete GPU VRAM 是否被正确分开。
+5. memory signal 与 TTFT/E2E/server logs 是否同时间变化。
+
+## Troubleshooting
+
+- counter 是累计值，必须看 delta。
+- LOW_FREE_BUT_AVAILABLE 只是提示，不是根因。
+- OOM 要区分 OS OOM、cgroup limit、host allocation 与 GPU OOM。
+- macOS/Windows 不要套 Linux /proc 语义，使用 PLATFORM-NOTES。
+
+## Evidence to save
+
+保存 memory-evidence 目录、timeline.csv、summarizer 输出、关联 workload/incident 时间窗和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能生成真实、只读的 host-memory pressure 时间序列并与 workload 关联。
+
+## What this does NOT prove
+
+它不会自动给出根因，也不证明某次 high memory usage 是 leak。
+
+## No-hardware fallback
+
+没有可运行 LLM 环境时先完成 Experiment 82 的 reclaim 模型。
+
+## Transfer question
+
+MemFree 很低但 MemAvailable 稳定、swap delta 为 0、延迟也稳定，你应该先宣布“内存不足”吗？
