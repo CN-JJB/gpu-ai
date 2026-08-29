@@ -26,9 +26,11 @@ stable lesson HTML = 62
 interactive lesson pages before pass = 1
 ~~~
 
-Batch 01 (Lessons 01–05) is implemented and marker-checked. It adds two self-authored SVG diagrams, three interactive teaching components, and global mobile/readability CSS improvements. All simulator/calculator outputs remain explicitly conceptual or paper-budget evidence, not measured benchmark evidence.
+Batch 01 (Lessons 01–05), Batch 02 (Lessons 06–13), and Batch 03 (Lessons 14–23) are implemented and marker-checked. The pass now includes causal/static SVGs, evidence/dataflow diagrams, queue/cache/speculation simulations, Roofline and VRAM/bpw calculators, generation maps, vendor execution/software-stack teaching lenses, and decision/market/acceptance flows. All simulator/calculator outputs remain explicitly conceptual or paper-budget evidence, not measured benchmark evidence.
 
-Next visual batch: Lessons 06–13, then architecture/vendor and Transformer/serving groups.
+Batch 03 added second-layer mechanism diagrams for NVIDIA SM execution, AMD wave/CU/WGP resources, Apple unified-memory LLM data paths, and Intel SYCL→Level Zero→Xe software evidence. All 23 HTML pages in Lessons 14–23 retain Retrieval Practice, completion evidence, primary sources and valid HTML closure.
+
+Next visual batch: Lessons 24–33 Transformer/model internals + benchmark identity.
 
 ## Stable course
 
