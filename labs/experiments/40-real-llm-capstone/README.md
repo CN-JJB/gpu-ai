@@ -232,3 +232,47 @@ It extends this lab with:
 - Evidence Packet hashes.
 
 Do not maintain two conflicting truths: Experiment 61 is the stricter reproducibility contract, while Experiment 40 remains the simpler controlled-A/B introduction.
+
+
+## Hypothesis
+
+只要 baseline/candidate identity 固定且只改变一个声明的 semantic variable，就可以把 PP/TG 差异作为该受控 A/B 的描述性证据；优化无收益也是有效结果。
+
+## Fixed variables
+
+exact model/runtime/device/PP/TG/repeats 与除 intentional variable 外的 config 固定；thermal/background state 记录但 validator 无法自动证明一致。
+
+## What to observe
+
+- profile/artifact identity；
+- ONE-VARIABLE validator；
+- baseline/candidate raw PP/TG；
+- candidate 是否符合原先 bottleneck hypothesis；
+- negative/neutral result 是否被完整保留。
+
+## Troubleshooting
+
+- CLI flags 以当前 --help 为准。
+- command string 变化不等于第二个 semantic variable。
+- hidden thermal/background change 需要人工检查。
+- 多块 semantic config 改变时改叫 system comparison。
+
+## Evidence to save
+
+保存 profile、两份 manifest/raw JSON、validator、comparison 和 CAPSTONE-CARD。
+
+## What this proves
+
+你能在一台真实机器上完成“诊断 → 单变量修改 → 复测 → 解释”的基础工程闭环。
+
+## What this does NOT prove
+
+它不替代 Experiment 61 的更严格 prompt/quality/packet contract。
+
+## No-hardware fallback
+
+完成 Experiment 39；真实 A/B 等上课时执行。
+
+## Transfer question
+
+候选 TG 提升 8%，但运行时 GPU 温度/clock 明显不同。为什么还不能立刻把 8% 全归因给 intentional variable？
