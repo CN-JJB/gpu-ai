@@ -12,6 +12,7 @@
 <h1>为什么让小模型先猜，反而不会把大模型答案带偏？</h1>
 <p class="lead">Speculative Decoding 最容易被误解成“小模型先写答案，大模型偶尔检查”。真正的结构恰好相反：draft 只负责便宜地提案，target 仍然负责验证和最终采样。它优化的是 autoregressive decode 的串行等待。</p>
 
+<h2>Prerequisite Check</h2><p>你应理解 Lesson 07 的自回归生成与 PP/TG，以及 Lesson 09 的历史状态/KV 概念。概率论只需要最小直觉：draft 会提出候选 token，target model 负责验证是否接受。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>大模型本来一个 token 一个 token 地生成。如果让一个小模型先猜 4 个 token，再让大模型检查，为什么会更快？猜错了怎么办？会不会改变大模型质量？</strong></p>
@@ -359,6 +360,7 @@ D=8 → 2.47</code></pre>
 
 <p><strong>如果 acceptance=85%，但 speculative run 比 baseline 慢 8%，这是否说明 target verifier 错了？还是更可能说明 proposer/verification/memory overhead 大于省下的 serial target steps？你会先查哪三项？</strong></p>
 
+<h2>Transfer</h2><p>未来无论是不同 draft model、multi-token prediction 还是其他 speculative 方案，都用同一框架拆：额外做了多少 draft work、target 少做了多少 serial decode、acceptance 有多高、KV/内存增加多少、最终质量语义是否保持。</p>
 <h2>Primary Sources</h2>
 <ul>
 <li><a href="https://arxiv.org/abs/2211.17192">Leviathan et al. — Speculative Decoding</a></li>
