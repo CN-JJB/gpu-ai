@@ -138,3 +138,50 @@ speculative_decoding
 ## 完成标准
 
 7/7，并且你能解释为什么每个 case 不应该先改另外一个不相关变量。
+
+## Why this experiment
+
+优化最贵的错误是“看到慢就随便开一个热门 feature”。这个实验训练你先从证据形成瓶颈假设，再只选择一个最能区分假设的下一变量。
+
+## Hypothesis
+
+七个 case 的 symptom pattern 应分别支持不同瓶颈方向；正确答案不是记标签，而是能解释为什么其他优化在当前证据下优先级更低。
+
+## Fixed variables
+
+每个 case 的 evidence 原样保留；只选择一个 next variable。不要同时提出五项修改后声称找到了根因。
+
+## What to observe
+
+1. TG 接近 bandwidth roof 与 PP weak 的差异。
+2. context/KV 增长与 serving queue 的不同时间模式。
+3. multi-GPU 低 scaling 与 interconnect evidence。
+4. prefix reuse 只改善 prompt phase 的特征。
+5. speculative opportunity 需要哪些前提。
+
+## Troubleshooting
+
+- 任何标签都只是 hypothesis class，不是已证明根因。
+- rough roof 接近不等于精确 bandwidth utilization。
+- concurrent TTFT 爆炸要先看 queue/deferred，而不是默认 GPU 算力不足。
+- 一次只改一个变量，修改后重新测相同指标。
+
+## Evidence to save
+
+保存 7/7 输出，并为每个 case 写：Evidence → Hypothesis → One next variable → Expected discriminating result。
+
+## What this proves
+
+你会把性能诊断转成可证伪的单变量实验。
+
+## What this does NOT prove
+
+synthetic cases 不代表任何真实 GPU/root cause。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+如果 TG 低但模型权重有一部分 CPU offload，你为什么不应该立刻把问题归因于显存带宽？
