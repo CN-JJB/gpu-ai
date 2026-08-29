@@ -138,3 +138,51 @@ Compare before/after:
 `RESULT-TEMPLATE.md`
 
 Keep the raw packet together.
+
+## Why this experiment
+
+二手卡到手后的第一目标不是“跑一个高分”，而是把卖家 claim、设备身份、显存、错误状态、代表性 workload 和 before/after telemetry 固化成可用于 ACCEPT 或退货争议的证据包。
+
+## Hypothesis
+
+健康候选应在 baseline、可用的 memory test、代表性 LLM workload 和 after-test 状态之间保持一致；任何 purchase-critical identity/VRAM mismatch、重复 device loss、uncorrectable error 等都应阻止 ACCEPT。
+
+## Fixed variables
+
+验收期间不要刷 BIOS、超频、改电压/功耗墙或拆散热器。先在收到时的原始状态下完成 evidence capture。
+
+## What to observe
+
+- seller claim 与实际 identity/VRAM；
+- before/after error counters；
+- memory test 的 exact tool/device/runtime；
+- representative PP/TG 是否可重复；
+- temperature/clock/error 是否随持续 workload 异常漂移；
+- 任何 unsupported telemetry 是否被写成 UNKNOWN。
+
+## Troubleshooting
+
+- consumer GeForce 不要假设所有 DCGM suite 都支持。
+- memory test 通过不等于整卡永远健康。
+- 温度判断必须用 exact product guidance，不背通用阈值。
+- 出现烟味、接口异常发热、烧蚀等安全迹象立即停止使用。
+
+## Evidence to save
+
+保留卖家材料、开箱记录、baseline.txt、memory-test 原始输出、benchmark 原始结果、after-test.txt 与 RESULT-TEMPLATE。
+
+## What this proves
+
+你能对真实二手 GPU 形成一次购买相关的验收证据链。
+
+## What this does NOT prove
+
+它不是永久健康保证，也不能证明所有显示输出/未来软件版本都正常。
+
+## No-hardware fallback
+
+未购买前完成 Experiment 35/86；真实验收留到有卡时。
+
+## Transfer question
+
+memory test 0 error，但 seller 声称 24GiB、runtime 只识别 12GiB。你能 ACCEPT 吗？
