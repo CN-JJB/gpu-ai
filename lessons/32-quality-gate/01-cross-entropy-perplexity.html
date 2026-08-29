@@ -27,5 +27,52 @@ performance: PP/TG measured separately
 <h2>Retrieval Practice</h2><ol><li>Cross-entropy 如何惩罚模型给真实 token 很低概率？</li><li>PPL 为什么最适合受控 A/B 而不是万能排行榜？</li><li>为什么 tokenizer identity 是 PPL 可比性的 hard condition？</li><li>PPL 不能覆盖哪些实际 LLM 能力？</li><li>quality corpus 为什么要 hash？</li><li>为什么性能提升必须与 PPL/target-task evidence 配对？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>任何 quant/backend/execution 优化只有性能证据没有质量证据时，只能说“更快”，不能说“更好”。PPL 只在固定 tokenizer/corpus/evaluation identity 下做描述性比较，并与目标任务 fixture 联合判断。</p></div>
 <h2>Transfer</h2><p>以后换成 KL、task score、exact-match 或 human eval，同样先固定 evaluation identity、原始 evidence 和解释边界。</p>
+
+<h2>Quality Gate 不是一个万能阈值，而是一份预先写好的 Acceptance Policy</h2>
+<p>在看到 candidate 结果前先定义：</p>
+<pre>baseline artifact:
+candidate variable:
+exact tokenizer/corpus/eval argv:
+PPL signal to record:
+target-task fixtures:
+hard failure conditions:
+human-review conditions:
+</pre>
+<p>课程不规定所有模型都用同一个“PPL 允许增加 X%”。不同任务、模型和量化目标的可接受范围不同；关键是阈值或 review 规则要在看结果前定义，避免结果导向地移动门槛。</p>
+
+<h2>Worked Example：PPL 几乎没变，但 JSON fixture 失败</h2>
+<p>假设 candidate 比 baseline 快，PPL 变化很小，但固定 JSON-schema fixture 开始频繁输出无效 JSON。正确结论不是“PPL 没问题所以 candidate 更好”，而是：</p>
+<pre>distribution-level regression: small / acceptable by policy
+target-task correctness: FAIL
+overall candidate: BLOCKED for this deployment
+</pre>
+<p>质量 gate 是多信号组合；任何目标任务 hard requirement 都不能被平均 PPL 覆盖。</p>
+
+<h2>反过来也成立：PPL 变差不等于所有任务都同比例变差</h2>
+<p>如果 PPL 有明显变化，应该触发调查与更强 target-task review，而不是把 PPL delta 直接翻译成“聊天能力下降同样百分比”。PPL 是概率分布信号，不是用户效用的线性单位。</p>
+
+<h2>Evidence Packet</h2>
+<ul>
+<li>baseline/candidate exact model artifact identity；</li>
+<li>tokenizer revision/hash；</li>
+<li>corpus bytes/hash；</li>
+<li>evaluation executable/build 与 exact argv；</li>
+<li>raw stdout/stderr + machine-readable metric；</li>
+<li>target-task fixture revision 与 raw outputs；</li>
+<li>预先定义的 acceptance/review policy；</li>
+<li>最终 PASS/BLOCKED 与 non-claim。</li>
+</ul>
+
+<h2>Failure Recovery</h2>
+<ul>
+<li>PPL 异常：先核 identity、BOS/chunk/context/eval semantics。</li>
+<li>只有 candidate 失败：确认唯一变量后再考虑量化/kernel 数值问题。</li>
+<li>PPL 正常、任务失败：保留任务 failure，不能用 PPL 覆盖。</li>
+<li>不同 tokenizer：停止直接 PPL 比较，改用适合的同任务指标。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>一份 quality gate 只覆盖它实际测到的 corpus 与任务。它不能证明“模型所有能力没有退化”，也不能把 human preference、事实性、安全性、长上下文与工具调用全部压成一个数字。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../labs/experiments/59-real-quality-gate/README.md">Experiment 59 — Quality Gate</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61</a></li><li><a href="../../tools/intelligence/README.md">Quality evidence tooling</a></li></ul>
 </main></body></html>
