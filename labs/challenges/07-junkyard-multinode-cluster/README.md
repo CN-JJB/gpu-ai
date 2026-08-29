@@ -124,3 +124,20 @@ network-limited tok/s <= Y / X
 - llama.cpp RPC: https://github.com/ggml-org/llama.cpp/blob/master/tools/rpc/README.md
 
 当前命令/API 运行前重新确认。
+
+
+## Expected outcome
+
+先区分 request routing、model partition、prefill/decode/KV 分离三种“多机”，再用 network roof 与真实 workload 判断哪个方案有意义。
+
+## Failure recovery
+
+如果网络/软件栈证据不足，先停在 L0 roof；不要为了实验临时暴露不安全 RPC、关闭认证或跨不可信网络裸跑服务。
+
+## What this does NOT prove
+
+节点数量增加不等于单请求更快，也不等于总成本更低；跨节点模型切分尤其受网络与同步约束。
+
+## No-hardware path
+
+用 synthetic network bandwidth/latency 与模型 traffic 做 roof worksheet 即可完成核心推理。
