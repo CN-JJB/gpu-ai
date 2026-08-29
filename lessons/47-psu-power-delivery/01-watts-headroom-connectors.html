@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PSU / Power Delivery</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>PSU / Power Delivery — 1000W 电源为什么仍然可能带不了你的 GPU？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该知道 PSU 的总额定瓦数只是一个入口指标，还要同时检查 GPU/CPU/整机负载、瞬态余量、12V 供电能力、连接器类型、线材分配与厂商限制。</p>
+<div class="callout"><strong>如果还不熟：</strong>先遵守两条安全边界：不要自行改造电源线材或混用不兼容的模块化 PSU 线；课程中的功率估算用于筛除明显不可行方案，最终连接方式以硬件厂商文档为准。</div>
+
+<h2>真实问题</h2>
+<p>你淘到一张高功耗二手 GPU，机箱里已经有“1000W 电源”，看起来容量很大；但如果连接器不匹配、单路/线材分配不合适、瞬态余量太小或整机其他部件占用过多，系统仍可能在负载下掉电或不稳定。</p>
+<p>真正的问题是：<strong>这套电源与线材能否在不改线、不冒险的前提下，为整机提供足够的持续与瞬态 headroom，并满足 GPU 厂商规定的连接方式？</strong>若证据不完整，结论应是 BLOCKED，而不是“先插上试试”。</p>
+</section>
+
 <h2>1. 先拆掉第一个误区</h2>
 <pre>PSU = 1000W</pre>
 <p>不等于：</p>
