@@ -145,4 +145,49 @@ cost = kWh × local electricity price</pre>
 <li>电费模型还缺哪两个动态输入？</li>
 </ol>
 </section>
+
+<section class="measurement-protocol">
+<h2>实验闭环：从功率曲线到可比较 J/token</h2>
+<p>真实测量至少记录：</p>
+<ul>
+<li>measurement boundary：GPU board / whole-system wall；</li>
+<li>采样工具、版本、采样间隔；</li>
+<li>workload 起止时间与 generated/prefill token 数；</li>
+<li>idle baseline 定义；</li>
+<li>runtime/model/context/backend identity；</li>
+<li>raw power samples，而不只最终平均值；</li>
+<li>温度/clock 是否进入 steady state。</li>
+</ul>
+
+<h3>Worked Example：同样 5 J/token，为什么仍可能不是同一件事？</h3>
+<p>A 的 5 J/token 可能只积分 GPU board power；B 的 5 J/token 可能来自插座整机。数值相同，系统边界不同，不能直接判平手。先统一 boundary，再比较。</p>
+
+<h3>Steady-state 与短 burst</h3>
+<pre>cold / boost burst
+→ thermal rise
+→ steady clocks
+→ workload completion
+</pre>
+<p>如果你的真实用途是持续服务，就不能只测最初几十秒。反过来，偶尔交互的桌面用户也不应只看长时间满载。协议必须匹配 workload。</p>
+
+<h3>Idle-amortized service model</h3>
+<p>对 24/7 小服务，除了 active J/token，还可以单独估算：</p>
+<pre>daily energy
+≈ idle_W × idle_hours
++ active_energy
+</pre>
+<p>这不会取代 active efficiency；它回答的是另一道“全年/每日拥有成本”问题。</p>
+
+<h3>Failure / Interpretation</h3>
+<ul>
+<li>功率更低但 J/token 更高：完成时间变长，可能并不更省每单位工作。</li>
+<li>功率与速度同时下降：检查 power limit 是否仍在高效区，而不是默认越低越好。</li>
+<li>后半段 J/token 变差：结合温度/clock 查 sustained throttling。</li>
+<li>board 与 wall 趋势不同：CPU/PSU/其他系统功耗可能参与变化。</li>
+</ul>
+
+<h3>What this lesson does NOT prove</h3>
+<p>一次 J/token 测量不能代表你的全年电费，也不能直接证明某 GPU “环保/省钱”。电价、idle duty cycle、系统边界、模型与运行时间都必须进入对应的成本模型。</p>
+</section>
+
 </body></html>
