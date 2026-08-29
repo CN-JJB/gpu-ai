@@ -12,6 +12,7 @@
 <h1>为什么 TFLOPS 很高，LLM 还是可能跑不快？</h1>
 <p class="lead">买二手卡时最常见的对比是：显存多少、带宽多少、TFLOPS 多少。问题是这三个数字回答的是三件完全不同的事。今天把它们压成一个能实际做判断的模型。</p>
 
+<h2>Prerequisite Check</h2><p>你应理解 Lesson 03 的 register/shared/cache/VRAM 层级，并会用 bytes/s 做简单除法。Arithmetic Intensity 不要求先学高等数学；先把它理解成“每搬 1 byte 数据，做多少计算”。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>两张卡：A 的算力高很多，B 的显存带宽高很多。跑本地 LLM 到底谁更快？</strong></p>
