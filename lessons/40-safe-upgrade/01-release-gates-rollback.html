@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>什么证据足以让 candidate 通过 release gate；一旦质量、兼容性或 SLO 失败，怎样在不丢失 baseline 的情况下快速回到已验证状态？</strong>升级必须同时包含 acceptance 与 rollback 两条路径。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/release-rollback.svg" alt="LLM 服务升级从冻结 baseline identity、candidate readiness、quality、SLO、performance gates 到失败 rollback 和重新验证的流程"><figcaption><strong>升级不是“新版本能启动就上线”。</strong> Baseline identity 先冻结，candidate 必须依次过 readiness、quality、SLO 与 performance gate；任何硬失败都应该能恢复到同一份旧身份并重新验证。</figcaption></figure>
 <h2>1. Release 不是只看 version</h2>
 
 <pre>
