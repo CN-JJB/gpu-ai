@@ -69,3 +69,42 @@ resident groups 翻倍，但利用率只从约 94.4% 到 100%。这就是“更�
 2. 16 → 32 groups 为什么没有获得 2x throughput？
 3. 如果一个 kernel 用更多 registers 把 resident groups 从 16 限制到 8，这一定是坏优化吗？为什么？
 4. 把这个模型分别映射到 NVIDIA warp/SM 和 AMD wavefront/CU。
+
+
+## Hypothesis
+
+resident groups 增加时，scheduler 更容易在某组等待 memory 时找到其他 ready work，因此 issue utilization 先快速上升、随后收益递减；latency 本身并没有变短。
+
+## Fixed variables
+
+compute/memory 指令模式、20-cycle wait 与 scheduler issue width 固定，只改变 resident group count。
+
+## What to observe
+
+- 1/2/4/8/16/32 groups 的 idle cycles 与 issue utilization；
+- 8→16 与 16→32 的边际收益；
+- resident group 减少如何暴露等待；
+- 为什么 occupancy 是 headroom 而不是性能本身。
+
+## Troubleshooting
+
+- 不要把 group 数直接等同真实 warp occupancy 百分比。
+- 这个模型没有带宽竞争；真实系统 groups 太多也可能争同一 memory roof。
+- register/shared-memory 限制只是 residency 原因之一。
+- 更多 groups 不保证所有 kernel 更快。
+
+## What this proves
+
+你能解释 scheduler 如何通过其他 ready groups 隐藏依赖等待。
+
+## What this does NOT prove
+
+它不是任何 NVIDIA/AMD GPU 的周期级模拟器。
+
+## No-hardware path
+
+完整 L0，可手算。
+
+## Transfer question
+
+一个优化让每线程寄存器更多、resident warps 下降，但单 warp 指令更少。为什么不能只看 occupancy 就判断它更差？
