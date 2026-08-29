@@ -15,6 +15,23 @@ y = x / rms(x) × learned_scale</pre><p>你不需要手算大向量，只要理�
 → angle depends on p and dimension frequency
 → rotate pairs in Q/K
 → attention score reflects relative positions</pre><p>你不必把 RoPE 当成“给 token 加一个位置向量”。它更像在 Q/K 空间中按位置做结构化变换。</p>
+<section class="card interactive-lab" data-rope-explorer>
+<h3>交互：RoPE 为什么叫“旋转位置编码”？</h3>
+<p>这里只看二维教学切片：位置 <code>p</code> 与某个频率相乘得到角度，然后旋转一对 Q/K 分量。真实 RoPE 会对很多维度对使用不同频率。</p>
+<div class="control-grid">
+<label>Position p：<strong data-rope-position-out>8</strong><input data-rope-position type="range" min="0" max="128" step="1" value="8"></label>
+<label>Dimension frequency：<strong data-rope-frequency-out>0.120</strong><input data-rope-frequency type="range" min="0.01" max="0.4" step="0.01" value="0.12"></label>
+</div>
+<div class="metric-grid"><div class="metric">当前角度（模 2π）<strong data-rope-angle>—</strong></div></div>
+<svg class="rope-plane" viewBox="0 0 300 300" role="img" aria-label="RoPE 二维向量随 position 与 frequency 旋转的教学图">
+<circle class="rope-circle" cx="150" cy="150" r="95"></circle>
+<line class="rope-axis" x1="25" y1="150" x2="275" y2="150"></line>
+<line class="rope-axis" x1="150" y1="25" x2="150" y2="275"></line>
+<line class="rope-vector" data-rope-vector x1="150" y1="150" x2="245" y2="150"></line>
+<circle class="rope-tip" data-rope-tip cx="245" cy="150" r="6"></circle>
+</svg>
+<p class="small"><strong>边界：</strong>这只是二维直觉图。真实模型的 base/scaling、维度频率分布、实现细节与长上下文质量必须按 exact model semantics 验证。</p>
+</section>
 <h2>5. RoPE base / scaling 为什么会成为长上下文配置？</h2><p>训练时模型学习的是某套位置频率分布。为了把 context 扩展到更长，一些模型/runtime 会使用 RoPE scaling、不同 frequency base、interpolation 等方法。</p><p>关键风险：</p><ul><li>模型 config 与 runtime 参数不一致；</li><li>错误套用别的模型 scaling；</li><li>只验证“能生成”，没验证长 context quality；</li><li>backend 对某种 scaling 实现不同/版本变化。</li></ul>
 <h2>Worked Example：为什么 4k 正常、32k 开始胡言乱语？</h2><p>可能原因很多，RoPE 只是一个候选：</p><ol><li>模型本身是否训练/支持目标 context？</li><li>runtime 是否读取正确 RoPE config？</li><li>是否使用了正确 scaling mode/base？</li><li>KV cache 是否被截断/sliding？</li><li>长上下文测试任务本身是否可验证？</li></ol><p>因此长 context 不能只用“模型没有 OOM”判定成功。</p>
 <h2>6. RoPE 与 KV cache 的关系</h2><p>不同实现可能在 K 写入 cache 前后处理 RoPE，具体细节由架构/runtime 决定。对证据的要求是：模型 config、runtime build、context/rope parameters 必须绑定。如果改变位置语义，就不能再把 quality comparison 当同一条件。</p>
@@ -79,4 +96,5 @@ y = x / rms(x) × learned_scale</pre><p>你不需要手算大向量，只要理�
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/1910.07467">RMSNorm</a></li><li><a href="https://arxiv.org/abs/2104.09864">RoFormer / RoPE</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
-</main></body></html>
+</main><script src="../../assets/components/rope-rotation.js"></script>
+</body></html>
