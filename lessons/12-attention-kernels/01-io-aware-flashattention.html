@@ -155,5 +155,41 @@ a' = α a + Σ exp(score - m') V</pre>
 <li><a href="../../reference/gpu/attention-io-online-softmax.md">Course Reference — Attention I/O / Online Softmax</a></li>
 </ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：FlashAttention 的关键不是“少算 Attention”，而是“少搬中间结果”</h2>
+<h3>Naive Attention 的数据移动问题</h3>
+<pre>QK^T
+→ materialize score matrix
+→ softmax
+→ read/write score matrix
+→ multiply V</pre>
+<p>长序列时，中间 attention matrix 很大。IO-aware kernel 通过 tiling，把更小的数据块留在片上存储中，边算边归一化，减少对 HBM/VRAM 的往返。</p>
+
+<h3>Worked Example：复杂度没变，为什么仍能快很多？</h3>
+<p>标准 dense attention 的主要数学量级仍然是 O(n²)。Flash-style 优化没有把它魔法变成 O(n)，但减少了高代价 memory traffic，因此在真实 GPU 上可以显著更快、更省 memory。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>sequence 越长，IO 优化价值往往越明显。</li>
+<li>很短序列时，kernel launch/固定开销可能让差距缩小。</li>
+<li>硬件架构、dtype、head dimension、backend 实现会改变收益。</li>
+<li>“支持 FlashAttention”不等于所有 shape 都走同一个 fast path。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>确认 exact kernel/backend 路径。</li>
+<li>固定 sequence length、batch、heads、dtype。</li>
+<li>看 memory usage 与 runtime，而不只看一个 tokens/s。</li>
+<li>遇到 fallback 时查 shape/dtype/hardware constraints。</li>
+</ol>
+
+<h3>无 CUDA GPU 怎么办？</h3>
+<p>用小矩阵纸上计算“materialize 全 score matrix”和“tile 后只保留局部块”的内存流量差异。机制可以跨 CUDA、ROCm、Metal 等 backend 迁移。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>判断 attention kernel 时看实际 IO、shape 和 backend path。</strong>“算法复杂度相同”不代表硬件运行成本相同。</div>
+</section>
 </body>
 </html>
