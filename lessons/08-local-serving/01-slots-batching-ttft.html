@@ -150,6 +150,24 @@ slot is effectively wasted</code></pre>
 
 <div class="callout"><p><strong>Continuous batching 的关键不是“batch 很大”，而是 active batch 可以动态换人。</strong></p></div>
 
+<section class="card interactive-lab" data-serving-slots>
+<h3>时间线模拟：Static batch 和 Continuous admission 差在哪？</h3>
+<p>8 个请求长度不同。Static 模式要等这一批最慢请求结束才开下一批；Continuous 模式则某个请求一结束就补入新请求。拖动 slots，看 queue 与 first-service wait 如何变化。</p>
+<div class="control-grid">
+<label>Server slots：<strong data-slots-out>4</strong><input data-slots type="range" min="1" max="8" step="1" value="4"></label>
+<label>Admission mode
+<select data-mode><option value="continuous">continuous</option><option value="static">static batch</option></select>
+</label>
+</div>
+<div class="metric-grid">
+<div class="metric">全部完成时间<strong data-makespan>—</strong></div>
+<div class="metric">平均首次进入 slot 等待<strong data-first-wait>—</strong></div>
+</div>
+<p class="small">每行是一个请求；<strong>■</strong> 表示正在占用 slot，虚线点表示已到达但还在 queue。时间单位为教学抽象。</p>
+<div class="request-timelines" data-request-timelines aria-label="8 个请求的 queue 与 active slot 时间线"></div>
+<p data-serving-note></p>
+<p class="small"><strong>边界：</strong>这里每个 active request 每 tick 都得到同样进度，不模拟真实 GPU batching efficiency、KV traffic 或 token-level scheduler。它只解释 admission/slot 机制。</p>
+</section>
 <h2>7. 为什么 batch 更多人，总吞吐可能上升？</h2>
 
 <p>decode 单请求常常要反复读取大量 weights，却只为一个 sequence 做当前 token 的工作。</p>
@@ -374,5 +392,6 @@ user B token
 <h3>Decision Rule</h3>
 <div class="callout"><strong>Serving 优化不能只追 aggregate tokens/s。</strong>至少同时看用户 latency、queue、并发和 KV/VRAM。</div>
 </section>
+<script src="../../assets/components/serving-slots.js"></script>
 </body>
 </html>
