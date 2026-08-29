@@ -12,6 +12,7 @@
 <h1>为什么同一份长前缀，第二次可以快很多？</h1>
 <p class="lead">长 system prompt、RAG 文档、多轮聊天历史经常会被一遍遍送进模型。Prefix Cache 的目标不是“把答案缓存下来”，而是把已经算过的 prompt KV 留下来，让后续请求跳过重复 prefill。</p>
 
+<h2>Prerequisite Check</h2><p>你应知道 Lesson 05 的 KV 属于运行时内存预算，并理解 Lesson 08 中一个 server 会同时维护多个活跃请求。暂时不要求掌握 attention 公式；先把 KV cache 理解为“为了不重复计算历史而保存的每层历史状态”。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>我每次都把同一份 10K-token 文档发给模型，只换最后一句问题。为什么 server 不应该每次都把前 10K tokens 从头算一遍？</strong></p>
@@ -335,6 +336,7 @@ B → ...</code></pre>
 
 <p><strong>如果 warm request 的 prompt_ms 从 800 ms 降到 40 ms，但 predicted_ms 几乎不变，这是不是 cache “失效”？为什么反而正符合 prefix cache 的设计目标？</strong></p>
 
+<h2>Transfer</h2><p>以后遇到 prefix cache、paged KV、KV quant、sliding window 或 latent cache，先分清三层：模型要求保存什么历史、保存精度是什么、runtime 怎样分配/复用这些状态。名字变化不改变这三个问题。</p>
 <h2>Primary Sources</h2>
 <ul>
 <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md">llama.cpp — Server prompt cache / timings</a></li>
