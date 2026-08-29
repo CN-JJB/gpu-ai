@@ -91,3 +91,42 @@ nominal code bits != whole-model effective bpw
 3. 只有 5% FP16 tensors，为什么 overall bpw 仍明显上升？
 4. 为什么不能用这个公式声称“AWQ 一定比 GPTQ 小”？
 5. 真实 artifact 应从哪些 metadata 得到真正 size/bpw？
+
+
+## Hypothesis
+
+nominal q-bit 只描述 code payload；只要每 group 还要保存 scale/zero-point，或者一部分 tensor 保留更高精度，whole-model effective bpw 就会高于 nominal qbits。
+
+## Fixed variables
+
+一次只改变 group size、zero-point 或 quantized fraction 中的一项；参数量和其他 metadata 位数保持不变。
+
+## What to observe
+
+1. group size 越小，metadata 被更多 group 重复，因此 bpw 越高。
+2. zero-point 增加固定 per-group 成本。
+3. 少量 FP16 tensor 为什么也会把 overall bpw 明显抬高。
+4. effective bpw 与最终文件 bytes 之间还缺哪些格式/对齐开销。
+
+## Troubleshooting
+
+- 参数量单位 B 与实际整数参数数不要混。
+- group metadata 不能只算一次，要按 group 数量分摊。
+- 不要用这个 toy 直接比较 AWQ/GPTQ/GGUF/EXL2 哪个一定更小。
+- 真 artifact 应优先用 exact file bytes 与 metadata 反推/验证。
+
+## What this proves
+
+你能解释 nominal bit-width 与 effective bpw 为什么不同，并能做最小 metadata accounting。
+
+## What this does NOT prove
+
+它不是任何具体量化格式的完整文件模型，也不预测质量或速度。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+两个都叫“4-bit”的 artifact，文件大小差 12%。在怀疑下载损坏前，你至少应该检查哪些 metadata/格式因素？
