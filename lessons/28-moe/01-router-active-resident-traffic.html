@@ -11,6 +11,10 @@ token → router → choose top-k experts
                   └→ expert 7 FFN
               → combine outputs</pre><p>Router 为 token 计算 expert score，选择 top-k，再把 token 送往对应 expert。</p>
 <h2>2. 三个参数量概念</h2><table><tr><th>概念</th><th>含义</th><th>硬件影响</th></tr><tr><td>Total parameters</td><td>模型所有共享层 + 所有 experts</td><td>文件/完整权重存储</td></tr><tr><td>Resident parameters</td><td>当前运行时实际驻留在 GPU/CPU/内存的权重</td><td>显存/主存容量</td></tr><tr><td>Active parameters</td><td>某 token 实际参与计算的 expert + shared 参数</td><td>每 token compute/traffic 的重要近似</td></tr></table><p>在完全 GPU 驻留时，resident 可能接近 total；active 仍明显更小。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/moe-routing.svg" alt="MoE 中 token 经过 Router 选择 top-k experts，少量 experts 参与当前 token 计算，但全部 experts 权重仍需驻留在 GPU、其他 GPU 或 RAM，并可能产生跨设备 traffic">
+<figcaption>MoE 要同时记两本账：<strong>active compute</strong> 与 <strong>resident storage</strong>。Top-k 只告诉你当前 token 算几个 expert，不告诉你其他 expert 权重可以凭空消失。</figcaption>
+</figure>
 <h2>3. 为什么 Active 小不等于显存需求小？</h2><p>假设每层有 8 个 expert、每 token 只选 2 个。你不能只加载两个固定 expert，因为不同 token 可能选不同 expert。若想避免频繁搬运，通常需要让更多/全部 experts 常驻可访问 memory。</p><pre>top-2 compute
 ≠ only 2 experts need storage forever</pre>
 <h2>4. Router traffic：稀疏计算引入了新的数据移动</h2><p>在单 GPU 上，routing 主要是选择与不同 expert 权重访问；在多 GPU expert parallel 中，还可能把 token representation 发送到拥有目标 expert 的 GPU，再把输出发回。</p><pre>GPU0 token
