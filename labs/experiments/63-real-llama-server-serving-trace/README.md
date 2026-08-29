@@ -147,3 +147,48 @@ Save raw metrics text rather than copying one dashboard screenshot.
 
 Use:
 `RESULT-TEMPLATE.md`.
+
+
+## Hypothesis
+
+在 workload identity 固定后，client trace 与 raw server metrics 可以给出真实 TTFT/E2E、请求处理/延后和 token counters；没有可信 service-start/per-token timestamp 的量必须保持 proxy/UNKNOWN。
+
+## Fixed variables
+
+exact server build、model SHA、rendered prompts、arrival schedule、n_predict、slots、cache state、context 与 client/server location 固定。比较设置时一次只改变声明变量。
+
+## What to observe
+
+- 每个 request 的 send/first-token-bearing chunk/completion；
+- raw SSE 与 returned token IDs；
+- TTFT/E2E/chunk-gap proxy；
+- metrics before/after 的 processing/deferred/token counters；
+- workload/prompt SHA；
+- tail percentile 与 SLO。
+
+## Troubleshooting
+
+- SSE chunk gap 不是 guaranteed token ITL。
+- first token 不是 service-start，因此不要伪造 queue_ms。
+- template/tokenizer 改变会破坏 workload identity。
+- metrics unavailable 是有效 Evidence，保留状态即可。
+
+## Evidence to save
+
+保存 workload.jsonl、prompt evidence、requests.csv、raw SSE、raw metrics、manifest 和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能捕获一段真实 Local LLM serving trace，并在客户端可见边界内正确解释 latency/throughput。
+
+## What this does NOT prove
+
+它不能在缺 instrumentation 时拆出精确 queue/service time，也不代表其他 workload 的 serving capacity。
+
+## No-hardware fallback
+
+没有本地 server 时完成 Experiment 62/64。
+
+## Transfer question
+
+客户端 TTFT 从 300ms 增加到 1.2s，但没有 service-start timestamp。你能说 queue 增加了 900ms 吗？
