@@ -6,6 +6,30 @@
 - Branch: main
 - Stable course and dynamic Intelligence lane remain separate.
 
+## Post-freeze visual/comprehension audit — ACTIVE
+
+The learner-ready substantive checkpoint remains valid, but a new post-freeze maintenance pass is active at the user's request:
+
+~~~text
+docs/course/VISUAL-COMPREHENSION-AUDIT.md
+~~~
+
+Goal: review every stable lesson for explanation depth, beginner legibility, and whether spatial/temporal/quantitative mechanisms should be taught with SVG, plots, timelines, calculators, or interactive simulations rather than prose alone.
+
+Baseline scan:
+
+~~~text
+stable lesson HTML = 62
+<img> before pass = 0
+<svg> before pass = 0
+<figure> before pass = 0
+interactive lesson pages before pass = 1
+~~~
+
+Batch 01 (Lessons 01–05) is implemented and marker-checked. It adds two self-authored SVG diagrams, three interactive teaching components, and global mobile/readability CSS improvements. All simulator/calculator outputs remain explicitly conceptual or paper-budget evidence, not measured benchmark evidence.
+
+Next visual batch: Lessons 06–13, then architecture/vendor and Transformer/serving groups.
+
 ## Stable course
 
 ~~~text
