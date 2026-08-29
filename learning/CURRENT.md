@@ -12,7 +12,7 @@
 Slices 01–49 implemented
 Experiments 01–93 exist
 Stable v1 mainline structurally complete
-Student textbook completion pass: ACTIVE
+Student textbook completion pass: ACTIVE — depth-audit closure
 ~~~
 
 The learner will start only after the stable teaching material is substantively complete. Structural existence is no longer treated as sufficient student readiness.
@@ -26,6 +26,39 @@ docs/course/STUDENT-TEXTBOOK-COMPLETION.md
 Every lesson is being reviewed for prerequisite recovery, mental model, mechanism, worked example, misconception boundary, explicit Why it matters, experiment expectations, troubleshooting, no-hardware fallback, retrieval practice, decision rule, transfer, and primary sources.
 
 Real learner-owned benchmark results are a later learning activity and are **not an authoring blocker**.
+
+## Latest textbook authoring progress
+
+The stable teaching lane has advanced substantially beyond the earlier structural checkpoint:
+
+~~~text
+Experiment instruction textbook pass: complete
+Foundation 00–05 learner-contract pass: complete
+Challenge 01–12 teaching closure: complete
+Architecture/vendor thin-page pass: complete
+Transformer/model-internals thin-page pass: complete
+Benchmark/quality/decision thin-page pass: complete
+Operations/whole-machine/used-GPU thin-page pass: complete
+~~~
+
+Latest repository depth audit after these edits:
+
+~~~text
+stable lessons/*.html under 8 KiB = 0
+~~~
+
+This is an audit signal, not by itself a TEXTBOOK COMPLETE declaration. Byte depth cannot prove teaching quality. The remaining authoring work is readiness/integrity validation plus substantive spot review against `docs/course/STUDENT-TEXTBOOK-COMPLETION.md`.
+
+The recent pass deliberately added or strengthened:
+- mental models and causal diagrams;
+- worked examples and engineering calculations;
+- Experiment Evidence / Packet outputs;
+- PASS / FAIL / UNKNOWN / BLOCKED interpretation branches;
+- failure recovery and no-hardware fallbacks;
+- decision boundaries and explicit non-claims;
+- human-review boundaries for purchasing and release decisions.
+
+Real production benchmark rows remain zero by design; no synthetic result was promoted.
 
 ## Active Phase 4 frontier
 
@@ -206,12 +239,11 @@ The complete suite passed through I54, including raw semantic-source capture, th
 
 ## Next — authoring priority
 
-1. Complete the student-textbook pass across every stable lesson before the learner starts.
-2. Prioritize thin architecture/vendor pages first: GPU evolution, NVIDIA, AMD, Apple Silicon, Intel Xe, and vendor-capstone pages.
-3. Continue through Transformer/model internals, serving/operations, and whole-machine hardware lessons.
-4. Expand experiment instructions with hypothesis, fixed variables, expected patterns, interpretation branches, troubleshooting, evidence requirements, and no-hardware fallback where valid.
-5. Run course-readiness plus a substantive depth audit; fix all remaining thin or shell-like teaching pages.
-6. Freeze a TEXTBOOK COMPLETE checkpoint only after the full stable lane passes review.
-7. After that checkpoint, the learner begins Lesson 01 and later performs real Experiment 61/93 evidence acquisition as part of learning.
+1. Run course-readiness / repository-integrity validation on the current teaching head.
+2. Run a substantive contract audit that does **not** use byte count as a proxy: sample prerequisites, worked examples, experiment evidence, troubleshooting, no-hardware fallback, decision rules, transfer, and primary-source links across the stable lane.
+3. Fix every readiness, link, or substantive teaching defect found by that audit.
+4. Re-check Foundations 00–05, architecture/vendor capstones, Transformer/model internals, serving/operations, used-GPU validation, and whole-machine integration as the highest-risk learner transitions.
+5. Freeze a **TEXTBOOK COMPLETE** checkpoint only after those validations pass; do not infer completion from file count or page size alone.
+6. After that checkpoint, the learner begins Lesson 01. Real Experiment 61/93 acquisition remains a later learner-owned Evidence activity.
 
 No fake benchmark results, no auto-purchase, and no unsafe hardware modification.
