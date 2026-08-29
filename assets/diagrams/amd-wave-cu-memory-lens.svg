@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 620" role="img" aria-labelledby="title desc">
+<title id="title">AMD CU/WGP 教学抽象：wave、标量向量路径、寄存器、LDS 与内存</title>
+<desc id="desc">展示 work-items 形成 wavefront，进入 CU 或 WGP 范围的调度与执行资源，区分 scalar 与 vector 数据路径，显示 VGPR、SGPR、LDS 与缓存显存层级。此图用于跨代心智模型，不是某一代 RDNA 或 CDNA 的精确结构图。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">AMD 不要学成“NVIDIA 换名词版”：先看 wave 怎样占用 CU/WGP 内的资源</text>
+<g transform="translate(45 85)">
+<rect class="box" x="0" y="0" width="240" height="115" rx="14"/><text x="120" y="30" text-anchor="middle" font-size="18" font-weight="700">work-items</text>
+<text class="s" x="120" y="55" text-anchor="middle">程序看到许多工作项</text>
+<rect class="soft" x="30" y="72" width="180" height="28" rx="7"/><text class="s" x="120" y="91" text-anchor="middle">组成 wavefront（代际可见 wave32/64）</text>
+</g>
+<path class="line" d="M285 145 H355"/>
+<g transform="translate(360 70)">
+<rect class="box" x="0" y="0" width="420" height="220" rx="14"/><text x="210" y="30" text-anchor="middle" font-size="18" font-weight="700">CU / WGP 范围：调度、执行、驻留资源</text>
+<rect class="soft" x="20" y="58" width="175" height="72" rx="10"/><text class="t" x="107" y="86" text-anchor="middle">Scalar path</text><text class="s" x="107" y="109" text-anchor="middle">SGPR / wave-uniform work</text>
+<rect class="soft" x="225" y="58" width="175" height="72" rx="10"/><text class="t" x="312" y="86" text-anchor="middle">Vector / SIMD path</text><text class="s" x="312" y="109" text-anchor="middle">VGPR / per-lane work</text>
+<rect class="soft" x="20" y="150" width="175" height="48" rx="9"/><text class="t" x="107" y="180" text-anchor="middle">LDS</text>
+<rect class="soft" x="225" y="150" width="175" height="48" rx="9"/><text class="t" x="312" y="180" text-anchor="middle">Matrix / packed paths*</text>
+<text class="s" x="210" y="214" text-anchor="middle">*具体 MFMA/AI 能力取决于 GCN/RDNA/CDNA 与 exact device</text>
+</g>
+<path class="line" d="M780 180 H855"/>
+<g transform="translate(860 105)">
+<rect class="box" x="0" y="0" width="250" height="145" rx="14"/><text x="125" y="30" text-anchor="middle" font-size="18" font-weight="700">Occupancy constraints</text>
+<text class="s" x="125" y="58" text-anchor="middle">VGPR / SGPR 使用量</text>
+<text class="s" x="125" y="82" text-anchor="middle">LDS per workgroup</text>
+<text class="s" x="125" y="106" text-anchor="middle">wave slots / scheduler limits</text>
+<text class="s" x="125" y="130" text-anchor="middle">过度压寄存器也可能 spill</text>
+</g>
+<path class="line" d="M570 292 V350"/>
+<g transform="translate(205 352)">
+<rect class="box" x="0" y="0" width="750" height="120" rx="14"/><text x="375" y="28" text-anchor="middle" font-size="18" font-weight="700">数据层：LDS 是显式协作空间，cache 是硬件管理，两者都服务复用</text>
+<rect class="soft" x="25" y="55" width="205" height="47" rx="9"/><text class="t" x="127" y="84" text-anchor="middle">LDS / local reuse</text>
+<rect class="soft" x="273" y="55" width="205" height="47" rx="9"/><text class="t" x="375" y="84" text-anchor="middle">L0/L1/L2 / Infinity Cache*</text>
+<rect class="soft" x="520" y="55" width="205" height="47" rx="9"/><text class="t" x="622" y="84" text-anchor="middle">GDDR / HBM</text>
+</g>
+<text x="580" y="510" text-anchor="middle" class="s">*cache 命名与层级随 RDNA/CDNA 代际变化；不要把某一代的 cache 方框套到所有 AMD GPU。</text>
+<text x="580" y="560" text-anchor="middle" class="t" font-weight="700">跨代阅读固定问：wave 宽度/调度怎样？VGPR/LDS 限制什么？matrix path 是否存在？memory hierarchy 如何供数？</text>
+<text x="580" y="590" text-anchor="middle" class="s">教学抽象，不是 Vega、RDNA2、RDNA4、CDNA3 等任一代的精确 block diagram。</text>
+</svg>
