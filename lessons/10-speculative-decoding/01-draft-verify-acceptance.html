@@ -370,5 +370,52 @@ D=8 → 2.47</code></pre>
 
 <p class="small">硬件门槛：L0 无需 GPU。真实 speculation 可先用 n-gram/draftless path，two-model draft 是可选高阶路径。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：Speculative Decoding 的收益来自“少走 target model 的串行 decode 步数”</h2>
+<h3>Worked Example</h3>
+<p>普通 decode：</p>
+<pre>target → token1
+target → token2
+target → token3
+target → token4</pre>
+<p>speculative path：</p>
+<pre>draft proposes: t1 t2 t3 t4
+target verifies a block
+→ accept several
+→ only then continue</pre>
+<p>如果一次能接受多个 draft token，target 的串行步数减少；如果大量 draft 被拒绝，额外 draft 计算和 verification 可能得不偿失。</p>
+
+<h3>Acceptance Rate 不是唯一指标</h3>
+<p>真正收益还取决于：</p>
+<pre>draft speed
+target verification efficiency
+accepted tokens per target step
+extra memory
+scheduler overhead
+batch/concurrency behavior</pre>
+
+<h3>实验预期</h3>
+<ul>
+<li>draft 与 target 越匹配，acceptance 往往越好。</li>
+<li>draft 太重时，即使 acceptance 高也可能没有净收益。</li>
+<li>短输出可能被初始化/调度开销淹没。</li>
+<li>不同 sampling 参数会改变 acceptance。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先固定 target、draft、prompt、sampling。</li>
+<li>同时测 baseline target-only。</li>
+<li>记录 acceptance 以及最终 TG/latency，不只看 acceptance。</li>
+<li>检查 draft 是否引入额外显存/CPU bottleneck。</li>
+</ol>
+
+<h3>无支持该功能的 runtime 怎么办？</h3>
+<p>用手工概率/trace 模型理解“proposal → verify → accept/reject”即可。不要为了体验 feature 更换整个环境；先学机制。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>只有相对 target-only baseline 的端到端性能提升，才算 speculative decoding 成功。</strong>高 acceptance 本身不是最终目标。</div>
+</section>
 </body>
 </html>
