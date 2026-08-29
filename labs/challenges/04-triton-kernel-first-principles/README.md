@@ -100,3 +100,20 @@ tile mapping
 - Official tutorials: https://triton-lang.org/main/getting-started/tutorials/
 
 运行时以当前官方安装/支持矩阵为准。
+
+
+## Expected outcome
+
+至少完成一个 correctness-first kernel，并能解释 program/block mapping、memory access、shape 与 benchmark contract；优化前后必须有相同输入与 reference。
+
+## Failure recovery
+
+kernel 输出不正确时停止性能比较：先缩小 shape、固定 seed、与 reference 做误差检查，再逐步恢复优化。
+
+## What this does NOT prove
+
+某个 toy Triton kernel 赢过 naive baseline，不代表赢过 cuBLAS/rocBLAS/FlashAttention 等成熟库，也不代表端到端 LLM 更快。
+
+## No-hardware path
+
+没有支持的加速器时先读 kernel/source、手动画 program-id→data mapping；真实 benchmark 延后。
