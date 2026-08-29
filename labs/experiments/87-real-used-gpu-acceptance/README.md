@@ -204,3 +204,53 @@ C3 means the evidence is learner-owned, PACKET-bound and independently reproduci
 The separate technical decision may still be ACCEPT, REVIEW or REJECT.
 
 C4 is reserved and is not emitted by the current tooling.
+
+
+## Why this experiment
+
+这是更完整的真实购买验收主路径：先冻结 seller claim，再收集硬件 identity/error/PCIe/physical evidence，最后用你真正关心的持续 LLM workload 验证。
+
+## Hypothesis
+
+真实 ACCEPT 必须同时满足 purchase-critical claim、可用软件路径和普通 sustained workload；C3 只表示 evidence provenance 强，不等于 technical decision 必须 ACCEPT。
+
+## Fixed variables
+
+验收期间不刷 firmware、不超频/降压、不改 power/fan，也不做破坏性压力注入。先观察收到时的状态。
+
+## What to observe
+
+- seller claim 与 observed model/VRAM；
+- PCIe max/current 与 under-load context；
+- supported error telemetry；
+- repeated TG + thermal drift；
+- physical/output requirements；
+- ACCEPT/REVIEW/REJECT 与 C-grade provenance 的独立性。
+
+## Troubleshooting
+
+- idle PCIe downshift 先 REVIEW。
+- N/A telemetry 不能写 0。
+- display port 未测试就保持 UNKNOWN。
+- serial/UUID 发布前按隐私需要脱敏。
+- machine-readable summary 必须能回到 retained raw packet。
+
+## Evidence to save
+
+保存 claim.md、hardware raw、Experiment 85 evidence、physical/output notes、RESULT-TEMPLATE、PACKET、acceptance.json 和 condition-evidence.json。
+
+## What this proves
+
+你能用真实、PACKET-bound Evidence 做一次二手 GPU 技术验收。
+
+## What this does NOT prove
+
+C3 不是购买命令，也不是未来永久可靠性保证。
+
+## No-hardware fallback
+
+完成 Experiment 86；真实验收等有候选卡时执行。
+
+## Transfer question
+
+一张卡得到 C3 provenance，但 technical evaluator 输出 REVIEW。为什么这两者完全可以同时成立？
