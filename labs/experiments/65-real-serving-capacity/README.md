@@ -85,3 +85,51 @@ A finite completed batch gives an exact area identity.
 That does not prove the captured request pattern is representative or sustainable.
 
 Compare multiple workload windows and check whether deferred/backlog state grows.
+
+
+## Why this experiment
+
+Little's Law 只有在边界定义正确时才有价值。真实 client trace 通常只知道 send/completion，因此可以可靠得到 L_system，却不能凭 first token 猜 service_start 后硬算 active slots。
+
+## Hypothesis
+
+Experiment 63 的现有数据足够算 completed throughput、W_system、L_system 和 peak in-flight；没有可信 service_start 时，L_active/queue 应保持 UNKNOWN。
+
+## Fixed variables
+
+使用同一 request trace 与 observation window。不要为了得到 active occupancy 人工把 first-token timestamp 当 service start。
+
+## What to observe
+
+1. λ、W_system、L_system identity。
+2. average in-flight 与 peak in-flight。
+3. 为什么 first token 已经包含 queue + prefill。
+4. 加入可信 service_start 后，active/queue 才如何被拆开。
+5. backlog/deferred 是否随窗口增长。
+
+## Troubleshooting
+
+- completed finite batch 不等于 steady-state sustainable。
+- observation window 要一致。
+- optional KV proxy 只有在 active interval 存在时才有意义。
+- 多个 workload window 应分开报告。
+
+## Evidence to save
+
+保存 requests.csv、capacity output、window definition；如果 enrich service_start，还要保存 instrumentation source。
+
+## What this proves
+
+你能从真实 trace 得到边界正确的 serving capacity 指标，并保留不能计算的 UNKNOWN。
+
+## What this does NOT prove
+
+它不自动给出最佳 slots，也不证明 workload 稳态代表性。
+
+## No-hardware fallback
+
+没有真实 trace 时完成 Experiment 64。
+
+## Transfer question
+
+为什么 TTFT timestamp 不能安全地当作“服务开始时间”来计算 active occupancy？
