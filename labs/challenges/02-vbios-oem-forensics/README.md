@@ -102,3 +102,20 @@ identify
 - NVIDIA nvidia-smi documentation: https://docs.nvidia.com/deploy/nvidia-smi/index.html
 - Linux PCI IDs/sysfs documentation可作为 OS identity 入口；
 - 目标 OEM/GPU 厂商手册优先于第三方 firmware 数据库。
+
+
+## Expected outcome
+
+形成 read-only firmware identity dossier，能说明“当前看到什么、官方/OEM 应该是什么、哪里一致、哪里未知或冲突”。
+
+## Failure recovery
+
+拿不到可信 VBIOS/OEM 来源时停止在 UNKNOWN；不要为了“验证”去强刷、跨型号刷写或绕过厂商保护。
+
+## What this does NOT prove
+
+版本号相同不证明板卡未维修；版本号不同也不自动证明假卡或坏卡。Firmware forensic evidence 只是整体验收的一部分。
+
+## No-hardware path
+
+可用公开 OEM/VBIOS 样本练习字段比较，但必须标成 historical/sample，不冒充自己的设备。
