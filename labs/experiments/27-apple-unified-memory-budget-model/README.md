@@ -136,3 +136,43 @@ python3 simulate.py \
 2. 为什么相同 64 GB，Pro/Max 的 memory bandwidth 可能比 GPU core 数更值得先看？
 3. 为什么 `recommendedMaxWorkingSetSize` 比 installed RAM 更接近真实 GPU working-set Evidence？
 4. 如果 context/concurrency 增加 KV，capacity margin 会怎样？
+
+
+## Hypothesis
+
+Apple Unified Memory 主要改变 CPU/GPU 共享容量与 copy boundary，但 safe model budget 仍要扣除 OS/apps/headroom；decode 仍可能受可用 memory bandwidth 约束，因此“内存更多”不自动等于 TG 更高。
+
+## Fixed variables
+
+Part A 一次只改变 total/reserve/workload footprint；Part B 一次只改变 bandwidth 或 other system traffic。不要同时改模型权重和带宽再归因。
+
+## What to observe
+
+- safe budget 与 runtime footprint margin；
+- 相同 workload 在统一内存与较小 discrete VRAM 的 capacity 差异；
+- other traffic 如何降低 model bandwidth budget；
+- capacity 与 bandwidth 是两条独立轴；
+- context/concurrency 增加时 KV 如何侵蚀 margin。
+
+## Troubleshooting
+
+- installed RAM 不是全都可作为 GPU working set。
+- recommendedMaxWorkingSetSize 也不是 memory bandwidth。
+- bandwidth upper bound 不是真实 TG。
+- discrete GPU 仍可 CPU offload，因此“不能 fit”要写清是 full-GPU-resident fit。
+
+## What this proves
+
+你能把 Apple Silicon 的容量优势与带宽上限分开建模。
+
+## What this does NOT prove
+
+synthetic 参数不代表任何 M-series SKU，也不比较 Apple 与 NVIDIA 的真实速度。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+两台 Mac 都有 64GB Unified Memory，但带宽不同。为什么“都能装下模型”并不意味着 decode 速度接近？
