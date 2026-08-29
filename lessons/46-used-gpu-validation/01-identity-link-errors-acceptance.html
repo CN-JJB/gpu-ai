@@ -176,6 +176,18 @@ final decision + reason</pre>
 <h3>REVIEW 什么时候比 REJECT 更正确？</h3>
 <p>当证据不足或某字段异常但尚不能证明硬件故障时，REVIEW 能防止“未知=失败”和“未知=通过”两种错误。</p>
 
+
+<h3>Troubleshooting：验收证据冲突时怎么分流？</h3>
+<ol>
+<li><strong>型号/VRAM 身份冲突：</strong>先停止做性能结论，保存各层看到的 identity，再用独立来源交叉核对。身份未闭合时状态保持 UNKNOWN / REVIEW。</li>
+<li><strong>PCIe 链路看起来过低：</strong>区分 idle power-saving 状态与负载状态；在安全、可复现的负载下重新观察 negotiated link。不要仅凭一次 idle 读数退卡或判坏。</li>
+<li><strong>错误计数或 driver reset 出现：</strong>保存原始日志与时间线，先排除供电、连接、系统软件等外部变量；若问题可重复且与目标 workload 同步，验收不得写 PASS。</li>
+<li><strong>短测通过但 sustained TG 持续漂移：</strong>转到 thermal/power/sustained 路径，固定 workload 并对齐 clocks、temperature、power 与 throughput；不要用第一次峰值覆盖后续退化。</li>
+<li><strong>显示异常但计算正常，或反过来：</strong>按你的实际用途分别记录 display path 与 compute path。一个路径通过不能替另一个路径背书。</li>
+<li><strong>证据无法在收货窗口内闭合：</strong>使用 REVIEW / UNKNOWN，而不是因为时间压力把未测项目写成 PASS。</li>
+</ol>
+<p>任何异常都优先保存 Evidence，再改变变量。验收流程不要求拆卡、刷 BIOS、改电压或做危险硬件操作。</p>
+
 <h3>Decision Rule</h3>
 <div class="callout"><strong>任何与购买目标直接相关的关键 claim——尤其型号、VRAM、普通 workload 稳定性——一旦证据冲突且无法解释，就不能 ACCEPT。</strong></div>
 
