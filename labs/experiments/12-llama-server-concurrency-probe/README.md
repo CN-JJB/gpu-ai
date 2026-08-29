@@ -293,3 +293,50 @@ requests = 8
 5. n_busy_slots_per_decode 是否真的随 concurrency 增加？
 6. 如果 aggregate ↑ 但 stream-gap proxy 也 ↑，这是坏结果吗？取决于什么目标？
 7. 增加 slots 前，为什么必须重新检查 KV/headroom？
+
+
+## Hypothesis
+
+固定 slots=4 时，client concurrency 从 1→4 可能提高 aggregate throughput；超过 slot capacity 后 deferred/queue 与 tail TTFT 更容易上升，而 throughput 增益趋于饱和。
+
+## Fixed variables
+
+same model/context/KV/offload/server/total 8 requests；主 sweep 只改 client concurrency。Prompt cache 关闭，continuous batching 显式固定。
+
+## What to observe
+
+- client TTFT proxy / E2E；
+- stream-gap proxy；
+- request throughput 与 wall aggregate output t/s；
+- server prompt/predicted t/s；
+- peak processing/deferred；
+- busy slots/decode；
+- concurrency 超 slots 后的 tail 变化。
+
+## Troubleshooting
+
+- SSE event gap 不是 exact ITL。
+- server predicted t/s 与 wall aggregate t/s 系统边界不同。
+- concurrency 没真正重叠时不能叫并发压力。
+- 增 slots 前先重算 KV/headroom。
+- optional batching on/off、slot sweep 都要单独重启并保持其他条件一致。
+
+## Evidence to save
+
+保存 server startup log、props/slots、四组 concurrency JSON、metrics 与 RESULT。
+
+## What this proves
+
+你能在真实 server 上观察 concurrency、slot saturation、queue 与用户 latency 的 tradeoff。
+
+## What this does NOT prove
+
+它不自动给出最佳 slots，也不代表所有 arrival/output-length 分布。
+
+## No-hardware fallback
+
+完成 Experiment 11。
+
+## Transfer question
+
+concurrency=8 时 aggregate t/s 只比 4 高一点，但 p95 TTFT 翻倍。这是不是“更快”？答案取决于什么 SLO？
