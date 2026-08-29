@@ -17,6 +17,7 @@ table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.5
 
 <p><strong>真实问题：</strong>同样是精确 attention，为什么“少存中间结果、多做一点计算”的 kernel 反而可能更快？</p>
 
+<h2>Prerequisite Check</h2><p>你应理解 Lesson 02–04 的线程组织、片上内存复用与 bandwidth roof。不会推导 softmax 也可以继续：本节关注的是怎样通过 tiling/online reduction 减少大中间张量的 HBM 往返。</p>
 <h2>1. 先看普通 attention</h2>
 <pre>scores = QKᵀ / √d
 probs  = softmax(scores)
