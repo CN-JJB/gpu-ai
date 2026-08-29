@@ -109,3 +109,20 @@ Multimodal Packet：
 - llama.cpp multimodal docs: https://github.com/ggml-org/llama.cpp/blob/master/tools/mtmd/README.md
 
 运行前重新检查当前 upstream。
+
+
+## Expected outcome
+
+把 text model、vision/audio encoder/projector、preprocessing、token/context expansion、memory budget 与质量 fixture 分开记录，形成完整 multimodal artifact chain。
+
+## Failure recovery
+
+模型加载成功但结果异常时，先检查 projector/processor/template/artifact revision 是否匹配，不要先归因 GPU。
+
+## What this does NOT prove
+
+“支持图片/音频输入”不等于质量足够，也不等于 multimodal path 与纯文本共享相同性能瓶颈。
+
+## No-hardware path
+
+使用模型 config/model card 做 artifact + memory/context worksheet；真实媒体推理延后。
