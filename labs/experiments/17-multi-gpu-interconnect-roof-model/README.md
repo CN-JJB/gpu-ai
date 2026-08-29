@@ -61,3 +61,46 @@ python3 simulate.py --single-ms 10 --gpus 2 --transfer-mib 64 --sync-ms 0.2 --ba
 ## 约束
 
 这是 deterministic teaching model，不代表任何真实 GPU、PCIe generation、NVLink 或 xGMI 的实际性能。
+
+## Hypothesis
+
+在计算理想按 N 卡均分的前提下，只要关键路径通信、同步和 imbalance 足够大，多卡 speedup 就会低于线性，甚至低于 1×。
+
+## Fixed variables
+
+默认只改变 effective link bandwidth。之后的扩展实验一次只改 transfer MiB 或 single-compute ms。
+
+## What to observe
+
+1. bandwidth 增加时 TN 如何下降。
+2. speedup 与 efficiency 的差别。
+3. transfer 翻倍如何移动 crossover。
+4. compute 变快但通信不变时，为什么通信占比上升。
+5. 哪种情况下“第二张卡增加容量但降低单 token 速度”仍可能值得。
+
+## Troubleshooting
+
+- GiB/s 与 GB/s 不要混。
+- 64 MiB/token 是 synthetic critical-path traffic，不代表任何真实 split。
+- effective link bandwidth 已经是折后量，不等于 PCIe 标称峰值。
+- 不要把模型输出当真实 NVLink/PCIe benchmark。
+
+## Evidence to save
+
+保存默认输出，再做两次单变量变化：transfer×2、single compute÷2。记录 crossover/efficiency 的方向变化。
+
+## What this proves
+
+你理解多卡扩展由 compute、communication、sync、imbalance 共同决定。
+
+## What this does NOT prove
+
+它不预测任何真实 runtime 的 split strategy、P2P 路径或性能。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+如果单卡 kernel 优化后 compute 时间减半，而跨卡通信完全不变，多卡 scaling 为什么可能反而变差？
