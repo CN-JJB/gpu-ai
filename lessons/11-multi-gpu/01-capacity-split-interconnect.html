@@ -19,6 +19,7 @@ table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.5
 
 <div class="callout"><strong>本节目标：</strong>把三件经常被混在一起的目标拆开：<strong>装得下更大的模型、降低单请求延迟、提高多请求吞吐</strong>。</div>
 
+<h2>Prerequisite Check</h2><p>你应会 Lesson 05 的单卡 fit 预算、Lesson 04 的带宽直觉，并完成至少一次 Lesson 07 的本地推理证据链。多 GPU 不是“显存自动相加”；本节会从 placement、traffic 与 interconnect 重新建立模型。</p>
 <h2>1. 先分清你到底想要什么</h2>
 <table>
 <tr><th>目标</th><th>典型方法</th><th>是否要求跨卡通信</th></tr>
