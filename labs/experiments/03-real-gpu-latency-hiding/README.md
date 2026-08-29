@@ -147,3 +147,43 @@ rocprofv3 --occupancy ./latency-hiding-hip
 最后回答：
 
 **如果 32 KiB 配置 occupancy 更低却反而更快，你下一步会查什么，而不是直接宣布“occupancy 没用”？**
+
+
+## Hypothesis
+
+只增加 dynamic shared memory/LDS、让 active blocks 下降时，若 kernel 依赖多 resident groups 隐藏 dependent-load latency，吞吐应在 residency 低到不足时下降；但 occupancy 足够后继续增加不会线性增益。
+
+## Fixed variables
+
+同一 binary、GPU、array size、dependent-load steps、block/grid 与 power/thermal state固定；只改变 dynamic shared/LDS reservation。
+
+## What to observe
+
+- active blocks/SM-CU 与近似 occupancy；
+- kernel time / dependent-load throughput；
+- residency threshold 前后的性能敏感性；
+- profiler stall/cache/register 线索；
+- 低 occupancy 却更快的异常点。
+
+## Troubleshooting
+
+- dynamic shared memory 也可能耦合其他片上配置。
+- pointer chain 仍受 cache/coalescing 影响。
+- 不同架构绝对 occupancy 数不可直接横比。
+- 异常结果先 profile，不要反推“occupancy 无用”。
+
+## What this proves
+
+你能在真实 GPU 上做 occupancy/residency sensitivity 实验，并把 latency hiding 当机制而非口号。
+
+## What this does NOT prove
+
+它不是纯 HBM latency 测量，也不能给出通用最佳 occupancy。
+
+## No-hardware fallback
+
+完成 Experiment 02。
+
+## Transfer question
+
+32KiB shared 配置 occupancy 更低却更快时，哪几类资源/缓存/代码生成证据最值得先查？
