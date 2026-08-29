@@ -41,5 +41,45 @@ exact device + ROCm/HIP backend = blocked / unverified
 <h2>Retrieval Practice</h2><ol><li>为什么“ROCm 支持”必须记录 device+OS+version+date？</li><li>HIP code 能编译为什么不保证 AMD 上高效？</li><li>怎样证明 LLM 应用真的通过 HIP offload？</li><li>Vulkan 可用、ROCm 不可用时应如何写精确结论？</li><li>Radeon 与 Instinct 的硬件优势为什么需要不同系统 gate？</li><li>改变 quant/backend 时为什么必须配质量检查？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>AMD 路径只有 exact device × current runtime × application backend × model kernel × measured workload 全链通过后，才进入购买/性能比较。Unsupported workaround 可以学习，但不能冒充官方支持或生产级稳定性。</p></div>
 <h2>Transfer</h2><p>这套“多个 backend 可独立成立”的思维尤其适用于 Intel/AMD。换 NVIDIA/Apple 时同样记录 exact backend，而不是只写厂商品牌。</p>
+
+<h2>Capstone 交付物：不是截图，而是一份可复跑的 AMD Packet</h2>
+<p>完成这条 vendor path 时，至少留下：</p>
+<ul>
+<li>exact GPU / PCI identity 与机器平台摘要；</li>
+<li>driver、ROCm、HIP、application build identity；</li>
+<li>目标 model artifact / quant / context / prompt identity；</li>
+<li>应用启动日志中 device、offload、VRAM/HBM allocation 证据；</li>
+<li>PP/TG 分开的 benchmark 原始输出；</li>
+<li>质量检查；</li>
+<li>温度/功耗/持续运行异常（如果它们影响结论）；</li>
+<li>一段明确 non-claim：本次结果不能代表哪些 GPU、版本、backend 或模型。</li>
+</ul>
+
+<h2>Acceptance States</h2>
+<table><thead><tr><th>状态</th><th>含义</th><th>允许的下一步</th></tr></thead><tbody>
+<tr><td>BLOCKED</td><td>链上某层不可用或证据缺失</td><td>定位 exact layer；不跑“性能比较”</td></tr>
+<tr><td>USABLE</td><td>目标模型真实 GPU offload，可稳定完成 workload</td><td>进入受控 benchmark</td></tr>
+<tr><td>MEASURED</td><td>固定协议下已有 PP/TG + quality Evidence</td><td>与同条件候选做 descriptive comparison</td></tr>
+<tr><td>REVIEW</td><td>性能、兼容、热/电、价格/TCO 证据齐全</td><td>进入人工购买/部署评审；仍不是自动 BUY</td></tr>
+</tbody></table>
+
+<h2>Worked Example：为什么 community workaround 不能直接升级成“ROCm 支持”</h2>
+<p>假设社区方法通过环境变量或非官方 target 让某 Radeon 能启动 HIP backend，并且一次 benchmark 成功。这能形成非常有价值的 <strong>measured workaround evidence</strong>，但它和官方 support matrix 是两个命题。正确记录应该同时保留：</p>
+<pre>official support status = documented separately
+workaround path         = exact steps + versions
+measured result         = exact packet
+maintenance risk        = explicit
+</pre>
+<p>这样未来版本升级后，即使 workaround 失效，你仍知道失效的是哪一层，而不是把历史结果改写成“AMD 曾经支持/后来不支持”。</p>
+
+<h2>No-hardware fallback：仍然要产出 Evidence</h2>
+<p>没有 AMD 卡时，完成一个只读 preflight packet：选择一张具体 Radeon/Instinct、一个具体 OS、一个目标 runtime/backend 和一个目标模型格式，沿 evidence chain 标出每一层需要的官方/源码证据，并把无法真机验证的字段标成 <strong>UNVERIFIED</strong>。这足以证明你会调查，不允许填假 PP/TG。</p>
+
+<h2>Capstone Transfer Check</h2>
+<p>如果以后遇到一张从未见过的新 AMD 卡，你应能在不依赖“网友说能跑”的前提下，从 exact device → support matrix → runtime enumeration → application backend → model kernel → benchmark packet 重新走完整条链。这才是本 capstone 的 transfer 标准。</p>
+
+<h2>What this capstone does NOT prove</h2>
+<p>一份成功 AMD Packet 只证明该 exact 组合在该测试条件下成立。它不证明所有 ROCm 版本、所有 Radeon/Instinct、所有 quant、Windows/Linux 路径或未来驱动都同样成立，也不自动形成购买建议。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/">AMD ROCm Documentation</a></li><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/">AMD HIP Documentation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 Evidence Packet</a></li></ul>
 </main></body></html>
