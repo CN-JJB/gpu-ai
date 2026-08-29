@@ -111,7 +111,7 @@ A decorative image does not satisfy this audit.
 - [x] Batch 02 link/readiness re-check
 - [x] Batch 03 review and implementation — Lessons 14–23 architecture/vendor + hardware-decision group
 - [x] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
-- [ ] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
+- [x] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
 - [ ] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
 - [ ] final 62-page visual/comprehension closure audit
 
@@ -247,3 +247,57 @@ HTML close = 10 / 10
 ~~~
 
 The next review batch is Lessons 34–45: serving SLOs, capacity, overload/admission, fairness, exposure, reliability, upgrades, observability, power, storage, host memory and sustained thermal behavior.
+
+
+## Batch 05 detailed review — Lessons 34–45
+
+The prose was already substantive, but this batch exposed a wiring defect: **all 12 pages were text-only even though ten matching operations diagrams already existed in `assets/diagrams/`.** The visual pass therefore focused first on making existing teaching assets visible, not drawing duplicates.
+
+| Lesson | Core temporal/spatial mechanism | Action |
+|---|---|---|
+| 34 Serving SLO | request arrival → queue → prefill → first token → decode → completion; TTFT/ITL/E2E are different intervals | connect `serving-slo-timeline.svg` |
+| 35 Serving capacity | queue + active slots + throughput + residence time + KV pressure | add `serving-capacity-littles-law.svg` |
+| 36 Overload/admission | overload → queue growth → reject → retry amplification/backoff | connect `overload-retry.svg` |
+| 37 Fairness | long/short tenant work, slot quota and work-conserving borrowing | connect `fairness-quotas.svg` |
+| 38 Service exposure | bind address, reachability, Auth, TLS, CORS and information surfaces are distinct layers | connect `service-exposure.svg` |
+| 39 Reliability | process start, health, model loaded, first inference, warm steady state and restart recovery | connect `readiness-recovery.svg` |
+| 40 Safe upgrade | frozen baseline → candidate gates → rollback → revalidation | connect `release-rollback.svg` |
+| 41 Observability | traffic/latency/errors/saturation/clock/temperature must be aligned on one incident timeline | connect `incident-timeline.svg` |
+| 42 Power/energy | Watt is instantaneous power; Joule is area under P(t); useful-work normalization comes after integration | add `power-energy-token.svg` |
+| 43 Storage/loading | filesystem/page cache/mmap/read/host/GPU/backend-init/first-inference path | connect `storage-loading.svg` |
+| 44 Host memory | Free, Available, page cache, anonymous memory, swap activity, faults and OOM are separate signals | connect `host-memory-pressure.svg` |
+| 45 Sustained thermal | cold boost → heat accumulation → steady state; throughput must be correlated with clock/power/fan/temp | connect `thermal-sustained.svg` |
+
+### Batch 05 implementation result
+
+New assets:
+
+- `assets/diagrams/serving-capacity-littles-law.svg`
+- `assets/diagrams/power-energy-token.svg`
+
+Connected existing assets:
+
+- `serving-slo-timeline.svg`
+- `overload-retry.svg`
+- `fairness-quotas.svg`
+- `service-exposure.svg`
+- `readiness-recovery.svg`
+- `release-rollback.svg`
+- `incident-timeline.svg`
+- `storage-loading.svg`
+- `host-memory-pressure.svg`
+- `thermal-sustained.svg`
+
+All figures are explanatory models. The new power curve is explicitly not a measured GPU trace; real energy evidence still requires synchronized power sampling and workload completion data.
+
+Post-edit marker check:
+
+~~~text
+visual teaching surface = 12 / 12
+Retrieval Practice = 12 / 12
+完成证据 = 12 / 12
+Primary Sources = 12 / 12
+HTML close = 12 / 12
+~~~
+
+The final implementation batch is Lessons 46–49: used-GPU validation, PSU/power delivery, whole-machine integration and graduation design review.
