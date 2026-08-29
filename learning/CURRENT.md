@@ -39,6 +39,7 @@ Architecture/vendor thin-page pass: complete
 Transformer/model-internals thin-page pass: complete
 Benchmark/quality/decision thin-page pass: complete
 Operations/whole-machine/used-GPU thin-page pass: complete
+Lessons 34–49 explicit opening-contract remediation: complete (16/16 verified)
 ~~~
 
 Latest repository depth audit after these edits:
@@ -47,7 +48,7 @@ Latest repository depth audit after these edits:
 stable lessons/*.html under 8 KiB = 0
 ~~~
 
-This is an audit signal, not by itself a TEXTBOOK COMPLETE declaration. Byte depth cannot prove teaching quality. The remaining authoring work is readiness/integrity validation plus substantive spot review against `docs/course/STUDENT-TEXTBOOK-COMPLETION.md`.
+This is an audit signal, not by itself a TEXTBOOK COMPLETE declaration. Byte depth cannot prove teaching quality. The previously confirmed lessons 34–49 opening-contract defect has now been repaired and re-checked at 16/16 for explicit `Prerequisite Check`, `真实问题`, `Retrieval Practice`, `完成证据`, and `Primary Sources`. The remaining authoring work is readiness/integrity validation plus substantive spot review against `docs/course/STUDENT-TEXTBOOK-COMPLETION.md`.
 
 The recent pass deliberately added or strengthened:
 - mental models and causal diagrams;
@@ -239,8 +240,8 @@ The complete suite passed through I54, including raw semantic-source capture, th
 
 ## Next — authoring priority
 
-1. Run course-readiness / repository-integrity validation on the current teaching head.
-2. Run a substantive contract audit that does **not** use byte count as a proxy: sample prerequisites, worked examples, experiment evidence, troubleshooting, no-hardware fallback, decision rules, transfer, and primary-source links across the stable lane.
+1. Finish repository-integrity validation on the current teaching head, including the remaining local-link corpus or an observable exact-head Course Readiness PASS.
+2. Run a substantive contract audit that does **not** use byte count as a proxy: sample worked examples, experiment evidence, troubleshooting, no-hardware fallback, decision rules, transfer, and primary-source links across the stable lane.
 3. Fix every readiness, link, or substantive teaching defect found by that audit.
 4. Re-check Foundations 00–05, architecture/vendor capstones, Transformer/model internals, serving/operations, used-GPU validation, and whole-machine integration as the highest-risk learner transitions.
 5. Freeze a **TEXTBOOK COMPLETE** checkpoint only after those validations pass; do not infer completion from file count or page size alone.
