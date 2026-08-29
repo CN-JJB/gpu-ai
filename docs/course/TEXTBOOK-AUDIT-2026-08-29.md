@@ -1,6 +1,6 @@
 # Textbook Completion Audit — 2026-08-29
 
-Status: ACTIVE — do not declare TEXTBOOK COMPLETE yet
+Status: COMPLETE — TEXTBOOK COMPLETE checkpoint accepted
 
 ## Scope
 
@@ -103,33 +103,47 @@ The repository contains:
 tools/course/audit_student_readiness.py
 ~~~
 
-However, commits written through the current GitHub connector did not produce an observable GitHub Actions run, and the execution container cannot clone GitHub because outbound DNS/network access is unavailable.
+The GitHub connector still does not expose an observable push-triggered Course Readiness run for the current teaching head, and the execution container cannot clone GitHub because outbound DNS/network access is unavailable.
+
+That CI limitation is now separated from repository readiness itself. The checks implemented by `audit_student_readiness.py` were reproduced through the repository connector:
+
+~~~text
+lesson slices = 49
+lesson HTML = 62
+experiments = 93
+challenges = 12
+foundations = 6
+required lesson markers = verified
+required challenge markers = verified
+experiment README/EXPECTED = verified
+recognized real-experiment result/report templates = verified
+local-link corpus = 338 / 338 checked
+broken local links = 0
+repo-escaping local links = 0
+~~~
 
 Therefore:
 
 ~~~text
-Course Readiness CI PASS = NOT YET OBSERVED on the current head
+connector-equivalent Course Readiness audit = PASS
+GitHub Actions exact-head CI PASS = NOT OBSERVED
 ~~~
 
-Do not convert “no CI failure appeared” into PASS.
+The second line is an observability/tooling boundary, not an unresolved textbook defect.
 
-## Local-link audit frontier
+## Local-link audit complete
 
-The readiness script also validates every local Markdown/HTML link under lessons, curriculum, challenges and experiments.
+The readiness script validates every local Markdown/HTML link under lessons, curriculum, challenges and experiments.
 
-Current corpus size:
-
-~~~text
-338 Markdown/HTML files
-~~~
-
-A direct connector-based scan has begun. The first 60 files checked using the same relative-link resolution rules had:
+The full corpus was checked using the same rules as `audit_student_readiness.py`: ignore anchors and remote schemes, strip query/fragment, URL-decode the relative target, reject repo escapes, and require the resolved target to exist.
 
 ~~~text
+Markdown/HTML corpus = 338 / 338
 broken local links = 0
+repo-escaping local links = 0
 ~~~
 
-The remaining link corpus is not yet fully re-scanned in this authoring session. The current pass did not intentionally add new local relative links to the repaired lesson completion sections.
+The first 60 files are curriculum/early-lab files and were unchanged by the later lesson remediations. Files 60–337 were re-scanned on the remediated teaching tree. The final Lesson 46/49 troubleshooting edits added no new local links, and their existing local targets were re-checked individually.
 
 ## Substantive contract review
 
@@ -189,12 +203,30 @@ Primary Sources = 16 / 16
 
 No fabricated measurements were added. No lesson requires buying hardware, exposing a service to the public Internet, modifying PSU wiring, flashing a GPU, or performing another unsafe hardware modification.
 
-## Next authoring actions
+## Final substantive spot review
 
-1. Finish the 338-file local-link scan or obtain an observable `Course Readiness` workflow PASS on the exact teaching head.
-2. Re-run a substantive contract spot review across Foundations, vendor capstones, Transformer internals, serving/operations, used-GPU acceptance and whole-machine integration.
-3. Fix any remaining integrity or learner-flow defect discovered by those checks.
-4. Only then consider freezing `TEXTBOOK COMPLETE`.
+High-risk learner transitions were spot-reviewed after the full-corpus signal scan:
+- Foundation 00 — complete learner-flow exemplar;
+- NVIDIA vendor capstone — prerequisite → evidence chain → troubleshooting → decision;
+- Lesson 29 model dossier — config/artifact/KV hypothesis path with worked example, no-hardware transfer and non-claims;
+- serving/operations 34–45 — explicit prerequisite/real-problem remediation plus failure recovery;
+- Lesson 46 used-GPU acceptance — identity/link/load/sustained evidence plus explicit conflict troubleshooting;
+- Lesson 48 system integration — hard gates, unknown debt and blocked-dossier troubleshooting;
+- Lesson 49 graduation capstone — Evidence → Design Review with explicit review-failure recovery.
+
+No remaining authoring blocker was found.
+
+## TEXTBOOK COMPLETE checkpoint
+
+The stable textbook is frozen as complete for the learner-start boundary.
+
+~~~text
+teaching-content checkpoint head = f514db1733f0e26a06e82e596e70922ab2458915
+status = TEXTBOOK COMPLETE
+next phase = learner Lesson 01
+~~~
+
+This checkpoint does **not** claim that future real learner benchmarks already exist. Experiment 61/93 real evidence remains learner-owned work performed later in the course.
 
 ## Boundaries preserved
 
