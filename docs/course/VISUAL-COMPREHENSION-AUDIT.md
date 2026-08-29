@@ -112,7 +112,7 @@ A decorative image does not satisfy this audit.
 - [x] Batch 03 review and implementation — Lessons 14–23 architecture/vendor + hardware-decision group
 - [x] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
 - [x] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
-- [ ] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
+- [x] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
 - [ ] final 62-page visual/comprehension closure audit
 
 ## Batch 01 implementation result
@@ -301,3 +301,39 @@ HTML close = 12 / 12
 ~~~
 
 The final implementation batch is Lessons 46–49: used-GPU validation, PSU/power delivery, whole-machine integration and graduation design review.
+
+
+## Batch 06 detailed review — Lessons 46–49
+
+| Lesson | Main comprehension risk | Action |
+|---|---|---|
+| 46 Used-GPU validation | treating one screenshot or short stress run as a global health verdict | connect the existing staged `used-gpu-acceptance-flow.svg` to the deeper validation lesson |
+| 47 PSU / power delivery | collapsing total PSU wattage, transient behavior, connector routing and modular-cable pinout into one number | add `psu-power-delivery-path.svg` |
+| 48 System integration | averaging hard failures into a weighted score or treating UNKNOWN as a weak PASS | add `system-integration-hard-gates.svg` |
+| 49 Graduation capstone | turning the final project into a shopping list instead of an auditable engineering argument | add `graduation-design-review.svg` |
+
+### Batch 06 implementation result
+
+New assets:
+
+- `assets/diagrams/psu-power-delivery-path.svg`
+- `assets/diagrams/system-integration-hard-gates.svg`
+- `assets/diagrams/graduation-design-review.svg`
+
+Connected existing asset:
+
+- `assets/diagrams/used-gpu-acceptance-flow.svg`
+
+Safety boundary is explicit in the PSU visual: unknown modular-cable pinout is BLOCKED and must not be tested by powering hardware. The graduation visual also preserves the repository-wide policy that purchase/release/hardware-modification decisions remain human-reviewed.
+
+Post-edit marker check:
+
+~~~text
+visual teaching surface = 4 / 4
+Retrieval Practice = 4 / 4
+完成证据 = 4 / 4
+Primary Sources = 4 / 4
+HTML close = 4 / 4
+~~~
+
+All planned lesson groups have now been reviewed. A final corpus-wide closure scan remains before this audit can move from ACTIVE to COMPLETE.
