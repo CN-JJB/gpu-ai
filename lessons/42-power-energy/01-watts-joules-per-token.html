@@ -96,4 +96,53 @@ J/token
 <h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://docs.nvidia.com/deploy/nvidia-smi/index.html">NVIDIA nvidia-smi Documentation</a></li><li><a href="https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/amdsmi-cli-tool.html">AMD SMI CLI</a></li><li><a href="../../reference/llm/power-energy-efficiency.md">Course Reference — Power / Energy Efficiency</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：Watts 是速率，J/token 才更接近“每个 token 的能量成本”</h2>
+<h3>三个量不要混</h3>
+<pre>Power (W) = J/s
+Energy (J) = ∫ Power dt
+J/token = Energy / generated tokens</pre>
+<p>一张卡瞬时功率更高，不代表完成同一 workload 消耗的总能量一定更高；如果它快很多，运行时间可能更短。</p>
+
+<h3>Worked Example</h3>
+<table>
+<tr><th>系统</th><th>平均板卡功率</th><th>TG</th><th>粗略 GPU J/token</th></tr>
+<tr><td>A</td><td>300 W</td><td>60 tok/s</td><td>5 J/token</td></tr>
+<tr><td>B</td><td>220 W</td><td>35 tok/s</td><td>6.29 J/token</td></tr>
+</table>
+<p>在这个简化 decode 稳态例子里，A 更耗电但单位 token 反而更省能量。真实系统还要考虑 CPU、RAM、风扇、PSU loss 与 prefill。</p>
+
+<h3>Board Power 与 Wall Power</h3>
+<pre>GPU telemetry
+≈ board/device domain
+
+wall meter
+≈ whole machine
++ PSU losses</pre>
+<p>所以两个实验必须标清测量边界。不能拿 GPU board power 和另一台机器的 wall power 直接比较。</p>
+
+<h3>Idle 也有成本</h3>
+<p>24/7 服务常常大部分时间在 idle。年能耗可能由：</p>
+<pre>idle power × idle hours
++
+active energy × workload</pre>
+<p>因此只优化满载 J/token，不一定优化全年电费。</p>
+
+<h3>电费估算</h3>
+<pre>kWh = average_W × hours / 1000
+cost = kWh × local electricity price</pre>
+<p>电价属于动态且地域相关输入，课程不写死统一数字。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>比较能效时必须固定 workload，并写清测量边界：GPU-only 还是 whole-system。</strong>只有 Watts 没有时间/吞吐，不能推出能耗成本。</div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 300W GPU 可能比 220W GPU 有更低 J/token？</li>
+<li>board power 与 wall power 的系统边界有什么不同？</li>
+<li>为什么 24/7 服务必须考虑 idle power？</li>
+<li>电费模型还缺哪两个动态输入？</li>
+</ol>
+</section>
 </body></html>
