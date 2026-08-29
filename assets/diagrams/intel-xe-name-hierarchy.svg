@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 520" role="img" aria-labelledby="title desc">
+<title id="title">Intel Xe 架构、generation、microarchitecture 与产品名称层级</title>
+<desc id="desc">展示Xe是架构家族，Xe、Xe2等是generation，HPG/HPC/LPG等是microarchitecture目标，Arc A770与Arc B580是具体产品，说明EU或Xe-core数量不能脱离代际比较。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.sub{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<text class="h" x="35" y="38">Intel 名字最容易混：先分“架构家族 → generation → microarchitecture → SKU”</text>
+<rect class="box" x="420" y="75" width="300" height="70" rx="14"/><text x="570" y="106" text-anchor="middle" font-size="19" font-weight="700">Xe GPU architecture family</text><text class="s" x="570" y="128" text-anchor="middle">共同的 GPU 编程/执行概念</text>
+<path class="line" d="M570 145 V190 M300 190 H840 M300 190 V218 M570 190 V218 M840 190 V218"/>
+<rect class="box" x="220" y="220" width="160" height="68" rx="12"/><text class="t" x="300" y="248" text-anchor="middle">Xe generation</text><text class="s" x="300" y="269" text-anchor="middle">first generation</text>
+<rect class="box" x="490" y="220" width="160" height="68" rx="12"/><text class="t" x="570" y="248" text-anchor="middle">Xe2 generation</text><text class="s" x="570" y="269" text-anchor="middle">second generation</text>
+<rect class="box" x="760" y="220" width="160" height="68" rx="12"/><text class="t" x="840" y="248" text-anchor="middle">Xe3 …</text><text class="s" x="840" y="269" text-anchor="middle">future/current family evolution</text>
+
+<path class="line" d="M300 288 V330 M570 288 V330"/>
+<g transform="translate(75 335)">
+<rect class="sub" x="0" y="0" width="205" height="82" rx="12"/><text x="102" y="28" text-anchor="middle" class="t">Xe-HPG · Alchemist</text><text class="s" x="102" y="50" text-anchor="middle">high-performance graphics</text><text class="s" x="102" y="69" text-anchor="middle">example: Arc A770</text>
+<rect class="sub" x="225" y="0" width="205" height="82" rx="12"/><text x="327" y="28" text-anchor="middle" class="t">Xe-HPC · Ponte Vecchio</text><text class="s" x="327" y="50" text-anchor="middle">HPC / data center</text><text class="s" x="327" y="69" text-anchor="middle">different memory/system goals</text>
+<rect class="sub" x="525" y="0" width="205" height="82" rx="12"/><text x="627" y="28" text-anchor="middle" class="t">Xe2-HPG · Battlemage</text><text class="s" x="627" y="50" text-anchor="middle">second-gen HPG</text><text class="s" x="627" y="69" text-anchor="middle">example: Arc B580</text>
+<rect class="sub" x="750" y="0" width="205" height="82" rx="12"/><text x="852" y="28" text-anchor="middle" class="t">Xe2-LPG / other branches</text><text class="s" x="852" y="50" text-anchor="middle">integrated / different targets</text><text class="s" x="852" y="69" text-anchor="middle">same generation ≠ same SKU</text>
+</g>
+<text x="570" y="468" text-anchor="middle" class="t">再往下才比较：Xe-core / vector engine / XMX · subgroup · SLM/cache · memory · driver/runtime/backend。</text>
+<text x="570" y="495" text-anchor="middle" class="s">因此“EU/Xe-core 更多”只有在同一代、同类 microarchitecture、同软件路径下才可能有直接意义。</text>
+</svg>
