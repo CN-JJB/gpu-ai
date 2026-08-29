@@ -16,6 +16,7 @@
 <p>真正的问题是：<strong>怎样在不让某个 tenant 饿死的前提下分配 slot、token、context/KV 与等待时间，同时在其他人空闲时允许借用容量，避免 GPU 白白闲着？</strong>公平性必须和利用率、per-tenant SLO 一起度量。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/fairness-quotas.svg" alt="两个租户的长短请求经过 global FIFO、每租户 quota 与 work-conserving borrowing 的公平性对照"><figcaption><strong>请求数公平不等于工作量公平。</strong> 这张图把长请求、短请求、slot quota 与 borrowing 放在一起，帮助判断“谁占了多少 active capacity”而不是只数 HTTP request。</figcaption></figure>
 <h2>1. Request 不是统一成本单位</h2>
 
 <pre>
