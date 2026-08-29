@@ -52,3 +52,49 @@ It does not:
 - buy or modify hardware.
 
 It checks the internal consistency and completeness of the design-review packet.
+
+## Why this experiment
+
+毕业项目最重要的不是“配置看起来合理”，而是最终结论与 hard gates、证据、revision、non-claims 之间逻辑一致。这个 validator 专门检查这种内部一致性。
+
+## Hypothesis
+
+ACCEPT case 必须 all required PASS；REVISE case 必须存在已知 FAIL 且 revision 覆盖它；BLOCKED case 必须存在关键 UNKNOWN/缺证据。
+
+## Fixed variables
+
+三个 case 文件和 validator 规则保持不变，不允许通过删除 required gate 来“修复”结论。
+
+## What to observe
+
+1. material claim 是否都有 evidence reference。
+2. FAIL 与 UNKNOWN 如何导致不同 decision。
+3. revision 是否点名具体 failed gate。
+4. non-claims 为什么是合格报告的必需部分。
+
+## Troubleshooting
+
+- evidence path 非空不等于内容一定真实；validator 只查 packet consistency。
+- FAIL 不能写成 BLOCKED 来逃避已知问题。
+- UNKNOWN 也不能乐观写 ACCEPT。
+- revision 必须修复已知失败，而不是泛泛“升级硬件”。
+
+## Evidence to save
+
+保存三个 case 和输出，并自己解释为什么三种 decision 都可能是合格毕业结果。
+
+## What this proves
+
+你能检查 design-review packet 的逻辑完整性。
+
+## What this does NOT prove
+
+它不验证外部 evidence 真伪，也不自动选择或购买硬件。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+如果所有 gate 都 PASS，但一个关键性能 claim 没有 evidence reference，最终还能 ACCEPT 吗？
