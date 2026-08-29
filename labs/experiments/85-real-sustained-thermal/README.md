@@ -183,3 +183,48 @@ as part of this baseline experiment.
 
 Use:
 `RESULT-TEMPLATE.md`.
+
+
+## Hypothesis
+
+如果性能确实随热/功率限制进入新的稳态，重复 TG 与 temperature/clock/power 的时间线应出现可解释的同步变化；“温度高”本身不足以证明 thermal throttling。
+
+## Fixed variables
+
+exact llama-bench/model/device/offload/n_gen/repetitions/warmup 固定；baseline 不改 OC/voltage/power/fan。不同机箱/ambient 条件要分开记录。
+
+## What to observe
+
+- first/last quartile TG 与 drift；
+- temperature、clock、power 的同步趋势；
+- limiter/event reason（若设备支持）；
+- warmup policy；
+- ambient、panel、slot spacing、neighbor GPU；
+- drift 是否超出普通 run-to-run noise。
+
+## Troubleshooting
+
+- telemetry window 要覆盖 benchmark 前后。
+- 不同 warmup policy 不能直接比。
+- vendor field 不支持时保留 N/A。
+- clock/TG 下降但温度没明显升时继续查 power/background/driver，而不是硬判 thermal。
+
+## Evidence to save
+
+保存 sustained manifest、每次 TG samples、telemetry raw、环境条件、limiter evidence 和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能评价某一真实机器在固定 workload 下的 sustained performance 稳定性，并形成热/功率假设。
+
+## What this does NOT prove
+
+它不建立通用温度阈值，也不能仅凭相关性证明 exact throttle cause。
+
+## No-hardware fallback
+
+完成 Experiment 84。
+
+## Transfer question
+
+20 分钟后 TG 降 15%，clock 也降，但 temperature 只小幅变化。你下一步应该查哪些证据？
