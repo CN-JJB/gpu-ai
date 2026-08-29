@@ -266,6 +266,18 @@ AND GPU/KV saturated
 <tr><td>Modify</td><td>能在失败后只改必要变量并重新验证</td></tr>
 </table>
 
+
+<h3>Troubleshooting：Design Review 没通过时怎么修，而不是重写答案？</h3>
+<ol>
+<li><strong>Claim 没有 Evidence：</strong>缩小或删除 claim，或者补一条能直接支持它的证据；不要用“大家都知道”填空。</li>
+<li><strong>两组 benchmark 不可比：</strong>回到 manifest，找出变化的模型、runtime、prompt、context、cache、并发或质量条件；不可比时取消横向结论。</li>
+<li><strong>Hard Gate FAIL：</strong>先修设计或明确 REVISE，不用其他优点做平均分抵消。</li>
+<li><strong>关键项 UNKNOWN：</strong>写出最小下一证据和责任边界；需要真实硬件时标记 DEFERRED-HARDWARE，而不是伪造结果。</li>
+<li><strong>来源相互冲突：</strong>比较 exact 型号、版本、日期、测试边界与证据等级，保留冲突直到能解释差异。</li>
+<li><strong>Reviewer 追问“为什么”三次后链条断了：</strong>回到 requirement → mechanism → evidence → decision 的哪一环断裂就修哪一环，不靠增加配置单细节掩盖逻辑缺口。</li>
+</ol>
+<p>毕业报告允许最终状态是 REVISE 或 BLOCKED；真正失败的是把未知写成已知，或让一个不可复核的结论伪装成完成。</p>
+
 <h3>Decision Rule</h3>
 <div class="callout"><strong>毕业不是“配出最强电脑”，而是能对一个真实 Local LLM 系统做可复核的设计、测量、诊断、修改与决策。</strong></div>
 
