@@ -43,5 +43,44 @@
 <h2>Retrieval Practice</h2><ol><li>Apple benchmark 为什么要记录 memory pressure/swap？</li><li>MLX lazy execution 会怎样污染错误的计时方法？</li><li>为什么 MLX 与 llama.cpp 比较必须记录 exact model/quant/runtime？</li><li>什么时候 ANE 可以写进 LLM 性能解释？</li><li>短上下文快、长上下文慢时为什么先检查 KV 与 memory pressure？</li><li>为什么 sustained run 对无风扇/轻薄设备特别重要？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>Apple 本地 LLM 结论必须绑定 exact SoC/memory + runtime + model/quant + context + memory-pressure state。总内存、GPU core、ANE TOPS 任一单项都不能成为购买分数。</p></div>
 <h2>Transfer</h2><p>统一内存系统的“系统竞争 + workload memory budget”思维可迁移到 APU/共享 HBM 系统；lazy execution/异步计时问题也可迁移到 CUDA/HIP，需要显式同步才能得到可信时间。</p>
+
+<h2>Capstone 交付物：Apple 路径必须把“共享系统状态”一起封装</h2>
+<p>一份合格 Apple Packet 至少包含：</p>
+<ul>
+<li>exact Mac / SoC / unified-memory capacity；</li>
+<li>macOS、runtime/application build、Metal/MLX device path；</li>
+<li>model artifact、quant、context、prompt identity；</li>
+<li>运行前后的 memory pressure / swap 状态；</li>
+<li>PP/TG 分开结果与质量检查；</li>
+<li>持续运行时的 thermal/power 观察（若影响结论）；</li>
+<li>是否有 ANE 使用证据；没有就明确写 <strong>ANE attribution = NOT PROVEN</strong>。</li>
+</ul>
+
+<h2>Worked Example：24 GB 与 32 GB 为什么不能只按“多 8 GB”理解？</h2>
+<p>统一内存不是一块完全留给 LLM 的显存。假设两个配置运行相同模型：24 GB 机器在短上下文还能保持低 memory pressure，但长上下文 + 浏览器 + IDE 后进入 swap；32 GB 机器仍有 headroom。那么这 8 GB 的现实价值不是“模型 token/s 线性增加”，而是把系统从压力区移回可持续工作区。</p>
+<pre>capacity headroom
+→ less paging / less pressure
+→ more stable latency and concurrency
+</pre>
+<p>如果两台都远离压力区，额外容量也未必让同一 compute-bound workload 更快。所以购买判断必须绑定目标模型、context、并发和系统负载。</p>
+
+<h2>Acceptance States</h2>
+<ul>
+<li><strong>BLOCKED：</strong>模型/格式/runtime/device path 无法成立。</li>
+<li><strong>FIT：</strong>模型能加载，但还没证明长期 memory headroom。</li>
+<li><strong>USABLE：</strong>目标 workload 在可接受 pressure 下稳定运行。</li>
+<li><strong>MEASURED：</strong>固定协议 PP/TG/quality 已保存。</li>
+<li><strong>REVIEW：</strong>性能、容量、热、电、成本与不可升级内存风险一起人工评审。</li>
+</ul>
+
+<h2>异步计时的最小纪律</h2>
+<p>GPU/MLX 工作可能异步排队。任何“耗时”都必须确认测量窗口包含真实 materialization/completion；否则你可能只测 dispatch。这个原则不只属于 Apple：CUDA/HIP/其他 accelerator 同样需要在正确位置同步。</p>
+
+<h2>No-hardware fallback</h2>
+<p>没有 Mac 时，做一份 model-fit + pressure worksheet：用某个具体 unified-memory 容量，列出 weights、KV、runtime buffers、OS/background reserve 和 safety margin，并写出“何时我会判定 headroom 不足”。不要虚构 Activity Monitor、swap 或 PP/TG 数据。</p>
+
+<h2>What this capstone does NOT prove</h2>
+<p>一次 MLX 或 Metal 成功结果不证明 ANE 参与，不证明另一款 Mac 在同一 SoC 名称下拥有相同 sustained performance，也不证明“统一内存天然比独显更适合 LLM”。它只证明 exact machine × runtime × workload 的一条路径。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="https://github.com/ml-explore/mlx">MLX</a></li><li><a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a></li><li><a href="../../reference/gpu/apple-silicon-spine.md">Apple Silicon Course Reference</a></li></ul>
 </main></body></html>
