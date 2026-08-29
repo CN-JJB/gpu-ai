@@ -5,6 +5,17 @@
 </head><body>
 <h1>Overload / Admission Control — 一个都不拒绝，为什么反而可能更差？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该能解释 SLO、queue、active capacity 和 stable throughput，并理解“到达速率”与“完成速率”不是一回事。</p>
+<div class="callout"><strong>如果还不熟：</strong>把 offered load 想成不断进入系统的工作，把 service capacity 想成系统稳定完成工作的上限。若长期 offered load &gt; capacity，等待工作会累积；这不是靠更长队列就能修好的。</div>
+
+<h2>真实问题</h2>
+<p>你的本地 LLM 平时很好用，但一到多人同时请求，TTFT 越来越长。你可以继续排队、立即拒绝、让客户端重试，或者限制单次工作量；每一种选择都会改变用户体验和系统稳定性。</p>
+<p>真正的问题是：<strong>当负载接近或超过稳定容量时，怎样让一部分请求快速、明确地失败，而不是让所有请求一起陷入长尾；同时又不让 retry 把过载继续放大？</strong>Admission control 的目标不是追求“0 reject”，而是保护可预测的 SLO。</p>
+</section>
+
 <h2>1. 先看最基本不等式</h2>
 
 <pre>
