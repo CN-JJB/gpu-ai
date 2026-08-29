@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Apple Silicon 1：Unified Memory 不是大显存</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">Apple Silicon · 1/3 · L0→L1</p><h1>Apple Silicon（一）：Unified Memory 不是“超大显存”</h1><p class="lead">Apple Silicon 最容易被本地 LLM 玩家误读的就是 unified memory。它确实允许 CPU 与 GPU 在同一统一内存体系中访问数据，减少传统独显的显式复制，但它不等于“全部内存都能无代价当显存”，更不等于“容量够就一定快”。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/apple-silicon-generation-map.svg" alt="Apple Silicon 从 M1 到 M5 按 unified memory、GPU、Neural Engine 与 software path 四条线阅读的架构地图">
+<figcaption>Apple Silicon 最容易被一个“总内存”或“AI TOPS”数字带偏。课程固定同时看四条线：<strong>统一内存容量/带宽、GPU 路径、Neural Engine/AI 专用路径、runtime 能否真正调用</strong>。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应知道传统独显通常有主机 RAM 与 GPU VRAM 两个物理内存域，CPU↔GPU 之间的数据移动可能经过 PCIe/驱动管理。</p>
 <h2>真实问题：一台 64 GB Mac 是否等于“一张 64 GB 显存 GPU”？</h2><p>不能这样等同。64 GB unified memory 是整台 SoC 的共享内存资源，CPU、GPU、系统服务、应用、文件 cache 等都要使用。模型可用空间取决于系统保留、当前进程、runtime 策略与 memory pressure。</p>
 <h2>1. 传统独显：两个物理内存域</h2><pre>CPU ↔ system RAM
