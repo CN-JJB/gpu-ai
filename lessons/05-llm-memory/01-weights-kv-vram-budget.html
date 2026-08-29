@@ -12,6 +12,7 @@
 <h1>模型到底能不能塞进这张显卡？</h1>
 <p class="lead">垃圾佬买卡最危险的问题不是“这卡多少 TFLOPS”，而是模型下载完才发现：权重能塞，KV 塞不下；单用户能跑，一开长上下文或并发就 OOM。今天先学会在买卡之前粗算。</p>
 
+<h2>Prerequisite Check</h2><p>你应会 Foundation 03 的 bit/byte/GB/GiB，并理解 Lesson 04 中“容量”和“带宽”是两个不同问题。只需知道模型由参数组成、context 会增长；KV cache 的细节会在后续课程继续展开。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>我有一张 8 GiB 显卡。一个“7B 4-bit”模型文件看起来只有几 GB，是不是就稳稳能跑 32K context？</strong></p>
