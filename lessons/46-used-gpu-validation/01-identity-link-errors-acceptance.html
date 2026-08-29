@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>在付款或最终收货前，什么证据足以把一张二手卡从“看起来能用”推进到 PASS；出现哪些身份、链路、错误、温度或稳定性信号时必须 FAIL / UNKNOWN / BLOCKED？</strong>验收结论必须来自预先定义的标准，而不是测试后临时放宽。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/used-gpu-acceptance-flow.svg" alt="二手 GPU 从付款前风险筛选、到货外观、低风险上电、身份和 PCIe 链路、显存错误、温度时钟到长时间稳定性的验收流程"><figcaption><strong>验卡不是一次跑分，而是一条逐步降低未知的 acceptance flow。</strong> 前一步只证明前一步：能点亮不证明 VRAM 健康，短测通过不证明长时间稳定，温度截图也不能替代真实 workload。</figcaption></figure>
 <h2>1. 先把卖家描述变成可检查的字段</h2>
 <pre>型号
 VRAM
