@@ -169,6 +169,94 @@ sudo ...
 - 它解析出的绝对路径；
 - 一次命令的 exit code。
 
+
+## Mental Model：Shell 不是“黑框魔法”，而是一条可审计调用链
+
+每次命令都可以拆成：
+
+~~~text
+current working directory
++ executable
++ argv
++ environment
++ input files
+→ process
+→ stdout / stderr / exit code
+→ output files
+~~~
+
+课程后面所有严格实验，本质上都在把这条链保存下来。
+
+## Worked Example：同一条相对路径为什么会读到两个不同文件
+
+假设：
+
+~~~text
+/home/me/run-a/model.gguf
+/home/me/run-b/model.gguf
+~~~
+
+而命令都写：
+
+~~~bash
+tool -m ./model.gguf
+~~~
+
+如果当前目录不同，./model.gguf 就不是同一个 artifact。  
+所以 Evidence 中至少要保留：
+
+~~~bash
+pwd
+realpath ./model.gguf
+~~~
+
+以及脚本最终解析后的 exact path / hash。
+
+## Redirection 最小知识
+
+你只需要先认识：
+
+~~~bash
+command > stdout.txt
+command 2> stderr.txt
+command > stdout.txt 2> stderr.txt
+~~~
+
+这解释“为什么屏幕上没看到错误，但 stderr 文件里有”。课程自己的 capture 工具优先于手写重定向，因为它还会记录 argv、时间、return code 和 hash。
+
+## Troubleshooting Tree
+
+~~~text
+command not found
+→ executable/path/PATH
+
+No such file
+→ cwd + relative path + typo
+
+Permission denied
+→ ownership/mode/mount policy
+→ 不先 sudo
+
+process hangs
+→ distinguish busy / waiting / deadlock / network / I/O
+→ Ctrl+C only after preserving what matters
+
+files exist but status FAIL/BLOCKED
+→ trust exit/status contract, not file existence
+~~~
+
+## No-hardware fallback
+
+本节本来就是 L0。没有 Linux 也可以在 macOS shell 完成大部分练习；Windows 可使用 WSL、Git Bash 或 PowerShell 做等价练习，但课程命令的 shell 语义以对应实验说明为准。
+
+## Decision Rule
+
+当一个实验因为“文件找不到、路径错、权限错、进程没退出”失败时，先修执行环境，不讨论 GPU/模型性能。基础 I/O 身份不清楚，后面的 benchmark 数字没有证据价值。
+
+## Transfer
+
+以后遇到 Docker、SSH、systemd、CI，你仍然在追同一条链：谁启动了哪个 process、在哪个目录、拿了哪些输入、产生了什么输出、以什么状态结束。
+
 ## Primary Sources
 
 - GNU Coreutils manual: https://www.gnu.org/software/coreutils/manual/
