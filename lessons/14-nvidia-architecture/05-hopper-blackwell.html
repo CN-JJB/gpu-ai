@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 5：Hopper 与 Blackwell</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">NVIDIA Architecture · 5/5 · L0→L2</p><h1>NVIDIA 架构主线（五）：Hopper → Blackwell</h1><p class="lead">这一节把视角从“单张消费显卡”抬到现代 AI system：更低精度、更大的 HBM、更强互联、异步数据搬运、Transformer 专用优化以及多 GPU 规模化。你不需要拥有这些昂贵硬件，但必须理解它们为什么会反过来影响消费 GPU 软件栈与 LLM 优化方向。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA 从 Tesla、Fermi、Kepler、Maxwell、Pascal、Volta、Turing、Ampere、Ada、Hopper 到 Blackwell 的课程架构演进地图">
+<figcaption>这张地图先固定<strong>代际位置与问题主线</strong>，再进入本页细节。不要跨代直接用 CUDA Core 数、Tensor Core 数或单一 TOPS 做比例换算；执行组织、数值路径、memory system 和软件生命周期都在变化。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应能区分 compute roof、memory roof、PCIe/VRAM 两类链路，并知道 Tensor Core 的收益依赖 dtype + kernel + workload。</p>
 <h2>真实问题：为什么数据中心 AI GPU 的“架构进步”越来越像系统工程，而不是只增加核心？</h2><p>当单颗 GPU 已经非常强，下一步瓶颈会不断转移：如何把数据提前搬到片上？如何让很多 GPU 高速交换？如何在更低精度下保持可用数值范围？如何减少大 Transformer 的通信与内存开销？因此现代 AI 架构越来越强调<strong>计算 + 内存 + 互联 + 软件协同</strong>。</p>
 <h2>1. Hopper：Transformer 时代的数据流优化</h2><p>Hopper 延续 Tensor Core 与低精度路线，并强化异步数据搬运和面向 Transformer workload 的专门机制。对学生最重要的不是记某个峰值，而是理解“让计算单元持续有数据可做”已成为一级设计目标。</p>
