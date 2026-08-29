@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 470" role="img" aria-labelledby="title desc">
+<title id="title">LLM 服务过载、有限队列与立即重试放大</title><desc id="desc">当incoming work超过server capacity，无界queue会增加TTFT；bounded queue会reject；客户端立即重试会把原始请求进一步放大，backoff可减缓放大。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.warn{fill:#f3f3f3;stroke:#777;stroke-width:2}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.loop{stroke:#888;stroke-width:2;fill:none;stroke-dasharray:6 5;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">incoming work ＞ service capacity 时，问题不是“要不要排队”，而是如何控制等待与放大</text>
+<rect class="box" x="55" y="120" width="180" height="85" rx="13"/><text class="t" x="145" y="153" text-anchor="middle">Incoming requests</text><text class="s" x="145" y="177" text-anchor="middle">λ > sustainable μ</text>
+<path class="arrow" d="M240 162 H310"/>
+<rect class="warn" x="315" y="105" width="220" height="115" rx="14"/><text x="425" y="140" text-anchor="middle" font-size="18" font-weight="700">Bounded admission</text><text class="s" x="425" y="168" text-anchor="middle">1 active + N waiting</text><text class="s" x="425" y="190" text-anchor="middle">excess → reject / 429</text>
+<path class="arrow" d="M540 162 H625"/>
+<rect class="box" x="630" y="120" width="180" height="85" rx="13"/><text class="t" x="720" y="153" text-anchor="middle">Server work</text><text class="s" x="720" y="177" text-anchor="middle">finite slots / KV / compute</text>
+<path class="arrow" d="M815 162 H900"/>
+<rect class="box" x="905" y="120" width="160" height="85" rx="13"/><text class="t" x="985" y="153" text-anchor="middle">Completion</text><text class="s" x="985" y="177" text-anchor="middle">bounded latency target</text>
+<path class="loop" d="M420 225 C420 320 135 320 135 220"/><text class="t" x="270" y="310" text-anchor="middle">立即重试：rejected request → new incoming request → amplification</text>
+<rect class="warn" x="260" y="350" width="600" height="70" rx="12"/><text class="t" x="560" y="379" text-anchor="middle">Backoff / jitter / timeout budget</text><text class="s" x="560" y="402" text-anchor="middle">目标不是“永不 reject”，而是避免 queue 与 retry 把系统拖入更差的稳定点。</text>
+</svg>
