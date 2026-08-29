@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>在花钱之前，怎样把 GPU、主机、软件、模型、workload、SLO、功耗与风险证据合成一个可审计 dossier，并明确哪些 unknown 必须先关闭？</strong>整机设计不是把优点相加，而是先证明所有硬门槛同时成立。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/system-integration-hard-gates.svg" alt="本地 LLM 整机集成把模型容量、软件、供电、物理散热、主机 RAM 存储 PCIe、多 GPU 和 workload 分成独立 hard gates，每个输出 PASS FAIL UNKNOWN BLOCKED，全部通过后才比较偏好"><figcaption><strong>整机工程不应该用一个万能综合分把硬失败平均掉。</strong> Fit、software、power、physical/thermal、host、multi-GPU/workload 各自先给 PASS / FAIL / UNKNOWN / BLOCKED；只有硬门槛可接受后，价格、噪声、能效、扩展性才进入 preference 比较。</figcaption></figure>
 <h2>1. 现在把前 47 个 Slice 汇合</h2>
 <pre>workload/model
 + GPU/VRAM
