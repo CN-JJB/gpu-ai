@@ -257,3 +257,44 @@ depth 16384
 3. 如果 GPU layers 增加但 TG 没变，下一步查什么？
 4. 如果长 context 下 TG 下降，KV/cache/memory traffic 如何解释？
 5. 为什么 raw JSON 比截图 tokens/s 更有价值？
+
+
+## Hypothesis
+
+一次可复现的本地 LLM 运行必须能从 runtime/device/model identity 追到 generation 与 PP/TG raw evidence；“看到回答”只证明功能输出，不证明 GPU path 或性能。
+
+## Fixed variables
+
+benchmark 比较固定 exact GGUF SHA、runtime build、PP/TG/context/KV/threads，并显式记录 offload。first-success auto-fit 与正式固定 benchmark 分开。
+
+## What to observe
+
+- startup backend/device/offload；
+- exact model bytes/SHA；
+- CPU first generation；
+- CPU vs accelerator PP/TG；
+- context/thread sweep；
+- raw JSON 与 UI 感知 latency 的边界。
+
+## Troubleshooting
+
+- 参数以 current --help 为准。
+- GPU device 可见但 TG 不变时查实际 offload/backend/瓶颈。
+- auto-fit 只能用于 first success，不作为受控 benchmark 配置。
+- CPU-only 完成也是有效学习成果。
+
+## What this proves
+
+你能建立第一个真实、可重跑、可审计的 Local LLM baseline。
+
+## What this does NOT prove
+
+llama-bench TG 不等于完整聊天 UI latency，也不包含质量判断。
+
+## No-hardware path
+
+CPU baseline 是完整替代路径。
+
+## Transfer question
+
+GPU benchmark 比 CPU 快很多，但 startup log 显示只有部分层 offload。你应该把结论写成“GPU 全模型性能”吗？
