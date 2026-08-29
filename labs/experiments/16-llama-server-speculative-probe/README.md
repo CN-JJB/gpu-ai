@@ -301,3 +301,52 @@ tools/server/bench/speed-bench
 5. two-model path 增加多少 memory？
 6. concurrency 增加后 spec speedup 是否下降？
 7. 如果输出文本不逐字相同，你用什么标准判断“lossless algorithmic guarantee”而不是错误地比较随机采样结果？
+
+
+## Hypothesis
+
+在 target/workload/sampling/context/concurrency 固定时，speculative decoding 的净收益取决于 accepted progress 是否超过 proposer + verification + memory/placement overhead；不同 prompt 类型和 concurrency 可以改变结果。
+
+## Fixed variables
+
+baseline/spec 保持 exact target SHA、server build、prompt、sampling、context、target offload、concurrency 一致。主实验只改变 speculative decoding OFF/ON；two-model path 额外记录 draft identity/placement。
+
+## What to observe
+
+- draft/accepted tokens；
+- acceptance rate；
+- accepted tokens per verification；
+- n_decode_total；
+- server/wall predicted t/s；
+- E2E；
+- repetitive vs novel；
+- two-model resident memory/offload changes；
+- concurrency 增加后的 speedup。
+
+## Troubleshooting
+
+- 关闭 prompt cache，避免另一个优化变量混入。
+- metric 名变化时保留 missing/unsupported，不填 0。
+- high acceptance + no speedup 先查 proposer/verification/placement。
+- draft 导致 target offload 改变时必须把 placement 变化写出来。
+- 随机采样输出不应通过逐字相等误判算法正确性。
+
+## Evidence to save
+
+保存 server build/help、target/draft SHA、baseline/spec raw JSON、metrics/log、memory evidence、compare 输出和 prompt identity。
+
+## What this proves
+
+你能实测当前 llama-server speculative path 的 acceptance、开销与 workload dependence。
+
+## What this does NOT prove
+
+它不保证 speculation 对所有 prompt/concurrency 都加速，也不允许从一次 smoke run推广到所有模型。
+
+## No-hardware fallback
+
+完成 Experiment 15。
+
+## Transfer question
+
+acceptance 90% 但 TG 不升，且加载 draft 后 target 有部分层掉到 CPU。最优先解释是什么？
