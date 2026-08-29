@@ -110,7 +110,7 @@ A decorative image does not satisfy this audit.
 - [x] Batch 02 review and implementation — Lessons 06–13
 - [x] Batch 02 link/readiness re-check
 - [x] Batch 03 review and implementation — Lessons 14–23 architecture/vendor + hardware-decision group
-- [ ] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
+- [x] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
 - [ ] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
 - [ ] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
 - [ ] final 62-page visual/comprehension closure audit
@@ -209,3 +209,41 @@ visual or interactive teaching surface = 23 / 23
 Lesson 21 intentionally has no static figure because its interactive calculator is the stronger teaching representation.
 
 The next review batch is Lessons 24–33. Priority is dynamic Transformer/model-internal mechanisms: token flow, RoPE rotation, attention-head sharing, SwiGLU gating, MoE routing/load balance, modern KV layouts, tokenizer/sampling probability changes, quality gates and benchmark identity.
+
+
+## Batch 04 detailed review — Lessons 24–33
+
+| Lesson | Depth | Beginner clarity | Mechanism that must be seen | Accepted surface |
+|---|---|---|---|---|
+| 24 Transformer anatomy | strong | strong | prefill and decode traverse the same decoder blocks with very different token shapes / KV behavior | `transformer-prefill-decode.svg` |
+| 25 RMSNorm / RoPE | strong | good | RoPE position/frequency is a rotation, not a text label or simple additive ID | interactive 2D RoPE rotation explorer |
+| 26 MHA / GQA / MQA | strong | strong | query-head count and KV-head sharing must be spatially visible | `mha-gqa-mqa.svg` |
+| 27 SwiGLU / FFN | strong | strong | gate/up/down projections and elementwise gating are a dataflow | `swiglu-flow.svg` |
+| 28 MoE | strong | good | active experts, resident experts and cross-device traffic are different quantities | `moe-routing.svg` |
+| 29 Model dossier | strong | strong | identity/config/artifact/runtime facts feed capacity/performance hypotheses, not conclusions | `model-dossier.svg` |
+| 30 Modern KV | strong | good | hybrid local/full attention changes layer-token history scaling; latent KV changes representation | interactive hybrid-KV budget calculator |
+| 31 Tokenizer / sampling | strong | strong | temperature reshapes a probability distribution; template/token identity precedes sampling | interactive temperature/softmax distribution |
+| 32 Quality gate | strong | strong | performance improvement and quality admission are separate gates | `quality-gate.svg` |
+| 33 Benchmark manifest | strong | strong | exact identity, frozen protocol, one semantic variable and raw audit links must stay separate | `benchmark-manifest.svg` |
+
+### Batch 04 comprehension findings
+
+- No new asset was necessary. The strongest teaching surface for every page already existed and matched the concept.
+- The three interactive pages are correctly bounded:
+  - RoPE is explicitly a 2D intuition slice rather than a literal full-dimensional implementation.
+  - Hybrid KV compares history-position factors and explicitly excludes real per-layer head/dtype/allocator details.
+  - Temperature holds logits fixed and visualizes only softmax reshaping; it does not pretend to model the entire sampler chain.
+- Static diagrams are mechanism-specific rather than decorative: token flow, KV-head sharing, gated FFN flow, expert routing, evidence identity and admission gates.
+- This batch demonstrates the preferred rule for the rest of the audit: **do not add a second visual merely because a page has only one; add another only when it teaches a distinct causal mechanism.**
+
+Post-review marker check:
+
+~~~text
+visual or interactive teaching surface = 10 / 10
+Retrieval Practice = 10 / 10
+完成证据 = 10 / 10
+Primary Sources = 10 / 10
+HTML close = 10 / 10
+~~~
+
+The next review batch is Lessons 34–45: serving SLOs, capacity, overload/admission, fairness, exposure, reliability, upgrades, observability, power, storage, host memory and sustained thermal behavior.
