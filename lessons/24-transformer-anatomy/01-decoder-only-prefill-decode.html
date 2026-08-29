@@ -40,5 +40,41 @@ using V_1..V_N
 <h2>Retrieval Practice</h2><ol><li>Prefill 与 decode 的依赖关系为什么不同？</li><li>为什么 decode 小 batch 更容易受 memory bandwidth 限制？</li><li>KV cache 避免了什么重算，又增加了什么资源？</li><li>长 context 为什么既影响容量又可能影响 decode？</li><li>batching 为什么可能提高总吞吐却拉高单请求延迟？</li><li>从 decoder-only 结构列出选 GPU 时至少五个相关维度。</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>任何 LLM “速度”比较至少分 PP/TTFT 与 TG/ITL，并绑定 context、batch/concurrency、模型与 runtime。不能用单一 token/s 代表所有交互场景。</p></div>
 <h2>Transfer</h2><p>以后学 GQA、KV quant、paged KV、speculative decoding，都问：它主要改变 prefill、decode、KV capacity、memory traffic、compute 还是 scheduling？</p>
+
+<h2>把一次请求画成 Evidence 时间轴</h2>
+<pre>load / warm state
+→ tokenize prompt
+→ PREFILL(prompt tokens)
+→ first-token boundary
+→ DECODE token 1
+→ DECODE token 2
+→ ...
+→ stop condition
+</pre>
+<p>以后看到“首字慢”或“生成慢”，先把现象放回时间轴。只有 prefill 区间慢，才优先调查 prompt shape、matrix path 与 prefill kernel；只有 decode 区间慢，才优先调查权重/KV traffic、skinny kernel、host sampling 等。</p>
+
+<h2>Worked Example：同一模型为什么 PP 很强、TG 却普通？</h2>
+<p>假设某 GPU 在大矩阵上利用率很高，因此长 prompt prefill 很快；但单用户 decode 每轮只有一个新 token，大量模型权重仍需反复参与计算。此时强大的矩阵峰值没有自动转化成同等比例的 TG 提升。</p>
+<table><thead><tr><th>观察</th><th>优先假设</th><th>不能直接推出</th></tr></thead><tbody>
+<tr><td>PP 高</td><td>大矩阵路径利用较好</td><td>TG 也一定高</td></tr>
+<tr><td>TG 低</td><td>memory/kernel/host 之一可能受限</td><td>GPU compute 一定弱</td></tr>
+<tr><td>context 增长后 TG 下降</td><td>KV/history traffic 候选增强</td><td>一定是显存容量不足</td></tr>
+</tbody></table>
+
+<h2>Experiment Evidence</h2>
+<p>真机阶段同一模型至少保存：prompt token 数、generated token 数、context、batch/concurrency、PP/TTFT、TG/ITL、KV 配置、runtime build、device/backend 与 raw output。改变 prompt 长度时保持其他 semantic variables 固定。</p>
+<p>无 GPU 时，使用 512/4096/16384 的纸面时间轴，写出每种情况下 prefill work、KV capacity 与 decode-history traffic 的方向性变化；不要填虚构 token/s。</p>
+
+<h2>Interpretation Branches</h2>
+<ul>
+<li><strong>TTFT 高、TG 正常：</strong>拆 model load、tokenization、prefill。</li>
+<li><strong>TTFT 正常、TG 低：</strong>拆权重/KV memory path、kernel、sampling/host。</li>
+<li><strong>两者都低：</strong>先确认 backend/offload/build，再看硬件 roof。</li>
+<li><strong>并发提高总吞吐但单请求变慢：</strong>这是 throughput/latency tradeoff，不是矛盾。</li>
+</ul>
+
+<h2>What this lesson does NOT prove</h2>
+<p>“decode 常常 memory-sensitive”是有用心智模型，不是对每个模型、batch、量化和 GPU 的永久定律。真正瓶颈必须由固定协议的 Evidence 与 profiler/telemetry 逐步缩小。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61</a></li></ul>
 </main></body></html>
