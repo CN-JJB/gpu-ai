@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+<title id="title">GGUF 模型从存储到第一次推理的加载路径</title><desc id="desc">模型文件经过filesystem、page cache、mmap或read、host memory、GPU upload、backend init、health ready和first inference；cold与warm启动区别主要在page cache与初始化状态。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.cache{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“SSD 3 GiB/s”只解释链路中的一段；第二次启动可能主要从 page cache 读</text>
+<g transform="translate(25 110)">
+<rect class="box" x="0" y="0" width="110" height="70" rx="10"/><text class="t" x="55" y="42" text-anchor="middle">GGUF file</text><path class="arrow" d="M115 35 H145"/>
+<rect class="box" x="150" y="0" width="120" height="70" rx="10"/><text class="t" x="210" y="31" text-anchor="middle">filesystem</text><text class="s" x="210" y="52" text-anchor="middle">SSD/HDD</text><path class="arrow" d="M275 35 H305"/>
+<rect class="cache" x="310" y="0" width="130" height="70" rx="10"/><text class="t" x="375" y="31" text-anchor="middle">page cache</text><text class="s" x="375" y="52" text-anchor="middle">warm may hit here</text><path class="arrow" d="M445 35 H475"/>
+<rect class="box" x="480" y="0" width="120" height="70" rx="10"/><text class="t" x="540" y="31" text-anchor="middle">mmap/read</text><text class="s" x="540" y="52" text-anchor="middle">virtual mapping</text><path class="arrow" d="M605 35 H635"/>
+<rect class="box" x="640" y="0" width="120" height="70" rx="10"/><text class="t" x="700" y="31" text-anchor="middle">host memory</text><text class="s" x="700" y="52" text-anchor="middle">pages / buffers</text><path class="arrow" d="M765 35 H795"/>
+<rect class="box" x="800" y="0" width="130" height="70" rx="10"/><text class="t" x="865" y="31" text-anchor="middle">GPU upload</text><text class="s" x="865" y="52" text-anchor="middle">if discrete GPU</text><path class="arrow" d="M935 35 H965"/>
+<rect class="box" x="970" y="0" width="120" height="70" rx="10"/><text class="t" x="1030" y="31" text-anchor="middle">backend init</text><text class="s" x="1030" y="52" text-anchor="middle">alloc / kernels</text>
+</g>
+<path class="arrow" d="M1030 185 V245 H780"/>
+<rect class="box" x="620" y="250" width="320" height="80" rx="13"/><text class="t" x="780" y="281" text-anchor="middle">health ready → first inference</text><text class="s" x="780" y="305" text-anchor="middle">still may differ from warm steady state</text>
+<rect class="cache" x="130" y="270" width="390" height="100" rx="14"/><text x="325" y="302" text-anchor="middle" font-size="17" font-weight="700">Cold vs warm must be declared</text><text class="t" x="325" y="330" text-anchor="middle">cold-ish: storage path dominates more</text><text class="t" x="325" y="352" text-anchor="middle">warm: page cache / prior init can dominate</text>
+<text x="560" y="445" text-anchor="middle" class="s">mmap does not mean “model is already in RAM”; pages are faulted/reclaimed according to OS policy.</text>
+</svg>
