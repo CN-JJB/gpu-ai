@@ -253,6 +253,21 @@ A B C X Y Z</code></pre>
 
 <div class="callout"><p><strong>这就是“prefix cache 省 prefill，不省新 token decode”的最小证据。</strong></p></div>
 
+<section class="card interactive-lab" data-prefix-lru>
+<h3>动手看 LRU：cache 开着，为什么仍可能 0 hit？</h3>
+<p>固定访问序列 <code>A, B, A, C, A, B</code>。每个请求有 1024-token shared prefix + 64-token unique suffix。只改 cache capacity，观察 working set 与 eviction。</p>
+<label>可保留 prefix 数：<strong data-cache-capacity-out>2</strong>
+<input data-cache-capacity type="range" min="0" max="3" step="1" value="2">
+</label>
+<div class="metric-grid">
+<div class="metric">Hits<strong data-cache-hits>—</strong></div>
+<div class="metric">Evictions<strong data-cache-evictions>—</strong></div>
+<div class="metric">Prompt tokens processed<strong data-prompt-processed>—</strong></div>
+<div class="metric">Prompt tokens saved<strong data-prompt-saved>—</strong></div>
+</div>
+<div class="cache-steps" data-cache-steps aria-label="Prefix cache LRU 每一步的 hit miss 和 cache 状态"></div>
+<p class="small"><strong>边界：</strong>真实 runtime 的 block size、hash/key、tokenization、eviction 与共享策略更复杂。这个模型只验证“working set 超过容量会 thrash”。</p>
+</section>
 <h2>12. capacity=1 为什么 hit rate 居然还是 0？</h2>
 
 <p>访问：</p>
@@ -386,5 +401,6 @@ attention → all history</pre>
 <h3>Decision Rule</h3>
 <div class="callout"><strong>KV 是 serving 容量的一等公民。</strong>选显卡、context、并发时必须把它和 weights 分开预算。</div>
 </section>
+<script src="../../assets/components/prefix-cache-lru.js"></script>
 </body>
 </html>
