@@ -15,6 +15,20 @@ Experiments 01–93
 v1 stable mainline complete
 ~~~
 
+## Textbook authoring status
+
+~~~text
+Student textbook completion pass: ACTIVE — depth-audit closure
+Experiment instruction textbook pass: complete
+Foundation 00–05 learner-contract pass: complete
+Challenge 01–12 teaching closure: complete
+stable lessons/*.html under 8 KiB after thin-page audit: 0
+~~~
+
+The latest pass deepened the previously thin architecture/vendor, Transformer/model-internals, benchmark/quality/decision, operations, power, used-GPU and whole-machine pages with worked examples, Evidence outputs, interpretation branches, failure recovery, no-hardware paths, and explicit decision/non-claim boundaries.
+
+Do **not** declare TEXTBOOK COMPLETE from byte count. Remaining work is course-readiness/repository-integrity validation plus substantive contract spot review. Real learner-owned benchmark acquisition remains deferred until the learner phase.
+
 ## Phase 4 frontier
 
 ~~~text
@@ -288,14 +302,11 @@ clean real workspace bootstrap
 
 ## Next work
 
-1. Bootstrap a clean NVIDIA-first real workspace on the actual benchmark machine.
-2. Follow its `RUN.md`: run I54 and require `READY-FOR-SEMANTIC-REVIEW`.
-3. Assemble `profile.txt` from that READY bundle and require `HARDWARE PROFILE ASSEMBLER: READY`.
-4. Review raw/profile observations and deliberately fill explicit device/runtime/model-source/execution semantics plus real Experiment 57/59 artifacts.
-5. Run I53 and require `READY-TO-RUN-I52`.
-6. Run the prepared session through I52 and require `REAL SESSION: READY`; manually review before ingestion.
-7. After reviewed ingestion, derive exact measured compatibility.
-8. Acquire real Experiment 87/I44 acceptance, create I46/I48 policies, and run I43.
-9. Refresh market evidence only with newer/stronger provenance; no leaderboard before real evidence.
+1. Run course-readiness / repository-integrity checks on the current teaching head.
+2. Audit stable teaching content against `docs/course/STUDENT-TEXTBOOK-COMPLETION.md` without treating byte count as proof.
+3. Fix any broken links, shell-like pages, missing prerequisites, weak examples, missing no-hardware paths, or decision-boundary defects.
+4. Spot-review Foundations 00–05, architecture/vendor capstones, Transformer/model internals, serving/operations, used-GPU acceptance, and whole-machine integration.
+5. Freeze **TEXTBOOK COMPLETE** only after the full stable lane passes those checks.
+6. Then begin learner Lesson 01; later follow the existing I54 → profile → human semantic fill → I53 → I52 real-evidence workflow when the learner reaches Experiment 61.
 
-No auto-purchase, no unsafe hardware modification.
+No fake benchmark results, no auto-purchase, no unsafe hardware modification.
