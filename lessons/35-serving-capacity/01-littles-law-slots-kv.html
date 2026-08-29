@@ -5,6 +5,17 @@
 </head><body>
 <h1>Serving Capacity — 2 req/s × 3 秒，为什么系统里平均有 6 个请求？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该理解上一节的 request timeline，能区分 <strong>queue wait</strong>、<strong>active service time</strong> 与端到端 latency，并知道本地 LLM 的 active sequence 会消耗 slot、计算时间和 KV cache。</p>
+<div class="callout"><strong>如果还不熟：</strong>先记住三个量就够继续：λ = 单位时间完成的请求数，W = 一个请求在所定义边界内停留的平均时间，L = 同一边界内平均同时存在的请求数。三者必须来自同一个系统边界。</div>
+
+<h2>真实问题</h2>
+<p>你只有一台本地 LLM 主机，想知道“最多能同时服务几个人”。直接把显存除以一个固定 KV 数字，或者把平均并发向上取整，都可能得到危险答案：burst、长 context 与慢 decode 会同时把 queue、slot 和 KV 压力推高。</p>
+<p>真正的问题是：<strong>在给定 arrival pattern、请求长度和 SLO 下，系统能稳定承载多少 active work，何时会先撞到 slot、KV、显存或 tail-latency 硬门槛？</strong>Little's Law 用来做容量 sanity check，而不是替代真实 trace 与资源测量。</p>
+</section>
+
 <h2>1. Little's Law</h2>
 
 <pre>
