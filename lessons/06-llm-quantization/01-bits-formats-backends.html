@@ -66,6 +66,25 @@
 </tbody>
 </table>
 
+<section class="card interactive-lab" data-quant-bpw>
+<h3>交互：为什么 nominal 4-bit 会变成 4.x 甚至更高 bpw？</h3>
+<p>先只模拟两种常见额外成本：每组共享 scale，以及一小部分 tensor 保持高精度。拖参数看“4-bit”标签和 whole-model 预算为什么不是一回事。</p>
+<div class="control-grid">
+<label>Weight code bits<input data-codebits type="number" min="1" max="16" step="0.5" value="4"></label>
+<label>Group size<input data-groupsize type="number" min="1" max="1024" step="16" value="32"></label>
+<label>Scale bits / group<input data-scalebits type="number" min="0" max="64" step="1" value="16"></label>
+<label>高精度 tensor 比例：<strong data-highfrac-out>5%</strong><input data-highfrac type="range" min="0" max="20" step="1" value="5"></label>
+<label>高精度 tensor bits<input data-highbits type="number" min="8" max="32" step="1" value="16"></label>
+<label>参数量 (B)<input data-params type="number" min="0.1" step="0.1" value="7"></label>
+</div>
+<div class="metric-grid">
+<div class="metric">低-bit 区域 effective<strong data-low-out>—</strong></div>
+<div class="metric">Whole-model effective<strong data-whole-out>—</strong></div>
+<div class="metric">约合 weight payload<strong data-gib-out>—</strong></div>
+</div>
+<p data-explain></p>
+<p class="small"><strong>边界：</strong>真实 quant 还可能有 zero-point、per-tensor metadata、alignment、混合 tensor 类型与特殊布局；这个计算器只解释为什么 nominal bit-width 不是完整容量身份。</p>
+</section>
 <h2>6. 只留 5% FP16 tensor，也能明显改变 overall bpw</h2>
 <pre><code>0.95 × 4.25
 + 0.05 × 16
@@ -192,5 +211,6 @@ Q5: larger file, faster TG</pre>
 <h3>Decision Rule</h3>
 <div class="callout"><strong>量化选择 = 容量 × 质量 × backend 实现。</strong>只根据“Q4/Q5/Q8”标签做硬件或模型决策，证据不足。</div>
 </section>
+<script src="../../assets/components/quant-bpw.js"></script>
 </body>
 </html>
