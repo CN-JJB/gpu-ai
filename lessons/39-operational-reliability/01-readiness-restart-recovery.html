@@ -218,4 +218,65 @@ restart
 <h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://github.com/ggml-org/llama.cpp/blob/d7a2074112d27649303fa107eb8c94db1ee435f3/tools/server/README.md">llama.cpp — Health / Readiness Semantics</a></li><li><a href="../../reference/llm/operational-reliability-recovery.md">Course Reference — Reliability / Recovery</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：进程活着，不等于服务 Ready</h2>
+<h3>把健康状态拆成三层</h3>
+<pre>Liveness:
+进程还活着吗？
+
+Readiness:
+现在能正确接新请求吗？
+
+Functional probe:
+真的能完成一个代表性推理吗？</pre>
+<p>模型仍在加载、GPU backend 初始化失败、KV allocator 异常时，进程可能完全“活着”，但绝不应该接流量。</p>
+
+<h3>Worked Example：自动重启为什么会变成重启风暴</h3>
+<p>假设模型启动需要 40 秒，而 watchdog 20 秒没看到 ready 就杀进程：</p>
+<pre>start
+20s → killed
+restart
+20s → killed
+...</pre>
+<p>系统表面上“配置了自动恢复”，实际永远无法进入 ready。恢复策略必须理解正常 startup 时间。</p>
+
+<h3>可靠启动顺序</h3>
+<pre>process starts
+→ runtime/backend init
+→ model load
+→ warmup / first functional probe
+→ READY
+→ receive traffic</pre>
+
+<h3>重启前要区分可恢复状态</h3>
+<ul>
+<li>普通请求失败：不一定需要重启整个 server。</li>
+<li>模型进程崩溃：可以由 supervisor 重启。</li>
+<li>GPU/driver 状态异常：进程重启可能无效，需要更高层恢复。</li>
+<li>硬件/供电/散热故障：继续自动重试可能掩盖真正问题。</li>
+</ul>
+
+<h3>Recovery Evidence</h3>
+<p>可靠性不能只写“systemd/容器会自动重启”。至少验证：</p>
+<pre>kill/restart event
+→ model reload
+→ readiness becomes true
+→ representative request succeeds
+→ logs identify the event</pre>
+
+<h3>State 要分类</h3>
+<p>Local LLM server 常见状态包括模型文件、配置、cache、会话/业务状态和日志。重启是否丢失状态，取决于这些东西存在哪里，不能一概而论。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>恢复能力必须用一次真实的“失败 → 恢复 → 功能验证”闭环证明，而不是用“配置了 restart policy”证明。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>Liveness 与 Readiness 有什么本质区别？</li>
+<li>为什么启动时间未知时，watchdog 可能制造 restart loop？</li>
+<li>什么时候进程重启不足以解决故障？</li>
+<li>恢复成功为什么必须包含功能请求，而不只是 PID 出现？</li>
+</ol>
+</section>
 </body></html>
