@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Storage / Model Loading</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style></head><body>
 <h1>Storage / Model Loading — 为什么第二次启动突然快很多？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该知道模型文件在开始推理前要经过磁盘读取、文件系统/page cache、mmap 或普通 I/O、主机内存与设备侧加载等步骤，并理解“模型文件大小”不等于“每次启动都从物理 SSD 完整读取一遍”。</p>
+<div class="callout"><strong>如果还不熟：</strong>先用两种状态继续：<em>cold-ish start</em> = 相关数据尚未充分进入 page cache；<em>warm start</em> = 数据可能已被操作系统缓存。课程要求记录状态，不要求为了“冷启动”去做危险或破坏性的系统操作。</div>
+
+<h2>真实问题</h2>
+<p>你换了一块更快的 SSD，第二次启动模型明显变快，于是准备把改善全部归功于新盘；但真正加速的也可能是 page cache、mmap 行为、模型已驻留、runtime 初始化路径或其他主机侧状态。</p>
+<p>真正的问题是：<strong>怎样区分 storage、page cache、host memory、mmap 和 runtime 初始化对 startup 的贡献，并保证 cold/warm 结果没有被混在一起？</strong>否则“这个 SSD 让模型启动快一倍”只是未经隔离的猜测。</p>
+</section>
+
 <h2>1. GGUF 从磁盘到可推理，中间不止 SSD</h2>
 
 <pre>
