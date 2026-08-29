@@ -21,6 +21,21 @@
 → chosen token
 </pre><p>模型 weights 固定时，logits 还会受到 context/token sequence 与数值/kernel 影响；最终 token 则进一步受到 sampler 影响。</p>
 <h2>6. Temperature：不是“创造力按钮”这么简单</h2><p>temperature 改变 logits 分布的尖锐程度。低 temperature 更集中在高分 token；高 temperature 让低分 token 相对更有机会。</p><p>但它不修复错误 prompt，也不保证高温更“聪明”。</p>
+<section class="card interactive-lab" data-sampling-temp>
+<h3>交互：Temperature 实际是在“改 logits 的相对尖锐程度”</h3>
+<p>下面固定 5 个抽象 token 的 logits，只改 temperature。温度越低，最高 logit 的 token 概率越集中；温度越高，分布越平。这里没有随机抽样，只展示 softmax 分布本身。</p>
+<label>Temperature：<strong data-temp-out>1.00</strong>
+<input data-temp type="range" min="0.2" max="2.0" step="0.1" value="1.0">
+</label>
+<div class="prob-list">
+<div class="prob-row"><span>token A</span><div class="prob-meter"><span data-prob></span></div></div>
+<div class="prob-row"><span>token B</span><div class="prob-meter"><span data-prob></span></div></div>
+<div class="prob-row"><span>token C</span><div class="prob-meter"><span data-prob></span></div></div>
+<div class="prob-row"><span>token D</span><div class="prob-meter"><span data-prob></span></div></div>
+<div class="prob-row"><span>token E</span><div class="prob-meter"><span data-prob></span></div></div>
+</div>
+<p class="small"><strong>边界：</strong>真实 sampler 还可能叠加 top-k、top-p、min-p、repetition penalty、grammar、seed 等规则；temperature 不是“创造力”的单一旋钮。</p>
+</section>
 <h2>7. Top-k / Top-p / Min-p：候选集过滤</h2><ul><li><strong>top-k：</strong>只保留最高的 k 个候选；</li><li><strong>top-p：</strong>保留累计概率达到阈值的最小候选集合；</li><li><strong>min-p：</strong>按相对最高概率的阈值过滤低概率 token（具体实现语义应查 runtime）。</li></ul><p>不同 sampler 可以组合，且执行顺序/实现细节可能影响结果。比较质量时必须记录完整 sampler chain。</p>
 <h2>Worked Example：为什么 greedy 更适合某些可复现质量 fixture？</h2><p>如果你的目标是比较 quant/backend 是否改变 deterministic JSON 输出，随机 sampling 会引入额外噪声。可以使用 greedy/固定 deterministic policy，让输出差异更容易归因模型/runtime。</p><p>但如果目标是评估真实聊天创作体验，则固定一个合理 sampler/seed，多次采样更接近实际使用。实验设计取决于问题。</p>
 <h2>8. Seed 为什么也不是“绝对复现保证”？</h2><p>固定 seed 只控制随机数的一部分。不同 runtime、不同 kernel、不同浮点顺序可能产生稍微不同 logits，随后 sampling 分叉。精确 token-for-token 复现还需要更严格的环境一致性。</p>
@@ -45,4 +60,5 @@
 <p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
 
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://huggingface.co/docs/transformers/chat_templating">Hugging Face — Chat templates</a></li><li><a href="../../labs/experiments/57-real-prompt-token-identity/README.md">Experiment 57 — Prompt Token Identity</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
-</main></body></html>
+</main><script src="../../assets/components/sampling-temperature.js"></script>
+</body></html>
