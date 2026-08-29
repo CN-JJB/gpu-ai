@@ -203,6 +203,22 @@ target batched verify cost
 </tbody>
 </table>
 
+<section class="card interactive-lab" data-speculative>
+<h3>交互：Acceptance × Draft Length 为什么会出现最优点？</h3>
+<p>用本节同一套教学成本。每个 draft token 下方显示“前面的 token 都接受，因此能走到这个位置”的简化概率。调低 acceptance，再把 draft 拉长，你会看到尾部 proposal 很快变成昂贵废稿。</p>
+<div class="control-grid">
+<label>Acceptance p：<strong data-acceptance-out>60%</strong><input data-acceptance type="range" min="0.1" max="0.95" step="0.05" value="0.6"></label>
+<label>Draft length D：<strong data-draft-length-out>4</strong><input data-draft-length type="range" min="1" max="8" step="1" value="4"></label>
+</div>
+<div class="draft-chain" data-draft-chain aria-label="每个 draft token 能进入 accepted prefix 的简化概率"></div>
+<div class="metric-grid">
+<div class="metric">Expected progress<strong data-progress>—</strong></div>
+<div class="metric">Spec round cost<strong data-spec-cost>—</strong></div>
+<div class="metric">Speedup ceiling<strong data-spec-speedup>—</strong></div>
+</div>
+<p data-spec-verdict></p>
+<p class="small"><strong>边界：</strong>这里假设每一位置以独立概率 p 沿链接受，并使用本课的人造成本函数。真实 runtime 的 acceptance、verify cost、KV 与 batching 都不是这么简单。</p>
+</section>
 <h2>9. 30% acceptance 时为什么长 draft 反而亏？</h2>
 
 <p><code>D=4</code> 以后，新增 proposal 大部分位于很后面。</p>
@@ -419,5 +435,6 @@ batch/concurrency behavior</pre>
 <h3>Decision Rule</h3>
 <div class="callout"><strong>只有相对 target-only baseline 的端到端性能提升，才算 speculative decoding 成功。</strong>高 acceptance 本身不是最终目标。</div>
 </section>
+<script src="../../assets/components/speculative-explorer.js"></script>
 </body>
 </html>
