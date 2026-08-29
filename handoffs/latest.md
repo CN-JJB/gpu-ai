@@ -18,17 +18,19 @@ v1 stable mainline complete
 ## Textbook authoring status
 
 ~~~text
-Student textbook completion pass: ACTIVE — depth-audit closure
+Student textbook completion pass: COMPLETE — learner-ready checkpoint
 Experiment instruction textbook pass: complete
 Foundation 00–05 learner-contract pass: complete
 Challenge 01–12 teaching closure: complete
 Lessons 34–49 opening-contract remediation: complete (16/16 verified)
 stable lessons/*.html under 8 KiB after thin-page audit: 0
+local-link corpus: 338 / 338 clean
+teaching-content checkpoint: f514db1733f0e26a06e82e596e70922ab2458915
 ~~~
 
 The latest pass deepened the previously thin architecture/vendor, Transformer/model-internals, benchmark/quality/decision, operations, power, used-GPU and whole-machine pages with worked examples, Evidence outputs, interpretation branches, failure recovery, no-hardware paths, and explicit decision/non-claim boundaries.
 
-Do **not** declare TEXTBOOK COMPLETE from byte count. The previously confirmed lessons 34–49 prerequisite/real-problem opening defect is now repaired; all 16 re-check clean for prerequisite, real problem, retrieval, completion evidence and primary-source markers. Remaining work is course-readiness/repository-integrity validation plus substantive contract spot review. Real learner-owned benchmark acquisition remains deferred until the learner phase.
+TEXTBOOK COMPLETE is now frozen from substantive and integrity checks, not from byte count. The lessons 34–49 opening defect is repaired; the full 62-lesson corpus passed no-hardware/troubleshooting/decision-boundary signal checks; and the full 338-file local-link corpus has 0 broken and 0 repo-escaping links. Real learner-owned benchmark acquisition remains deferred until the learner phase.
 
 ## Phase 4 frontier
 
@@ -301,13 +303,23 @@ clean real workspace bootstrap
 → deliberate ingestion
 ~~~
 
+## Textbook checkpoint / readiness note
+
+~~~text
+TEXTBOOK COMPLETE
+teaching-content checkpoint head = f514db1733f0e26a06e82e596e70922ab2458915
+connector-equivalent Course Readiness audit = PASS
+GitHub Actions exact-head Course Readiness CI PASS = NOT OBSERVED
+~~~
+
+The CI line above is an observability/tooling boundary, not an unresolved course defect. Repository structure, required markers/templates and the complete local-link corpus were checked directly through the GitHub repository connector.
+
 ## Next work
 
-1. Finish course-readiness / repository-integrity checks on the current teaching head; the connector-based local-link scan previously covered the first 60/338 files with zero broken links, so continue the remaining corpus unless an exact-head Course Readiness PASS becomes observable.
-2. Audit stable teaching content against `docs/course/STUDENT-TEXTBOOK-COMPLETION.md` without treating byte count as proof.
-3. Fix any broken links, shell-like pages, weak examples, missing no-hardware paths, or decision-boundary defects.
-4. Spot-review Foundations 00–05, architecture/vendor capstones, Transformer/model internals, serving/operations, used-GPU acceptance, and whole-machine integration.
-5. Freeze **TEXTBOOK COMPLETE** only after the full stable lane passes those checks.
-6. Then begin learner Lesson 01; later follow the existing I54 → profile → human semantic fill → I53 → I52 real-evidence workflow when the learner reaches Experiment 61.
+1. Start the learner at Foundation 00 / Lesson 01; stable-course authorship is no longer the blocker.
+2. Do not expand Intelligence beyond I54 merely to avoid entering the learner phase.
+3. Keep real production benchmark rows at zero until learner-owned evidence is actually collected.
+4. At Experiment 61, follow the existing I54 → profile → human semantic fill → I53 → I52 path, then review before any deliberate ingestion.
+5. Treat future textbook edits as post-freeze maintenance and re-run affected readiness/link checks.
 
 No fake benchmark results, no auto-purchase, no unsafe hardware modification.
