@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 640" role="img" aria-labelledby="title desc">
+<title id="title">Apple Silicon unified memory 本地 LLM 数据路径教学图</title>
+<desc id="desc">展示 CPU、GPU 和其他引擎共享统一物理内存，但 GPU 内仍有寄存器、threadgroup memory 和 cache 等更近的存储层；同时把系统、模型权重、KV、运行时缓冲与安全余量共同放进容量预算。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.soft{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.line{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.both{stroke:#555;stroke-width:3;fill:none;marker-start:url(#m);marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:16px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="40">Unified memory 解决“两个物理池”的一部分成本，但没有消灭容量、层级与带宽</text>
+<rect class="box" x="55" y="92" width="235" height="90" rx="14"/><text x="172" y="124" text-anchor="middle" font-size="18" font-weight="700">CPU</text><text class="s" x="172" y="150" text-anchor="middle">tokenizer · sampling · host work</text>
+<rect class="box" x="870" y="92" width="235" height="90" rx="14"/><text x="987" y="124" text-anchor="middle" font-size="18" font-weight="700">GPU / other engines</text><text class="s" x="987" y="150" text-anchor="middle">Metal compute · specialized paths</text>
+<rect class="box" x="340" y="80" width="480" height="125" rx="16"/><text x="580" y="114" text-anchor="middle" font-size="20" font-weight="700">Unified physical memory pool</text><text class="s" x="580" y="142" text-anchor="middle">CPU 与 GPU 可共享物理内存，但访问仍受 storage mode、cache、同步和带宽影响</text><text class="s" x="580" y="168" text-anchor="middle">“shared”不等于“所有访问同延迟”，也不等于整池都能给模型占用</text>
+<path class="both" d="M290 135 H340"/><path class="both" d="M820 135 H870"/>
+<path class="line" d="M580 205 V268"/>
+<g transform="translate(90 270)">
+<rect class="box" x="0" y="0" width="980" height="130" rx="16"/><text x="490" y="30" text-anchor="middle" font-size="18" font-weight="700">LLM 容量预算：总内存不是“模型最大尺寸”</text>
+<rect class="soft" x="20" y="55" width="165" height="50" rx="9"/><text class="t" x="102" y="85" text-anchor="middle">macOS / apps</text>
+<rect class="soft" x="210" y="55" width="165" height="50" rx="9"/><text class="t" x="292" y="85" text-anchor="middle">weights</text>
+<rect class="soft" x="400" y="55" width="165" height="50" rx="9"/><text class="t" x="482" y="85" text-anchor="middle">KV cache</text>
+<rect class="soft" x="590" y="55" width="165" height="50" rx="9"/><text class="t" x="672" y="85" text-anchor="middle">runtime / scratch</text>
+<rect class="soft" x="780" y="55" width="180" height="50" rx="9"/><text class="t" x="870" y="85" text-anchor="middle">safety headroom</text>
+</g>
+<path class="line" d="M925 182 V445"/>
+<g transform="translate(735 448)">
+<rect class="box" x="0" y="0" width="370" height="128" rx="14"/><text x="185" y="28" text-anchor="middle" font-size="18" font-weight="700">GPU 内部仍有“更近”的数据层</text>
+<text class="s" x="185" y="55" text-anchor="middle">register / thread-local</text>
+<text class="s" x="185" y="78" text-anchor="middle">threadgroup memory / tile-local reuse</text>
+<text class="s" x="185" y="101" text-anchor="middle">cache → unified memory</text>
+</g>
+<g transform="translate(55 448)">
+<rect class="box" x="0" y="0" width="610" height="128" rx="14"/><text x="305" y="28" text-anchor="middle" font-size="18" font-weight="700">性能判断仍然要分三问</text>
+<text class="s" x="30" y="60">1. Fit：weights + KV + runtime + OS 是否留有余量？</text>
+<text class="s" x="30" y="84">2. Roof：decode 是否受 unified-memory bandwidth 限制？</text>
+<text class="s" x="30" y="108">3. Path：Metal / MLX / 其他 backend 是否真的走目标 GPU kernel？</text>
+</g>
+<text x="580" y="617" text-anchor="middle" class="s">教学抽象：共享物理内存 ≠ 64 GB VRAM；它改变分配与复制模型，但不取消 GPU 片上层级、同步、系统竞争和 memory pressure。</text>
+</svg>
