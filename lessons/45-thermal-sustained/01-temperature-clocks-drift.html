@@ -12,6 +12,7 @@
 <p>真正的问题是：<strong>这张卡能否在你真正需要的持续运行窗口里保持可接受的 clocks、temperature、errors 与 throughput，而不是只在冷机的几十秒里表现好？</strong>二手验收和长期部署都必须看 sustained behavior。</p>
 </section>
 
+<figure class="visual"><img src="../../assets/diagrams/thermal-sustained.svg" alt="GPU 从冷启动高 boost、温度累积到持续稳态的时间线，同时对齐 temperature、clock、power、fan 与 throughput，区分 thermal 与 power 等限制"><figcaption><strong>短 benchmark 测到的是冷态，长期服务需要看热稳态。</strong> 吞吐下降不能只凭一个温度数字判“过热”；要同时对齐 clock、power、fan、temperature 和 throughput 才能区分 thermal、power cap 或其他限制。</figcaption></figure>
 <h2>1. 短跑和长跑不是一个硬件状态</h2>
 
 <pre>
