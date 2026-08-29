@@ -237,3 +237,44 @@ current llama-server 有 cache RAM / checkpoint / reuse 相关参数。
 5. near-miss 为什么可能仍有小量 cache_n？
 6. 这次 cache 的容量成本在哪里？
 7. 如果 server 是多租户，哪些 prefix cache reuse 不应该跨用户共享？
+
+
+## Hypothesis
+
+同一 exact long prefix 的 warm repeat 应出现更强 cache reuse、较少 prompt work，并有机会降低 TTFT；near-miss 只应复用 divergence 前的部分，decode 新 token 工作不会因 prefix reuse 消失。
+
+## Fixed variables
+
+target model/server/context/KV/offload/slot 固定；主 A/B 只比较同 prompt cold vs exact repeat。可选 cache-disabled control 另做单变量 server restart。
+
+## What to observe
+
+- cache_n / prompt_n / prompt_ms；
+- cold vs warm TTFT proxy；
+- predicted_n/predicted_ms；
+- near-miss reuse；
+- cache-disabled 对照；
+- prefix cache 的容量成本。
+
+## Troubleshooting
+
+- cold 只表示本次 unique key 首次请求，不等于系统绝对冷态。
+- streaming TTFT 是 client proxy。
+- near-miss 可能仍复用共同开头。
+- 多 slot/server cache policy 会改变结果，因此主路径用 dedicated single slot。
+
+## What this proves
+
+你能在真实 llama-server 上观察 prefix reuse 对 prompt phase 的影响。
+
+## What this does NOT prove
+
+它不证明 cache policy 永远相同，也不代表 decode 本身被省掉。
+
+## No-hardware fallback
+
+完成 Experiment 13。
+
+## Transfer question
+
+warm repeat 的 prompt_ms 大降但 predicted_ms 基本不变，这正好说明 Prefix Cache 优化的是哪一段？
