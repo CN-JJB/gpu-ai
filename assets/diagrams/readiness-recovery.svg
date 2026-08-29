@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 470" role="img" aria-labelledby="title desc">
+<title id="title">LLM 服务启动、readiness 与 restart recovery 时间线</title><desc id="desc">进程启动后依次经历socket、health、model loaded、first inference和warm steady state；liveness与readiness不同，restart后即使health恢复也可能因cache冷却或身份变化未回到原稳态。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.stage{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“进程活着”“端口开了”“health=200”“真实请求可用”是四个不同状态</text>
+<g transform="translate(45 115)">
+<rect class="stage" x="0" y="0" width="145" height="78" rx="12"/><text class="t" x="72" y="31" text-anchor="middle">process spawn</text><text class="s" x="72" y="55" text-anchor="middle">liveness begins</text>
+<path class="arrow" d="M150 39 H190"/>
+<rect class="stage" x="195" y="0" width="145" height="78" rx="12"/><text class="t" x="267" y="31" text-anchor="middle">socket open</text><text class="s" x="267" y="55" text-anchor="middle">still loading</text>
+<path class="arrow" d="M345 39 H385"/>
+<rect class="stage" x="390" y="0" width="145" height="78" rx="12"/><text class="t" x="462" y="31" text-anchor="middle">health ready</text><text class="s" x="462" y="55" text-anchor="middle">model/backend initialized</text>
+<path class="arrow" d="M540 39 H580"/>
+<rect class="stage" x="585" y="0" width="145" height="78" rx="12"/><text class="t" x="657" y="31" text-anchor="middle">first inference</text><text class="s" x="657" y="55" text-anchor="middle">real workload check</text>
+<path class="arrow" d="M735 39 H775"/>
+<rect class="stage" x="780" y="0" width="250" height="78" rx="12"/><text class="t" x="905" y="31" text-anchor="middle">warm steady state</text><text class="s" x="905" y="55" text-anchor="middle">cache / allocator / clocks stabilized</text>
+</g>
+<rect class="box" x="125" y="260" width="870" height="125" rx="16"/><text x="560" y="292" text-anchor="middle" font-size="18" font-weight="700">Restart / rollback recovery must re-prove more than PID</text><text class="t" x="560" y="322" text-anchor="middle">exact runtime/model/config identity → readiness → first inference → SLO/quality → warm state</text><text class="s" x="560" y="350" text-anchor="middle">restart may lose prefix cache, reload weights, rebuild GPU allocations, or silently change artifact/build identity</text>
+<text x="560" y="435" text-anchor="middle" class="s">不要写 sleep 10 然后猜；测每一个 transition time。</text>
+</svg>
