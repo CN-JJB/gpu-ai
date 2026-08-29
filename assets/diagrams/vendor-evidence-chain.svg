@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 560" role="img" aria-labelledby="title desc">
+<title id="title">NVIDIA AMD Apple Intel 本地 LLM 共用证据链</title><desc id="desc">四个厂商虽然使用CUDA ROCm Metal MLX SYCL Level Zero等不同名称，但都要逐层证明hardware identity、driver runtime、application backend、kernel path、model config和measured evidence。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.vendor{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">厂商名词不同，证据链结构相同：每一层都必须单独证明</text>
+<g transform="translate(30 95)">
+<rect class="box" x="0" y="0" width="150" height="80" rx="13"/><text x="75" y="31" text-anchor="middle" class="t">Hardware identity</text><text class="s" x="75" y="55" text-anchor="middle">exact GPU / SoC</text>
+<path class="arrow" d="M155 40 H195"/>
+<rect class="box" x="200" y="0" width="150" height="80" rx="13"/><text x="275" y="31" text-anchor="middle" class="t">Driver / runtime</text><text class="s" x="275" y="55" text-anchor="middle">exact version</text>
+<path class="arrow" d="M355 40 H395"/>
+<rect class="box" x="400" y="0" width="150" height="80" rx="13"/><text x="475" y="31" text-anchor="middle" class="t">App backend</text><text class="s" x="475" y="55" text-anchor="middle">built + enabled</text>
+<path class="arrow" d="M555 40 H595"/>
+<rect class="box" x="600" y="0" width="150" height="80" rx="13"/><text x="675" y="31" text-anchor="middle" class="t">Kernel path</text><text class="s" x="675" y="55" text-anchor="middle">quant / matrix / fallback</text>
+<path class="arrow" d="M755 40 H795"/>
+<rect class="box" x="800" y="0" width="150" height="80" rx="13"/><text x="875" y="31" text-anchor="middle" class="t">Model + config</text><text class="s" x="875" y="55" text-anchor="middle">hash / ctx / offload</text>
+<path class="arrow" d="M955 40 H995"/>
+<rect class="box" x="1000" y="0" width="100" height="80" rx="13"/><text x="1050" y="31" text-anchor="middle" class="t">Measure</text><text class="s" x="1050" y="55" text-anchor="middle">raw evidence</text>
+</g>
+<text x="570" y="235" text-anchor="middle" font-size="18" font-weight="700">厂商只是把中间层换了名字</text>
+<g transform="translate(70 275)">
+<rect class="vendor" x="0" y="0" width="230" height="90" rx="12"/><text x="115" y="28" text-anchor="middle" font-size="17" font-weight="700">NVIDIA</text><text class="s" x="115" y="53" text-anchor="middle">driver / CUDA runtime</text><text class="s" x="115" y="72" text-anchor="middle">CUDA backend / Tensor path</text>
+<rect class="vendor" x="255" y="0" width="230" height="90" rx="12"/><text x="370" y="28" text-anchor="middle" font-size="17" font-weight="700">AMD</text><text class="s" x="370" y="53" text-anchor="middle">driver / ROCm-HIP</text><text class="s" x="370" y="72" text-anchor="middle">HIP backend / matrix path</text>
+<rect class="vendor" x="510" y="0" width="230" height="90" rx="12"/><text x="625" y="28" text-anchor="middle" font-size="17" font-weight="700">Apple</text><text class="s" x="625" y="53" text-anchor="middle">macOS / Metal</text><text class="s" x="625" y="72" text-anchor="middle">MLX / Metal / Core ML path</text>
+<rect class="vendor" x="765" y="0" width="230" height="90" rx="12"/><text x="880" y="28" text-anchor="middle" font-size="17" font-weight="700">Intel</text><text class="s" x="880" y="53" text-anchor="middle">driver / Level Zero</text><text class="s" x="880" y="72" text-anchor="middle">SYCL / Vulkan / XMX path</text>
+</g>
+<rect class="box" x="170" y="410" width="800" height="95" rx="16"/><text x="570" y="441" text-anchor="middle" font-size="18" font-weight="700">最常见的逻辑跳跃</text><text class="t" x="570" y="468" text-anchor="middle">“系统看见 GPU” ≠ “应用 offload” ≠ “fast kernel 生效” ≠ “benchmark 可比较”</text><text class="s" x="570" y="490" text-anchor="middle">任何一步 UNKNOWN，都应该把更强结论标成 BLOCKED，而不是用品牌印象补空白。</text>
+<text x="570" y="545" text-anchor="middle" class="s">这张图是跨厂商排错模板；具体命令和当前支持矩阵仍需当天查询。</text></svg>
