@@ -34,5 +34,16 @@ Compute Unit (CU)
 <h2>Retrieval Practice</h2><ol><li>为什么 CU 与 SM 不能按数量直接换算？</li><li>scalar path 对 wave-uniform 工作有什么意义？</li><li>LDS 解决什么问题？为什么它不是无限快的替代 VRAM？</li><li>VGPR 使用过多怎样影响 resident waves？为什么一味减少 VGPR 也可能失败？</li><li>为什么 Vega 的 HBM 不能单独决定本地 LLM 价值？</li><li>写出 AMD 从 GPU 到应用 backend 的软件兼容链。</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>可以用 CU/wave/LDS/VGPR 解释 GCN/Vega 的执行与片上复用；不能仅凭 CU 数、HBM 或历史计算定位推荐旧 AMD 卡。当前 ROCm/backend 支持必须作为 hard gate 重新验证。</p></div>
 <h2>Transfer</h2><p>下一节进入 RDNA。重点观察 AMD 为什么为图形效率改变 wave/执行组织，以及这会如何影响从 GCN/HIP 迁移来的直觉。再下一条 CDNA 线则会更明确面向 HPC/AI。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/projects/HIP/en/latest/understand/hardware_implementation.html">AMD ROCm HIP — Hardware implementation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

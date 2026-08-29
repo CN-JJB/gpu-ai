@@ -40,5 +40,16 @@ exact Arc / Xe device</pre><p>排错必须从底向上或从上向下逐层证�
 <h2>Retrieval Practice</h2><ol><li>画出 Arc 从硬件到 LLM 应用的五层软件链。</li><li>为什么 SYCL 的 source portability 不保证 performance portability？</li><li>如何证明目标应用真的使用 XMX，而不是只证明硬件有 XMX？</li><li>Arc 16 GB 的容量优势通过了哪个 gate？还剩哪些？</li><li>为什么 driver/runtime/backend identity 必须进入 benchmark manifest？</li><li>如果 Vulkan 可用、SYCL 不可用，你应该得出什么精确结论？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>对 Arc/Intel GPU，不做厂商级结论。以 exact device × exact runtime/backend × exact model/quant 建证据。只有真实 offload 和受控 benchmark 通过后，容量/价格优势才算可兑现。</p></div>
 <h2>Transfer</h2><p>把同一支持链迁移到 AMD ROCm、NVIDIA CUDA、Apple Metal。生态成熟度的本质不是品牌印象，而是你目标 workload 的“设备→驱动→runtime→kernel→应用”链有多完整、多稳定。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html">Intel oneAPI</a></li><li><a href="https://www.khronos.org/sycl/">Khronos SYCL</a></li><li><a href="../../reference/gpu/intel-xe-spine.md">Intel Xe Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

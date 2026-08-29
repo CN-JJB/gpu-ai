@@ -35,5 +35,16 @@ mixed lanes → some execution resources idle during each path</pre><p>因此 br
 <h2>Retrieval Practice</h2><ol><li>grid/threadgroup/thread 各自解决什么组织问题？</li><li>SIMD-group 与 warp/wave 可以在哪个层面类比，哪里不能？</li><li>为什么 unified memory 存在时仍需要 threadgroup memory？</li><li>threadgroup 太大可能通过哪些资源限制降低 residency？</li><li>解释 branch divergence 为什么是“同组 lane 利用率”问题。</li><li>把一个 CUDA reduction 迁移到 Metal 时，为什么应先迁移数据流而不是术语？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>使用 Metal/MLX 性能时，先确认瓶颈属于 launch、compute、memory、synchronization 还是 host。不要用“Apple unified memory 很快”或“GPU cores 很多”替代 kernel 级解释。</p></div>
 <h2>Transfer</h2><p>以后看到任何 GPU API，都先找四个抽象：work grouping、lane grouping、on-chip cooperative memory、synchronization。再看 vendor-specific 宽度和限制。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf">Metal Shading Language Specification</a></li><li><a href="../../reference/gpu/apple-silicon-spine.md">Apple Silicon Course Reference</a></li></ul>
 </main></body></html>

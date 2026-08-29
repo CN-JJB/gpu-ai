@@ -47,5 +47,16 @@ weights
 <h2>Retrieval Practice</h2><ol><li>为什么 nvidia-smi 成功只证明证据链的一部分？</li><li>driver、toolkit、application-bundled runtime 如何区分？</li><li>怎样从日志/VRAM/offload 信息证明模型主要在 GPU 上？</li><li>PP 与 TG 为什么应分开？</li><li>GPU 99% 为什么不能证明 Tensor Core 被使用？</li><li>如果更换 quant 让 TG 快 30%，为什么还要质量 gate？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>只有“exact device + runtime/build + explicit CUDA backend/offload + fixed benchmark + quality evidence”组成的链，才可用于性能与购买判断。单个截图、理论规格或他人 benchmark 都只是较弱证据。</p></div>
 <h2>Transfer</h2><p>把这条 capstone 迁移到 AMD/Apple/Intel：设备身份、runtime、application backend、真实执行路径、benchmark、quality 这六层不变，只换具体工具。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 Evidence Packet</a></li></ul>
 </main></body></html>

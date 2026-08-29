@@ -44,5 +44,16 @@ without changing model/runtime
 <h2>Retrieval Practice</h2><ol><li>什么是语义变量？为什么“一条 flag”不一定等于一变量？</li><li>manifest 比 shell history 多证明了什么？</li><li>为什么 warmup 和 repetitions 都必要？</li><li>异常值应该怎么处理才不 cherry-pick？</li><li>PP/TG 为什么可能对同一优化有不同响应？</li><li>什么时候应该把实验标成 system comparison？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>只有 baseline/candidate 共享固定协议、明确唯一 intentional variable、保留原始 evidence 并通过可重复检查时，才允许把差异归因到该变量。否则只描述“两个配置结果不同”。</p></div>
 <h2>Transfer</h2><p>这一实验纪律适用于 GPU、模型量化、runtime、散热、功耗限制、网络、存储甚至二手验卡：先冻结环境，再做最小区分改变。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../labs/experiments/61-real-benchmark-evidence-packet/README.md">Experiment 61 — Evidence Packet</a></li><li><a href="../../tools/intelligence/README.md">Intelligence tooling</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
 </main></body></html>

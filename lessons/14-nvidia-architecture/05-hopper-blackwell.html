@@ -29,5 +29,16 @@ describe tensor tile transfer
 <h2>Retrieval Practice</h2><ol><li>为什么现代 AI GPU 设计越来越强调数据搬运？</li><li>FP8 与 INT8/GGUF 8-bit 量化为什么不能互换概念？</li><li>Transformer Engine 类机制为什么说明“硬件 feature 需要软件共同完成”？</li><li>2×24 GB 为什么不是零成本的 48 GB 单一显存池？</li><li>NVLink 能解决哪些问题？不能保证什么？</li><li>从 Hopper/Blackwell 白皮书学到的哪些是稳定架构方向，哪些今日可用性必须动态查询？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>把 Hopper/Blackwell 用作“现代 AI system 设计方向”的教材，不把数据中心峰值当作消费卡购买分数。任何本地 LLM 结论必须重新落到 exact SKU、model fit、runtime/kernel、memory/communication 与整机约束。</p></div>
 <h2>Transfer</h2><p>学完 NVIDIA 主线后，你应能用同一五维框架读 AMD CDNA、Intel XMX 或 Apple GPU：execution、numerics、data movement、memory/interconnect、software enablement。厂商名不同，系统瓶颈不会消失。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

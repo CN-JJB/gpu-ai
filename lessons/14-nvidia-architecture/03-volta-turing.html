@@ -31,5 +31,16 @@ result</pre><p>所谓“混合精度”不是一句“FP16 比 FP32 快”，而
 <h2>Retrieval Practice</h2><ol><li>为什么专门矩阵 datapath 在统一可编程 GPU 之后仍然合理？</li><li>混合精度里为什么要区分 input、multiply、accumulate、output？</li><li>为什么硬件 INT4 支持不能直接证明 GGUF Q4 性能？</li><li>给出一个 Tensor Core 很强但 decode 仍 memory-bound 的解释。</li><li>RT Core 的存在如何帮助你理解“同一 GPU 有多类互不等价的峰值指标”？</li><li>如果 Turing 二手卡价格便宜，哪些当前软件事实仍必须重新验证？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>可以把 Volta/Turing 的 Tensor Core 当成“可被特定 kernel 利用的矩阵上限”；不能把 AI TOPS 或某种低精度峰值直接换算成模型 token/s。购买和优化必须证明目标 runtime + model format + kernel 真的命中该路径。</p></div>
 <h2>Transfer</h2><p>到 Ampere/Ada 时继续把能力拆成：general compute、matrix numerics、memory hierarchy、memory capacity/bandwidth、software enablement。以后遇到 AMD Matrix Core、Intel XMX、Apple matrix/ML paths，也用同一分层方法。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

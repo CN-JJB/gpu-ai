@@ -31,5 +31,16 @@ GPU ↔ VRAM</pre><p>当 CPU 准备的数据需要 GPU 使用时，很多 API/�
 <h2>Retrieval Practice</h2><ol><li>为什么 unified memory 不能直接等同同容量 VRAM？</li><li>列出模型文件之外至少四类内存开销。</li><li>统一内存减少了哪类传统 discrete GPU 成本？哪些成本仍存在？</li><li>为什么 swap 是容量压力证据而不是免费扩容？</li><li>容量翻倍为什么不意味着 token/s 翻倍？</li><li>购买不可升级内存的 Mac 时，为什么 safety margin 比“刚好能放下”更重要？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>Apple Silicon 先按整机 unified-memory budget 做 fit，再比较 bandwidth/compute/runtime。不能把总内存直接写成“VRAM”，也不能用“能加载”替代长上下文、并发与 memory-pressure 验证。</p></div>
 <h2>Transfer</h2><p>把这个思维迁移到 APU、共享内存 iGPU、AMD MI300A 等系统时，同样区分：物理共享、地址可见性、带宽、系统竞争、软件分配策略。下一节会进入 Apple GPU/Metal 的执行模型。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://developer.apple.com/metal/">Apple Developer — Metal</a></li><li><a href="../../reference/gpu/apple-silicon-spine.md">Apple Silicon Course Reference</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

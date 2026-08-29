@@ -33,5 +33,16 @@
 <h2>Retrieval Practice</h2><ol><li>为什么文本字符串不是完整 prompt identity？</li><li>chat template 怎样改变模型实际输入？</li><li>为什么 rendered SHA 和 token-ID SHA 都值得保存？</li><li>temperature/top-k/top-p 分别改变 sampling 哪一层？</li><li>固定 seed 为什么不保证跨 runtime token-for-token 一致？</li><li>什么时候 greedy fixture 比随机聊天更适合质量 A/B？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>任何性能/质量对比先固定 tokenizer、chat template、rendered/token IDs 与 sampler semantics。只要 token identity 或 sampler chain 改变，就把它当作新的 workload/语义变量，而不是“同一句 prompt”。</p></div>
 <h2>Transfer</h2><p>以后做 RAG、agent/tool calling、structured output 时，prompt identity 会更复杂；仍用 messages → template → rendered bytes → tokens → sampler/stop 的链记录。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://huggingface.co/docs/transformers/chat_templating">Hugging Face — Chat templates</a></li><li><a href="../../labs/experiments/57-real-prompt-token-identity/README.md">Experiment 57 — Prompt Token Identity</a></li><li><a href="../../reference/llm/">Course LLM Reference</a></li></ul>
 </main></body></html>

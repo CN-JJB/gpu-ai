@@ -22,5 +22,16 @@
 <h2>Retrieval Practice</h2><ol><li>RDNA 与 CDNA 分叉背后的产品目标是什么？</li><li>为什么 Matrix Core 只能与 Tensor Core 做“功能类别”类比，不能规格直接换算？</li><li>HBM 对 LLM 的 capacity 和 bandwidth 分别怎样影响？</li><li>为什么多 die GPU 让“一张卡”内部也出现数据局部性问题？</li><li>列出购买退役 MI 卡前至少六个 hard/soft gate。</li><li>为什么 ROCm/library 是硬件价值的一部分，而不是附属软件？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>看到 CDNA/MI 的高带宽和 matrix 峰值时，先做部署与软件 gate。没有 exact device/runtime/backend 的可重复证据，不得把服务器卡标成家用 LLM bargain。</p></div>
 <h2>Transfer</h2><p>把 CDNA 与 Hopper/Blackwell 并排时，不比营销总分；比较 numerics、HBM、interconnect、software ecosystem、system form factor 与真实 workload。下一节回到更新的 RDNA/CDNA 方向，练习如何处理“同厂不同产品线”的信息。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://rocm.docs.amd.com/">AMD ROCm Documentation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

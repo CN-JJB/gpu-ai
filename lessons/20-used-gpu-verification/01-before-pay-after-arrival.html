@@ -35,5 +35,16 @@ benchmark session UUID / PCI bus
 <h2>Retrieval Practice</h2><ol><li>卖家负载截图能说明什么，不能说明什么？</li><li>为什么到货后先 identity/外观/idle，而不是直接满载？</li><li>PCIe “能识别”为什么不等于 link 正常？</li><li>显存错误为什么对 LLM 特别危险？</li><li>ACCEPT/REVIEW/REJECT 与证据强度为什么要分开？</li><li>为什么 reject criteria 应在测试前写？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>任何二手卡只有在身份、链路、显存、thermal、稳定性和目标 workload 按预定义协议通过后，才可标为 ACCEPT。未知项保持 REVIEW；可重复硬失败直接 REJECT。不要为了保住交易修改阈值。</p></div>
 <h2>Transfer</h2><p>相同方法可迁移到二手服务器、SSD、Mac、主板：卖家证据预筛 → 到货低风险 identity → 逐级压力 → 预定义 acceptance。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../labs/experiments/87-used-gpu-acceptance-packet/README.md">Experiment 87 — Used GPU Acceptance Packet</a></li><li><a href="../../examples/evidence/intelligence-44-used-gpu-acceptance-artifact.md">I44 Acceptance Evidence</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
 </main></body></html>

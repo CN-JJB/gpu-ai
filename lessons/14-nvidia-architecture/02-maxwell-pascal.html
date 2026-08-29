@@ -23,5 +23,16 @@
 <h2>Retrieval Practice</h2><ol><li>Maxwell 为什么说明“更宽”不一定比“更容易利用”更重要？</li><li>为什么 Pascal family 内部不能用一个规格代表全部产品？</li><li>低精度同时怎样影响存储字节数和计算吞吐？为什么应用未必自动受益？</li><li>HBM 的价值主要解决什么？它不能解决什么？</li><li>看到一张廉价旧 Tesla/Pascal 数据中心卡，你会先列哪些整机风险？</li><li>如何把“每瓦吞吐”迁移到长期本地 LLM 服务的电费/噪声判断？</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>完成本课后，你可以用效率、memory system、precision 和 SKU segmentation 解释 Maxwell/Pascal；不能用 architecture 名称或数据中心/消费标签直接做购买决定。任何今日可用性都必须重新查 driver/runtime/backend。</p></div>
 <h2>Transfer</h2><p>下一节 Volta/Turing 会把低精度矩阵加速正式专用化。学习时继续追问：这是通用 CUDA core 的改进，还是新专用 datapath？目标软件怎样显式命中它？</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://docs.nvidia.com/cuda/">NVIDIA CUDA Documentation</a></li><li><a href="../../reference/gpu/nvidia-generation-spine.md">NVIDIA Generation Spine</a></li><li><a href="../../resources/RESOURCES.md">Primary-source index</a></li></ul>
 </main></body></html>

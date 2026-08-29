@@ -31,5 +31,16 @@ compute die(s) ↔ package fabric ↔ memory/cache related die(s)</pre><p>这样
 <h2>Retrieval Practice</h2><ol><li>RDNA 与 CDNA 都能谈 AI，为什么仍不能合并成一条产品线理解？</li><li>chiplet 解决哪些制造/扩展问题，同时引入什么数据移动问题？</li><li>为什么 FP4 支持不等于任意 4-bit LLM 量化获得 FP4 峰值？</li><li>如何写一个不会随下一代发布过期的“新 GPU 架构调查模板”？</li><li>为什么 RDNA4 与 CDNA4 名称中的“4”没有性能比较意义？</li><li>列出 architecture fact、SKU fact、software fact、measured fact 的区别。</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>新架构只负责提出候选能力，不负责给出购买答案。对现代 AMD，必须把 exact SKU、current ROCm/backend、model fit、real workload、system feasibility 和价格证据接上，才能进入决策。</p></div>
 <h2>Transfer</h2><p>以后任何 AMD 新一代都沿用 claim ledger。换 NVIDIA/Intel/Apple 时也一样：把发布会 claim 降级成待验证假设，再通过规格、软件支持和真实 measurement 逐层升级证据。</p>
+
+<h2>完成证据</h2>
+<p>完成本课后，保留一份 learner-owned completion artifact，至少包含：</p>
+<ul>
+<li>用自己的话画出或写出本节最小 mental model，并标出关键变量/资源层；</li>
+<li>完成本节小实验、worksheet 或无硬件 fallback；有真机时链接 raw Evidence，没有真机时明确标 L0 / DOCUMENTED / DEFERRED-HARDWARE；</li>
+<li>写一条绑定 Evidence 的 PASS / FAIL / UNKNOWN / BLOCKED 结论，说明它怎样影响本地 LLM 的容量、性能、兼容、成本或风险判断；</li>
+<li>写一句明确 non-claim：这份证据还不能证明什么。</li>
+</ul>
+<p>只写“看完了”或抄规格表不算完成。课程要的是可复查的推理产物，而不是阅读打卡。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="https://www.amd.com/en/technologies/rdna.html">AMD RDNA Architecture</a></li><li><a href="https://www.amd.com/en/technologies/cdna.html">AMD CDNA Architecture</a></li><li><a href="https://docs.amd.com/v/u/en-US/rdna4-instruction-set-architecture">AMD RDNA4 ISA Reference</a></li><li><a href="https://rocm.docs.amd.com/">AMD ROCm Documentation</a></li><li><a href="../../reference/gpu/amd-generation-spine.md">AMD Generation Spine</a></li></ul>
 </main></body></html>
