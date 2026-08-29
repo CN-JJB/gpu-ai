@@ -2,6 +2,10 @@
 <p class="kicker">Vendor Capstone · Apple · L0→L2</p><h1>Apple / Metal / MLX 实战闭环：从统一内存预算到真实 LLM GPU 路径</h1><p class="lead">Apple Silicon 的 capstone 不需要先学会写 Metal shader。你要能证明：模型 fit 在统一内存内、目标 runtime 确实利用 GPU/Metal、memory pressure 可接受、PP/TG/质量可复现，并知道 ANE 是否真的参与而不是凭 TOPS 猜。</p>
 <h2>Prerequisite Check</h2><p>完成 unified memory、Metal execution model、M-series/ANE/MLX 三节。你应能区分“容量”“带宽”“GPU”“ANE”“runtime”。</p>
 <h2>真实问题：为什么 Mac 上模型“一键能跑”仍不足以判断这台机器适不适合你？</h2><p>因为良好的应用体验可能把很多细节隐藏起来。你仍需要知道：</p><ul><li>模型权重/量化是什么；</li><li>统一内存还剩多少 headroom；</li><li>是否发生明显 swap/memory pressure；</li><li>MLX/llama.cpp 等 runtime 使用什么 device/backend；</li><li>PP 与 TG 谁是瓶颈；</li><li>长时间运行是否热降频；</li><li>同样质量条件下性能如何。</li></ul>
+<figure class="visual">
+<img src="../../assets/diagrams/vendor-evidence-chain.svg" alt="NVIDIA CUDA、AMD ROCm HIP、Apple Metal MLX、Intel SYCL Level Zero 四条本地 LLM 路径共同遵循 hardware identity、driver runtime、application backend、kernel path、model config 和 measured evidence 的证据链">
+<figcaption>四家生态的名词不同，但排错结构相同：<strong>系统看见设备 → runtime 能用 → 应用 backend 启用 → 目标 kernel 生效 → model/config 固定 → benchmark 可复现</strong>。任何一层 UNKNOWN 都不能用品牌印象补上。</figcaption>
+</figure>
 <h2>1. Apple evidence chain</h2><pre>exact Mac / SoC / memory capacity
 → macOS + Metal capability
 → application/runtime build
@@ -19,7 +23,9 @@
 </pre><p>不要把 total unified memory 全部交给模型。一个“刚好加载”的配置在长上下文或同时开浏览器/IDE 时可能进入 memory pressure。</p>
 <h2>3. MLX / MLX-LM：怎样证明 GPU 在工作？</h2><p>使用 runtime/device selection、日志、Activity Monitor/Metal profiler（高级路径）与性能变化共同确认。不要仅用“CPU 没满”或“GPU history 有波动”作为唯一证据。</p><p>MLX 使用 lazy computation 时，还要确保 benchmark 真正触发 materialization/synchronization，否则只测到 dispatch/graph 构建时间。</p>
 <h2>4. llama.cpp / Metal path：为什么要与 MLX 分开记录？</h2><p>同一 Mac 上不同 runtime 可能使用不同模型格式、量化 kernel、buffer 组织和 sampling pipeline。比较时必须记录 runtime build 和 exact model artifact。</p><p>正确结论可以是：“在模型 A、量化 Q、context C、协议 P 下，runtime X 的 TG 比 Y 高。”不要泛化成“MLX 永远更快”或“llama.cpp 永远更省内存”。</p>
-<h2>5. ANE：什么时候可以写进证据？</h2><p>只有目标 framework/runtime 明确把相关 graph/operator 调度到 ANE，并能通过 profiler/runtime evidence 观察时。否则 ANE 只属于芯片能力背景，不能加进本次 LLM benchmark 的解释。</p>
+<h2>5. ANE / M5 GPU Neural Accelerator：什么时候可以写进证据？</h2>
+<p>对 M1–M4，一条常见教学分法是“GPU 路径”和独立 Neural Engine 路径；M5 起还要再加一层：Apple 在新 GPU architecture 的每个 GPU core 内加入 Neural Accelerator，同时独立 Neural Engine 仍然存在。</p>
+<p><strong>无论是哪一种 AI 单元，只有目标 framework/runtime 明确调度到该路径，并能通过 profiler、runtime log、kernel/Metal Tensor API 或受控对照建立证据时，才可以写进本次 LLM 性能解释。</strong> 否则它只是芯片 capability 背景，不是这个 benchmark 的已验证原因。</p>
 <h2>Worked Example：同一 32 GB Mac，短上下文正常，长上下文突然很慢</h2><pre>check model/quant unchanged
 → inspect context / KV growth
 → inspect memory pressure
