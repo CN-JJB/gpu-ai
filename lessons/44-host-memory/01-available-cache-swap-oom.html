@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Host Memory Pressure / Swap / OOM</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.55rem}</style></head><body>
 <h1>Host Memory Pressure — 32GB RAM 只剩 2GB free，要慌吗？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该知道操作系统会主动把空闲 RAM 用作文件缓存，因此 <strong>free</strong> 很低并不自动等于内存危机；同时要能区分 available memory、page cache、swap 与真正的 OOM/回收压力。</p>
+<div class="callout"><strong>如果还不熟：</strong>先记住：判断内存是否吃紧要看“还有多少可回收/可用空间、是否频繁换页、进程是否被 OOM 杀掉”，而不是只盯一个 free 数字。</div>
+
+<h2>真实问题</h2>
+<p>本地 LLM 能启动，但一边跑模型一边开浏览器或第二个服务后，系统开始卡顿、磁盘 I/O 上升，甚至进程被杀。此时“GPU 显存还够”并不能说明整机容量足够。</p>
+<p>真正的问题是：<strong>怎样判断瓶颈来自正常 page cache、可回收内存、持续 swap 还是不可恢复的 host-RAM 不足，并据此决定减小 workload、关闭并发、调整 offload，还是整机内存确实不够？</strong></p>
+</section>
+
 <h2>1. 先别只看 Free</h2>
 
 <p>Linux：</p>
