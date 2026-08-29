@@ -291,6 +291,18 @@ secret_value = REDACTED</pre>
 <li>工具/agent 权限与普通 chat API 分离。</li>
 </ol>
 
+
+<h3>Troubleshooting：连不上，或发现暴露范围比预期大怎么办？</h3>
+<ol>
+<li><strong>先缩小边界：</strong>如果你不确定服务现在暴露给谁，先停止外部访问或恢复 loopback-only，再继续排查；不要在未知暴露状态下一边试一边扩大端口。</li>
+<li><strong>从实际监听开始：</strong>确认进程到底绑定了哪个 address/port，而不是只看启动命令里“以为”写了什么。</li>
+<li><strong>逐跳检查网络路径：</strong>本机 → 主机防火墙 → LAN/VPN/反代 → 客户端。一次只改变一个控制面，避免同时改 bind、firewall、proxy 和 auth 后失去因果。</li>
+<li><strong>401/403 与连接失败分开：</strong>能建立连接但认证失败，优先查 credential/authorization；完全连不上，优先查监听与网络路径。</li>
+<li><strong>发现不该公开的 endpoint：</strong>先关闭或限制 metrics/debug/slot/tool 接口，再处理“功能是否方便”。最小公开面优先于便利性。</li>
+<li><strong>怀疑 secret 泄露：</strong>不要把 secret 写进 Evidence。停止继续传播相关日志，按所用系统的凭证轮换流程处理，并只保留已脱敏证据。</li>
+</ol>
+<p>排错完成后重新画一次 trust-boundary 图；如果“谁能连、谁能调用什么、链路是否加密、日志保存什么”仍有任一项说不清，结论保持 <strong>REVIEW / LOCAL-ONLY</strong>，不要继续扩大暴露范围。</p>
+
 <h3>Decision Rule</h3>
 <div class="callout"><strong>只有在“连接来源、身份、传输、授权、日志、工具权限”都说得清楚时，才把本地模型服务从 loopback 扩出去。</strong></div>
 
