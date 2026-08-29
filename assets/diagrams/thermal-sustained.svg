@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+<title id="title">GPU 短跑、升温与持续稳态性能时间线</title><desc id="desc">工作开始时散热器冷、clock boost高，随后温度累积进入平衡；持续性能下降可能来自thermal、power cap或其他限制，需同时看temperature、clock、power、fan和throughput。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.axis{stroke:#777;stroke-width:1.5}.temp{fill:none;stroke:#555;stroke-width:3}.clock{fill:none;stroke:#888;stroke-width:3;stroke-dasharray:8 5}.box{fill:#fff;stroke:#555;stroke-width:2}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<text class="h" x="35" y="38">短跑成绩可能来自“冷机 boost”，持续 workload 要看最后的平衡点</text>
+<line class="axis" x1="100" y1="360" x2="1030" y2="360"/><line class="axis" x1="100" y1="85" x2="100" y2="360"/>
+<path class="temp" d="M100 320 C230 315 280 220 400 170 C550 110 740 120 1030 125"/>
+<path class="clock" d="M100 120 C230 105 330 110 420 150 C560 205 720 205 1030 200"/>
+<text class="t" x="930" y="113">temperature / heat</text><text class="t" x="930" y="222">clock / throughput proxy</text>
+<line class="axis" x1="300" y1="80" x2="300" y2="380"/><text class="s" x="300" y="400" text-anchor="middle">heat accumulating</text>
+<line class="axis" x1="650" y1="80" x2="650" y2="380"/><text class="s" x="650" y="400" text-anchor="middle">approaching steady state</text>
+<rect class="box" x="160" y="425" width="800" height="50" rx="10"/><text class="s" x="560" y="455" text-anchor="middle">Clock drop alone is not proof of thermal throttling: also inspect power limit / power brake / utilization / fan / ambient / neighboring GPUs.</text>
+</svg>
