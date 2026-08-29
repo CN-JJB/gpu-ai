@@ -181,5 +181,45 @@ achieved
 <li><a href="../../reference/gpu/matrix-units-precision-tops.md">Course Reference — Matrix Units / Precision / TOPS</a></li>
 </ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：Tensor/Matrix TOPS 是“特定数据类型 + 特定操作 + 特定条件”的峰值</h2>
+<h3>Worked Example：为什么 100 TOPS 不能直接换成 tok/s</h3>
+<p>LLM 一次推理除了矩阵乘，还包括：</p>
+<pre>weight/KV memory traffic
+normalization
+activation
+sampling
+attention
+quant/dequant
+kernel launches
+synchronization</pre>
+<p>只有其中适配矩阵单元的数据路径，才可能接近对应峰值。decode 还常常先撞带宽 roof。</p>
+
+<h3>输入精度与累加精度要分开</h3>
+<p>矩阵单元可能以较低精度输入进行乘法，但使用更高精度 accumulator。所谓“FP16/INT8/FP8 tensor performance”必须看具体输入、accumulate、sparsity 与结构条件。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>大矩阵/batch 更容易提高矩阵单元利用率。</li>
+<li>单 token、小 batch decode 可能无法充分吃满峰值 compute。</li>
+<li>低精度硬件能力只有 backend/kernel 真正使用时才有价值。</li>
+<li>峰值 TOPS 高的 GPU 不一定有更高 TG。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先确认 workload 数据类型和 quant scheme。</li>
+<li>确认 runtime 是否走 matrix/tensor fast path。</li>
+<li>区分 dense 与 sparsity 宣传数字。</li>
+<li>同时检查 memory bandwidth 与容量，避免只盯 compute。</li>
+</ol>
+
+<h3>无对应矩阵单元怎么办？</h3>
+<p>用公开架构资料做 capability matrix：支持哪些输入/accumulate 类型、哪些 runtime 能调用。不要把理论 TOPS 写成实测性能。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>TOPS 只能作为能力上限线索，不能替代 PP/TG/质量 benchmark。</strong>判断本地 LLM 价值时必须把 precision、kernel、bandwidth、VRAM 一起看。</div>
+</section>
 </body>
 </html>
