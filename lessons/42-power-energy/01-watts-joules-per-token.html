@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Power / Energy Efficiency</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>Power / Energy Efficiency — 300W 的卡一定比 220W 更费电吗？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该能进行基本单位换算，知道 <strong>W = J/s</strong>，并能区分 instantaneous power、完成一段 workload 所消耗的 energy，以及 tokens/s 这种性能指标。</p>
+<div class="callout"><strong>如果还不熟：</strong>先记住：功率高不等于完成同样工作一定更费电；最终能耗取决于功率曲线和持续时间。课程中的任何示例数值都是教学算例，不代表某张真实显卡的实测结果。</div>
+
+<h2>真实问题</h2>
+<p>两张二手 GPU 中，一张满载功率更高但生成更快，另一张更慢却功率更低。只比较 TDP、board power 或 tok/s 都无法回答长期运行成本，也无法判断哪张卡在相同质量和 workload 下更节能。</p>
+<p>真正的问题是：<strong>在明确 measurement boundary、idle baseline、Prefill/Decode 阶段和相同 workload 后，每完成一个有用 token 或一次请求需要多少能量？</strong>只有这样，功耗数据才可能进入 TCO、散热和电源决策。</p>
+</section>
+
 <h2>1. Watt 不是电量</h2>
 <pre>W = J/s</pre>
 <p>300W 只告诉你每秒的能量流率，还不知道跑多久。</p>
