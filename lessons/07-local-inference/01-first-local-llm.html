@@ -201,5 +201,54 @@ shasum -a 256 model.gguf</code></pre>
 </ul>
 <p class="small">CLI flag spelling 属于动态接口。实验当天以当前 <code>--help</code> 为准，稳定知识只保存参数含义。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：第一次跑通的目标不是“看到文字”，而是确认执行路径</h2>
+<h3>最小证据链</h3>
+<pre>model artifact
++ runtime version/build
++ backend/device detected
++ exact command
++ model load log
++ generated output
+→ reproducible first run</pre>
+<p>只截图一段回答，没有办法证明到底是 GPU、CPU 还是别的 backend 在工作。</p>
+
+<h3>Worked Example：为什么“显卡利用率 0%”不一定等于没用 GPU</h3>
+<p>短 prompt、短输出时，采样工具可能错过瞬时 GPU 工作；反过来，显卡有利用率也可能只是桌面/其他进程。更可靠的证据是 runtime backend log + device allocation + 可重复性能差异。</p>
+
+<h3>第一次本地推理应该固定什么？</h3>
+<pre>model file/hash
+context
+prompt
+max output
+sampling
+GPU offload / backend
+threads
+runtime build</pre>
+<p>否则第二次“更快/更慢”时你连变化来自哪里都不知道。</p>
+
+<h3>实验预期</h3>
+<ul>
+<li>首次 cold load 通常比后续 warm load 更慢。</li>
+<li>GPU backend 正常时，模型加载日志应能看到设备/层分配等证据。</li>
+<li>CPU fallback 时仍可能成功生成文本，但性能和内存路径不同。</li>
+</ul>
+
+<h3>排错顺序</h3>
+<ol>
+<li>文件是否完整、格式是否被 runtime 支持。</li>
+<li>runtime 是否识别目标 device/backend。</li>
+<li>显存/RAM 是否足够，是否发生意外 offload/fallback。</li>
+<li>命令参数是否被当前版本接受。</li>
+<li>最后再比较性能。</li>
+</ol>
+
+<h3>没有独显怎么办？</h3>
+<p>CPU 路径也能完成“artifact → runtime → command → output → evidence”学习闭环。以后换到 GPU，只是替换执行后端，不改变证据方法。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>“能生成文本”只证明功能路径部分成立，不证明 GPU 正在加速，也不证明性能、质量或稳定性达标。</strong></div>
+</section>
 </body>
 </html>
