@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Graduation Machine Design Capstone</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>毕业 Machine Design Capstone — 你的结论能经得住追问吗？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该能够提交一条完整 Evidence chain：需求与 workload → 约束/假设 → primary/documented facts → 计算或实验 → 质量与性能结果 → 风险/unknowns → decision。你也应该能明确区分 measured、documented、derived 与 hypothesis。</p>
+<div class="callout"><strong>如果还不熟：</strong>毕业任务不是要求你已经买到目标硬件。没有真实硬件时，可以用 DOCUMENTED / DERIVED / DEFERRED-HARDWARE 明确标注证据等级；不能为了“完整”伪造 benchmark，也不能让课程替你自动做购买决定。</div>
+
+<h2>真实问题</h2>
+<p>真正的采购或部署评审不会只问“你推荐哪张卡”，而会继续追问：为什么这个 workload？为什么这个 context？质量怎么验证？兼容性依据是什么？PSU、RAM、散热、恢复、SLO 呢？价格变化后结论还成立吗？哪些地方其实还不知道？</p>
+<p>本节要解决的是：<strong>你能否把前 48 个 Slice 的知识压缩成一个别人可以复查、挑战、重算并最终接受或拒绝的 Machine Design Review？</strong>毕业标准不是配置单漂亮，而是每个关键结论都能追溯到证据与明确边界。</p>
+</section>
+
 <h2>1. 最后不是交一张配置单</h2>
 <pre>“RTX xxxx + 64GB RAM + 2TB SSD”</pre>
 <p>这只能说明你列了零件。</p>
