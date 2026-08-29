@@ -19,6 +19,10 @@ Prediction:
 fixed: protocol / quality / prompt ...
 variant: hardware / runtime / model / execution
 intentional_variable: variant.execution.flash_attention</pre>
+<figure class="visual">
+<img src="../../assets/diagrams/ab-one-variable-identity.svg" alt="A/B 实验共享同一个 model hash、prompt protocol、context、sampling、quality gate 和 environment，只改变一个 intentional semantic variable，再分别做 warmup 和重复测量">
+<figcaption>所谓“一次只改一个变量”，重点是<strong>比较身份不漂移</strong>。如果 candidate 连模型、context、sampling 或环境也一起变了，就不能把性能差异单独归因给你想测试的开关。</figcaption>
+</figure>
 <h2>4. Baseline / Candidate：必须共享比较身份</h2><p>一对 A/B 应有同一 comparison_id，并分别保存 baseline/candidate manifest、raw result、command、profile、质量 evidence。不要只留一张“前后 token/s”截图。</p>
 <h2>5. Warmup 与 repetitions：为什么第一次常不可靠？</h2><p>第一次运行可能包含：</p><ul><li>模型 page/cache warmup；</li><li>kernel/library initialization；</li><li>JIT/graph compile；</li><li>clock ramp；</li><li>filesystem cache。</li></ul><p>因此先定义 warmup，再做多次 repetition。不要跑到出现喜欢的数字就停。</p>
 <h2>6. Central tendency 与 scatter</h2><p>即使协议固定，每次运行也可能有噪声。初学者至少记录每次值，再看 median/mean 与 spread，而不是只取最好一条。</p><pre>TG runs: 47.8, 48.1, 47.9, 53.0, 48.0
