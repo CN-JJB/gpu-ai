@@ -5,6 +5,17 @@
 </head><body>
 <h1>Multi-Tenant Fairness — “每人两个请求”为什么一点都不公平？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该知道一个请求的成本会随 prompt、output、context 与 active time 改变，也理解 slot、queue、KV 和 per-request SLO 这些概念。</p>
+<div class="callout"><strong>如果还不熟：</strong>先把 tenant 理解成“共享同一服务的一组用户/应用”。公平不是先规定每人几个请求，而是先定义要公平分配哪种稀缺资源，再选择 quota 与 scheduler。</div>
+
+<h2>真实问题</h2>
+<p>你把一台本地 LLM 共享给两个人：A 经常生成几千 token 的长回答，B 只做几十 token 的短查询。如果按“每人同时两个请求”处理，A 可能长期占满 slot 与 KV，B 的请求虽然很轻却一直排队。</p>
+<p>真正的问题是：<strong>怎样在不让某个 tenant 饿死的前提下分配 slot、token、context/KV 与等待时间，同时在其他人空闲时允许借用容量，避免 GPU 白白闲着？</strong>公平性必须和利用率、per-tenant SLO 一起度量。</p>
+</section>
+
 <h2>1. Request 不是统一成本单位</h2>
 
 <pre>
