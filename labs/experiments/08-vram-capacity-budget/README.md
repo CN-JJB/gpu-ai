@@ -182,3 +182,44 @@ Hugging Face safetensors header 可以只读 tensor dtype/shape，不下载全�
 - 你留了多少 runtime reserve？
 - 为什么这份 estimate 不能当“肯定能跑”？
 - 如果必须 offload，你认为下一层 bottleneck 会在哪里？
+
+
+## Hypothesis
+
+显存 fit 取决于 weights + KV + runtime/workspace + headroom；context、concurrency、Hkv/KV dtype 中任一变化都可能让同一模型从 ROOMY 变成 TIGHT/OVER。
+
+## Fixed variables
+
+每次比较只改 context、concurrency、KV heads 或 KV dtype 中的一项。weight bpw、layers、reserve 与 candidate VRAM 保持不变。
+
+## What to observe
+
+- weight baseline 与 KV 分开；
+- KV bytes/token/sequence；
+- context/concurrency 的线性影响；
+- MHA/GQA/MQA 的 KV 差异；
+- headroom % 与 TIGHT warning；
+- config warning 何时要求人工逐层修正。
+
+## Troubleshooting
+
+- 模型文件大小不等于 weights runtime bytes。
+- 10% 只是课程 warning，不是 backend safety line。
+- heterogeneous/sliding/hybrid 模型不要套 homogeneous baseline 当最终结果。
+- OFFLOAD 能避免 OOM 也会改变下一层 bottleneck。
+
+## What this proves
+
+你能在买卡前做可解释的 VRAM preflight，并识别最敏感的容量变量。
+
+## What this does NOT prove
+
+它不保证 runtime 一定成功，也不包含全部 allocator/workspace/backend overhead。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+同一个 7B Q4 模型从 4k 单用户变成 32k 四并发时，为什么“模型权重没变”仍可能突然 OOM？
