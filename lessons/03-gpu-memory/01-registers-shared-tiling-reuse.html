@@ -12,6 +12,7 @@
 <h1>为什么 GPU 要把数据搬到片上再算？</h1>
 <p class="lead">上一节你看到 scheduler 靠很多 ready warp/wavefront 隐藏等待。这一节再往里走一步：如果同一份数据会被用很多次，最好的等待不是“藏起来”，而是尽量别反复去远处拿。</p>
 
+<h2>Prerequisite Check</h2><p>你应理解 Lesson 02 的 thread/lane-group/SM 级执行模型，并会 Foundation 03 的 bit、byte 与容量单位。不会写 kernel 也可以学习：本节关注的是“数据离计算单元多远、能不能复用”。</p>
 <h2>真实问题</h2>
 <div class="callout">
 <p><strong>LLM 明明做了海量矩阵乘，为什么高性能 kernel 还要费劲设计 tile、shared memory/LDS 和 register fragment？直接每个 thread 从显存读自己需要的数据不行吗？</strong></p>
