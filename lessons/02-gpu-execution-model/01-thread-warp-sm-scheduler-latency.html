@@ -139,5 +139,48 @@
 
 <p class="small">硬件门槛：Lesson 与 L0 实验不需要独显；L2 为可选真实 GPU 路径。卡住时应按 wait-what 思路补前提，不重复整节。</p>
 </main>
+
+<section class="textbook-upgrade">
+<h2>教材补全：把 Thread / Warp / SM 变成可推理模型</h2>
+<h3>Worked Example：为什么“更多线程”能隐藏延迟，却不能无限加速</h3>
+<p>假设一个 warp 发出 global-memory load 后需要等待很多周期。SM scheduler 可以先切去执行其他 ready warp：</p>
+<pre>warp A → memory wait
+warp B → execute
+warp C → execute
+warp D → execute
+...
+warp A → data ready</pre>
+<p>这叫 latency hiding。它不是把 memory latency 消灭，而是用别的独立工作把等待时间覆盖掉。</p>
+
+<h3>什么时候更多 occupancy 不再有帮助？</h3>
+<ul>
+<li>已经有足够 ready warps 隐藏延迟。</li>
+<li>kernel 本身受带宽限制，更多 warps 只争同一条内存通路。</li>
+<li>register/shared-memory 压力限制了实际可驻留 block。</li>
+<li>分支发散或依赖链让 warp 自身可执行指令不足。</li>
+</ul>
+
+<h3>实验预期</h3>
+<p>做线程/warp/scheduler 概念实验时，你应该观察到：</p>
+<ul>
+<li>较少独立工作时，延迟暴露更明显。</li>
+<li>增加可并行工作后，吞吐先改善，随后收益递减。</li>
+<li>单纯追求 occupancy 最大值，不保证 kernel 最快。</li>
+</ul>
+
+<h3>排错</h3>
+<ol>
+<li>先确认比较的是同一 kernel / input size。</li>
+<li>看 register/shared-memory 使用是否改变。</li>
+<li>看是否已经转成 memory-bandwidth bottleneck。</li>
+<li>看 branch divergence / dependency 是否限制 ready work。</li>
+</ol>
+
+<h3>无对应 NVIDIA GPU 怎么办？</h3>
+<p>可以只用课程交互/纸上调度 trace 完成主目标，再把概念映射到 AMD wavefront/CU 或 Apple SIMD-group。学习目标是理解“成组执行 + 多组驻留 + scheduler 隐藏等待”，不是背 NVIDIA 名词。</p>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>看到“更多 CUDA cores / 更高 occupancy”时，不直接推出更快。</strong>先问 workload 是否有足够并行、是否受 latency、bandwidth、register 或 branch 限制。</div>
+</section>
 </body>
 </html>
