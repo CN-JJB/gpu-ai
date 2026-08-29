@@ -130,3 +130,20 @@ Hugging Face PEFT 是当前常用 LoRA 框架之一；具体 API、quant integra
 - QLoRA paper: https://arxiv.org/abs/2305.14314
 - Hugging Face PEFT: https://huggingface.co/docs/peft/
 - PEFT LoRA guide: https://huggingface.co/docs/peft/main/conceptual_guides/lora
+
+
+## Expected outcome
+
+你应能说明 base model、adapter、训练 dtype/quant、dataset、eval fixture 与显存预算的关系，并用 quality gate 判断 adaptation 是否真的改善目标任务。
+
+## Failure recovery
+
+训练 loss 下降但目标 fixture 退化时，不继续盲目加 epoch；先检查数据泄漏、模板/tokenizer、eval identity 与 overfitting。
+
+## What this does NOT prove
+
+LoRA/QLoRA 不是自动“让模型学会新知识”的保证；小训练集上的提升也不能推广到所有任务。
+
+## No-hardware path
+
+可只做 memory budget、dataset/eval design 和 adapter identity worksheet；真实训练延后。
