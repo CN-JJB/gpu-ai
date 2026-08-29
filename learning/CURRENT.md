@@ -32,7 +32,9 @@ Batch 03 added second-layer mechanism diagrams for NVIDIA SM execution, AMD wave
 
 Batch 04 (Lessons 24–33) is now also reviewed and marker-checked. All 10 pages already had mechanism-appropriate SVG or interactive surfaces, so no redundant new asset was added. The RoPE, hybrid-KV and sampling interactions explicitly state their teaching-model boundaries.
 
-Next visual batch: Lessons 34–45 serving/operations/whole-machine behavior.
+Batch 05 (Lessons 34–45) is implemented and marker-checked. Ten existing operations diagrams were connected to previously text-only lesson pages, and two new teaching SVGs were added for Little's Law/serving capacity and power→energy→J/token reasoning. All 12 pages now expose a visual teaching surface.
+
+Next visual batch: Lessons 46–49 used-GPU validation, PSU/power delivery, system integration and graduation gates.
 
 ## Stable course
 
