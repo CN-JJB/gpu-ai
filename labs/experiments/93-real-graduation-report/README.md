@@ -127,3 +127,50 @@ Keep:
 - Evidence Packet index/hash;
 - raw benchmark/quality/SLO evidence;
 - any redaction notes needed before publishing the report.
+
+## Why this experiment
+
+这是学生阶段的最终整合：不是再做一个新 benchmark，而是把已经产生的真实 Evidence 组织成一份别人可以复核的机器设计报告。
+
+## Hypothesis
+
+只要目标、Experiment 91 decision、material claims、raw evidence、revision 与 non-claims 全部可追踪，哪怕机器结论是 BLOCKED，这份毕业报告仍可达到 COMPLETE。
+
+## Fixed variables
+
+final report 必须绑定已冻结的 target 与 Experiment 91 dossier。没有新证据时不得在报告里私自改变 machine decision。
+
+## What to observe
+
+- claim index 是否覆盖会影响 feasibility/purchase/safety/quality/performance/TCO 的 material claims；
+- 每个 claim 是否有 evidence type、scope/conditions；
+- unknown/non-claims 是否显式；
+- revision 是否回应 failed/unknown gates；
+- validator 的 MACHINE DECISION 与 CAPSTONE COMPLETENESS 是否被正确区分。
+
+## Troubleshooting
+
+- COMPLETE 不等于 ACCEPT。
+- evidence link 有路径不等于内容可信，仍需人工 review。
+- target identity 改变必须重跑 Experiment 91。
+- 发布报告前清理 secret/private prompt/个人识别信息。
+
+## Evidence to save
+
+保存 final report、capstone.json、Experiment 91 dossier、Packet index/hash、raw benchmark/quality/SLO 和 redaction notes。
+
+## What this proves
+
+完成后你证明的是：能独立设计、测量、解释、修订并审查一个 Local LLM 系统。
+
+## What this does NOT prove
+
+它不要求买最贵硬件，也不允许用缺失真实证据的漂亮文字代替验证。
+
+## No-hardware fallback
+
+在当前作者阶段不运行；未来上课时以你实际拥有/计划的系统完成。教材完整性不依赖预先伪造结果。
+
+## Transfer question
+
+毕业报告是 BLOCKED，但清楚指出唯一缺口、证据来源和下一步。为什么这仍可能比一个无证据的 ACCEPT 更优秀？
