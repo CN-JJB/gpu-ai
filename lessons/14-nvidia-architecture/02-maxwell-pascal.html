@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NVIDIA 架构 2：Maxwell 与 Pascal</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">NVIDIA Architecture · 2/5 · L0→L1</p><h1>NVIDIA 架构主线（二）：Maxwell → Pascal</h1><p class="lead">这两代最值得学的不是“帧数进步”，而是 NVIDIA 如何围绕每瓦吞吐、SM 资源组织、内存效率、低精度与高带宽计算继续重构 GPU。它们也是你理解大量二手消费卡与早期深度学习卡价值差异的关键节点。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA 从 Tesla、Fermi、Kepler、Maxwell、Pascal、Volta、Turing、Ampere、Ada、Hopper 到 Blackwell 的课程架构演进地图">
+<figcaption>这张地图先固定<strong>代际位置与问题主线</strong>，再进入本页细节。不要跨代直接用 CUDA Core 数、Tensor Core 数或单一 TOPS 做比例换算；执行组织、数值路径、memory system 和软件生命周期都在变化。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>先能解释 SM/warp、latency hiding、shared memory/cache 的作用。如果忘了，回看上一节；不要求记具体核心数或发布时间。</p>
 <h2>真实问题：为什么“同样很多 CUDA Core”的两代卡，每瓦性能和可用场景会差很多？</h2><p>扩大一个 SM 并不断堆执行单元，会遇到调度、供电、寄存器、shared memory、cache 与控制逻辑的效率问题。Maxwell 的重点之一，就是重新组织 SM，让每组执行资源和调度更紧密，减少为了追求宽度而浪费的能耗。</p>
 <h2>1. Maxwell：性能不是只靠“更多”，还靠“更容易喂饱”</h2><p>理解 Maxwell 可以先用“把一个大车间拆成更自治的小生产线”来类比。执行资源、warp scheduler、register/shared 等组织更细，使实际 workload 更容易使用已有晶体管。</p><div class="callout"><strong>长期规律：</strong>架构优化经常不是增加峰值单元，而是减少“资源存在但用不上”的时间和能量。</div>
