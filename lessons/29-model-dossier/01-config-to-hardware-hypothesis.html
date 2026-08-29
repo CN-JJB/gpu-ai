@@ -33,5 +33,72 @@ actual support for attention variant is UNKNOWN until backend check.</pre><p>这
 <h2>Retrieval Practice</h2><ol><li>Model Dossier 的四层是什么？</li><li>为什么 artifact bytes 比参数×位宽更接近真实权重 fit？</li><li>KV 预算至少需要哪些 config 字段？</li><li>MoE Dossier 为什么必须区分 total/active？</li><li>FACT、DERIVED、HYPOTHESIS、UNKNOWN 为什么要分开？</li><li>给一个可被实验推翻的硬件 hypothesis 示例。</li></ol>
 <h2>Decision Rule</h2><div class="callout"><p>下载/购买硬件前先建立 Model Dossier。没有 exact identity、artifact、attention/KV 结构和 backend support 的模型，只能进入探索队列，不能直接进入硬件采购结论。</p></div>
 <h2>Transfer</h2><p>未来遇到任何新 architecture，把新字段加进 Dossier，而不是重写思考方式：identity → architecture → artifact → runtime hypothesis。</p>
+
+<h2>下载前的 Dossier 最低交付模板</h2>
+<pre>Identity
+- canonical model:
+- exact revision:
+- tokenizer/template:
+
+Architecture FACTS
+- dense / MoE:
+- layers:
+- hidden / intermediate:
+- Q heads / KV heads / head dim:
+- context / position scheme:
+- special attention/cache:
+
+Artifact
+- target format/quant:
+- expected bytes:
+- exact local SHA: PENDING until downloaded
+
+Derived budgets
+- weight estimate:
+- KV estimate at target context:
+- safety/headroom assumption:
+
+Runtime
+- target backend:
+- documented support:
+- unknown kernel/features:
+
+Hypotheses
+- fit:
+- PP bottleneck:
+- TG bottleneck:
+- quality risks:
+
+UNKNOWN / must measure
+- ...
+</pre>
+
+<h2>Worked Example：什么时候应该“先不下载”？</h2>
+<p>如果 config 已经显示目标 artifact + KV 的保守预算明显超过你的可用 accelerator/host memory，或者目标 runtime 对新 attention architecture 仍无明确实现证据，那么最好的工程动作可能是先停：改选更小 quant/context/model，或先调查 backend。下载几十 GB 并不会增加事实。</p>
+
+<h2>事实、推导、假设必须能追来源</h2>
+<table><thead><tr><th>标签</th><th>例子</th><th>来源</th></tr></thead><tbody>
+<tr><td>FACT</td><td>num_key_value_heads = N</td><td>exact config/source</td></tr>
+<tr><td>DERIVED</td><td>传统 KV rough budget</td><td>FACT + 明确公式</td></tr>
+<tr><td>HYPOTHESIS</td><td>decode 可能 bandwidth-sensitive</td><td>结构 + roof reasoning</td></tr>
+<tr><td>UNKNOWN</td><td>目标 backend 是否有 native kernel</td><td>等待 source/experiment</td></tr>
+</tbody></table>
+<p>如果无法指出某一行属于哪类，就说明 Dossier 正把猜测伪装成事实。</p>
+
+<h2>Experiment Handoff</h2>
+<p>Dossier 的终点不是“我懂这个模型”，而是生成下一步最小实验：</p>
+<pre>unknown
+→ smallest discriminating experiment
+→ evidence to save
+→ pass / blocked interpretation
+</pre>
+<p>例如 UNKNOWN = exact quant 是否 full GPU offload；最小实验就应是固定 tiny/target artifact 的 backend preflight，而不是先跑一大套性能 benchmark。</p>
+
+<h2>No-hardware Transfer</h2>
+<p>本节可对未来任意新模型重复。只要 model config/source 可读，你就能在没有完整权重、没有 GPU 的情况下先完成大部分 Dossier，并把真正需要硬件的项目留成 UNKNOWN。</p>
+
+<h2>What this lesson does NOT prove</h2>
+<p>Dossier 是调查与假设工具，不是 benchmark。即使所有纸面预算都漂亮，也不能证明 runtime 兼容、质量可接受或真实 PP/TG 达标；这些必须由后续 Evidence 关闭。</p>
+
 <h2>Primary Sources / Reference</h2><ul><li><a href="../../reference/llm/">Course LLM Reference</a></li><li><a href="../../templates/">Course templates</a></li><li><a href="../../COURSE-MAP.md">Course Map</a></li></ul>
 </main></body></html>
