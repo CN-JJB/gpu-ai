@@ -90,3 +90,49 @@ Examples:
 ## 结果
 
 填写 `RESULT-TEMPLATE.md`，保留原始 `nvidia-inventory.txt`。
+
+## Why this experiment
+
+型号名只是入口。真正判断 CUDA/LLM 可用性时，需要把 exact GPU、compute capability、driver、VRAM、PCIe/topology 与当前软件支持边界连成同一条证据链。
+
+## Hypothesis
+
+如果当前 NVIDIA 软件路径成立，系统应能稳定报告同一设备身份与 capability；旧卡即使还能被 driver 识别，也可能在最新 Toolkit/backend 上进入受限状态。
+
+## Fixed variables
+
+采集期间不升级 driver、不切换 CUDA/PyTorch/llama.cpp build。先冻结当前环境，再解释结果。
+
+## What to observe
+
+- exact GPU name 与 compute capability；
+- driver/build identity；
+- VRAM 与 PCI bus/topology；
+- PyTorch/llama.cpp 是否看到同一设备；
+- architecture mapping 与 exact SKU feature 之间仍有哪些未知。
+
+## Troubleshooting
+
+- nvidia-smi 可见但 PyTorch/llama.cpp 不可见：优先查 build/runtime，不要先怀疑 GPU 损坏。
+- compute capability 只说明架构 target，不等于所有 SKU feature 相同。
+- 旧卡 support matrix 属动态信息，必须记录版本/日期。
+
+## Evidence to save
+
+保存完整 nvidia-inventory.txt、identify_arch 输出、当前软件版本和 RESULT-TEMPLATE。
+
+## What this proves
+
+你能建立当前 NVIDIA 设备 capability/软件可见性档案。
+
+## What this does NOT prove
+
+它不证明 PP/TG、Tensor Core 实际利用率、长期稳定性或购买价值。
+
+## No-hardware fallback
+
+没有 NVIDIA GPU 时完成 Experiment 23。
+
+## Transfer question
+
+一张卡 compute capability 已知，但目标 llama.cpp build 不枚举它。此时“架构支持”与“当前可用”为什么必须分开写？
