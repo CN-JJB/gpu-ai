@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 510" role="img" aria-labelledby="title desc">
+<title id="title">Host RAM 中 Free Available Page Cache Anonymous Swap 与 OOM 的关系</title><desc id="desc">低MemFree可能因为Linux把空闲RAM用作可回收page cache；真正压力需结合MemAvailable、anonymous memory、swap activity、major faults和OOM。GPU OOM与host OOM分开。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.cache{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">Free 很低可以很健康；关键是哪些页可回收、是否开始高成本 reclaim / swap / fault</text>
+<rect class="box" x="70" y="100" width="980" height="120" rx="18"/><text x="560" y="130" text-anchor="middle" font-size="18" font-weight="700">Physical RAM</text>
+<rect class="cache" x="105" y="155" width="250" height="45" rx="8"/><text class="t" x="230" y="183" text-anchor="middle">File / page cache · reclaimable</text>
+<rect class="box" x="380" y="155" width="250" height="45" rx="8"/><text class="t" x="505" y="183" text-anchor="middle">Anonymous · heap / runtime</text>
+<rect class="box" x="655" y="155" width="170" height="45" rx="8"/><text class="t" x="740" y="183" text-anchor="middle">kernel / pinned</text>
+<rect class="cache" x="850" y="155" width="160" height="45" rx="8"/><text class="t" x="930" y="183" text-anchor="middle">Free</text>
+<path class="arrow" d="M230 225 V285"/><text class="s" x="245" y="260">reclaim when needed</text>
+<rect class="cache" x="105" y="290" width="250" height="70" rx="12"/><text class="t" x="230" y="319" text-anchor="middle">filesystem</text><text class="s" x="230" y="342" text-anchor="middle">major fault if page must be reread</text>
+<path class="arrow" d="M505 225 V285"/>
+<rect class="box" x="405" y="290" width="200" height="70" rx="12"/><text class="t" x="505" y="319" text-anchor="middle">swap</text><text class="s" x="505" y="342" text-anchor="middle">activity matters more than nonzero</text>
+<rect class="box" x="700" y="275" width="310" height="105" rx="14"/><text x="855" y="307" text-anchor="middle" font-size="17" font-weight="700">Pressure evidence</text><text class="s" x="855" y="332" text-anchor="middle">MemAvailable falling</text><text class="s" x="855" y="351" text-anchor="middle">swap-in/out + major faults + latency</text><text class="s" x="855" y="370" text-anchor="middle">OOM / kill if reclaim cannot satisfy demand</text>
+<text x="560" y="435" text-anchor="middle" class="t">Host OOM ≠ GPU VRAM OOM · Apple unified memory requires a different shared-memory interpretation.</text>
+</svg>
