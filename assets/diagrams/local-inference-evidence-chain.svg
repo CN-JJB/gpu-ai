@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 390" role="img" aria-labelledby="title desc">
+<title id="title">第一次本地 LLM 运行的证据链</title>
+<desc id="desc">从模型文件指纹、runtime build、设备发现、offload placement、backend kernel 到原始结果，说明看到文本生成不足以证明 GPU 加速。</desc>
+<style>
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}
+.box{fill:#fff;stroke:#555;stroke-width:2}.sub{fill:#f3f3f3;stroke:#888;stroke-width:1.5}
+.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}
+.h{font-size:22px;font-weight:700}.t{font-size:15px}.s{font-size:13px}
+</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="40" y="38">“能生成文本”只是起点；可复现结论需要完整执行路径</text>
+<g transform="translate(35 90)">
+  <rect class="box" x="0" y="0" width="150" height="80" rx="14"/>
+  <text x="75" y="31" text-anchor="middle" font-size="17" font-weight="700">Model artifact</text>
+  <text class="s" x="75" y="55" text-anchor="middle">filename · bytes</text><text class="s" x="75" y="72" text-anchor="middle">revision · SHA256</text>
+</g>
+<path class="arrow" d="M190 130 H225"/>
+<g transform="translate(230 90)">
+  <rect class="box" x="0" y="0" width="150" height="80" rx="14"/>
+  <text x="75" y="31" text-anchor="middle" font-size="17" font-weight="700">Runtime build</text>
+  <text class="s" x="75" y="55" text-anchor="middle">version · commit</text><text class="s" x="75" y="72" text-anchor="middle">compiled backends</text>
+</g>
+<path class="arrow" d="M385 130 H420"/>
+<g transform="translate(425 90)">
+  <rect class="box" x="0" y="0" width="150" height="80" rx="14"/>
+  <text x="75" y="31" text-anchor="middle" font-size="17" font-weight="700">Device discovery</text>
+  <text class="s" x="75" y="55" text-anchor="middle">CPU/GPU identity</text><text class="s" x="75" y="72" text-anchor="middle">driver/runtime visible</text>
+</g>
+<path class="arrow" d="M580 130 H615"/>
+<g transform="translate(620 90)">
+  <rect class="box" x="0" y="0" width="150" height="80" rx="14"/>
+  <text x="75" y="31" text-anchor="middle" font-size="17" font-weight="700">Placement</text>
+  <text class="s" x="75" y="55" text-anchor="middle">CPU-only / hybrid</text><text class="s" x="75" y="72" text-anchor="middle">GPU layers / KV</text>
+</g>
+<path class="arrow" d="M775 130 H810"/>
+<g transform="translate(815 90)">
+  <rect class="box" x="0" y="0" width="150" height="80" rx="14"/>
+  <text x="75" y="31" text-anchor="middle" font-size="17" font-weight="700">Kernel path</text>
+  <text class="s" x="75" y="55" text-anchor="middle">CUDA · HIP</text><text class="s" x="75" y="72" text-anchor="middle">Metal · CPU</text>
+</g>
+<path class="arrow" d="M970 130 H1005"/>
+<g transform="translate(1010 90)">
+  <rect class="box" x="0" y="0" width="85" height="80" rx="14"/>
+  <text x="42" y="31" text-anchor="middle" font-size="16" font-weight="700">Evidence</text>
+  <text class="s" x="42" y="55" text-anchor="middle">raw JSON</text><text class="s" x="42" y="72" text-anchor="middle">logs</text>
+</g>
+
+<text x="560" y="235" text-anchor="middle" font-size="18" font-weight="700">四个常被混淆的“成功”</text>
+<g transform="translate(130 270)">
+  <rect class="sub" x="0" y="0" width="190" height="60" rx="12"/><text class="t" x="95" y="26" text-anchor="middle">binary 编译了 GPU backend</text><text class="s" x="95" y="47" text-anchor="middle">≠ 本次 run 使用 GPU</text>
+  <rect class="sub" x="215" y="0" width="190" height="60" rx="12"/><text class="t" x="310" y="26" text-anchor="middle">系统发现了 GPU</text><text class="s" x="310" y="47" text-anchor="middle">≠ 模型已 offload</text>
+  <rect class="sub" x="430" y="0" width="190" height="60" rx="12"/><text class="t" x="525" y="26" text-anchor="middle">模型进了 GPU 内存</text><text class="s" x="525" y="47" text-anchor="middle">≠ fast kernel 生效</text>
+  <rect class="sub" x="645" y="0" width="190" height="60" rx="12"/><text class="t" x="740" y="26" text-anchor="middle">看到 tokens/s</text><text class="s" x="740" y="47" text-anchor="middle">≠ 可比较 benchmark</text>
+</g>
+</svg>
