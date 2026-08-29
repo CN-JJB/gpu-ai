@@ -56,6 +56,10 @@ table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.5
 → wider accumulator</pre>
 <div class="callout"><strong>所以：</strong>“4-bit 模型”不能自动翻译成“跑满 INT4/FP4 Tensor Core”。</div>
 
+<figure class="visual">
+<img src="../../assets/diagrams/matrix-precision-path.svg" alt="从 Q4 等模型存储格式，经 unpack scale 或 dequantize，形成 FP16 BF16 INT8 或原生低比特 operand，进入 Tensor Core MFMA XMX 类矩阵单元，再以更宽精度 accumulator 累加的执行路径">
+<figcaption><strong>看到 Q4 只走到了最左边。</strong> 要解释某个 TOPS 数字是否有用，还必须继续追 kernel preparation、实际 operand dtype、matrix fast path、accumulator，以及 memory roof。</figcaption>
+</figure>
 <h2>4. NVIDIA Tensor Core 的代际心智图</h2>
 <table>
 <tr><th>代际</th><th>你该记住什么</th></tr>
