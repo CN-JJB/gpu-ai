@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Thermal / Cooling / Sustained Performance</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>Thermal / Cooling — 为什么冷机 55 tok/s，十分钟后只剩 43？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该能同时观察 throughput、temperature、clock 与 power，并理解短时间 benchmark 只能描述一个瞬时热状态，不能自动代表长时间稳态性能。</p>
+<div class="callout"><strong>如果还不熟：</strong>先把测试分成 warm-up、steady window 和 cooldown 三段。任何“热降频”结论都应建立在同一 workload 下随时间变化的性能与遥测证据上，而不是凭风扇声音或单个温度点判断。</div>
+
+<h2>真实问题</h2>
+<p>一张二手 GPU 刚启动时 benchmark 很漂亮，但持续生成十几分钟后 tok/s 明显下降。原因可能是温度限制、功率限制、时钟变化、机箱风道，甚至 workload 自身发生变化。</p>
+<p>真正的问题是：<strong>这张卡能否在你真正需要的持续运行窗口里保持可接受的 clocks、temperature、errors 与 throughput，而不是只在冷机的几十秒里表现好？</strong>二手验收和长期部署都必须看 sustained behavior。</p>
+</section>
+
 <h2>1. 短跑和长跑不是一个硬件状态</h2>
 
 <pre>
