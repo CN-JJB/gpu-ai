@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AMD 架构 2：RDNA 与 RDNA2</title><link rel="stylesheet" href="../../assets/course.css"></head><body><main class="page">
 <p class="kicker">AMD Architecture · 2/4 · L0→L1</p><h1>AMD 架构主线（二）：RDNA → RDNA2</h1><p class="lead">RDNA 不是“GCN 改名”。它代表 AMD 为图形效率重新组织执行资源的一次重要转向。对本地 LLM 学习者，最值得理解的是 wave32、WGP/CU 组织、cache 与 memory hierarchy 如何改变旧 GCN 直觉，以及“游戏架构”为什么仍能通过 HIP/ROCm 或其他 backend 参与计算。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/amd-generation-branch-map.svg" alt="AMD 从 GCN 与 Vega 之后分成 RDNA 消费图形路线和 CDNA AI HPC 计算路线的架构分支地图">
+<figcaption><strong>先看分叉，再看代数。</strong> RDNA 与 CDNA 都继承 GPU 的 wave/register/LDS/bandwidth 问题，但优化目标、memory system、矩阵路径与部署形态不同；“RDNA4”和“CDNA4”的数字 4 不能拿来横向等价。</figcaption>
+</figure>
 <h2>Prerequisite Check</h2><p>你应能解释 GCN 的 CU、wave64、LDS、VGPR，以及为什么 exact ROCm/backend support 是现实 hard gate。</p>
 <h2>真实问题：为什么从 Vega 换到 RDNA，不能只拿 CU 数比较？</h2><p>因为每代 CU 内的 SIMD、scheduler、wave width、cache、时钟目标和每 CU 工作量都会变化。架构重组后，“一个 CU 能完成多少工作”本身就变了。</p>
 <h2>1. RDNA 的目标：更适合高时钟、高效率图形 workload</h2><p>GCN 跨越图形与计算很多年。RDNA 针对现代图形 workload 重新优化前端、执行组织与 cache。最容易观察到的概念变化之一是 <strong>wave32</strong> 成为重要执行模式。</p>
