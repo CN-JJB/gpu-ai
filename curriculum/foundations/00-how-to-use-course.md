@@ -44,6 +44,100 @@
 6. 写一个 non-claim：这次结果不能证明什么；
 7. 尝试换一个硬件/模型重新解释。
 
+## 真实问题：我现在到底应该“继续学”，还是先去买硬件？
+
+最常见的开课误区不是不会命令，而是把学习顺序反过来：
+
+~~~text
+看到别人 benchmark
+→ 立刻想买卡
+→ 跑不起来
+→ 再回头补软件/模型/证据知识
+~~~
+
+这门课采用相反顺序：
+
+~~~text
+先理解问题
+→ 先用 L0 / 文档 / worksheet 排除明显错误
+→ 只有“必须真机才能回答”的问题才进入硬件实验
+→ 最后才进入购买或升级 review
+~~~
+
+因此，没有目标 GPU 并不会阻止你学习大多数稳定知识。
+
+## 最小心智模型：Understand → Investigate → Choose → Practice → Modify
+
+你每一阶段都在重复同一个循环：
+
+~~~text
+Understand
+我能解释机制吗？
+
+Investigate
+我知道该找哪类 Evidence 吗？
+
+Choose
+我能用 hard gate / tradeoff 做选择吗？
+
+Practice
+我能产出可复查的实验结果吗？
+
+Modify
+如果失败，我知道只改哪个变量再验证吗？
+~~~
+
+这五步比“把所有术语背完”更接近课程真正的毕业能力。
+
+## Worked Example：看到“RTX 3090 跑某模型 70 tok/s”应该怎么处理？
+
+不要把它直接写进自己的 benchmark 表。先拆：
+
+~~~text
+网上看到的数字
+→ 谁测的？
+→ exact GPU / runtime / model / quant / context 是什么？
+→ 是 PP、TG 还是服务吞吐？
+→ 原始 Evidence 是否存在？
+→ 和我的目标 workload 能比较吗？
+~~~
+
+如果这些信息不完整，它仍然可以作为“值得调查的线索”，但不能升级成：
+
+~~~text
+“我的 3090 一定能跑 70 tok/s”
+~~~
+
+更不能直接升级成购买结论。
+
+你真正拥有的 Evidence，必须来自你能追到 identity、条件和原始记录的材料；未来自己的真机实验是其中最强的一类。
+
+## 学习状态不要只有“会 / 不会”
+
+课程建议使用：
+
+~~~text
+UNDERSTOOD
+可以用自己的话解释机制
+
+DOCUMENTED
+有可靠来源，但尚未真机验证
+
+DEFERRED-HARDWARE
+学习目标已完成到真机边界，等待硬件
+
+BLOCKED
+缺前置知识、关键 Evidence 或安全条件
+
+MEASURED
+已经有 learner-owned 测量
+
+REVIEW
+证据足以进入人工判断
+~~~
+
+这些状态不是成绩，而是防止你把“还不知道”伪装成“应该没问题”。
+
 ## 真机暂时做不了怎么办
 
 标记：
@@ -97,6 +191,34 @@ DEFERRED-HARDWARE
 3. 不把 UNKNOWN 硬猜成 PASS。
 
 如果某节需要额外前置知识，Foundation 01–05 会在需要时补上。
+
+## Decision Rule：什么时候算“这一课学完了”？
+
+一节课至少满足四件事才算完成：
+
+1. 你能不用原文解释核心因果；
+2. 你完成了该节要求的 L0 worksheet、实验或明确的 DEFERRED-HARDWARE 记录；
+3. 你能指出结论依赖哪份 Evidence；
+4. 你能写出至少一个这份 Evidence **不能**证明的东西。
+
+只看完正文、抄完术语、跑出一个数字，都不自动等于完成。
+
+## Transfer：以后换模型、换厂商，什么保持不变？
+
+命令、GPU 名称和软件版本会变，但下面的顺序不会：
+
+~~~text
+定义 claim
+→ 找正确 source class
+→ 固定 identity
+→ 建立最小机制模型
+→ 设计可区分的实验
+→ 保存 raw Evidence
+→ 写有边界的结论
+→ 再决定是否修改系统
+~~~
+
+所以未来遇到课程里从未出现的新 GPU、新 runtime、新 attention 架构，你仍有一套可重新推导的方法。
 
 ## Retrieval Practice
 
