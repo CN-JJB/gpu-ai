@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+<title id="title">一次只改一个语义变量的 A/B 实验结构</title><desc id="desc">共同 manifest 固定 model prompt quality protocol 和环境，仅 intentional variable 分成 baseline 与 candidate，多次重复后比较中心趋势、离散程度并保留异常值。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.fixed{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style>
+<defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">“优化后更快”只有在比较身份相同时才有意义</text>
+<rect class="fixed" x="280" y="75" width="560" height="105" rx="16"/><text x="560" y="108" text-anchor="middle" font-size="18" font-weight="700">Shared comparison manifest</text><text class="t" x="560" y="137" text-anchor="middle">same model/hash · prompt/protocol · context · sampling · quality gate · environment</text><text class="s" x="560" y="160" text-anchor="middle">这些不是“背景信息”，而是实验身份的一部分。</text>
+<path class="arrow" d="M560 180 V225"/>
+<rect class="box" x="415" y="230" width="290" height="72" rx="14"/><text x="560" y="259" text-anchor="middle" font-size="18" font-weight="700">ONE intentional semantic variable</text><text class="s" x="560" y="282" text-anchor="middle">example: flash_attention = off ↔ on</text>
+<path class="arrow" d="M505 305 C455 335 390 340 335 365"/><path class="arrow" d="M615 305 C665 335 730 340 785 365"/>
+<rect class="box" x="170" y="365" width="330" height="90" rx="15"/><text x="335" y="396" text-anchor="middle" font-size="18" font-weight="700">Baseline</text><text class="t" x="335" y="423" text-anchor="middle">warmup + repetitions + raw rows</text><text class="s" x="335" y="445" text-anchor="middle">PP · TG · quality · telemetry</text>
+<rect class="box" x="620" y="365" width="330" height="90" rx="15"/><text x="785" y="396" text-anchor="middle" font-size="18" font-weight="700">Candidate</text><text class="t" x="785" y="423" text-anchor="middle">same warmup + repetitions + raw rows</text><text class="s" x="785" y="445" text-anchor="middle">keep outliers; explain, do not delete</text>
+<text x="560" y="485" text-anchor="middle" class="s">系统级比较有时无法只改一个物理变量；这时要明确“semantic variable”并记录所有伴随变化。</text></svg>
