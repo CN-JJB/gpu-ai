@@ -1,6 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Observability / Incident Diagnosis</title><link rel="stylesheet" href="../../assets/course.css"><style>body{max-width:1000px;margin:auto;padding:28px;font-family:system-ui,sans-serif;line-height:1.72}pre,code{background:#f4f4f4;border-radius:6px}pre{padding:14px;overflow:auto}.callout{border-left:4px solid currentColor;padding:.7rem 1rem;margin:1rem 0;background:#f7f7f7}</style></head><body>
 <h1>Observability — GPU 100% 到底是好事还是坏事？</h1>
 
+
+<section class="lesson-opening">
+<h2>Prerequisite Check</h2>
+<p>开始前，你应该能读懂最基本的服务信号：latency、traffic、errors、saturation，并知道 GPU utilization、clock、temperature、queue、slot 与 KV 都只是<strong>观测信号</strong>，本身不是根因。</p>
+<div class="callout"><strong>如果还不熟：</strong>先遵守一个规则：先写“用户看到了什么症状”，再把同一时间轴上的系统信号拿来解释。不要从某个单点指标直接跳到“GPU 坏了”“驱动有问题”这类结论。</div>
+
+<h2>真实问题</h2>
+<p>用户说“今天模型突然很慢”，同时你看到 GPU 100%。这个现象既可能是健康的满负载工作，也可能伴随 queue 堆积、thermal throttling、内存压力或错误重试。单个 dashboard 数字无法区分这些路径。</p>
+<p>真正的问题是：<strong>怎样把用户症状、事件时间线和多类 telemetry 拼成可证伪的 hypothesis，并用下一条最有区分度的证据决定该查 queue、GPU、memory、thermal 还是软件变更？</strong>可观测性的目标是缩小原因空间，而不是堆更多图表。</p>
+</section>
+
 <h2>1. 单个指标不能直接当根因</h2>
 
 <pre>
