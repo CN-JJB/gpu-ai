@@ -129,3 +129,51 @@ amd-smi topology
 ## 结果
 
 填写 `RESULT-TEMPLATE.md` 并保留 `amd-inventory.txt`。
+
+## Why this experiment
+
+AMD 的真实可用性必须落到 exact gfx target、OS、ROCm/HIP 与应用 backend，而不能只写“RDNA2/3 支持 ROCm”。
+
+## Hypothesis
+
+一条完整 AMD 路径应能从 PCI/device identity 一直连到 rocminfo/hipconfig 和目标 backend 枚举；链条中断的位置决定下一步查驱动、ROCm、build 还是 SKU 支持矩阵。
+
+## Fixed variables
+
+采集期间不升级 ROCm、不切换 kernel/driver、不换 llama.cpp build。先记录当前状态。
+
+## What to observe
+
+- exact GPU 与 gfx target；
+- ROCm/HIP version；
+- amd-smi/rocminfo visibility；
+- PyTorch HIP / llama.cpp visibility；
+- exact product + OS support state；
+- dGPU/consumer vs CDNA 路径差异。
+
+## Troubleshooting
+
+- gfx family 映射不等于 exact SKU 官方支持。
+- rocminfo 可见但应用不见，优先查应用 build/backend。
+- CLI 缺失本身是有效 Evidence。
+- support matrix 属动态信息，记录版本和日期。
+
+## Evidence to save
+
+保存 amd-inventory.txt、identify_arch 输出、support source/version 与 RESULT-TEMPLATE。
+
+## What this proves
+
+你能定位当前 AMD 软件栈在哪一层成立或中断。
+
+## What this does NOT prove
+
+它不证明 HIP 一定最快，也不生成真实 PP/TG 或购买建议。
+
+## No-hardware fallback
+
+没有 AMD GPU 时完成 Experiment 25。
+
+## Transfer question
+
+同为 gfx103x 家族，两张 Radeon 在不同 OS/ROCm 组合中为什么不能只凭架构名推导相同支持状态？
