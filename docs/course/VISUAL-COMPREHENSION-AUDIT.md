@@ -108,8 +108,8 @@ A decorative image does not satisfy this audit.
 - [x] Batch 01 visual implementation
 - [x] Batch 01 link/readiness re-check
 - [x] Batch 02 review and implementation — Lessons 06–13
-- [ ] Batch 02 link/readiness re-check
-- [ ] Batch 03 review and implementation — Lessons 14–23 architecture/vendor + hardware-decision group
+- [x] Batch 02 link/readiness re-check
+- [x] Batch 03 review and implementation — Lessons 14–23 architecture/vendor + hardware-decision group
 - [ ] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
 - [ ] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
 - [ ] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
@@ -150,4 +150,62 @@ Accepted as present in the stable course:
 - Lesson 12: `assets/diagrams/attention-io-naive-vs-tiled.svg`
 - Lesson 13: `assets/diagrams/matrix-precision-path.svg`
 
-The next review batch is Lessons 14–23. It should favor generation maps, comparison diagrams, evidence chains and decision-state visuals over generic product photography. Official vendor imagery may be referenced when it contributes documentary evidence, but explanatory diagrams should remain local and self-authored where possible.
+## Batch 03 detailed review — Lessons 14–23
+
+This group contains 23 HTML pages: NVIDIA 5, AMD 4, Apple 3, Intel 2, hardware decision 1, secondhand market 1, used-GPU verification 1, watchlist 1, measurement capstone 1, and vendor capstones 4.
+
+| Group | Depth | Beginner clarity | Visual finding | Action |
+|---|---|---|---|---|
+| 14 NVIDIA architecture | strong | good | generation map was useful but reused across all five pages; the first principles of an SM were still mostly prose/ASCII | retain generation map; add a cross-generation SM execution/memory teaching lens |
+| 15 AMD architecture | strong | good | branch map explained RDNA/CDNA history, but CU/WGP + wave + scalar/vector + VGPR/LDS resource interaction needed a local mechanism view | retain branch map; add AMD wave/CU/WGP resource teaching lens |
+| 16 Apple Silicon | strong | strong | generation map was good for M1→M5, but "unified memory is not VRAM" needed a spatial capacity/data-path picture | add unified-memory LLM data-path/budget SVG |
+| 17 Intel Xe | strong | good | naming hierarchy was already visual, but oneAPI/SYCL/Level Zero/application-backend layers were still easy to collapse | add SYCL → runtime → Level Zero → driver → Xe evidence-stack SVG |
+| 18 Hardware decision | strong | strong | fit/support/roof/evidence/TCO are naturally gate-like | existing hardware-decision-gates SVG accepted |
+| 19 Secondhand market | strong | strong | asking/transaction/condition/freshness only become comparable inside a cohort | existing market-observation-cohort SVG accepted |
+| 20 Used-GPU verification | strong | strong | acceptance is procedural and sequential | existing used-gpu-acceptance-flow SVG accepted |
+| 21 Watchlist | strong | strong | personal ceiling is quantitative and user-specific | existing interactive max-buy-price calculator accepted; no decorative figure added |
+| 22 Measurement capstone | strong | strong | one-variable A/B identity is a comparison-structure problem | existing ab-one-variable-identity SVG accepted |
+| 23 Vendor capstones | strong | strong | the same epistemic chain should remain consistent across CUDA/ROCm/Metal/SYCL | shared vendor-evidence-chain SVG accepted across all four pages |
+
+### Batch 03 source check
+
+The new second-layer diagrams were constrained against current primary documentation rather than copied from vendor artwork:
+
+- NVIDIA CUDA Programming Guide: SM scheduling, execution resources, shared/L1 and memory hierarchy;
+- AMD ROCm GPU specifications / hardware documentation: wavefront, CU, LDS, VGPR/SGPR and generation-specific memory resources;
+- Apple Metal documentation: unified memory, SIMD-group/threadgroup organization and storage modes;
+- Intel oneAPI documentation: SYCL device/backend flow, Unified Runtime/Level Zero and Xe/XMX execution path.
+
+The diagrams deliberately omit generation-specific counts unless the lesson text binds them to a documented architecture/SKU. They are labeled as teaching abstractions, not literal floorplans.
+
+## Batch 03 implementation result
+
+Added:
+
+- `assets/diagrams/nvidia-sm-execution-lens.svg`
+- `assets/diagrams/amd-wave-cu-memory-lens.svg`
+- `assets/diagrams/apple-unified-memory-data-path.svg`
+- `assets/diagrams/intel-sycl-runtime-stack.svg`
+
+Inserted into:
+
+- Lesson 14.1 Tesla/Fermi/Kepler
+- Lesson 15.1 GCN/Vega
+- Lesson 16.1 Unified Memory
+- Lesson 17.2 Arc/oneAPI/LLM
+
+Accepted existing visual mechanisms for Lessons 18–23, including the Lesson 21 interactive price-ceiling calculator.
+
+Post-edit marker check for all 23 HTML pages in Lessons 14–23:
+
+~~~text
+Retrieval Practice = 23 / 23
+完成证据 = 23 / 23
+Primary Sources = 23 / 23
+HTML close = 23 / 23
+visual or interactive teaching surface = 23 / 23
+~~~
+
+Lesson 21 intentionally has no static figure because its interactive calculator is the stronger teaching representation.
+
+The next review batch is Lessons 24–33. Priority is dynamic Transformer/model-internal mechanisms: token flow, RoPE rotation, attention-head sharing, SwiGLU gating, MoE routing/load balance, modern KV layouts, tokenizer/sampling probability changes, quality gates and benchmark identity.
