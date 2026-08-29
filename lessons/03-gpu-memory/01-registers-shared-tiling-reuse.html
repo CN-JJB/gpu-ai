@@ -27,6 +27,11 @@
 </div>
 <p>这不是说数据永远必须按这条路走，而是高 reuse kernel 常用的层级：<strong>远处加载一次，近处使用很多次。</strong></p>
 
+<figure class="visual">
+<img src="../../assets/diagrams/gpu-memory-hierarchy-reuse.svg" alt="从 VRAM 到 shared memory 或 LDS，再到 registers 和计算单元的层级，以及一个 tile 加载一次后被多个输出计算重复使用">
+<figcaption>把“快/慢”换成更有用的问题：<strong>哪一层最远？同一份数据要跨过这段距离几次？</strong> Tiling 的核心收益是减少昂贵层级的数据移动次数。</figcaption>
+</figure>
+
 <h2>1. Registers：最快的临时工作台，但每个人桌面都很小</h2>
 <p>一个 thread 的 accumulator、循环变量和中间结果通常放 registers。NVIDIA registers 在 SM 上，AMD 的 VGPR/SGPR 等也属于 CU 上的 register resources。</p>
 <p>好处很直接：结果留在 registers，就不用为了下一条乘加再去 shared/global memory 找回来。</p>
