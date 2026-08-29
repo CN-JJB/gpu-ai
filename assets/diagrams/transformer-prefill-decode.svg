@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 560" role="img" aria-labelledby="title desc">
+<title id="title">Decoder-only Transformer 的 Prefill 与 Decode 两条执行路径</title><desc id="desc">上方展示token经过embedding、attention、FFN、residual、final norm与logits，下方对比prefill一次处理多个prompt位置并建立KV，与decode每次只推进一个新token并读取历史KV。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:#171717}.box{fill:#fff;stroke:#555;stroke-width:2}.stage{fill:#f3f3f3;stroke:#888;stroke-width:1.5}.arrow{stroke:#555;stroke-width:3;fill:none;marker-end:url(#m)}.h{font-size:23px;font-weight:700}.t{font-size:15px}.s{font-size:13px}</style><defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#555"/></marker></defs>
+<text class="h" x="35" y="38">同一个 decoder-only 模型，Prefill 和 Decode 是两种不同的硬件形状</text>
+<g transform="translate(50 80)">
+<rect class="box" x="0" y="0" width="150" height="62" rx="12"/><text class="t" x="75" y="38" text-anchor="middle">tokens / embedding</text>
+<path class="arrow" d="M155 31 H205"/>
+<rect class="box" x="210" y="0" width="300" height="62" rx="12"/><text class="t" x="360" y="26" text-anchor="middle">[ Norm → Attention → Residual</text><text class="t" x="360" y="47" text-anchor="middle">Norm → FFN/MoE → Residual ] × L</text>
+<path class="arrow" d="M515 31 H565"/>
+<rect class="box" x="570" y="0" width="160" height="62" rx="12"/><text class="t" x="650" y="38" text-anchor="middle">final norm</text>
+<path class="arrow" d="M735 31 H785"/>
+<rect class="box" x="790" y="0" width="150" height="62" rx="12"/><text class="t" x="865" y="38" text-anchor="middle">vocab projection</text>
+<path class="arrow" d="M945 31 H995"/>
+<rect class="box" x="1000" y="0" width="90" height="62" rx="12"/><text class="t" x="1045" y="38" text-anchor="middle">logits</text>
+</g>
+<g transform="translate(45 205)">
+<rect class="stage" x="0" y="0" width="490" height="270" rx="18"/><text x="245" y="35" text-anchor="middle" font-size="20" font-weight="700">Prefill · 一次处理很多已有 token</text>
+<text class="t" x="35" y="75">prompt positions</text>
+<g transform="translate(35 95)"><rect class="box" x="0" y="0" width="52" height="44" rx="7"/><text class="s" x="26" y="27" text-anchor="middle">t1</text><rect class="box" x="62" y="0" width="52" height="44" rx="7"/><text class="s" x="88" y="27" text-anchor="middle">t2</text><rect class="box" x="124" y="0" width="52" height="44" rx="7"/><text class="s" x="150" y="27" text-anchor="middle">t3</text><rect class="box" x="186" y="0" width="52" height="44" rx="7"/><text class="s" x="212" y="27" text-anchor="middle">…</text><rect class="box" x="248" y="0" width="52" height="44" rx="7"/><text class="s" x="274" y="27" text-anchor="middle">tN</text></g>
+<path class="arrow" d="M190 150 V185"/>
+<rect class="box" x="95" y="190" width="300" height="58" rx="10"/><text class="t" x="245" y="216" text-anchor="middle">large matrix work / many positions</text><text class="s" x="245" y="237" text-anchor="middle">build K/V for prompt positions 1…N</text>
+<text class="s" x="245" y="260" text-anchor="middle">更容易形成并行与 reuse → 常更偏 compute-heavy</text>
+</g>
+<g transform="translate(600 205)">
+<rect class="stage" x="0" y="0" width="490" height="270" rx="18"/><text x="245" y="35" text-anchor="middle" font-size="20" font-weight="700">Decode · 每轮只推进一个/少量新 token</text>
+<rect class="box" x="35" y="75" width="160" height="60" rx="10"/><text class="t" x="115" y="100" text-anchor="middle">new query token</text><text class="s" x="115" y="122" text-anchor="middle">position N+1</text>
+<rect class="box" x="295" y="75" width="160" height="60" rx="10"/><text class="t" x="375" y="100" text-anchor="middle">history KV</text><text class="s" x="375" y="122" text-anchor="middle">positions 1…N</text>
+<path class="arrow" d="M200 105 H285"/>
+<rect class="box" x="95" y="180" width="300" height="58" rx="10"/><text class="t" x="245" y="205" text-anchor="middle">read weights + history KV</text><text class="s" x="245" y="226" text-anchor="middle">append new K/V → sample token N+1</text>
+<path class="arrow" d="M245 140 V175"/>
+<text class="s" x="245" y="260" text-anchor="middle">小 M / 逐 token 串行 → 常更容易碰 memory-bandwidth roof</text>
+</g>
+<text x="570" y="525" text-anchor="middle" class="t">所以“模型速度”至少拆成 PP/Prefill 与 TG/Decode；一个数字无法描述两种形状。</text></svg>
