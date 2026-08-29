@@ -3,6 +3,10 @@
 <h2>Prerequisite Check</h2><p>你应理解市场价格证据、hard gate、UNKNOWN 与目标应用 benchmark。不会拆卡、不会刷 BIOS 完全没关系；本课默认不做危险维修操作。</p>
 <h2>真实问题：卖家发了 FurMark 截图，能不能证明这张卡“没问题”？</h2><p>不能。截图可能说明某时刻某负载跑过，但通常缺少：</p><ul><li>是否就是这张物理卡；</li><li>完整测试时长；</li><li>显存错误；</li><li>热点/显存温度；</li><li>PCIe link 状态；</li><li>崩溃/驱动 reset 历史；</li><li>目标 LLM workload 是否稳定。</li></ul><p>卖家证据有价值，但强度低于你自己到货后可重复的测试。</p>
 <h2>1. 付款前：目标是减少明显坏单，不是远程证明健康</h2><p>向卖家索取能降低身份/状态不确定性的材料：</p><ul><li>清晰正反面、接口、螺丝/封签、散热器/背板照片；</li><li>型号标签/序列（必要时遮部分隐私）；</li><li>设备识别截图：型号、VRAM、driver、PCIe link；</li><li>短负载视频或监控截图：温度、热点、风扇、功耗、频率；</li><li>是否维修/进水/更换显存/刷 BIOS/矿用的明确回答；</li><li>退货规则与测试期。</li></ul><p>如果卖家拒绝一切基本验证，不等于必坏，但风险应进入价格。</p>
+<figure class="visual">
+<img src="../../assets/diagrams/used-gpu-acceptance-flow.svg" alt="二手 GPU 从付款前资料、到货外观、低风险上电、身份与 PCIe 链路、显存错误、温度时钟和长时间稳定性到 ACCEPT REVIEW REJECT 的验收流程">
+<figcaption><strong>验收不是跑一个 FurMark。</strong> 身份、链路、显存、热行为和持续稳定性是不同证据层；卖家截图最多帮助 preflight，不能替代到货后的 learner-owned Evidence。</figcaption>
+</figure>
 <h2>2. 身份核对：防止“同名不同卡”</h2><p>到货后先做只读 identity：</p><pre>physical label / serial
 ↕
 PCI vendor/device/subsystem
