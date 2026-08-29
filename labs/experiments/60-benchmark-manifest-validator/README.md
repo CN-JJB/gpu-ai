@@ -80,3 +80,49 @@ Then only that exact semantic leaf may change.
 The manifests use synthetic hashes and device names.
 
 No performance or quality result is implied.
+
+
+## Why this experiment
+
+“我只改了量化”在文件层面会同时改变 SHA、bytes、quant label。实验纪律要求的是**只改变一个语义变量块**，而不是只允许一个 JSON leaf 变化。
+
+## Hypothesis
+
+合法的 model-artifact A/B 可以同时改变 artifact bytes、SHA 和 quant，因为它们都属于 variant.model；如果 prompt token identity 也变了，就属于未声明的第二个语义变量，应 FAIL。
+
+## Fixed variables
+
+baseline/candidate 其余字段全部固定；intentional_variable 必须显式声明。
+
+## What to observe
+
+1. valid case 为什么允许多个 leaf diff。
+2. invalid case 的 prompt hash 为什么被抓出。
+3. leaf-variable mode 与 semantic-block mode 的区别。
+4. validator 为什么只检查 manifest consistency，不检查 benchmark 数值真实性。
+
+## Troubleshooting
+
+- 不要为了 PASS 把 intentional_variable 写得过宽。
+- artifact 改变时相关 identity fields 应一起变化。
+- prompt、runtime、device、execution semantics 一旦意外变化，应重新设计 A/B，而不是忽略。
+
+## Evidence to save
+
+保存两次 validator 输出和两组 manifest diff。
+
+## What this proves
+
+你能把“单变量实验”定义到语义层，而不是机械 JSON 字段层。
+
+## What this does NOT prove
+
+它不证明任何性能/质量结果有效，也不验证 synthetic hash 对应真实文件。
+
+## No-hardware path
+
+完整 L0。
+
+## Transfer question
+
+如果只想比较 FlashAttention on/off，却同时升级了 runtime SHA，这还是单变量 A/B 吗？
