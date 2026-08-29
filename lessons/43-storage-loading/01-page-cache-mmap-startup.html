@@ -273,4 +273,66 @@ steady PP/TG
 <h3>如何选择 / 迁移</h3><p>换 OS、runtime 或 GPU 后，先重建 <strong>timeline + identity + measurement boundary</strong>，再判断“更快/更稳/更省电”是否成立。</p>
 <h3>Primary Sources / Reference</h3><ul><li><a href="https://www.kernel.org/doc/html/v6.9/mm/page_cache.html">Linux Kernel — Page Cache</a></li><li><a href="https://man7.org/linux/man-pages/man2/mmap.2.html">mmap(2)</a></li><li><a href="https://man7.org/linux/man-pages/man1/fincore.1.html">fincore(1)</a></li><li><a href="../../reference/llm/storage-model-loading.md">Course Reference — Storage / Model Loading</a></li></ul>
 </section>
+
+<section class="textbook-upgrade">
+<h2>教材补全：SSD 主要决定“怎么把模型送进系统”，不是直接决定 steady-state TG</h2>
+<h3>启动路径</h3>
+<pre>model file on storage
+→ filesystem
+→ page cache
+→ mmap/read
+→ host memory / backend mapping
+→ GPU/device allocation
+→ ready</pre>
+<p>任何一层慢，都可能让 cold start 变长；但模型已经驻留并稳定 decode 后，SSD 通常不再是每 token 的主数据通路。</p>
+
+<h3>Cold / Warm 必须分开</h3>
+<p>第一次加载一个大模型时，页面可能真的来自 SSD；第二次启动时，OS page cache 可能已经保存大量数据。</p>
+<pre>cold start:
+storage dominates more
+
+warm start:
+page cache may dominate</pre>
+<p>所以“第二次只要 6 秒”不能证明 SSD 能以同样速度从冷态读取。</p>
+
+<h3>Worked Example</h3>
+<p>一个 40 GiB 模型：</p>
+<pre>cold load: 55 s
+warm load: 9 s
+steady TG: 48 tok/s vs 48 tok/s</pre>
+<p>合理结论是“storage/cache 显著影响 startup”，而不是“更快 SSD 让 decode 快 6×”。</p>
+
+<h3>mmap 不是“完全不占 RAM”</h3>
+<p>mmap 只是建立虚拟地址映射；实际被访问的文件页仍要进入物理内存/page cache。观察 RSS、available memory、page cache 和 major faults 才能理解真实状态。</p>
+
+<h3>存储容量也要算双份/多份</h3>
+<p>模型工作流可能同时存在：</p>
+<pre>source weights
++ converted GGUF
++ multiple quants
++ cache/temp files
++ evaluation corpus
++ logs/evidence</pre>
+<p>“模型 30 GiB”不等于只需要 30 GiB SSD。</p>
+
+<h3>排错顺序</h3>
+<ol>
+<li>区分 cold 与 warm。</li>
+<li>记录文件大小和实际读取路径。</li>
+<li>观察 page faults / page cache / I/O throughput。</li>
+<li>确认模型是否在网络盘、USB bridge 或受限 filesystem 上。</li>
+<li>最后再比较不同 SSD。</li>
+</ol>
+
+<h3>Decision Rule</h3>
+<div class="callout"><strong>把 storage 作为 startup、容量、耐久与工作流问题来评估；除非证据证明，否则不要把 SSD benchmark 直接映射成 steady TG。</strong></div>
+
+<h3>Retrieval Practice</h3>
+<ol>
+<li>为什么 warm start 不能代表真实 cold storage 性能？</li>
+<li>mmap 为什么仍然会消耗物理内存/page cache？</li>
+<li>SSD 更快时，哪些指标最应该先变化？</li>
+<li>为什么模型文件大小不是存储容量需求的全部？</li>
+</ol>
+</section>
 </body></html>
