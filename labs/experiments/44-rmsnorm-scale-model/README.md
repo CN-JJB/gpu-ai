@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-rmsnorm-scale-flow.svg" alt="RMSNorm 先从向量 RMS 得到尺度，再归一化并乘 learned weight；它不做 mean subtraction。">
+  <figcaption>RMSNorm 先从向量 RMS 得到尺度，再归一化并乘 learned weight；它不做 mean subtraction。</figcaption>
+</figure>
+
 ## Goal
 
 Verify two facts:
