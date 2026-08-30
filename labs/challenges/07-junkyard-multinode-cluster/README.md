@@ -4,6 +4,11 @@
 风险：medium（网络暴露）  
 成本：L0 为 0；真机只使用已有机器
 
+<figure>
+  <img src="../../../assets/diagrams/multi-gpu-split-interconnect.svg" alt="多节点/多 GPU 系统的收益受模型分割、跨设备传输与互连路径共同限制；把每张卡的算力相加并不能预测集群 scaling。">
+  <figcaption>多节点/多 GPU 系统的收益受模型分割、跨设备传输与互连路径共同限制；把每张卡的算力相加并不能预测集群 scaling。</figcaption>
+</figure>
+
 ## Goal
 
 理解：
