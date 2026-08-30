@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2。
 
+<figure>
+  <img src="../../../assets/diagrams/storage-loading.svg" alt="真实 startup 实验要区分 cold/warm cache、storage read、host memory 与 device placement，避免把一次热启动当磁盘性能。">
+  <figcaption>真实 startup 实验要区分 cold/warm cache、storage read、host memory 与 device placement，避免把一次热启动当磁盘性能。</figcaption>
+</figure>
+
 ## Goal
 
 Collect evidence for:
