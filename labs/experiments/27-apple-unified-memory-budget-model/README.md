@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/apple-unified-memory-data-path.svg" alt="Apple unified memory 的容量预算应沿 CPU/GPU 共享内存路径理解；共享地址空间不等于没有带宽、容量与系统占用约束。">
+  <figcaption>Apple unified memory 的容量预算应沿 CPU/GPU 共享内存路径理解；共享地址空间不等于没有带宽、容量与系统占用约束。</figcaption>
+</figure>
+
 ## 目标
 
 验证两个最重要的 Apple Silicon 判断：
