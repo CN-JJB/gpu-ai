@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3。
 
+<figure>
+  <img src="../../../assets/diagrams/incident-timeline.svg" alt="真实 incident Evidence 要保留事件前后状态、原始日志、变更点和恢复时间，防止事后只剩记忆中的因果故事。">
+  <figcaption>真实 incident Evidence 要保留事件前后状态、原始日志、变更点和恢复时间，防止事后只剩记忆中的因果故事。</figcaption>
+</figure>
+
 ## Goal
 
 Collect a bounded timeline while you reproduce a problem on your own local server.
