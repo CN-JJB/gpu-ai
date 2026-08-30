@@ -4,6 +4,11 @@
 
 风险：默认脚本只读。主动显存/负载测试需要人工启动。
 
+<figure>
+  <img src="../../../assets/diagrams/used-gpu-acceptance-flow.svg" alt="二手 GPU 验收按身份/外观 → 枚举 → 保守测试 → 持续负载逐步升级，并在退货窗口内优先保存 Evidence。">
+  <figcaption>二手 GPU 验收按身份/外观 → 枚举 → 保守测试 → 持续负载逐步升级，并在退货窗口内优先保存 Evidence。</figcaption>
+</figure>
+
 ## 目标
 
 生成一个可用于：
