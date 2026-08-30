@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/release-rollback.svg" alt="发布 gate 先验证 correctness、兼容、性能与恢复条件；任何关键 gate 失败都应阻止 rollout 或触发 rollback。">
+  <figcaption>发布 gate 先验证 correctness、兼容、性能与恢复条件；任何关键 gate 失败都应阻止 rollout 或触发 rollback。</figcaption>
+</figure>
+
 ## Goal
 
 Prove that a faster candidate can still fail release gates.
