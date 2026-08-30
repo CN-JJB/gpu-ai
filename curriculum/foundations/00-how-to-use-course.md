@@ -16,6 +16,12 @@
 
 因此“记住 RTX 3090 有多少 CUDA Core”不是核心能力。
 
+
+<figure>
+  <img src="../../assets/diagrams/foundation-course-evidence-loop.svg" alt="课程学习与证据闭环：从定义问题到保存 Evidence、写有边界结论，再回到下一轮问题。">
+  <figcaption>课程学习与证据闭环：从定义问题到保存 Evidence、写有边界结论，再回到下一轮问题。</figcaption>
+</figure>
+
 ## Lesson / Reference / Intelligence / Evidence 的区别
 
 ### Lesson
