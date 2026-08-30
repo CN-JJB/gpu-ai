@@ -19,6 +19,12 @@ python3 script.py input.json --out-dir results
 - stdout/stderr 去哪里；
 - 怎样不覆盖 Evidence。
 
+
+<figure>
+  <img src="../../assets/diagrams/foundation-shell-audit-chain.svg" alt="Shell 命令的可审计调用链：cwd、程序、参数、环境和输入共同形成进程，进程产生 stdout、stderr、退出码与输出文件。">
+  <figcaption>Shell 命令的可审计调用链：cwd、程序、参数、环境和输入共同形成进程，进程产生 stdout、stderr、退出码与输出文件。</figcaption>
+</figure>
+
 ## 1. 当前目录
 
 ~~~bash
