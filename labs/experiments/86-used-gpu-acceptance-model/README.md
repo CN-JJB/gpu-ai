@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/used-gpu-acceptance-flow.svg" alt="二手 GPU acceptance model 按身份、外观、枚举、保守显存/负载、持续 workload 逐步增加证据强度。">
+  <figcaption>二手 GPU acceptance model 按身份、外观、枚举、保守显存/负载、持续 workload 逐步增加证据强度。</figcaption>
+</figure>
+
 ## Goal
 
 Practice evidence classification without pretending one metric proves card health.
