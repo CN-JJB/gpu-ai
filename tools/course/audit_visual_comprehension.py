@@ -7,14 +7,14 @@ ROOT = Path(__file__).resolve().parents[2]
 LESSONS = ROOT / "lessons"
 EXPECTED_LESSON_HTML_COUNT = 62
 
-IMG_RE = re.compile(r'<img\\b[^>]*\\bsrc=["\\']([^"\\']+)["\\'][^>]*>', re.I)
-SCRIPT_RE = re.compile(r'<script\\b[^>]*\\bsrc=["\\']([^"\\']+)["\\'][^>]*>', re.I)
-ALT_RE = re.compile(r'\\balt=["\\']([^"\\']*)["\\']', re.I)
+IMG_RE = re.compile(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>', re.I)
+SCRIPT_RE = re.compile(r'<script\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>', re.I)
+ALT_RE = re.compile(r'\balt=["\']([^"\']*)["\']', re.I)
 REMOTE_SCHEMES = ("http://", "https://", "data:", "blob:")
 INTERACTIVE_PATTERNS = (
-    re.compile(r'class=["\\'][^"\\']*interactive-lab', re.I),
-    re.compile(r'<(?:input|button|select|textarea|canvas)\\b', re.I),
-    re.compile(r'\\bdata-[a-z0-9_-]+(?:=|\\s|>)', re.I),
+    re.compile(r'class=["\'][^"\']*interactive-lab', re.I),
+    re.compile(r'<(?:input|button|select|textarea|canvas)\b', re.I),
+    re.compile(r'\bdata-[a-z0-9_-]+(?:=|\s|>)', re.I),
 )
 CORE_MARKERS = ("Retrieval Practice", "完成证据", "Primary Sources")
 
