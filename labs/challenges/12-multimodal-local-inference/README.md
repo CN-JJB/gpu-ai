@@ -4,6 +4,11 @@
 风险：safe；注意图片/音频隐私  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/challenge-multimodal-pipeline.svg" alt="多模态本地推理多出 image preprocess、vision encoder/projector 等身份层；比较后端时这些条件必须与 text tokenizer/runtime 一起固定。">
+  <figcaption>多模态本地推理多出 image preprocess、vision encoder/projector 等身份层；比较后端时这些条件必须与 text tokenizer/runtime 一起固定。</figcaption>
+</figure>
+
 ## Goal
 
 把“本地模型”从单一 GGUF 扩展成：
