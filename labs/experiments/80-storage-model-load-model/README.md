@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/storage-loading.svg" alt="模型启动路径包含存储读取、页缓存/主存、解析与 GPU/统一内存放置；文件顺序读速不是完整启动延迟。">
+  <figcaption>模型启动路径包含存储读取、页缓存/主存、解析与 GPU/统一内存放置；文件顺序读速不是完整启动延迟。</figcaption>
+</figure>
+
 ## Goal
 
 Separate:
