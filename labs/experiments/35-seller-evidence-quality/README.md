@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/vendor-evidence-chain.svg" alt="卖家描述、截图、序列号、压力测试和 learner-owned 验收属于不同证据强度；结论不能超过证据链。">
+  <figcaption>卖家描述、截图、序列号、压力测试和 learner-owned 验收属于不同证据强度；结论不能超过证据链。</figcaption>
+</figure>
+
 ## 目标
 
 卖家说得很多，不等于 Evidence 很强。
