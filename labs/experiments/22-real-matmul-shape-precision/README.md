@@ -6,6 +6,11 @@
 - PyTorch
 - CUDA/HIP-visible GPU
 
+<figure>
+  <img src="../../../assets/diagrams/matrix-precision-path.svg" alt="真实 matmul probe 要把 shape、precision 与实际执行路径绑定，避免把不同数值格式的理论峰值直接当实测性能。">
+  <figcaption>真实 matmul probe 要把 shape、precision 与实际执行路径绑定，避免把不同数值格式的理论峰值直接当实测性能。</figcaption>
+</figure>
+
 ## 问题
 
 为什么同一张 GPU：
