@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/benchmark-manifest.svg" alt="Benchmark manifest 把模型、runtime、硬件、workload、参数与 Evidence identity 固定下来，防止条件漂移后仍把结果当可比。">
+  <figcaption>Benchmark manifest 把模型、runtime、硬件、workload、参数与 Evidence identity 固定下来，防止条件漂移后仍把结果当可比。</figcaption>
+</figure>
+
 ## Goal
 
 Prove that "one variable" can be a semantic block.
