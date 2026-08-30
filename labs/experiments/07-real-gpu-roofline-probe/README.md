@@ -7,6 +7,11 @@ Cost: 已有独显时为 0
 支持：NVIDIA CUDA / AMD HIP  
 替代路径：完成 Experiment 06 L0。
 
+<figure>
+  <img src="../../../assets/diagrams/foundation-units-roof-estimation.svg" alt="真实 Roofline probe 用上界排除不可能，并用实测判断 workload 更接近 memory roof 还是 compute roof。">
+  <figcaption>真实 Roofline probe 用上界排除不可能，并用实测判断 workload 更接近 memory roof 还是 compute roof。</figcaption>
+</figure>
+
 ## 问题
 
 能不能在同一张真实 GPU 上构造一组 kernel：
