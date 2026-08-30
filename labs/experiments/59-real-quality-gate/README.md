@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2，取决于 model/runtime。
 
+<figure>
+  <img src="../../../assets/diagrams/quality-gate.svg" alt="真实 quality gate 先确认比较协议与正确性，再决定性能变化是否值得接受；速度提升不能绕过质量门槛。">
+  <figcaption>真实 quality gate 先确认比较协议与正确性，再决定性能变化是否值得接受；速度提升不能绕过质量门槛。</figcaption>
+</figure>
+
 ## Goal
 
 Pair a performance A/B with a quality A/B.
