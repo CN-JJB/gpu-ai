@@ -4,6 +4,11 @@
 风险：safe  
 成本：0（已有支持环境时）
 
+<figure>
+  <img src="../../../assets/diagrams/challenge-kernel-optimization-loop.svg" alt="Triton/kernel 优化按 reference → correctness → profile → one change → repeated measurement 循环，速度提升不能绕过 correctness gate。">
+  <figcaption>Triton/kernel 优化按 reference → correctness → profile → one change → repeated measurement 循环，速度提升不能绕过 correctness gate。</figcaption>
+</figure>
+
 ## Goal
 
 把前面学的：
