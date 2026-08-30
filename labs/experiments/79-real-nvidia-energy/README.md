@@ -2,6 +2,11 @@
 
 硬件等级：L2，NVIDIA 主线。
 
+<figure>
+  <img src="../../../assets/diagrams/power-energy-token.svg" alt="真实 GPU energy 实验要同时保存功率 telemetry、token 时间线与 workload identity，才能算有意义的 J/token。">
+  <figcaption>真实 GPU energy 实验要同时保存功率 telemetry、token 时间线与 workload identity，才能算有意义的 J/token。</figcaption>
+</figure>
+
 ## Goal
 
 Integrate read-only NVIDIA board-power samples over a known workload window.
