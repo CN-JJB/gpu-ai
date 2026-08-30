@@ -4,6 +4,11 @@
 
 风险：只读，不修改系统 memory limits。
 
+<figure>
+  <img src="../../../assets/diagrams/apple-unified-memory-data-path.svg" alt="真实 Apple Metal/MLX inventory 需要把 unified memory、GPU/ANE/CPU 路径与实际 runtime backend 对应起来。">
+  <figcaption>真实 Apple Metal/MLX inventory 需要把 unified memory、GPU/ANE/CPU 路径与实际 runtime backend 对应起来。</figcaption>
+</figure>
+
 ## 目标
 
 在真实 Mac 上收集：
