@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3，取决于被测机器。
 
+<figure>
+  <img src="../../../assets/diagrams/benchmark-manifest.svg" alt="真实 benchmark Evidence packet 要让 manifest、原始输出、hash 与结果摘要相互可追溯，而不是只留下一个 tok/s 数字。">
+  <figcaption>真实 benchmark Evidence packet 要让 manifest、原始输出、hash 与结果摘要相互可追溯，而不是只留下一个 tok/s 数字。</figcaption>
+</figure>
+
 ## Goal
 
 Upgrade Experiment 40 from a small A/B manifest to a complete reproducibility contract.
