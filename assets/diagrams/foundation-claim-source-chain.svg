@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
+<title id="title">Claim-first 的来源证据链</title><desc id="desc">硬件能力、运行时支持和本机有效是不同 claim，分别需要厂商文档、上游源码或发布记录、以及学习者自己的测量。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#17212b}.h{font-size:30px;font-weight:700}.t{font-size:20px;font-weight:700}.s{font-size:15px;fill:#52606d}.claim{fill:#f6f8fb;stroke:#8ba0b5;stroke-width:2;rx:16}.src{fill:#eef6ff;stroke:#4f82b5;stroke-width:2;rx:16}.ev{fill:#eef8f1;stroke:#5c966b;stroke-width:2;rx:16}.a{stroke:#596a7a;stroke-width:3;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#596a7a"/></marker></defs>
+<text x="45" y="52" class="h">Foundation 04：先写 Claim，再决定“哪种来源有资格证明它”</text>
+<rect x="55" y="110" width="310" height="105" class="claim"/><text x="210" y="148" text-anchor="middle" class="t">Claim A：架构有 feature X</text><text x="210" y="181" text-anchor="middle" class="s">这是硬件 capability 问题</text>
+<rect x="445" y="110" width="310" height="105" class="src"/><text x="600" y="148" text-anchor="middle" class="t">Vendor architecture / docs</text><text x="600" y="181" text-anchor="middle" class="s">最适合证明能力存在</text>
+<rect x="835" y="110" width="310" height="105" class="ev"/><text x="990" y="148" text-anchor="middle" class="t">结论边界</text><text x="990" y="181" text-anchor="middle" class="s">不自动证明应用已经支持</text>
+<path d="M365 162 H438" class="a"/><path d="M755 162 H828" class="a"/>
+<rect x="55" y="245" width="310" height="105" class="claim"/><text x="210" y="283" text-anchor="middle" class="t">Claim B：runtime 实现 X</text><text x="210" y="316" text-anchor="middle" class="s">这是软件版本问题</text>
+<rect x="445" y="245" width="310" height="105" class="src"/><text x="600" y="283" text-anchor="middle" class="t">Source / merged PR / release</text><text x="600" y="316" text-anchor="middle" class="s">必须 pin commit / tag / version</text>
+<rect x="835" y="245" width="310" height="105" class="ev"/><text x="990" y="283" text-anchor="middle" class="t">结论边界</text><text x="990" y="316" text-anchor="middle" class="s">merged 不等于已发布到你的版本</text>
+<path d="M365 297 H438" class="a"/><path d="M755 297 H828" class="a"/>
+<rect x="55" y="380" width="310" height="105" class="claim"/><text x="210" y="418" text-anchor="middle" class="t">Claim C：我的机器上有效</text><text x="210" y="451" text-anchor="middle" class="s">这是环境与实测问题</text>
+<rect x="445" y="380" width="310" height="105" class="src"/><text x="600" y="418" text-anchor="middle" class="t">Learner-owned Evidence</text><text x="600" y="451" text-anchor="middle" class="s">identity + config + raw result</text>
+<rect x="835" y="380" width="310" height="105" class="ev"/><text x="990" y="418" text-anchor="middle" class="t">结论边界</text><text x="990" y="451" text-anchor="middle" class="s">只对已记录条件成立</text>
+<path d="M365 432 H438" class="a"/><path d="M755 432 H828" class="a"/>
+</svg>
