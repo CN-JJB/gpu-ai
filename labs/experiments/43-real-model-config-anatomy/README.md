@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/model-dossier.svg" alt="真实 model config anatomy 要把层数、hidden size、heads/KV heads、FFN、context 与 tokenizer/runtime identity 汇成可复查 dossier。">
+  <figcaption>真实 model config anatomy 要把层数、hidden size、heads/KV heads、FFN、context 与 tokenizer/runtime identity 汇成可复查 dossier。</figcaption>
+</figure>
+
 ## Goal
 
 Take a real Hugging Face-style `config.json` and turn model architecture fields into local-inference consequences.
