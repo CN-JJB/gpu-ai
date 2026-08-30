@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0（已有 GGUF 与 runtime）  
 需要：current llama-server + Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-speculative-acceptance-flow.svg" alt="真实 speculative probe 要同时记录 acceptance、draft/verify 成本、同步与最终延迟/吞吐，不能只看接受率。">
+  <figcaption>真实 speculative probe 要同时记录 acceptance、draft/verify 成本、同步与最终延迟/吞吐，不能只看接受率。</figcaption>
+</figure>
+
 ## 问题
 
 固定：
