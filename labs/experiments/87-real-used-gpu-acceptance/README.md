@@ -2,6 +2,11 @@
 
 硬件等级：L2。
 
+<figure>
+  <img src="../../../assets/diagrams/used-gpu-acceptance-flow.svg" alt="真实到货验收优先保护退货权与 Evidence；异常时停在当前 gate，不靠拆卡/刷写等动作掩盖问题。">
+  <figcaption>真实到货验收优先保护退货权与 Evidence；异常时停在当前 gate，不靠拆卡/刷写等动作掩盖问题。</figcaption>
+</figure>
+
 ## Goal
 
 Collect read-only hardware identity/error evidence and combine it with the ordinary sustained Local-LLM workload from Experiment 85.
