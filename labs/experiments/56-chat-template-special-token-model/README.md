@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-prompt-token-identity.svg" alt="Chat template 与 special-token policy 会改变模型真正接收的 token IDs；肉眼相同的可见文本不保证输入 identity 相同。">
+  <figcaption>Chat template 与 special-token policy 会改变模型真正接收的 token IDs；肉眼相同的可见文本不保证输入 identity 相同。</figcaption>
+</figure>
+
 ## Goal
 
 Show that identical message content can become different token sequences because of serialization/template choices.
