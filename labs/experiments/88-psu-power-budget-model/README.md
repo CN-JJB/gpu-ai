@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/psu-power-delivery-path.svg" alt="PSU 预算不只看总瓦数，还要沿墙插→PSU→线材/接头→GPU/主板的供电路径检查接口、余量与瞬态。">
+  <figcaption>PSU 预算不只看总瓦数，还要沿墙插→PSU→线材/接头→GPU/主板的供电路径检查接口、余量与瞬态。</figcaption>
+</figure>
+
 ## Goal
 
 Show that total PSU wattage and cable/connector compatibility are independent gates.
