@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0（已有模型与机器）  
 需要：Python 3 + current llama-server + GGUF
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-continuous-batching-timeline.svg" alt="真实并发 probe 不是只数总 tok/s，而是观察 slot utilization、queue wait、TTFT、TG 与尾延迟如何一起变化。">
+  <figcaption>真实并发 probe 不是只数总 tok/s，而是观察 slot utilization、queue wait、TTFT、TG 与尾延迟如何一起变化。</figcaption>
+</figure>
+
 ## 问题
 
 固定同一台 server：
