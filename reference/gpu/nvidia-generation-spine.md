@@ -1,5 +1,11 @@
 # NVIDIA Architecture Generation Spine — 速查
 
+<figure>
+  <img src="../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA Architecture Generation Spine — 速查 的教学视觉索引：先建立关键结构、流程与约束关系，再使用本页表格、公式和 checklist。">
+  <figcaption>视觉索引：先用图建立 NVIDIA Architecture Generation Spine — 速查 的核心关系，再把下面的表格、公式与检查项作为快速查阅层。</figcaption>
+</figure>
+
+
 ## Timeline
 
 | architecture | year | central lesson |

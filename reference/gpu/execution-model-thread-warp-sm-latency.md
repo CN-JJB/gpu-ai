@@ -1,5 +1,11 @@
 # GPU 执行模型速查：Thread → Warp/Wavefront → SM/CU → Scheduler → Latency Hiding
 
+<figure>
+  <img src="../../assets/diagrams/experiment-latency-hiding-scheduler.svg" alt="GPU 执行模型速查：Thread → Warp/Wavefront → SM/CU → Scheduler → Latency Hiding 的教学视觉索引：先建立关键结构、流程与约束关系，再使用本页表格、公式和 checklist。">
+  <figcaption>视觉索引：先用图建立 GPU 执行模型速查：Thread → Warp/Wavefront → SM/CU → Scheduler → Latency Hiding 的核心关系，再把下面的表格、公式与检查项作为快速查阅层。</figcaption>
+</figure>
+
+
 ## 一句话模型
 
 **GPU 不靠让每一次等待都很短，而是靠保留很多可运行的执行组；一个组在等，scheduler 就发射另一个 ready 组。**
