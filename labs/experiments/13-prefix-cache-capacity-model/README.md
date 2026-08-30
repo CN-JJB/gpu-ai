@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0  
 需要：Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-prefix-cache-lifecycle.svg" alt="Prefix cache 的核心是 exact token identity、hit/miss、容量压力与 eviction；相似文本不自动等于可复用缓存。">
+  <figcaption>Prefix cache 的核心是 exact token identity、hit/miss、容量压力与 eviction；相似文本不自动等于可复用缓存。</figcaption>
+</figure>
+
 ## 问题
 
 “开启 Prefix Cache”为什么不代表一定有收益？
