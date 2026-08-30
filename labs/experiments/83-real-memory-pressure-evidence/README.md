@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2。
 
+<figure>
+  <img src="../../../assets/diagrams/host-memory-pressure.svg" alt="真实 memory-pressure Evidence 要把 RSS/cache/swap/reclaim 与请求延迟时间线对齐，才能判断 host memory 是否在拖慢推理。">
+  <figcaption>真实 memory-pressure Evidence 要把 RSS/cache/swap/reclaim 与请求延迟时间线对齐，才能判断 host memory 是否在拖慢推理。</figcaption>
+</figure>
+
 ## Goal
 
 Observe host-memory state while running a normal local LLM workload.
