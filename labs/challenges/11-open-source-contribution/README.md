@@ -4,6 +4,11 @@
 风险：safe  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/foundation-claim-source-chain.svg" alt="开源贡献从 claim/bug reproduction 到 source、patch、review、merged commit 与 release 是逐步增强的证据链，每一步都不能提前升级结论。">
+  <figcaption>开源贡献从 claim/bug reproduction 到 source、patch、review、merged commit 与 release 是逐步增强的证据链，每一步都不能提前升级结论。</figcaption>
+</figure>
+
 ## Goal
 
 毕业后的最高 transfer 不是“自己有 fork”，而是能把真实问题变成上游愿意 review 的：
