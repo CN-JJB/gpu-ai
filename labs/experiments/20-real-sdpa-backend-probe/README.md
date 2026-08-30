@@ -4,6 +4,11 @@
 
 主路径：PyTorch current SDPA API。NVIDIA CUDA 是主要验证路径；ROCm/AMD 是否能使用某个 fused backend 取决于当前 PyTorch/ROCm/build/hardware，unsupported 也是有效 Evidence。
 
+<figure>
+  <img src="../../../assets/diagrams/attention-io-naive-vs-tiled.svg" alt="真实 SDPA backend probe 先确认实际走到哪个实现，再用 I/O 路径解释性能差异，避免把 fallback 当成目标 backend。">
+  <figcaption>真实 SDPA backend probe 先确认实际走到哪个实现，再用 I/O 路径解释性能差异，避免把 fallback 当成目标 backend。</figcaption>
+</figure>
+
 ## 目标
 
 回答：
