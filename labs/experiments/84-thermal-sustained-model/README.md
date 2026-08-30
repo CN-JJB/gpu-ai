@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/thermal-sustained.svg" alt="短时 boost 与持续稳态是两种工作区间；热饱和后频率、功耗和吞吐可能进入新的平衡点。">
+  <figcaption>短时 boost 与持续稳态是两种工作区间；热饱和后频率、功耗和吞吐可能进入新的平衡点。</figcaption>
+</figure>
+
 ## Goal
 
 Practice reading:
