@@ -20,6 +20,12 @@
 → 卖家描述
 ~~~
 
+
+<figure>
+  <img src="../../assets/diagrams/foundation-claim-source-chain.svg" alt="Claim-first 证据链：硬件能力、运行时支持和本机有效是不同问题，需要不同 source class。">
+  <figcaption>Claim-first 证据链：硬件能力、运行时支持和本机有效是不同问题，需要不同 source class。</figcaption>
+</figure>
+
 ## 1. Repo、commit、branch
 
 - repository：项目历史；
