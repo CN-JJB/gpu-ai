@@ -10,6 +10,11 @@
 
 风险：只读。
 
+<figure>
+  <img src="../../../assets/diagrams/intel-sycl-runtime-stack.svg" alt="真实 Intel XPU/SYCL inventory 要从应用到底层 runtime/driver 逐层确认实际执行路径。">
+  <figcaption>真实 Intel XPU/SYCL inventory 要从应用到底层 runtime/driver 逐层确认实际执行路径。</figcaption>
+</figure>
+
 ## 目标
 
 一次采集：
