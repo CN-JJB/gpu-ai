@@ -1,5 +1,11 @@
 # GPU 片上存储与 Tiling 速查
 
+<figure>
+  <img src="../../assets/diagrams/gpu-memory-hierarchy-reuse.svg" alt="GPU 片上存储与 Tiling 速查 的教学视觉索引：先建立关键结构、流程与约束关系，再使用本页表格、公式和 checklist。">
+  <figcaption>视觉索引：先用图建立 GPU 片上存储与 Tiling 速查 的核心关系，再把下面的表格、公式与检查项作为快速查阅层。</figcaption>
+</figure>
+
+
 ## 一句话模型
 
 **高性能 GPU kernel 的核心不是“少访问内存”，而是尽量少访问最远的内存：把 global/VRAM/HBM 数据成块搬近，然后在 shared memory/LDS 与 registers 中重复使用。**

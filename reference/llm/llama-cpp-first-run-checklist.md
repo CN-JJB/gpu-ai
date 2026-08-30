@@ -1,5 +1,11 @@
 # 第一次本地 LLM 运行速查 — llama.cpp / GGUF
 
+<figure>
+  <img src="../../assets/diagrams/local-inference-evidence-chain.svg" alt="第一次本地 LLM 运行速查 — llama.cpp / GGUF 的教学视觉索引：先建立关键结构、流程与约束关系，再使用本页表格、公式和 checklist。">
+  <figcaption>视觉索引：先用图建立 第一次本地 LLM 运行速查 — llama.cpp / GGUF 的核心关系，再把下面的表格、公式与检查项作为快速查阅层。</figcaption>
+</figure>
+
+
 ## 目标
 
 第一次运行不是“看见一句回答”，而是产生可复现 Evidence。
