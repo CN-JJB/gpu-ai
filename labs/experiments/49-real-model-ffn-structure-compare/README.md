@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/swiglu-flow.svg" alt="真实 FFN 结构比较要核对 intermediate size、gate/up/down projection 与激活形式，避免用传统两层 MLP 公式硬套。">
+  <figcaption>真实 FFN 结构比较要核对 intermediate size、gate/up/down projection 与激活形式，避免用传统两层 MLP 公式硬套。</figcaption>
+</figure>
+
 ## Goal
 
 Compare downloaded Hugging Face-style `config.json` files using:
