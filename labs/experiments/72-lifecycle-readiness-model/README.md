@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/readiness-recovery.svg" alt="服务 lifecycle 要区分进程启动、依赖就绪、模型加载与真正可接请求；readiness gate 防止“进程活着”被误判为服务可用。">
+  <figcaption>服务 lifecycle 要区分进程启动、依赖就绪、模型加载与真正可接请求；readiness gate 防止“进程活着”被误判为服务可用。</figcaption>
+</figure>
+
 ## Goal
 
 Show that startup/recovery has multiple states.
