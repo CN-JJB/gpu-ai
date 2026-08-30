@@ -4,6 +4,11 @@
 风险：safe  
 成本：0；不要求购买旧卡
 
+<figure>
+  <img src="../../../assets/diagrams/vendor-evidence-chain.svg" alt="旧 GPU 兼容性考古要把硬件 capability、当前 runtime/support、应用实现与 learner-owned 实测分层，避免“芯片理论支持”直接等于“今天能跑”。">
+  <figcaption>旧 GPU 兼容性考古要把硬件 capability、当前 runtime/support、应用实现与 learner-owned 实测分层，避免“芯片理论支持”直接等于“今天能跑”。</figcaption>
+</figure>
+
 ## 真实问题
 
 一张旧 Tesla、Quadro、FirePro、Instinct、Arc 或 OEM 特殊卡参数看起来很香：
