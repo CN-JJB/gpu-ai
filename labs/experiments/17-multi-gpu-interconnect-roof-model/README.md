@@ -2,6 +2,11 @@
 
 硬件等级：L0（不需要 GPU）
 
+<figure>
+  <img src="../../../assets/diagrams/multi-gpu-split-interconnect.svg" alt="多 GPU 分割模型必须同时看计算分工与跨卡传输；互连带宽/延迟可能把理论算力收益吃掉。">
+  <figcaption>多 GPU 分割模型必须同时看计算分工与跨卡传输；互连带宽/延迟可能把理论算力收益吃掉。</figcaption>
+</figure>
+
 ## 问题
 
 为什么两张 GPU 即使理想计算部分减半，也可能因为跨卡通信而比单卡更慢？
