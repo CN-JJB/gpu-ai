@@ -4,6 +4,11 @@
 风险：medium；**本挑战默认只读，不执行刷写**  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/challenge-vbios-forensics-evidence.svg" alt="VBIOS/OEM 考古优先做只读身份、固件 metadata 与可信参考交叉验证；图中刻意不包含 firmware 写入/强刷步骤。">
+  <figcaption>VBIOS/OEM 考古优先做只读身份、固件 metadata 与可信参考交叉验证；图中刻意不包含 firmware 写入/强刷步骤。</figcaption>
+</figure>
+
 ## 为什么课程要讲，但不把“强刷”当作作业
 
 二手市场会遇到：
