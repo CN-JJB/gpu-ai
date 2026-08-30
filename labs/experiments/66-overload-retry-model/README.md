@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/overload-retry.svg" alt="过载时无界重试会进一步放大队列和负载；实验要观察 admission、backoff、retry budget 与恢复过程。">
+  <figcaption>过载时无界重试会进一步放大队列和负载；实验要观察 admission、backoff、retry budget 与恢复过程。</figcaption>
+</figure>
+
 ## Goal
 
 Compare four synthetic overload policies.
