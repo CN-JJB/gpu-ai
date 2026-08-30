@@ -4,6 +4,11 @@
 
 风险：本实验只做只读拓扑调查和软件 benchmark。**不指导带电插拔、改线、改 BIOS 电气参数或硬件改造。**
 
+<figure>
+  <img src="../../../assets/diagrams/multi-gpu-split-interconnect.svg" alt="真实多 GPU scaling 要把 split strategy、每卡负载、互连路径和最终 scaling efficiency 放在同一张图里判断。">
+  <figcaption>真实多 GPU scaling 要把 split strategy、每卡负载、互连路径和最终 scaling efficiency 放在同一张图里判断。</figcaption>
+</figure>
+
 ## 目标
 
 把“第二张 GPU 值不值”变成可复现 Evidence：
