@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0（已有 GGUF 与机器）  
 需要：Python 3 + llama-server
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-prefix-cache-lifecycle.svg" alt="真实 prefix-cache probe 先确认 cache key/identity，再比较 hit、prefill 工作量与容量压力。">
+  <figcaption>真实 prefix-cache probe 先确认 cache key/identity，再比较 hit、prefill 工作量与容量压力。</figcaption>
+</figure>
+
 ## 问题
 
 对一个较长 prompt：
