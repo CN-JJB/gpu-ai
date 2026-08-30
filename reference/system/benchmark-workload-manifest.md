@@ -1,5 +1,11 @@
 # Benchmark / Workload Manifest Contract
 
+<figure>
+  <img src="../../assets/diagrams/benchmark-manifest.svg" alt="Benchmark / Workload Manifest Contract 的教学视觉索引：先建立关键结构、流程与约束关系，再使用本页表格、公式和 checklist。">
+  <figcaption>视觉索引：先用图建立 Benchmark / Workload Manifest Contract 的核心关系，再把下面的表格、公式与检查项作为快速查阅层。</figcaption>
+</figure>
+
+
 ## Purpose
 
 A benchmark number is not meaningful until its workload identity is reconstructable.
