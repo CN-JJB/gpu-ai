@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/nvidia-generation-map.svg" alt="NVIDIA 代际比较应沿同一组轴读取：执行资源、矩阵专用化、内存系统、互连与软件支持，而不是只背 CUDA Core 数量。">
+  <figcaption>NVIDIA 代际比较应沿同一组轴读取：执行资源、矩阵专用化、内存系统、互连与软件支持，而不是只背 CUDA Core 数量。</figcaption>
+</figure>
+
 ## 问题
 
 架构学习最容易出现的错误不是“年份记错”，而是：
