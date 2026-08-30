@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+<title id="title">JSON、Hash 与执行证据的三层关系</title><desc id="desc">语义记录说明做了什么，路径字节数与 SHA256 绑定实际内容，执行记录保存真实运行结果；三层共同支撑可复查观察。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#18212b}.h{font-size:30px;font-weight:700}.t{font-size:21px;font-weight:700}.s{font-size:16px;fill:#53616f}.b1{fill:#eef6ff;stroke:#4f82b5;stroke-width:2;rx:16}.b2{fill:#f4f0ff;stroke:#7965b0;stroke-width:2;rx:16}.b3{fill:#eef8f1;stroke:#5e986d;stroke-width:2;rx:16}.gate{fill:#fff7e8;stroke:#bd892f;stroke-width:2;rx:16}.a{stroke:#5b6c7c;stroke-width:3;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#5b6c7c"/></marker></defs>
+<text x="45" y="52" class="h">Foundation 02：Hash 不是“真相证明”，它只负责其中一层</text>
+<rect x="60" y="105" width="300" height="130" class="b1"/><text x="210" y="145" text-anchor="middle" class="t">1. Semantic record</text><text x="210" y="179" text-anchor="middle" class="s">JSON / manifest / argv</text><text x="210" y="205" text-anchor="middle" class="s">“你说你做了什么”</text>
+<rect x="450" y="105" width="300" height="130" class="b2"/><text x="600" y="145" text-anchor="middle" class="t">2. Artifact identity</text><text x="600" y="179" text-anchor="middle" class="s">path + bytes + SHA256</text><text x="600" y="205" text-anchor="middle" class="s">“你实际引用了哪串 bytes”</text>
+<rect x="840" y="105" width="300" height="130" class="b3"/><text x="990" y="145" text-anchor="middle" class="t">3. Execution evidence</text><text x="990" y="179" text-anchor="middle" class="s">stdout / stderr / return code</text><text x="990" y="205" text-anchor="middle" class="s">“真正运行时发生了什么”</text>
+<path d="M360 170 H443" class="a"/><path d="M750 170 H833" class="a"/>
+<rect x="300" y="315" width="600" height="120" class="gate"/><text x="600" y="355" text-anchor="middle" class="t">可复查观察 = 三层对得上</text><text x="600" y="389" text-anchor="middle" class="s">same hash ≠ benchmark 诚实；same filename ≠ same artifact</text><text x="600" y="416" text-anchor="middle" class="s">identity / integrity 通过之后，仍要检查 provenance 与执行语义</text>
+<path d="M210 235 V275 H600 V308" class="a"/><path d="M600 235 V308" class="a"/><path d="M990 235 V275 H600 V308" class="a"/>
+</svg>
