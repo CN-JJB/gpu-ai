@@ -4,6 +4,11 @@
 
 依赖：Python 3 标准库，不需要 NumPy/GPU。
 
+<figure>
+  <img src="../../../assets/diagrams/attention-io-naive-vs-tiled.svg" alt="Online softmax / tiled attention 的关键收益来自减少中间张量往返外部内存，而不是把数学公式本身“变少”。">
+  <figcaption>Online softmax / tiled attention 的关键收益来自减少中间张量往返外部内存，而不是把数学公式本身“变少”。</figcaption>
+</figure>
+
 ## Part A — 验证 tiled online attention 的数学结果
 
 脚本同时实现：
