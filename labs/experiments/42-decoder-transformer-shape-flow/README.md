@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/transformer-prefill-decode.svg" alt="Decoder Transformer 的 shape flow 要区分 prefill 的长序列并行与 decode 的单步增量；后续 KV、带宽和 latency 判断都建立在这个差别上。">
+  <figcaption>Decoder Transformer 的 shape flow 要区分 prefill 的长序列并行与 decode 的单步增量；后续 KV、带宽和 latency 判断都建立在这个差别上。</figcaption>
+</figure>
+
 ## Goal
 
 Use a tiny synthetic decoder config to make prefill/decode tensor shapes and KV growth concrete.
