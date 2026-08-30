@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/fairness-quotas.svg" alt="多租户公平性不是让所有请求绝对相同，而是用 quota/weight/admission 防止一个 tenant 吃掉全部服务能力。">
+  <figcaption>多租户公平性不是让所有请求绝对相同，而是用 quota/weight/admission 防止一个 tenant 吃掉全部服务能力。</figcaption>
+</figure>
+
 ## Goal
 
 Compare:
