@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2。
 
+<figure>
+  <img src="../../../assets/diagrams/readiness-recovery.svg" alt="真实 restart/readiness 实验要记录停止、启动、依赖恢复、模型加载与首次成功请求的完整时间线。">
+  <figcaption>真实 restart/readiness 实验要记录停止、启动、依赖恢复、模型加载与首次成功请求的完整时间线。</figcaption>
+</figure>
+
 ## Safety
 
 This lab:
