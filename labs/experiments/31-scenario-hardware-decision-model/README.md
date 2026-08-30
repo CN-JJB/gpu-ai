@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/hardware-decision-gates.svg" alt="硬件选择按 Fit → Support → Roofs → Evidence → TCO 逐层过 gate；前面的硬门槛不过，后面的跑分优势没有决策意义。">
+  <figcaption>硬件选择按 Fit → Support → Roofs → Evidence → TCO 逐层过 gate；前面的硬门槛不过，后面的跑分优势没有决策意义。</figcaption>
+</figure>
+
 ## 目标
 
 证明：
