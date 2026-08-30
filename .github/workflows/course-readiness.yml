@@ -31,6 +31,7 @@ jobs:
         run: python -m py_compile tools/course/audit_student_readiness.py tools/course/audit_visual_comprehension.py tools/course/audit_auxiliary_visual_comprehension.py
       - name: Audit student course readiness
         run: python tools/course/audit_student_readiness.py
-      - name: Audit visual and comprehension closure
+      - name: Audit lesson visual and comprehension closure
         run: python tools/course/audit_visual_comprehension.py
-      - name: Audit auxiliary visual and comprehension closure\n        run: python tools/course/audit_auxiliary_visual_comprehension.py\n
+      - name: Audit auxiliary visual and comprehension closure
+        run: python tools/course/audit_auxiliary_visual_comprehension.py

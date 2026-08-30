@@ -9,6 +9,7 @@ GROUPS = {
     "foundations": (ROOT / "curriculum" / "foundations", "*.md", 6),
     "experiments": (ROOT / "labs" / "experiments", "[0-9]*/README.md", 93),
     "challenges": (ROOT / "labs" / "challenges", "[0-9]*/README.md", 12),
+    "references": (ROOT / "reference", "*/*.md", 50),
 }
 
 HTML_IMG_RE = re.compile(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>', re.I)
@@ -105,7 +106,7 @@ def main():
         group_stats[name] = (len(pages), visual_pages, local_refs)
 
     print("AUXILIARY VISUAL / COMPREHENSION CLOSURE AUDIT")
-    for name in ("foundations", "experiments", "challenges"):
+    for name in ("foundations", "experiments", "challenges", "references"):
         pages, visual_pages, refs = group_stats[name]
         print(f"{name}_pages={pages}")
         print(f"{name}_visual_pages={visual_pages}")

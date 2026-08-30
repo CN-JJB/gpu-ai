@@ -383,3 +383,53 @@ The GitHub connector did not expose a workflow run associated with the exact clo
 ### Closure conclusion
 
 The visual/comprehension maintenance pass is complete. Further lesson visuals should be added only when they teach a distinct causal, spatial, temporal, or quantitative mechanism—not to increase image count. Stable-course work should now return to learner use and evidence-producing exercises rather than reopen completed authoring batches without a concrete defect.
+
+
+## Whole-course visual closure — 2026-08-29
+
+The visual/comprehension closure now extends beyond the 62 stable Lesson HTML pages to the complete core teaching surface:
+
+~~~text
+Lesson HTML              62 / 62
+Foundation Markdown       6 / 6
+Experiment README        93 / 93
+Challenge README         12 / 12
+Topic Reference          50 / 50
+--------------------------------
+core teaching surfaces  223 / 223
+~~~
+
+Auxiliary teaching material therefore contributes:
+
+~~~text
+Foundation + Experiment + Challenge + Reference = 161 / 161 pages with local teaching visuals
+local auxiliary visual references = 161
+~~~
+
+Together with the previously audited Lesson layer:
+
+~~~text
+core teaching surfaces = 223 / 223
+local static teaching-image references = 216
+interactive Lesson pages = 13
+local interactive script references = 12
+~~~
+
+Reference pages use a **visual index** pattern: the learner first sees the relevant architecture/dataflow/state/decision diagram, then uses the page as a high-density table, formula, card, or checklist. Existing first-party course diagrams are reused deliberately so the same concept is not redrawn with conflicting vocabulary.
+
+The Reference index page itself is navigation rather than a teaching topic and is not counted in the 50 topic references.
+
+The permanent auxiliary guard is:
+
+~~~text
+tools/course/audit_auxiliary_visual_comprehension.py
+~~~
+
+It checks Foundations, Experiments, Challenges, and Topic References for:
+- expected corpus counts;
+- at least one local teaching visual;
+- resolvable in-repository image targets;
+- non-empty alt text;
+- a figcaption when a local teaching visual is present.
+
+The Course Readiness workflow runs both the 62-Lesson closure audit and this 161-page auxiliary audit. Decorative remote images do not satisfy either gate.
