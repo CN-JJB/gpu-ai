@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0  
 需要：Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-effective-bpw.svg" alt="Effective bpw 把 exact file bytes 与参数量联系起来；标称量化 bit 之外还有 scale、metadata 与 mixed tensors。">
+  <figcaption>Effective bpw 把 exact file bytes 与参数量联系起来；标称量化 bit 之外还有 scale、metadata 与 mixed tensors。</figcaption>
+</figure>
+
 ## 问题
 
 很多模型写“4-bit”，但真实 weight payload 往往明显大于 `params × 4 / 8`。最小原因之一就是 group quantization metadata。
