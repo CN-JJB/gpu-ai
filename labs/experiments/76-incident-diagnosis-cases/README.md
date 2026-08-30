@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/incident-timeline.svg" alt="Incident diagnosis 先沿时间线对齐症状、变更、telemetry 与恢复动作，再提出 root-cause hypothesis。">
+  <figcaption>Incident diagnosis 先沿时间线对齐症状、变更、telemetry 与恢复动作，再提出 root-cause hypothesis。</figcaption>
+</figure>
+
 ## Goal
 
 Practice distinguishing symptom patterns without claiming causation.
