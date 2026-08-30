@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+<title id="title">Shell 命令的可审计调用链</title><desc id="desc">当前目录、可执行文件、参数、环境与输入文件形成进程，产生 stdout、stderr、退出码和输出文件。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#17202a}.h{font-size:30px;font-weight:700}.t{font-size:19px;font-weight:650}.s{font-size:15px;fill:#53616f}.b{fill:#f6f8fb;stroke:#8ba0b5;stroke-width:2;rx:14}.p{fill:#eef6ff;stroke:#4d82b8;stroke-width:2;rx:16}.o{fill:#eef8f1;stroke:#5d966c;stroke-width:2;rx:14}.a{stroke:#5d6f80;stroke-width:3;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#5d6f80"/></marker></defs>
+<text x="45" y="50" class="h">Foundation 01：Shell 不是黑框，而是一条可以逐段检查的调用链</text>
+<rect x="45" y="105" width="180" height="82" class="b"/><text x="135" y="138" text-anchor="middle" class="t">cwd</text><text x="135" y="164" text-anchor="middle" class="s">当前目录</text>
+<rect x="45" y="210" width="180" height="82" class="b"/><text x="135" y="243" text-anchor="middle" class="t">executable + argv</text><text x="135" y="269" text-anchor="middle" class="s">程序与参数边界</text>
+<rect x="45" y="315" width="180" height="82" class="b"/><text x="135" y="348" text-anchor="middle" class="t">env + input</text><text x="135" y="374" text-anchor="middle" class="s">环境与输入文件</text>
+<rect x="390" y="170" width="260" height="155" class="p"/><text x="520" y="220" text-anchor="middle" class="t">process</text><text x="520" y="251" text-anchor="middle" class="s">真正执行的那一次运行</text><text x="520" y="280" text-anchor="middle" class="s">PID / start time / working dir</text>
+<path d="M225 146 H330 V205 H383" class="a"/><path d="M225 251 H383" class="a"/><path d="M225 356 H330 V290 H383" class="a"/>
+<rect x="815" y="92" width="210" height="75" class="o"/><text x="920" y="123" text-anchor="middle" class="t">stdout</text><text x="920" y="148" text-anchor="middle" class="s">正常输出</text>
+<rect x="815" y="188" width="210" height="75" class="o"/><text x="920" y="219" text-anchor="middle" class="t">stderr</text><text x="920" y="244" text-anchor="middle" class="s">警告 / 错误 / 诊断</text>
+<rect x="815" y="284" width="210" height="75" class="o"/><text x="920" y="315" text-anchor="middle" class="t">exit code</text><text x="920" y="340" text-anchor="middle" class="s">0 / 非 0 与状态契约</text>
+<rect x="815" y="380" width="210" height="75" class="o"/><text x="920" y="411" text-anchor="middle" class="t">output files</text><text x="920" y="436" text-anchor="middle" class="s">新 Evidence，不覆盖旧 Evidence</text>
+<path d="M650 223 H755 V130 H808" class="a"/><path d="M650 241 H808" class="a"/><path d="M650 260 H755 V322 H808" class="a"/><path d="M650 280 H730 V418 H808" class="a"/>
+</svg>
