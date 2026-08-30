@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3，复用 Experiment 63。
 
+<figure>
+  <img src="../../../assets/diagrams/fairness-quotas.svg" alt="真实 tenant report 要同时记录每租户的请求量、等待、服务份额与 tail latency，才能判断公平机制是否有效。">
+  <figcaption>真实 tenant report 要同时记录每租户的请求量、等待、服务份额与 tail latency，才能判断公平机制是否有效。</figcaption>
+</figure>
+
 ## Goal
 
 Break one real serving trace down by tenant without publishing private user identity/content.
