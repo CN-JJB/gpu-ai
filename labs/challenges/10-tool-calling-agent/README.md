@@ -4,6 +4,11 @@
 风险：medium（工具权限）  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/challenge-tool-agent-loop.svg" alt="Tool-calling agent 的核心是结构化调用、schema/policy gate 与可追溯 observation；模型提出调用不等于调用天然允许执行。">
+  <figcaption>Tool-calling agent 的核心是结构化调用、schema/policy gate 与可追溯 observation；模型提出调用不等于调用天然允许执行。</figcaption>
+</figure>
+
 ## 最重要的安全模型
 
 不要把 agent 想成：
