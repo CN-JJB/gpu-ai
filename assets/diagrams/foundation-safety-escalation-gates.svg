@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
+<title id="title">实验风险升级与 Stop Gate</title><desc id="desc">从只读检查到用户态软件、正常基准、可逆配置、标准安装再到高风险挑战，风险逐步增加；出现电气异常、不可逆动作不明或工具判定不安全时停止。</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#17212b}.h{font-size:30px;font-weight:700}.t{font-size:18px;font-weight:700}.s{font-size:14px;fill:#53616f}.safe{fill:#eef8f1;stroke:#5d966c;stroke-width:2;rx:14}.mid{fill:#fff7e8;stroke:#bd8a30;stroke-width:2;rx:14}.risk{fill:#fff0f0;stroke:#b85c5c;stroke-width:2;rx:14}.gate{fill:#f7f8fa;stroke:#6c7885;stroke-width:2;rx:16}.a{stroke:#5c6c7b;stroke-width:3;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#5c6c7b"/></marker></defs>
+<text x="45" y="52" class="h">Foundation 05：风险越高，证据要求和止损条件越严格</text>
+<rect x="45" y="105" width="165" height="90" class="safe"/><text x="127" y="140" text-anchor="middle" class="t">只读检查</text><text x="127" y="168" text-anchor="middle" class="s">identity / info</text>
+<rect x="235" y="105" width="165" height="90" class="safe"/><text x="317" y="140" text-anchor="middle" class="t">用户态软件</text><text x="317" y="168" text-anchor="middle" class="s">reversible</text>
+<rect x="425" y="105" width="165" height="90" class="safe"/><text x="507" y="140" text-anchor="middle" class="t">正常 benchmark</text><text x="507" y="168" text-anchor="middle" class="s">warm-up / repeats</text>
+<rect x="615" y="105" width="165" height="90" class="mid"/><text x="697" y="140" text-anchor="middle" class="t">可逆配置</text><text x="697" y="168" text-anchor="middle" class="s">rollback 明确</text>
+<rect x="805" y="105" width="165" height="90" class="mid"/><text x="887" y="140" text-anchor="middle" class="t">标准安装</text><text x="887" y="168" text-anchor="middle" class="s">按厂商手册</text>
+<rect x="995" y="105" width="165" height="90" class="risk"/><text x="1077" y="140" text-anchor="middle" class="t">高风险 Challenge</text><text x="1077" y="168" text-anchor="middle" class="s">主线不要求</text>
+<path d="M210 150 H228" class="a"/><path d="M400 150 H418" class="a"/><path d="M590 150 H608" class="a"/><path d="M780 150 H798" class="a"/><path d="M970 150 H988" class="a"/>
+<rect x="110" y="290" width="980" height="165" class="gate"/><text x="600" y="329" text-anchor="middle" class="t">STOP GATE：出现任一项就先停，不用“再跑一次”建立信心</text>
+<text x="165" y="370" class="s">• 异常气味 / 冒烟 / 火花 / 接头异常发热</text><text x="165" y="402" class="s">• 风扇停转且温度持续上升；PSU/GPU/主板反复掉电</text>
+<text x="650" y="370" class="s">• 工具明确 BLOCKED / unsafe</text><text x="650" y="402" class="s">• 无法解释下一步是否可逆；Evidence 正在被错误覆盖</text>
+<text x="600" y="435" text-anchor="middle" class="s">性能比较资格：safe + correct + comparable + reproducible enough</text>
+<path d="M1077 195 V245 H600 V283" class="a"/>
+</svg>
