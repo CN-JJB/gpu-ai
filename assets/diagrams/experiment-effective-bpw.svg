@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+<title id="title">Effective bits per weight experiment</title><desc id="desc">Nominal quant bits cover weight payload while scales, zero points, metadata and mixed precision tensors increase file bytes, producing an effective bpw above the nominal value.</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#18222c}.h{font-size:30px;font-weight:700}.t{font-size:19px;font-weight:700}.s{font-size:14px;fill:#52606d}.q{fill:#eef6ff;stroke:#4f82b5;stroke-width:2;rx:14}.o{fill:#fff7e8;stroke:#bd8a30;stroke-width:2;rx:14}.r{fill:#eef8f1;stroke:#5d966c;stroke-width:2;rx:14}.a{stroke:#5d6e7d;stroke-width:3;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#5d6e7d"/></marker></defs>
+<text x="45" y="52" class="h">Experiment 09：标称 Q4 不等于整个文件恰好 4.00 bpw</text>
+<rect x="65" y="120" width="330" height="150" class="q"/><text x="230" y="160" text-anchor="middle" class="t">Nominal quant payload</text><text x="230" y="195" text-anchor="middle" class="s">例如：4 bit / weight</text><text x="230" y="225" text-anchor="middle" class="s">只描述主要权重编码</text>
+<rect x="465" y="120" width="300" height="150" class="o"/><text x="615" y="160" text-anchor="middle" class="t">Container overhead</text><text x="615" y="195" text-anchor="middle" class="s">scales / zero-points / metadata</text><text x="615" y="225" text-anchor="middle" class="s">mixed-precision tensors</text>
+<rect x="835" y="120" width="300" height="150" class="r"/><text x="985" y="160" text-anchor="middle" class="t">Effective bpw</text><text x="985" y="195" text-anchor="middle" class="s">file_bytes × 8 / parameter_count</text><text x="985" y="225" text-anchor="middle" class="s">用于容量估算，不替代格式解析</text>
+<path d="M395 195 H458" class="a"/><path d="M765 195 H828" class="a"/>
+<text x="600" y="350" text-anchor="middle" class="t">实验比较：nominal bits ↔ exact bytes ↔ effective bpw</text><text x="600" y="390" text-anchor="middle" class="s">如果 effective bpw 更高，不要先判断“量化坏了”；先解释 metadata、group scales 与未量化 tensor。</text>
+</svg>
