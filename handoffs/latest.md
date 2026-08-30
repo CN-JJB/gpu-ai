@@ -25,12 +25,14 @@ Challenge 01–12 teaching closure: complete
 Lessons 34–49 opening-contract remediation: complete (16/16 verified)
 stable lessons/*.html under 8 KiB after thin-page audit: 0
 local-link corpus: 338 / 338 clean
+visual/comprehension closure: COMPLETE — 62 / 62 teaching surfaces, 0 closure errors
+visual closure audited head: 8913ca860395d2ca23d0c2f86a5030a72ee6e1bf
 teaching-content checkpoint: f514db1733f0e26a06e82e596e70922ab2458915
 ~~~
 
 The latest pass deepened the previously thin architecture/vendor, Transformer/model-internals, benchmark/quality/decision, operations, power, used-GPU and whole-machine pages with worked examples, Evidence outputs, interpretation branches, failure recovery, no-hardware paths, and explicit decision/non-claim boundaries.
 
-TEXTBOOK COMPLETE is now frozen from substantive and integrity checks, not from byte count. The lessons 34–49 opening defect is repaired; the full 62-lesson corpus passed no-hardware/troubleshooting/decision-boundary signal checks; and the full 338-file local-link corpus has 0 broken and 0 repo-escaping links. Real learner-owned benchmark acquisition remains deferred until the learner phase.
+TEXTBOOK COMPLETE is now frozen from substantive, integrity, and visual/comprehension checks, not from byte count. The lessons 34–49 opening defect is repaired; the full 62-lesson corpus passed no-hardware/troubleshooting/decision-boundary signal checks; the full 338-file local-link corpus has 0 broken and 0 repo-escaping links; and the final visual closure confirmed all 62 lesson HTML pages expose at least one local visual or interactive teaching surface with 0 closure errors. Real learner-owned benchmark acquisition remains deferred until the learner phase.
 
 ## Phase 4 frontier
 
@@ -309,6 +311,9 @@ clean real workspace bootstrap
 TEXTBOOK COMPLETE
 teaching-content checkpoint head = f514db1733f0e26a06e82e596e70922ab2458915
 connector-equivalent Course Readiness audit = PASS
+visual/comprehension closure = PASS (62 / 62, errors = 0)
+visual closure guard = tools/course/audit_visual_comprehension.py
+Course Readiness workflow includes visual closure audit
 GitHub Actions exact-head Course Readiness CI PASS = NOT OBSERVED
 ~~~
 
@@ -316,10 +321,11 @@ The CI line above is an observability/tooling boundary, not an unresolved course
 
 ## Next work
 
-1. Start the learner at Foundation 00 / Lesson 01; stable-course authorship is no longer the blocker.
-2. Do not expand Intelligence beyond I54 merely to avoid entering the learner phase.
-3. Keep real production benchmark rows at zero until learner-owned evidence is actually collected.
-4. At Experiment 61, follow the existing I54 → profile → human semantic fill → I53 → I52 path, then review before any deliberate ingestion.
-5. Treat future textbook edits as post-freeze maintenance and re-run affected readiness/link checks.
+1. Start the learner at Foundation 00 / Lesson 01; substantive authoring and the visual/comprehension closure are complete.
+2. Do not reopen completed visual/architecture/model/operations authoring batches without a concrete learner-facing defect.
+3. Do not expand Intelligence beyond I54 merely to avoid entering the learner phase.
+4. Keep real production benchmark rows at zero until learner-owned evidence is actually collected.
+5. At Experiment 61, follow the existing I54 → profile → human semantic fill → I53 → I52 path, then review before any deliberate ingestion.
+6. Treat future textbook edits as post-freeze maintenance and re-run affected readiness/link/visual-closure checks.
 
 No fake benchmark results, no auto-purchase, no unsafe hardware modification.
