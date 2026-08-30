@@ -1,6 +1,6 @@
 # Visual & Comprehension Audit
 
-Status: ACTIVE — post-freeze teaching maintenance
+Status: COMPLETE — post-freeze visual/comprehension closure passed
 
 ## Why this audit exists
 
@@ -113,7 +113,7 @@ A decorative image does not satisfy this audit.
 - [x] Batch 04 review and implementation — Lessons 24–33 Transformer/model internals + benchmark identity
 - [x] Batch 05 review and implementation — Lessons 34–45 serving/operations/whole-machine behavior
 - [x] Batch 06 review and implementation — Lessons 46–49 used-GPU/PSU/integration/graduation gates
-- [ ] final 62-page visual/comprehension closure audit
+- [x] final 62-page visual/comprehension closure audit
 
 ## Batch 01 implementation result
 
@@ -337,3 +337,49 @@ HTML close = 4 / 4
 ~~~
 
 All planned lesson groups have now been reviewed. A final corpus-wide closure scan remains before this audit can move from ACTIVE to COMPLETE.
+
+
+## Final 62-page closure — 2026-08-29
+
+The final closure was recomputed against repository head `8913ca860395d2ca23d0c2f86a5030a72ee6e1bf` using the current Git tree plus every stable lesson HTML body, split into four connector-safe batches.
+
+~~~text
+lesson HTML = 62 / 62
+pages with at least one teaching surface = 62 / 62
+pages with local static teaching visuals = 51
+pages with interactive teaching surfaces = 13
+local teaching image references validated = 55
+local interactive script references validated = 12
+closure errors = 0
+~~~
+
+The counts overlap by design: a small number of pages contain both a static visual and an interactive surface.
+
+Closure rules required, per lesson:
+
+- at least one local visual or interactive teaching surface;
+- local teaching image/script references resolve inside the repository;
+- teaching images have non-empty alt text;
+- pages with local teaching images expose a figcaption;
+- Retrieval Practice remains present;
+- 完成证据 remains present;
+- Primary Sources / Reference remains present;
+- HTML body/document closure remains intact.
+
+No remote/decorative image was allowed to satisfy the teaching-surface gate by itself.
+
+A repository guard now exists at:
+
+~~~text
+tools/course/audit_visual_comprehension.py
+~~~
+
+and `.github/workflows/course-readiness.yml` runs it alongside the existing student-readiness audit. This converts the one-time closure into a regression check for future post-freeze maintenance.
+
+### CI observability boundary
+
+The GitHub connector did not expose a workflow run associated with the exact closure commit during this session. Therefore the PASS above is based on a full connector-side recomputation of all 62 pages and the repository Git tree, not on an inferred Actions status. The workflow guard is committed for future automatic enforcement.
+
+### Closure conclusion
+
+The visual/comprehension maintenance pass is complete. Further lesson visuals should be added only when they teach a distinct causal, spatial, temporal, or quantitative mechanism—not to increase image count. Stable-course work should now return to learner use and evidence-producing exercises rather than reopen completed authoring batches without a concrete defect.
