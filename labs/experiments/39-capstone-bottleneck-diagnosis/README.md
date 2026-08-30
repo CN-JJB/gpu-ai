@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/hardware-decision-gates.svg" alt="瓶颈诊断先排 Fit/Support，再结合计算、带宽、容量与软件 Evidence；不要看到慢就先换 GPU。">
+  <figcaption>瓶颈诊断先排 Fit/Support，再结合计算、带宽、容量与软件 Evidence；不要看到慢就先换 GPU。</figcaption>
+</figure>
+
 ## 目标
 
 训练这条链：
