@@ -7,6 +7,11 @@ Cost: 已有独显时为 0
 支持路径：NVIDIA CUDA 或 AMD HIP/ROCm  
 替代路径：没有可用独显/工具链时完成 Experiment 02 L0，不影响继续课程。
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-latency-hiding-scheduler.svg" alt="真实 GPU latency hiding 判读：观察 ready/stalled work 与资源约束，不把高 occupancy 直接当成高性能。">
+  <figcaption>真实 GPU latency hiding 判读：观察 ready/stalled work 与资源约束，不把高 occupancy 直接当成高性能。</figcaption>
+</figure>
+
 ## 问题
 
 如果保持同一个 memory-latency-heavy kernel 的核心逻辑不变，只增加每个 block 的 dynamic shared memory / LDS 预留量，使一个 SM/CU 能同时驻留的 blocks 变少：
