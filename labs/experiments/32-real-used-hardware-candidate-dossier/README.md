@@ -4,6 +4,11 @@
 
 这是买卡/买 Mac 前的 Evidence 模板，不需要先拥有硬件。
 
+<figure>
+  <img src="../../../assets/diagrams/hardware-decision-gates.svg" alt="真实二手候选 dossier 先过容量/兼容/供电等硬门槛，再进入价格、性能与风险的综合比较。">
+  <figcaption>真实二手候选 dossier 先过容量/兼容/供电等硬门槛，再进入价格、性能与风险的综合比较。</figcaption>
+</figure>
+
 ## 目标
 
 For one exact listing/candidate, produce:
