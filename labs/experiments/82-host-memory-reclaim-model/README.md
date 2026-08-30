@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/host-memory-pressure.svg" alt="Host memory pressure 要看模型页、page cache、匿名内存与 reclaim/swap 的竞争；“还有一点 free RAM”并不能完整描述压力。">
+  <figcaption>Host memory pressure 要看模型页、page cache、匿名内存与 reclaim/swap 的竞争；“还有一点 free RAM”并不能完整描述压力。</figcaption>
+</figure>
+
 ## Goal
 
 Understand why:
