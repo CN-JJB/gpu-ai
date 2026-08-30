@@ -6,6 +6,11 @@ Cost: 0
 需要：Python 3  
 替代路径：没有 Python 时可手算 N=8、tile=2 的小矩阵。
 
+<figure>
+  <img src="../../../assets/diagrams/gpu-memory-hierarchy-reuse.svg" alt="Tile reuse 的核心是让同一批数据在更近、更快的层级被多次消费，从而减少外部内存流量。">
+  <figcaption>Tile reuse 的核心是让同一批数据在更近、更快的层级被多次消费，从而减少外部内存流量。</figcaption>
+</figure>
+
 ## 问题
 
 对一个简化的方阵 GEMM：
