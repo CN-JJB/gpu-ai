@@ -4,6 +4,11 @@
 
 这是 synthetic Roofline teaching model，不使用任何真实 GPU 峰值。
 
+<figure>
+  <img src="../../../assets/diagrams/matrix-precision-path.svg" alt="TOPS/TFLOPS 只是条件性 roof；真正能否接近它还取决于数据类型、矩阵形状、kernel 路径与内存供给。">
+  <figcaption>TOPS/TFLOPS 只是条件性 roof；真正能否接近它还取决于数据类型、矩阵形状、kernel 路径与内存供给。</figcaption>
+</figure>
+
 ## 目标
 
 分清：
