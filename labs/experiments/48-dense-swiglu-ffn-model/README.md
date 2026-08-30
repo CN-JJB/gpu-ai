@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/swiglu-flow.svg" alt="SwiGLU FFN 包含 gate/value 两条投影路径与逐元素门控，再投影回 hidden size；参数与算力估算要按实际结构算。">
+  <figcaption>SwiGLU FFN 包含 gate/value 两条投影路径与逐元素门控，再投影回 hidden size；参数与算力估算要按实际结构算。</figcaption>
+</figure>
+
 ## Default
 
 A LLaMA-like dense teaching configuration:
