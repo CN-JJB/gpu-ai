@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-hybrid-kv-window.svg" alt="Hybrid KV 中 full-attention 与 sliding-window 层保留不同长度的历史，因此总 KV 预算取决于层类型组合。">
+  <figcaption>Hybrid KV 中 full-attention 与 sliding-window 层保留不同长度的历史，因此总 KV 预算取决于层类型组合。</figcaption>
+</figure>
+
 ## Default
 
 ```
