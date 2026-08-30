@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/market-observation-cohort.svg" alt="真实市场 snapshot 要固定观察时间、候选定义和异常值处理，避免把零散最低价当成稳定市场价。">
+  <figcaption>真实市场 snapshot 要固定观察时间、候选定义和异常值处理，避免把零散最低价当成稳定市场价。</figcaption>
+</figure>
+
 ## Goal
 
 Turn manually captured marketplace observations into a reproducible snapshot without scraping or inventing data.
