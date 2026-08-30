@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/amd-generation-branch-map.svg" alt="AMD 代际术语要按自身架构谱系读取，不把 NVIDIA 名词一一硬翻译到 CU/wavefront 体系。">
+  <figcaption>AMD 代际术语要按自身架构谱系读取，不把 NVIDIA 名词一一硬翻译到 CU/wavefront 体系。</figcaption>
+</figure>
+
 ## 目标
 
 AMD 架构最常见的错误不是记错产品名，而是把：
