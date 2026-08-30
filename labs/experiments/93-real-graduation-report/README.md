@@ -2,6 +2,11 @@
 
 硬件等级：L1–L3，取决于你的目标和已有机器。
 
+<figure>
+  <img src="../../../assets/diagrams/graduation-design-review.svg" alt="真实 graduation report 的目标不是“证明方案完美”，而是让每个关键选择都能追到 Evidence、边界、风险和替代方案。">
+  <figcaption>真实 graduation report 的目标不是“证明方案完美”，而是让每个关键选择都能追到 Evidence、边界、风险和替代方案。</figcaption>
+</figure>
+
 ## Goal
 
 Produce the final human-readable Local-LLM machine design report from existing course Evidence.
