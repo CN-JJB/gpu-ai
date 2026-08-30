@@ -6,7 +6,7 @@
 - Branch: main
 - Stable course and dynamic Intelligence lane remain separate.
 
-## Post-freeze visual/comprehension audit — ACTIVE
+## Post-freeze visual/comprehension audit — COMPLETE
 
 The learner-ready substantive checkpoint remains valid, but a new post-freeze maintenance pass is active at the user's request:
 
@@ -36,7 +36,21 @@ Batch 05 (Lessons 34–45) is implemented and marker-checked. Ten existing opera
 
 Batch 06 (Lessons 46–49) is implemented and marker-checked. Lesson 46 now exposes the staged used-GPU acceptance flow; Lessons 47–49 add dedicated PSU delivery, whole-machine hard-gate and graduation Design Review diagrams.
 
-All planned lesson groups have been reviewed. Next: final 62-page visual/comprehension closure scan, including teaching-surface coverage and core lesson markers.
+All planned lesson groups and the final 62-page closure are complete.
+
+Final connector-side closure against `8913ca860395d2ca23d0c2f86a5030a72ee6e1bf`:
+
+~~~text
+lesson HTML = 62 / 62
+teaching surface = 62 / 62
+static visual pages = 51
+interactive pages = 13
+local visual refs = 55
+local interactive script refs = 12
+closure errors = 0
+~~~
+
+The closure now has a permanent repository guard at `tools/course/audit_visual_comprehension.py`, wired into `.github/workflows/course-readiness.yml`.
 
 ## Stable course
 
@@ -292,7 +306,7 @@ The complete suite passed through I54, including raw semantic-source capture, th
 
 ## Next — learner phase
 
-1. Begin the learner at Foundation 00 / Lesson 01 using the stable course sequence; do not reopen architecture or add Intelligence gates merely to postpone learning.
+1. Begin the learner at Foundation 00 / Lesson 01 using the stable course sequence; the visual/comprehension closure is complete, so do not reopen finished authoring batches without a concrete defect.
 2. Keep real production benchmark rows at zero until the learner reaches the real-evidence experiments and produces learner-owned artifacts.
 3. When the learner later reaches Experiment 61, use the existing I54 → verified profile → human semantic fill → I53 → I52 workflow.
 4. Continue to treat purchase, release and used-GPU decisions as human-reviewed outcomes. `automatic_purchase_decision = NOT-PERMITTED`.
