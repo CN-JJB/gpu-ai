@@ -2,6 +2,11 @@
 
 硬件等级：L0/L1。
 
+<figure>
+  <img src="../../../assets/diagrams/service-exposure.svg" alt="真实 exposure audit 要从实际监听地址与网络路径验证，而不是只相信配置文件里“看起来安全”的字段。">
+  <figcaption>真实 exposure audit 要从实际监听地址与网络路径验证，而不是只相信配置文件里“看起来安全”的字段。</figcaption>
+</figure>
+
 ## Goal
 
 Inventory an existing local service without changing network configuration.
