@@ -4,6 +4,11 @@
 
 风险：默认采集和 benchmark 均为普通用户态运行；不修改 BIOS/功耗/超频。
 
+<figure>
+  <img src="../../../assets/diagrams/local-inference-evidence-chain.svg" alt="真实 LLM capstone 要把模型身份、runtime/config、原始测量与有边界结论串成可复查 Evidence 链。">
+  <figcaption>真实 LLM capstone 要把模型身份、runtime/config、原始测量与有边界结论串成可复查 Evidence 链。</figcaption>
+</figure>
+
 ## Goal
 
 Complete the full course loop on one real machine:
