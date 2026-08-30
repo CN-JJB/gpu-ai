@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-rope-rotation.svg" alt="RoPE 用 position-dependent rotation 编码位置；不同位置的角度差让 attention 中出现相对位置信息。">
+  <figcaption>RoPE 用 position-dependent rotation 编码位置；不同位置的角度差让 attention 中出现相对位置信息。</figcaption>
+</figure>
+
 ## Goal
 
 Verify:
