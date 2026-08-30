@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3，复用 Experiment 63。
 
+<figure>
+  <img src="../../../assets/diagrams/serving-capacity-littles-law.svg" alt="真实 serving capacity 要同时看 arrival rate、concurrency、service time 与稳定队列，确认系统没有靠无限排队伪造吞吐。">
+  <figcaption>真实 serving capacity 要同时看 arrival rate、concurrency、service time 与稳定队列，确认系统没有靠无限排队伪造吞吐。</figcaption>
+</figure>
+
 ## Goal
 
 Turn a real request trace into:
