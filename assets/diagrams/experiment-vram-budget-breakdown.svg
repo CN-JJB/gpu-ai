@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+<title id="title">VRAM budget breakdown</title><desc id="desc">VRAM fit requires weights, KV cache, runtime buffers, temporary workspace and safety headroom to fit together; model file size alone is insufficient.</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#18222c}.h{font-size:30px;font-weight:700}.t{font-size:18px;font-weight:700}.s{font-size:14px;fill:#52606d}.b1{fill:#eef6ff;stroke:#4f82b5;stroke-width:2}.b2{fill:#f4f0ff;stroke:#7965b0;stroke-width:2}.b3{fill:#eef8f1;stroke:#5d966c;stroke-width:2}.b4{fill:#fff7e8;stroke:#bd8a30;stroke-width:2}.bad{fill:#fff0f0;stroke:#b85c5c;stroke-width:2;rx:14}</style>
+<text x="45" y="52" class="h">Experiment 08：显存预算不是“模型文件大小 ≤ VRAM”</text>
+<text x="55" y="105" class="t">一张卡的可用 VRAM</text>
+<rect x="55" y="135" width="420" height="95" class="b1"/><text x="265" y="175" text-anchor="middle" class="t">Weights</text><text x="265" y="205" text-anchor="middle" class="s">exact artifact bytes / offload placement</text>
+<rect x="475" y="135" width="240" height="95" class="b2"/><text x="595" y="175" text-anchor="middle" class="t">KV cache</text><text x="595" y="205" text-anchor="middle" class="s">context × layers × KV heads</text>
+<rect x="715" y="135" width="180" height="95" class="b3"/><text x="805" y="175" text-anchor="middle" class="t">Runtime</text><text x="805" y="205" text-anchor="middle" class="s">buffers / graph</text>
+<rect x="895" y="135" width="250" height="95" class="b4"/><text x="1020" y="175" text-anchor="middle" class="t">Workspace + headroom</text><text x="1020" y="205" text-anchor="middle" class="s">temporary + fragmentation</text>
+<rect x="180" y="300" width="840" height="120" class="bad"/><text x="600" y="340" text-anchor="middle" class="t">Fit Gate</text><text x="600" y="375" text-anchor="middle" class="s">weights + KV + runtime + workspace + safety headroom ≤ available VRAM</text><text x="600" y="405" text-anchor="middle" class="s">边缘容量：用真实 artifact bytes 与实际 runtime telemetry，不用“参数量 × bit”直接宣布 PASS</text>
+</svg>
