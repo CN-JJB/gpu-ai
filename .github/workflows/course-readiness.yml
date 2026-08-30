@@ -27,7 +27,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Compile audit
-        run: python -m py_compile tools/course/audit_student_readiness.py
+      - name: Compile audits
+        run: python -m py_compile tools/course/audit_student_readiness.py tools/course/audit_visual_comprehension.py
       - name: Audit student course readiness
         run: python tools/course/audit_student_readiness.py
+      - name: Audit visual and comprehension closure
+        run: python tools/course/audit_visual_comprehension.py
