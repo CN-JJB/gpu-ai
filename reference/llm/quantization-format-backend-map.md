@@ -1,5 +1,11 @@
 # LLM Quantization / Format / Backend 速查
 
+<figure>
+  <img src="../../assets/diagrams/experiment-effective-bpw.svg" alt="LLM Quantization / Format / Backend 速查 的教学视觉索引：先建立关键结构、流程与约束关系，再使用本页表格、公式和 checklist。">
+  <figcaption>视觉索引：先用图建立 LLM Quantization / Format / Backend 速查 的核心关系，再把下面的表格、公式与检查项作为快速查阅层。</figcaption>
+</figure>
+
+
 ## 先拆四层
 
 ```text
