@@ -4,6 +4,11 @@
 风险：safe（软件）  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/release-rollback.svg" alt="Backend patch/fork 要保留 known-good 基线、精确 commit、测试 gate 与 rollback 路径；patch merged 或本地能编译都不自动等于可发布。">
+  <figcaption>Backend patch/fork 要保留 known-good 基线、精确 commit、测试 gate 与 rollback 路径；patch merged 或本地能编译都不自动等于可发布。</figcaption>
+</figure>
+
 ## 真实问题
 
 遇到：
