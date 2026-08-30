@@ -4,6 +4,11 @@
 
 风险：只读。
 
+<figure>
+  <img src="../../../assets/diagrams/amd-wave-cu-memory-lens.svg" alt="真实 AMD/ROCm inventory 要同时记录 wave、CU、VGPR/SGPR/LDS 语义和当前软件栈是否真正支持。">
+  <figcaption>真实 AMD/ROCm inventory 要同时记录 wave、CU、VGPR/SGPR/LDS 语义和当前软件栈是否真正支持。</figcaption>
+</figure>
+
 ## 目标
 
 把：
