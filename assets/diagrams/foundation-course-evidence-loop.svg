@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+<title id="title">课程学习与证据闭环</title>
+<desc id="desc">从定义问题、查可信来源、建立最小模型、实验、保存证据到有边界结论，再进入选择与修改。</desc>
+<style>
+  text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#182230}
+  .h{font-size:30px;font-weight:700}.t{font-size:21px;font-weight:650}.s{font-size:16px;fill:#52606d}
+  .box{fill:#f7f9fc;stroke:#8da2b8;stroke-width:2;rx:16}.e{fill:#eef8f1;stroke:#5a9a6b;stroke-width:2;rx:16}
+  .warn{fill:#fff7e8;stroke:#c9912c;stroke-width:2;rx:16}
+  .a{stroke:#55697d;stroke-width:3;fill:none;marker-end:url(#m)}
+</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#55697d"/></marker></defs>
+<text x="50" y="55" class="h">Foundation 00：不是“看完”，而是完成一轮可审计学习闭环</text>
+<rect x="50" y="105" width="190" height="105" class="box"/><text x="145" y="145" text-anchor="middle" class="t">定义问题</text><text x="145" y="176" text-anchor="middle" class="s">我要判断什么？</text>
+<rect x="285" y="105" width="190" height="105" class="box"/><text x="380" y="145" text-anchor="middle" class="t">找可信资料</text><text x="380" y="176" text-anchor="middle" class="s">source class 对吗？</text>
+<rect x="520" y="105" width="190" height="105" class="box"/><text x="615" y="145" text-anchor="middle" class="t">最小模型</text><text x="615" y="176" text-anchor="middle" class="s">先解释关键因果</text>
+<rect x="755" y="105" width="190" height="105" class="box"/><text x="850" y="145" text-anchor="middle" class="t">实验 / L0</text><text x="850" y="176" text-anchor="middle" class="s">只测能区分假设的东西</text>
+<rect x="990" y="105" width="160" height="105" class="e"/><text x="1070" y="145" text-anchor="middle" class="t">保存 Evidence</text><text x="1070" y="176" text-anchor="middle" class="s">identity + raw</text>
+<path d="M240 158 H278" class="a"/><path d="M475 158 H513" class="a"/><path d="M710 158 H748" class="a"/><path d="M945 158 H983" class="a"/>
+<rect x="310" y="295" width="260" height="120" class="e"/><text x="440" y="338" text-anchor="middle" class="t">有边界的结论</text><text x="440" y="370" text-anchor="middle" class="s">写清“能证明 / 不能证明”</text>
+<rect x="630" y="295" width="260" height="120" class="warn"/><text x="760" y="338" text-anchor="middle" class="t">Choose / Modify</text><text x="760" y="370" text-anchor="middle" class="s">证据够了才买、改、升级</text>
+<path d="M1070 210 V250 H440 V288" class="a"/><path d="M570 355 H623" class="a"/>
+<path d="M760 415 V470 H145 V217" class="a"/>
+<text x="790" y="468" class="s">新问题出现 → 再跑一轮，而不是背答案</text>
+</svg>
