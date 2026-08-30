@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/model-dossier.svg" alt="Model dossier 把结构、tokenizer、context/KV、precision 与 runtime 要求放进同一份身份记录，方便后续容量和兼容判断。">
+  <figcaption>Model dossier 把结构、tokenizer、context/KV、precision 与 runtime 要求放进同一份身份记录，方便后续容量和兼容判断。</figcaption>
+</figure>
+
 ## Goal
 
 Test the dossier formulas on two synthetic configs:
