@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/market-observation-cohort.svg" alt="候选 watchlist 应观察同一 cohort 随时间的价格与供给变化，而不是被单个异常 listing 牵着走。">
+  <figcaption>候选 watchlist 应观察同一 cohort 随时间的价格与供给变化，而不是被单个异常 listing 牵着走。</figcaption>
+</figure>
+
 ## Goal
 
 Maintain a manual, auditable watchlist for actual used-hardware candidates.
