@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/graduation-design-review.svg" alt="Graduation Design Review 把需求、hard gates、Evidence、TCO、风险、rollback 与未知项集中到同一套人工审查流程。">
+  <figcaption>Graduation Design Review 把需求、hard gates、Evidence、TCO、风险、rollback 与未知项集中到同一套人工审查流程。</figcaption>
+</figure>
+
 ## Goal
 
 Verify that a final machine-design conclusion is consistent with:
