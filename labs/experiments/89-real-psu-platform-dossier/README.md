@@ -2,6 +2,11 @@
 
 硬件等级：L2/L3（整机外部检查；可选消费级插座功率计）。
 
+<figure>
+  <img src="../../../assets/diagrams/psu-power-delivery-path.svg" alt="真实 PSU/platform dossier 要记录额定能力、接口/线材拓扑、GPU/主板要求与安全余量，而不是只写一个 W 数字。">
+  <figcaption>真实 PSU/platform dossier 要记录额定能力、接口/线材拓扑、GPU/主板要求与安全余量，而不是只写一个 W 数字。</figcaption>
+</figure>
+
 ## Safety boundary
 
 This lab does **not**:
