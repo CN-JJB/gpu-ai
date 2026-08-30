@@ -4,6 +4,12 @@
 风险：safe  
 成本：0
 
+
+<figure>
+  <img src="../../assets/diagrams/foundation-units-roof-estimation.svg" alt="单位、估算与实测：量纲守恒把带宽与每 token 搬运量转换成 token/s 上界，并区分数量级估算、工程估算和实测。">
+  <figcaption>单位、估算与实测：量纲守恒把带宽与每 token 搬运量转换成 token/s 上界，并区分数量级估算、工程估算和实测。</figcaption>
+</figure>
+
 ## 1. 这门课最常用的数学
 
 主要是：
