@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/serving-slo-timeline.svg" alt="Serving trace 要把 queue、prefill、decode 与请求完成放在时间线上看；平均延迟不能代替 p95/p99 尾延迟。">
+  <figcaption>Serving trace 要把 queue、prefill、decode 与请求完成放在时间线上看；平均延迟不能代替 p95/p99 尾延迟。</figcaption>
+</figure>
+
 ## Goal
 
 Learn to compute:
