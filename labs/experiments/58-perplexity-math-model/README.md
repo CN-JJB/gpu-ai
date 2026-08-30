@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-perplexity-comparison.svg" alt="PPL 是平均 cross-entropy 的指数；只有 tokenizer、corpus 与 protocol 相同，数值才适合直接比较。">
+  <figcaption>PPL 是平均 cross-entropy 的指数；只有 tokenizer、corpus 与 protocol 相同，数值才适合直接比较。</figcaption>
+</figure>
+
 ## Goal
 
 Compute quality metrics from correct-next-token probabilities without ML libraries.
