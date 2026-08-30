@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/system-integration-hard-gates.svg" alt="整机可行性要同时过尺寸、插槽/通道、供电、散热、内存、存储与软件兼容等 hard gates；单卡合适不等于整机可装。">
+  <figcaption>整机可行性要同时过尺寸、插槽/通道、供电、散热、内存、存储与软件兼容等 hard gates；单卡合适不等于整机可装。</figcaption>
+</figure>
+
 ## Goal
 
 Validate the distinction between:
