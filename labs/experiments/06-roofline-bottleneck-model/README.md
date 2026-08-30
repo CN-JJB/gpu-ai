@@ -6,6 +6,11 @@ Cost: 0
 需要：Python 3  
 替代路径：手算公式也可以。
 
+<figure>
+  <img src="../../../assets/diagrams/foundation-units-roof-estimation.svg" alt="Roofline 实验先守住量纲：带宽除以每单位工作搬运的数据得到的是上界，不是保证值。">
+  <figcaption>Roofline 实验先守住量纲：带宽除以每单位工作搬运的数据得到的是上界，不是保证值。</figcaption>
+</figure>
+
 ## 问题
 
 我们造三张完全抽象的 GPU：
