@@ -4,6 +4,11 @@
 风险：safe（软件）  
 成本：L0 为 0；训练只用已有硬件
 
+<figure>
+  <img src="../../../assets/diagrams/challenge-lora-adapter-flow.svg" alt="LoRA/QLoRA 用冻结 base 加低秩 adapter 学习增量；QLoRA 还把 base 以量化形式驻留，评估时要固定 base、adapter 与协议身份。">
+  <figcaption>LoRA/QLoRA 用冻结 base 加低秩 adapter 学习增量；QLoRA 还把 base 以量化形式驻留，评估时要固定 base、adapter 与协议身份。</figcaption>
+</figure>
+
 ## 真实问题
 
 你有一个基础模型，希望它更稳定输出某格式、学习某种风格/任务行为、适配小领域指令。
