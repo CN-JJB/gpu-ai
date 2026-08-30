@@ -4,6 +4,11 @@
 风险：safe；注意私有文档泄漏  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/challenge-rag-evidence-pipeline.svg" alt="Local RAG 要把检索质量和生成忠实度拆开评估，并保存 source/chunk/index/prompt identity，避免回答看起来正确却无法追溯。">
+  <figcaption>Local RAG 要把检索质量和生成忠实度拆开评估，并保存 source/chunk/index/prompt identity，避免回答看起来正确却无法追溯。</figcaption>
+</figure>
+
 ## Goal
 
 建立本地 RAG 的完整数据链：
