@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3。
 
+<figure>
+  <img src="../../../assets/diagrams/overload-retry.svg" alt="真实 overload observation 要区分原始负载与 retry amplification，并记录何时开始拒绝、排队和恢复。">
+  <figcaption>真实 overload observation 要区分原始负载与 retry amplification，并记录何时开始拒绝、排队和恢复。</figcaption>
+</figure>
+
 ## Safety / scope
 
 Run only against:
