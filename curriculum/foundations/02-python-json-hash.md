@@ -20,6 +20,12 @@
 
 因为名字容易相同，文件内容可以不同。
 
+
+<figure>
+  <img src="../../assets/diagrams/foundation-json-hash-evidence-layers.svg" alt="Evidence 三层：JSON/manifest 描述语义，path+bytes+SHA256 绑定 artifact identity，stdout/stderr/return code 记录真实执行。">
+  <figcaption>Evidence 三层：JSON/manifest 描述语义，path+bytes+SHA256 绑定 artifact identity，stdout/stderr/return code 记录真实执行。</figcaption>
+</figure>
+
 ## 1. 运行 Python 脚本
 
 ~~~bash
