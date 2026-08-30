@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/moe-routing.svg" alt="MoE 每个 token 只激活部分 expert，但总权重仍要考虑驻留/搬运；active params 与 total params 不能混为一谈。">
+  <figcaption>MoE 每个 token 只激活部分 expert，但总权重仍要考虑驻留/搬运；active params 与 total params 不能混为一谈。</figcaption>
+</figure>
+
 ## Goal
 
 Separate four quantities:
