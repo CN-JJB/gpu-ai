@@ -3,6 +3,12 @@
 硬件等级：L0  
 成本：0
 
+
+<figure>
+  <img src="../../assets/diagrams/foundation-safety-escalation-gates.svg" alt="实验风险升级与 Stop Gate：从只读检查逐步到高风险挑战；风险越高，证据与止损条件越严格。">
+  <figcaption>实验风险升级与 Stop Gate：从只读检查逐步到高风险挑战；风险越高，证据与止损条件越严格。</figcaption>
+</figure>
+
 ## 1. 课程默认安全边界
 
 主线默认只做：
