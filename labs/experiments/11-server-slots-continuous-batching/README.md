@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0  
 需要：Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-continuous-batching-timeline.svg" alt="Continuous batching 要看请求完成后 slot 如何释放并被新请求接替；吞吐提升必须和排队、TTFT、TG、tail latency 一起读。">
+  <figcaption>Continuous batching 要看请求完成后 slot 如何释放并被新请求接替；吞吐提升必须和排队、TTFT、TG、tail latency 一起读。</figcaption>
+</figure>
+
 ## 问题
 
 为什么 server slots 增加时：
