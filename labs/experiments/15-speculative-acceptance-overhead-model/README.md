@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0  
 需要：Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-speculative-acceptance-flow.svg" alt="Speculative decoding 的收益来自 accepted tokens/cycle，同时要扣掉 draft 与 target verification 的额外成本。">
+  <figcaption>Speculative decoding 的收益来自 accepted tokens/cycle，同时要扣掉 draft 与 target verification 的额外成本。</figcaption>
+</figure>
+
 ## 问题
 
 为什么：
