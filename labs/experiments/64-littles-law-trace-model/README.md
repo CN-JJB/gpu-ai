@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/serving-capacity-littles-law.svg" alt="Little's Law 用 L = λW 把在途请求、到达率与平均停留时间联系起来；它是容量一致性检查，不是延迟承诺。">
+  <figcaption>Little's Law 用 L = λW 把在途请求、到达率与平均停留时间联系起来；它是容量一致性检查，不是延迟承诺。</figcaption>
+</figure>
+
 ## Goal
 
 Verify three consistent boundaries:
