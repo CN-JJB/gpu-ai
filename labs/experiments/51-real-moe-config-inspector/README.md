@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/moe-routing.svg" alt="真实 MoE config 要同时记录 expert 数、top-k、shared expert 与路由规则，才能解释 active compute 与内存驻留。">
+  <figcaption>真实 MoE config 要同时记录 expert 数、top-k、shared expert 与路由规则，才能解释 active compute 与内存驻留。</figcaption>
+</figure>
+
 ## Goal
 
 Inspect a real Hugging Face-style MoE config and separate:
