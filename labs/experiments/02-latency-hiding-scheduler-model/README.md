@@ -6,6 +6,11 @@ Cost: 0
 需要：Python 3  
 替代路径：没有 Python 时，可直接手算前 30 cycles 的 1-group 与 4-group 情况。
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-latency-hiding-scheduler.svg" alt="Latency hiding 调度：某个 warp 等待时，调度器只能用其他 ready work 填空；所有 warp 都 stall 时仍会 idle。">
+  <figcaption>Latency hiding 调度：某个 warp 等待时，调度器只能用其他 ready work 填空；所有 warp 都 stall 时仍会 idle。</figcaption>
+</figure>
+
 ## 问题
 
 假设一个极简 GPU scheduler：
