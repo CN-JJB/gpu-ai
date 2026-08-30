@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3，取决于 server/model。
 
+<figure>
+  <img src="../../../assets/diagrams/serving-slo-timeline.svg" alt="真实服务 trace 要逐请求保存到达、排队、TTFT、decode 与完成时间，才能定位尾延迟来自哪里。">
+  <figcaption>真实服务 trace 要逐请求保存到达、排队、TTFT、decode 与完成时间，才能定位尾延迟来自哪里。</figcaption>
+</figure>
+
 ## Goal
 
 Capture client-observed serving latency together with pinned/current server metrics.
