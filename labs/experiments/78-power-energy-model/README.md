@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/power-energy-token.svg" alt="功耗与能效要分开看：W 是瞬时功率，J/token 把功率与完成单位工作所需时间结合起来。">
+  <figcaption>功耗与能效要分开看：W 是瞬时功率，J/token 把功率与完成单位工作所需时间结合起来。</figcaption>
+</figure>
+
 ## Goal
 
 Compute:
