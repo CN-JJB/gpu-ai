@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2/L3，复用前面实验。
 
+<figure>
+  <img src="../../../assets/diagrams/release-rollback.svg" alt="真实 release/rollback 要提前固定触发条件、旧版本身份与恢复步骤，避免出问题后临时决定怎么退。">
+  <figcaption>真实 release/rollback 要提前固定触发条件、旧版本身份与恢复步骤，避免出问题后临时决定怎么退。</figcaption>
+</figure>
+
 ## Goal
 
 Turn existing Evidence into one release decision.
