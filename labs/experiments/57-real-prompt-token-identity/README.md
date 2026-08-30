@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-prompt-token-identity.svg" alt="真实 prompt identity 实验要保存 template、tokenizer、special tokens 与 exact token IDs，才能让 benchmark 输入可复查。">
+  <figcaption>真实 prompt identity 实验要保存 template、tokenizer、special tokens 与 exact token IDs，才能让 benchmark 输入可复查。</figcaption>
+</figure>
+
 ## Goal
 
 For one actual local model/tokenizer, save the exact prompt identity used by a chat workload.
