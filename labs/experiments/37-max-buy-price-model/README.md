@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/hardware-decision-gates.svg" alt="最大买入价不是“性能分数换算”，而是在硬门槛通过后把风险、替代方案、TCO 和机会成本一起纳入。">
+  <figcaption>最大买入价不是“性能分数换算”，而是在硬门槛通过后把风险、替代方案、TCO 和机会成本一起纳入。</figcaption>
+</figure>
+
 ## 默认 synthetic scenario
 
 ```
