@@ -7,6 +7,11 @@ Cost: 已有独显时为 0
 支持：NVIDIA CUDA / AMD HIP  
 替代路径：没有可用独显时完成 Experiment 04 L0，不影响课程继续。
 
+<figure>
+  <img src="../../../assets/diagrams/gpu-memory-hierarchy-reuse.svg" alt="Naive 与 tiled GEMM 的主要差别应先从数据复用和 bytes moved 解释，再看最终时间。">
+  <figcaption>Naive 与 tiled GEMM 的主要差别应先从数据复用和 bytes moved 解释，再看最终时间。</figcaption>
+</figure>
+
 ## 问题
 
 同一个 FP32 GEMM：
