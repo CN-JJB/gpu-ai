@@ -4,6 +4,11 @@
 风险：high（真实板修）  
 成本：L0 为 0
 
+<figure>
+  <img src="../../../assets/diagrams/foundation-safety-escalation-gates.svg" alt="板级/显存维修理论属于高风险 Challenge；主线只要求理解风险升级、Evidence 与 Stop Gate，不要求带电维修、改焊或绕过保护。">
+  <figcaption>板级/显存维修理论属于高风险 Challenge；主线只要求理解风险升级、Evidence 与 Stop Gate，不要求带电维修、改焊或绕过保护。</figcaption>
+</figure>
+
 ## 安全边界
 
 这门课可以教你：
