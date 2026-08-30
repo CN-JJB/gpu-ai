@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-hybrid-kv-window.svg" alt="真实 attention/KV architecture 要先辨认 full、sliding 或 hybrid 模式，再按真实 KV heads、window 与 context 估算。">
+  <figcaption>真实 attention/KV architecture 要先辨认 full、sliding 或 hybrid 模式，再按真实 KV heads、window 与 context 估算。</figcaption>
+</figure>
+
 ## Goal
 
 Inspect a real `config.json` for evidence that the homogeneous full-attention KV formula may be incomplete.
