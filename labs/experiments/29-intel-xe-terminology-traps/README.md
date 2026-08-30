@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/intel-xe-name-hierarchy.svg" alt="Intel Xe 相关名称要区分产品、微架构、执行单元层级与软件 backend，避免把营销名当执行模型。">
+  <figcaption>Intel Xe 相关名称要区分产品、微架构、执行单元层级与软件 backend，避免把营销名当执行模型。</figcaption>
+</figure>
+
 ## 目标
 
 检查是否分清：
