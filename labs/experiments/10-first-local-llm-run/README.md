@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0（已有机器；需要模型下载与磁盘空间）  
 平台：Linux / macOS；Windows 可按 upstream build/runtime 文档迁移
 
+<figure>
+  <img src="../../../assets/diagrams/local-inference-evidence-chain.svg" alt="第一次本地推理要把 model identity、runtime/config、raw output 与观察结论串成一条可复查 Evidence 链。">
+  <figcaption>第一次本地推理要把 model identity、runtime/config、raw output 与观察结论串成一条可复查 Evidence 链。</figcaption>
+</figure>
+
 ## 目标
 
 不是“让模型说句话”。
