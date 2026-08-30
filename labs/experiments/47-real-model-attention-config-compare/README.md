@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/mha-gqa-mqa.svg" alt="真实 attention config 比较要从 query heads 与 KV heads 的关系解释容量差异，而不是只比较模型参数量。">
+  <figcaption>真实 attention config 比较要从 query heads 与 KV heads 的关系解释容量差异，而不是只比较模型参数量。</figcaption>
+</figure>
+
 ## Goal
 
 Compare real downloaded Hugging Face-style `config.json` files by:
