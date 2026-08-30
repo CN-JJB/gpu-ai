@@ -2,6 +2,11 @@
 
 硬件等级：L1/L2
 
+<figure>
+  <img src="../../../assets/diagrams/vendor-evidence-chain.svg" alt="Vendor capstone preflight 把厂商 capability、runtime support、应用路径与 learner-owned measurement 分开验证，防止把其中一层冒充完整结论。">
+  <figcaption>Vendor capstone preflight 把厂商 capability、runtime support、应用路径与 learner-owned measurement 分开验证，防止把其中一层冒充完整结论。</figcaption>
+</figure>
+
 ## Goal
 
 Before Experiment 40, prove the selected vendor path is ready.
