@@ -2,6 +2,11 @@
 
 硬件等级：L1–L3，取决于设计。
 
+<figure>
+  <img src="../../../assets/diagrams/system-integration-hard-gates.svg" alt="真实 machine dossier 把硬件物理约束、供电/散热、软件支持与预算放在同一套 hard gates 中审查。">
+  <figcaption>真实 machine dossier 把硬件物理约束、供电/散热、软件支持与预算放在同一套 hard gates 中审查。</figcaption>
+</figure>
+
 ## Goal
 
 Join prior course Evidence into one auditable machine feasibility decision.
