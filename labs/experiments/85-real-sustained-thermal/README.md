@@ -2,6 +2,11 @@
 
 硬件等级：L2。
 
+<figure>
+  <img src="../../../assets/diagrams/thermal-sustained.svg" alt="真实 sustained thermal 实验要看温度、clock、power 与 tok/s 随时间是否稳定，而不是只截取刚开始的峰值。">
+  <figcaption>真实 sustained thermal 实验要看温度、clock、power 与 tok/s 随时间是否稳定，而不是只截取刚开始的峰值。</figcaption>
+</figure>
+
 ## Goal
 
 Measure:
