@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+<title id="title">Latency hiding scheduler experiment</title><desc id="desc">Two warp groups alternate between ready and stalled states so the scheduler can issue from another ready group; when all are stalled the execution unit idles.</desc>
+<style>text{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;fill:#18222c}.h{font-size:30px;font-weight:700}.t{font-size:18px;font-weight:700}.s{font-size:14px;fill:#52606d}.ready{fill:#eef8f1;stroke:#5d966c;stroke-width:2;rx:12}.stall{fill:#fff3ee;stroke:#b96b55;stroke-width:2;rx:12}.idle{fill:#f4f5f7;stroke:#8a96a3;stroke-width:2;rx:12}.a{stroke:#617181;stroke-width:2.5;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0 L9 3 L0 6 Z" fill="#617181"/></marker></defs>
+<text x="45" y="52" class="h">Experiment 02–03：Latency hiding 不是“消灭延迟”，而是用别的 ready work 填空</text>
+<text x="55" y="100" class="t">时间 →</text>
+<text x="55" y="155" class="t">Warp A</text>
+<rect x="160" y="125" width="180" height="55" class="ready"/><text x="250" y="158" text-anchor="middle" class="s">READY / issue</text>
+<rect x="355" y="125" width="260" height="55" class="stall"/><text x="485" y="158" text-anchor="middle" class="s">memory wait / STALL</text>
+<rect x="630" y="125" width="190" height="55" class="ready"/><text x="725" y="158" text-anchor="middle" class="s">READY again</text>
+<text x="55" y="250" class="t">Warp B</text>
+<rect x="160" y="220" width="150" height="55" class="stall"/><text x="235" y="253" text-anchor="middle" class="s">STALL</text>
+<rect x="325" y="220" width="260" height="55" class="ready"/><text x="455" y="253" text-anchor="middle" class="s">READY / can issue</text>
+<rect x="600" y="220" width="220" height="55" class="stall"/><text x="710" y="253" text-anchor="middle" class="s">STALL</text>
+<text x="55" y="350" class="t">Scheduler</text>
+<rect x="160" y="315" width="180" height="58" class="ready"/><text x="250" y="349" text-anchor="middle" class="s">issue A</text>
+<rect x="355" y="315" width="230" height="58" class="ready"/><text x="470" y="349" text-anchor="middle" class="s">switch → issue B</text>
+<rect x="600" y="315" width="220" height="58" class="idle"/><text x="710" y="349" text-anchor="middle" class="s">all stalled → idle</text>
+<path d="M250 180 V308" class="a"/><path d="M455 275 V308" class="a"/>
+<rect x="865" y="125" width="285" height="248" class="idle"/><text x="1007" y="165" text-anchor="middle" class="t">实验要观察什么？</text>
+<text x="895" y="205" class="s">1. resident work 增加时 idle 是否下降</text><text x="895" y="240" class="s">2. 是否因 register/shared memory 受限</text><text x="895" y="275" class="s">3. all-stalled 区间是否仍存在</text><text x="895" y="310" class="s">4. 不把 occupancy 当性能保证</text><text x="895" y="345" class="s">5. 真实 GPU 结果还需 telemetry</text>
+</svg>
