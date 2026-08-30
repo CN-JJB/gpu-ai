@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/model-dossier.svg" alt="真实 model architecture dossier 要绑定 exact config/model artifact 与来源，避免仅凭营销名称推断结构。">
+  <figcaption>真实 model architecture dossier 要绑定 exact config/model artifact 与来源，避免仅凭营销名称推断结构。</figcaption>
+</figure>
+
 ## Goal
 
 Create a reusable model-side dossier for an actual model you may deploy.
