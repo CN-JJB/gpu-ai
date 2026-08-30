@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/service-exposure.svg" alt="服务暴露面从 bind address、网络边界、认证到访问路径逐层扩大；配置 linter 的目标是阻止无意的公网/局域网暴露。">
+  <figcaption>服务暴露面从 bind address、网络边界、认证到访问路径逐层扩大；配置 linter 的目标是阻止无意的公网/局域网暴露。</figcaption>
+</figure>
+
 ## Goal
 
 Compare two synthetic service configurations.
