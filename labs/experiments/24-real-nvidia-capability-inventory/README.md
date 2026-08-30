@@ -4,6 +4,11 @@
 
 风险：只读。
 
+<figure>
+  <img src="../../../assets/diagrams/nvidia-sm-execution-lens.svg" alt="真实 NVIDIA capability inventory 要把 SM 执行模型、数据路径与 runtime 暴露出的能力对应起来。">
+  <figcaption>真实 NVIDIA capability inventory 要把 SM 执行模型、数据路径与 runtime 暴露出的能力对应起来。</figcaption>
+</figure>
+
 ## 目标
 
 把“我这张卡是什么架构”从型号印象变成 Evidence：
