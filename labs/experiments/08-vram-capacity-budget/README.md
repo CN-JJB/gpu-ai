@@ -5,6 +5,11 @@ Risk: safe
 Cost: 0  
 需要：Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/experiment-vram-budget-breakdown.svg" alt="VRAM Fit Gate：weights、KV、runtime buffer、workspace 与安全余量必须一起装下，不能只看模型文件大小。">
+  <figcaption>VRAM Fit Gate：weights、KV、runtime buffer、workspace 与安全余量必须一起装下，不能只看模型文件大小。</figcaption>
+</figure>
+
 ## 问题
 
 一张 GPU 能否运行某个本地 LLM，不应该只看 checkpoint 文件大小。
