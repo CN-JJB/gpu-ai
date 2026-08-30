@@ -329,3 +329,36 @@ The CI line above is an observability/tooling boundary, not an unresolved course
 6. Treat future textbook edits as post-freeze maintenance and re-run affected readiness/link/visual-closure checks.
 
 No fake benchmark results, no auto-purchase, no unsafe hardware modification.
+
+
+## Whole-course visual closure update — 2026-08-29
+
+The earlier 62-Lesson visual closure has been extended to the entire core teaching surface:
+
+~~~text
+62 Lessons
++ 6 Foundations
++ 93 Experiments
++ 12 Challenges
++ 50 Topic References
+= 223 / 223 core teaching surfaces with local visual or interactive teaching support
+~~~
+
+The 50 topic Reference documents were upgraded with visual-index figures that reuse the established first-party course diagrams. This keeps architecture, dataflow, state, evidence, market, serving, and system decision vocabulary consistent across Lesson → Experiment → Reference.
+
+Auxiliary scope now audits 161 / 161 pages with 161 local teaching visual references. Combined with the Lesson layer, the known static teaching-image reference count is 216; Lesson interactive coverage remains 13 pages / 12 local scripts.
+
+Permanent guards:
+- `tools/course/audit_visual_comprehension.py`
+- `tools/course/audit_auxiliary_visual_comprehension.py`
+- `.github/workflows/course-readiness.yml`
+
+Whole-course visual closure audited content head:
+
+~~~text
+698b2a92061557369061cec49f7ef1392289eb31
+~~~
+
+Connector workflow lookup returned no GitHub Actions runs for that exact head, so exact-head CI PASS remains **NOT OBSERVED**. Do not infer failure from missing observability.
+
+Next learner work remains Foundation 00 → Lesson 01. Do not reopen the completed visual-authoring pass unless a concrete learner-facing defect appears.

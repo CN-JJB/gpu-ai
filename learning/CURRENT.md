@@ -313,3 +313,47 @@ The complete suite passed through I54, including raw semantic-source capture, th
 5. Any future textbook edits after this checkpoint must be treated as post-freeze maintenance and should re-run the affected readiness/link checks.
 
 No fake benchmark results, no auto-purchase, and no unsafe hardware modification.
+
+
+## Whole-course visual/comprehension closure — COMPLETE (2026-08-29)
+
+The closure now covers the complete core teaching surface, not only Lesson HTML:
+
+~~~text
+Lesson HTML              62 / 62
+Foundation Markdown       6 / 6
+Experiment README        93 / 93
+Challenge README         12 / 12
+Topic Reference          50 / 50
+--------------------------------
+core teaching surfaces  223 / 223
+~~~
+
+Auxiliary visual audit scope:
+
+~~~text
+Foundation + Experiment + Challenge + Reference = 161 / 161
+local auxiliary visual refs = 161
+errors = 0 by connector-side corpus review / deterministic reference insertion
+~~~
+
+Combined known visual inventory:
+
+~~~text
+local static teaching-image refs = 216
+interactive Lesson pages = 13
+local interactive script refs = 12
+~~~
+
+Reference pages now use the same first-party SVG vocabulary as Lessons/Experiments instead of becoming a separate text-only layer.
+
+Permanent guards:
+- `tools/course/audit_visual_comprehension.py` — 62 Lesson HTML pages
+- `tools/course/audit_auxiliary_visual_comprehension.py` — 161 Foundation/Experiment/Challenge/Reference pages
+- `.github/workflows/course-readiness.yml` runs both
+
+Audited content head: `698b2a92061557369061cec49f7ef1392289eb31`.
+
+GitHub Actions exact-head Course Readiness PASS is **NOT OBSERVED** through the connector because no workflow run was returned for this exact head. This is an observability boundary, not a pass/fail inference.
+
+Do not add decorative images merely to increase counts. Future visuals should only be added when they clarify a distinct causal, spatial, temporal, quantitative, diagnostic, or decision mechanism.
