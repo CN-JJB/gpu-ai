@@ -4,6 +4,11 @@ Hardware level: L0
 Risk: safe  
 需要：Python 3
 
+<figure>
+  <img src="../../../assets/diagrams/gpu-evolution-causal-timeline.svg" alt="从固定功能到统一执行资源：这个实验只聚焦“固定分区为什么会浪费、统一池为什么能减少结构性闲置”。">
+  <figcaption>从固定功能到统一执行资源：这个实验只聚焦“固定分区为什么会浪费、统一池为什么能减少结构性闲置”。</figcaption>
+</figure>
+
 ## 问题
 
 假设一块抽象 GPU 有 128 个执行单元，其中 64 个只能做 Vertex，64 个只能做 Pixel。
