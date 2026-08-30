@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/market-observation-cohort.svg" alt="二手市场观察要把同型号但不同成色、版本、附件、保修与时间窗口归一到可比较 cohort。">
+  <figcaption>二手市场观察要把同型号但不同成色、版本、附件、保修与时间窗口归一到可比较 cohort。</figcaption>
+</figure>
+
 ## 问题
 
 搜索“3090”得到 10 个价格：
