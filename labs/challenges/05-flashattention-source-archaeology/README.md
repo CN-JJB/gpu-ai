@@ -4,6 +4,11 @@
 风险：safe  
 成本：0
 
+<figure>
+  <img src="../../../assets/diagrams/attention-io-naive-vs-tiled.svg" alt="FlashAttention 源码考古先抓住核心 I/O 机制：通过 tiled/online 计算减少中间矩阵往返外部内存，再映射到具体实现。">
+  <figcaption>FlashAttention 源码考古先抓住核心 I/O 机制：通过 tiled/online 计算减少中间矩阵往返外部内存，再映射到具体实现。</figcaption>
+</figure>
+
 ## Goal
 
 你已经在 Slice 12 理解：
