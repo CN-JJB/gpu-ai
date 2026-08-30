@@ -2,6 +2,11 @@
 
 硬件等级：L0
 
+<figure>
+  <img src="../../../assets/diagrams/mha-gqa-mqa.svg" alt="MHA/GQA/MQA 的主要结构差异落在 KV head 共享方式，直接影响 KV cache 容量与带宽。">
+  <figcaption>MHA/GQA/MQA 的主要结构差异落在 KV head 共享方式，直接影响 KV cache 容量与带宽。</figcaption>
+</figure>
+
 ## Default model
 
 ```
